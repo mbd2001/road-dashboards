@@ -57,6 +57,15 @@ requirements:
     - loguru
     - orjson
     - typing_extensions >=3.7.4
+    - pycountry
+    - dash-bootstrap-components
+    - dash-daq
+    - numpy
+    - pandas
+    - boto3
+    - tqdm
+    - fsspec
+    - s3fs
 
   mx_build_deps:
     - boa

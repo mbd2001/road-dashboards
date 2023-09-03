@@ -471,6 +471,9 @@ tasks:
           META_DEPS_FILE: "{{.META_DEPS_FILE}}"
           BUILD_INFO_DEPS_FILE: "{{.BUILD_INFO_DEPS_FILE}}"
           TARGET_VENV: "{{.TARGET_VENV}}"
+      - task: package:install:pip-deps
+        vars:
+          TARGET_VENV: "{{.TARGET_VENV}}"
     prefix: "{{.TASK}}:{{.TARGET_VENV}}"
 
   venv:update:from-file:build:
@@ -650,3 +653,10 @@ tasks:
       - mamba search -c {{.LOCAL_CONDA_BUILD_DIR}} --override-channels --info
     silent: true
     prefix: "."
+
+  package:install:pip-deps:
+    desc: install pip packages required for test
+    args:
+      TARGET_VENV: target venv
+    cmds:
+      - mamba run -n {{.TARGET_VENV}} pip install "dash[diskcache]"
