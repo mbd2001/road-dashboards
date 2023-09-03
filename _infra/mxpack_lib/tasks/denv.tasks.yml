@@ -1,0 +1,22 @@
+version: "3"
+
+vars:
+  GREETING: Version
+
+expected_vars:
+  DENV_EXE: path to denv.sh
+  DIMAGE: Image To run
+
+
+tasks:
+
+  dev:
+    desc: enter iteractive session in dev docker
+    cmds:
+      - |
+        DIMAGE={{.DIMAGE}} {{.DENV_EXE}} bash
+
+  pull:
+    desc: update dev docker
+    cmds:
+      - docker pull {{.DIMAGE}}

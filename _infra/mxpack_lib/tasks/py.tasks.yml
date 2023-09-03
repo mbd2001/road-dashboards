@@ -1,0 +1,42 @@
+# https://taskfile.dev
+
+version: "3"
+
+tasks:
+  fmt:
+    desc: run code auto format
+    cmds:
+      - yapf -ir .
+
+  check:
+    desc: check code
+    cmds:
+      - pylint .
+
+  jupyter:
+    desc: run jupyter server
+    cmds:
+      - jupyter-lab --no-browser --ip='*' --NotebookApp.token='' --NotebookApp.password=''
+
+  _remove:
+    desc: remove patterns
+    cmds:
+      - find . -path './.*' -prune -o -name '{{.pattern}}' -type {{.type}}  -print | xargs -n 1 -P4 rm -rf
+    prefix: "{{._remove}}:{{.pattern}}"
+
+  clean:
+    desc: clean python files
+    deps:
+      - task: _remove
+        vars: { remove: "*.pyc", type: f }
+      - task: _remove
+        vars: { remove: "*.pyo", type: f }
+      - task: _remove
+        vars: { remove: ".pytest_cache", type: d }
+      - task: _remove
+        vars: { remove: ".__pycache__", type: d }
+    cmds:
+      - |
+        echo "[denv] @@[.level=info \
+        .vars=@[.action=done.{{.TASK}} .status=success]@ \
+        .msg='@{.action} to @{.target} with docker image @{.dimage}' ]@@"

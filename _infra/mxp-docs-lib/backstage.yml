@@ -1,0 +1,69 @@
+version: "3"
+
+tasks:
+  docker:
+    env:
+      DIMAGE: artifactory.sddc.mobileye.com/angie-docker-dev/techdocs:latest
+    cmds:
+      - "DOCKER_ARGS='-p 3000:3000' {{.DENV_EXE}} task {{.TASK}}"
+
+  install-deps:
+    cmds:
+      - sudo npm install -g @techdocs/cli
+      - task: install-pypi-deps
+
+  install-pypi-deps:
+    cmds:
+      - pip install -q -r _infra/mxp-docs-lib/requirements.txt
+
+  build:
+    cmds:
+      - task: docker
+        vars:
+          TASK: mkdocs:_build
+
+  _build:
+    deps:
+      - task: install-deps
+    cmds:
+      - techdocs-cli generate --no-docker -v
+
+  serve:
+    cmds:
+      - task: docker
+        vars:
+          TASK: mkdocs:_serve:mkdocs
+
+  _serve:mkdocs:
+    cmds:
+      - mkdocs serve -a 0.0.0.0:3000
+
+  serve:backstage:
+    cmds:
+      - task: docker
+        vars:
+          TASK: mkdocs:_serve
+
+  _serve:
+    cmds:
+      - techdocs-cli serve --no-docker -v
+
+  publish:
+    cmds:
+      - task: docker
+        vars:
+          TASK: mkdocs:_publish
+
+  _publish:
+    deps:
+      - task: install-deps
+    vars:
+      TECHDOCS_BUCKET: "mobileye-team-angie"
+      NAMESPACE:
+        sh: yq4 '.metadata.namespace | downcase' catalog-info.yaml
+      KIND:
+        sh: yq4 '.kind | downcase' catalog-info.yaml
+      NAME:
+        sh: yq4 '.metadata.name | downcase' catalog-info.yaml
+    cmds:
+      - "techdocs-cli publish --publisher-type awsS3 --storage-name {{.TECHDOCS_BUCKET}} --entity {{.NAMESPACE}}/{{.KIND}}/{{.NAME}}"

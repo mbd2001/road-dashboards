@@ -1,0 +1,63 @@
+site_name: road-eval-dashboard docs
+# @info.todo: fill your gitlab repo URL + Name
+repo_url: http://gitlab.mobileye.com/road_algo/road-eval-dashboard
+repo_name: road_algo/road-eval-dashboard
+edit_uri: edit/master/docs/
+
+plugins:
+  - search
+  - mermaid2
+  - mkdocstrings
+  - autorefs
+  - techdocs-core
+
+markdown_extensions:
+  - meta
+  - footnotes
+  - admonition
+  - attr_list
+  - def_list
+  - mdx_truly_sane_lists
+  - mdx_math:
+      use_gitlab_delimiters: True # for $`...`$ style math
+  - toc:
+      permalink: true
+  - pymdownx.arithmatex
+  - pymdownx.caret
+  - pymdownx.critic
+  - pymdownx.details
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.smartsymbols
+  - pymdownx.tilde
+  - pymdownx.mark
+  - pymdownx.highlight
+  - pymdownx.snippets
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tabbed  # see: https://squidfunk.github.io/mkdocs-material/reference/content-tabs/
+  - pymdownx.superfences:
+      # KEEP it commented.  Those lines break mermaid
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          # format: !!python/name:pymdownx.superfences.fence_div_format
+          format: !!python/name:mermaid2.fence_mermaid
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.betterem:
+      smart_enable: all
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - "https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML" # for math
+
+nav:
+  - About:
+    - index.md
+  - release_notes.md

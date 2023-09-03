@@ -1,0 +1,58 @@
+# https://taskfile.dev
+
+version: "3"
+
+vars:
+  GREETING: Hello, World!
+  CENV_TASK_ENV: mxpack-test-acc37
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+    silent: true
+
+  venv:create:
+    desc: _
+    cmds:
+      - mamba create -y -n {{.CENV_TASK_ENV}} mxpcli
+    status:
+      - mamba info --envs | grep  {{.CENV_TASK_ENV}}
+
+  venv:update:
+    desc: _
+    deps:
+      - venv:create
+    cmds:
+      #      - mamba install -y -n {{.CENV_TASK_ENV}} python=3.7 mxpack
+      #      - mamba update -y -n {{.CENV_TASK_ENV}} mxpack
+      - mamba run -n  {{.CENV_TASK_ENV}} python -m pip install --no-deps --ignore-installed -vv .
+
+  test:info-with-provided-proj-dir:
+    desc: _
+    dir: test_accept
+    vars:
+      PROJ_DIR: ".."
+    cmds:
+      - pwd
+      - mamba run -n  {{.CENV_TASK_ENV}} mxpack-cli --proj_dir {{.PROJ_DIR}} get_proj_info
+
+  test:info-with-cur-dir:
+    desc: _
+    cmds:
+      - mamba run -n  {{.CENV_TASK_ENV}} mxpack-cli get_proj_info
+
+  test:package-version: mamba run -n  {{.CENV_TASK_ENV}} python -c "import mxpack; print(mxpack.__version__)"
+
+  test:info:all:
+    desc: _
+    deps:
+      - test:info-with-provided-proj-dir
+      - test:info-with-cur-dir
+      - test:package-version
+
+  test:all:
+    desc: _
+    cmds:
+      - task: venv:update
+      - task: test:info:all

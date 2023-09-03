@@ -1,0 +1,181 @@
+# https://taskfile.dev
+
+version: "3"
+output: prefixed
+
+includes:
+  ### -- infra task groups new --
+  mkdocs: _infra/mxp-docs-lib/backstage.yml
+
+  ### -- project task groups --
+  ci: "tasks/ci.tasks.yml"
+  tests: "tests/tests.tasks.yml"
+  test-cli: "tests/test-cli.tasks.yml"
+  dev: "tasks/dev.tasks.yml"
+
+  ### -- infra task groups --
+  # - python common tasks
+  py: "_infra/mxpack_lib/tasks/py.tasks.yml"
+  # - version management
+  pyinstaller: "_infra/mxpack_lib/tasks/pyinstaller.tasks.yml"
+  # - conda package management
+  conda: "_infra/mxpack_lib/tasks/conda.tasks.yml"
+  pypi: "_infra/mxpack_lib/tasks/pypi.tasks.yml"
+  # - cleanups
+  mxp-clean: "_infra/mxpack_lib/tasks/mxp-clean.tasks.yml"
+  # - version management
+  version: "_infra/mxpack_lib/tasks/version.tasks.yml"
+  # - docker environment management
+  denv: "_infra/mxpack_lib/tasks/denv.tasks.yml"
+  # - project reporting
+  report: "_infra/mxpack_lib/tasks/report.tasks.yml"
+
+vars:
+  WDIR: { sh: realpath . }
+  MXP__VERSION__PROJECT_NAME: "$( cat ./version/project_name.txt )"
+  MXP__VERSION__VERSION_PREFIX: "$( cat ./version/version_prefix.txt )"
+
+  GREETING: road-eval-dashboard project
+
+  # ---- read real config file paths from layout ----
+  CONDA_LIB_CONFIG_YML:
+    sh: "yq4 .conda_lib_config version/mxp-recipe/project_layout.yml"
+  INFOS_CONFIG_YML:
+    sh: "yq4 .infos_config_yaml version/mxp-recipe/project_layout.yml"
+  BUILD_INFO_ROOT:
+    sh: "yq4 .build_info_root version/mxp-recipe/project_layout.yml"
+  # ---- read real config file paths from layout ----
+
+  DIMAGE:
+    sh: "yq4 .DIMAGE {{.CONDA_LIB_CONFIG_YML}}"
+  DOCKER_ARGS:
+    sh: "yq4 .DOCKER_ARGS {{.CONDA_LIB_CONFIG_YML}}"
+
+  LOCAL_CONDA_ENVS_DIR:
+    sh: "yq4 .LOCAL_CONDA_ENVS_DIR {{.CONDA_LIB_CONFIG_YML}}"
+  LB_COVERAGE:
+    sh: "yq4 .LB_COVERAGE {{.CONDA_LIB_CONFIG_YML}}"
+  PACKAGE_IMPORT_NAME:
+    sh: "yq4 .PACKAGE_IMPORT_NAME {{.CONDA_LIB_CONFIG_YML}}"
+  PROJECT_NAME:
+    sh: "yq4 .PACKAGE_NAME {{.CONDA_LIB_CONFIG_YML}}"
+
+  # configure from env
+  DENV_EXE_DEF:
+    sh: "yq4 .DENV_EXE {{.CONDA_LIB_CONFIG_YML}}"
+  VENV_EXE:
+    sh: "yq4 .VENV_EXE {{.CONDA_LIB_CONFIG_YML}}"
+  MXPACK_EXE:
+    sh: "yq4 .MXPACK_EXE {{.CONDA_LIB_CONFIG_YML}}"
+  DENV_EXE: "{{ if .DENV_OFF }}{{ else }}{{.DENV_EXE_DEF}}{{ end }}"
+
+env:
+  DIMAGE: "{{.DIMAGE}}"
+  LOCAL_CONDA_ENVS_DIR: "{{.LOCAL_CONDA_ENVS_DIR}}"
+  DOCKER_ARGS: "{{.DOCKER_ARGS}}"
+  MXP_CONDA_BUILD_ARGS: "--no-test"
+  PIP_BASED_RELEASE: ""
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+      - task -l
+    prefix: "."
+    silent: true
+
+  info:
+    desc: _
+    cmds:
+      - echo "Project=$(cat version/project_name.txt)"
+      - echo "VersionMain=$(cat version/version_prefix.txt)"
+      - echo 'task test'  '###'  'run project tests'
+      - echo 'task build' '###' 'run build pipeline'
+      - echo 'task ci-build' '###' 'run build pipeline like on jenkins'
+    silent: yes
+
+  coverage:clean:
+    desc: clean coverage files
+    cmds:
+      - rm -rf .coverage*
+      - rm -rf {{.LB_COVERAGE}}
+
+  test-full:
+    desc: _
+    cmds:
+      - task coverage:clean
+      - task test
+      - task tests:acceptance
+      - task coverage:report
+      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+
+  prepare:build:
+    desc: custom actions before build
+    cmds:
+      - echo custom prepare
+
+  build:
+    desc: developer build
+    cmds:
+      - task ci:init-clean-flow
+      - task ci:build-flow
+
+  pre:build:
+    desc: post build tasks, before tests run
+    cmds:
+      - echo "@@info@@ this is a post build place holder"
+
+  post:build:
+    desc: post build tasks, before tests run
+    cmds:
+      - echo "@@info@@ this is a post build place holder"
+
+  test:
+    desc: _
+    cmds:
+      - task coverage:clean
+      - task test-parallel
+      # --@@ actor=mxpack.replacer sid=PYSAMPLE_TMPL action=remove-line @@--
+      - task coverage:report
+      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+
+  clean:
+    desc: _
+    cmds:
+      - rm -rf __localbuild__ __build_info
+
+  test-parallel:
+    desc: Run Test Flows from test tasks
+    deps:
+      - tests:units
+      - tests:components
+    cmds:
+      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+
+  test-final:
+    desc: Run Test Flows from test tasks
+    deps:
+      - tests:acceptance
+      - test-cli:test:all
+    cmds:
+      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+
+  coverage:report:
+    desc: full coverage report as artifact
+    cmds:
+      - coverage combine .coverage.*
+      - rm -rf {{.LB_COVERAGE}}
+      - mkdir -p {{.LB_COVERAGE}}
+      - coverage report | tee {{.LB_COVERAGE}}/coverage.report.txt
+      - coverage html -d {{.LB_COVERAGE}}/coverage_html
+      - coverage xml -o {{.LB_COVERAGE}}/coverage.xml
+      - coverage json -o {{.LB_COVERAGE}}/coverage.json
+      - mv .coverage* {{.LB_COVERAGE}}
+    ignore_error: true
+
+  ci-flow:
+    desc: Define
+    cmds:
+      - task ci:ci-flow
+

@@ -1,0 +1,46 @@
+version: "3"
+
+output: interleaved
+
+vars:
+  GREETING: package
+
+  _task_group: tests
+
+tasks:
+  default:
+    cmds:
+      - echo "{{.GREETING}}"
+      - task -l
+    prefix: "."
+    silent: true
+
+  units:
+    desc: Fast Unit / Sanity Tests
+    cmds:
+      - mkdir -p __localbuild__/pytest
+      - |
+        COVERAGE_FILE=.coverage.{{.TASK}} pytest -s --cov={{.PACKAGE_IMPORT_NAME}} tests/units \
+          --cov-config=setup.cfg \
+          --html=__localbuild__/pytest/test__{{.TASK}}__report.pytest.html \
+          --junitxml=__localbuild__/pytest/test__{{.TASK}}__junit.xml
+
+  components:
+    desc: Medium  Component / Integration Tests
+    cmds:
+      - mkdir -p __localbuild__/pytest
+      - |
+        COVERAGE_FILE=.coverage.{{.TASK}} pytest -s --cov={{.PACKAGE_IMPORT_NAME}} tests/components \
+          --cov-config=setup.cfg \
+          --html=__localbuild__/pytest/test__{{.TASK}}__report.pytest.html \
+          --junitxml=__localbuild__/pytest/test__{{.TASK}}__junit.xml
+
+  acceptance:
+    desc: Medium  Component / Integration Tests
+    cmds:
+      - mkdir -p __localbuild__/pytest
+      - |
+        COVERAGE_FILE=.coverage.{{.TASK}} pytest -s --cov={{.PACKAGE_IMPORT_NAME}} --cov-append tests/acceptance \
+          --cov-config=setup.cfg \
+          --html=__localbuild__/pytest/test__{{.TASK}}__report.pytest.html \
+          --junitxml=__localbuild__/pytest/test__{{.TASK}}__junit.xml

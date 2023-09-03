@@ -1,0 +1,39 @@
+version_schema: "0.13"
+
+# @info: package name is queried from meta.yaml to avoid duplications
+PACKAGE_META_YAML_PATH: "./version/conda-recipe/meta.yaml"
+PACKAGE_NAME: road-eval-dashboard
+PACKAGE_IMPORT_NAME: road_eval_dashboard
+
+# @info: base docker image for cicd
+DIMAGE: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda:0.5.3
+# additional docker run arguments\
+# example: DOCKER_ARGS="-v /tmp/some/path:/some/path"
+DOCKER_ARGS: ""
+LB_COVERAGE: ./__localbuild__/coverage
+
+# @info: local work dirs
+LOCAL_WORK_DIR: ./__localbuild__
+LOCAL_CONDA_ENVS_DIR: /tmp/__docker_data__/road-eval-dashboard/__conda_envs__
+LOCAL_CONDA_BUILD_DIR: ./__localbuild__/conda
+CONDA_PACKAGE_FILE_EXT: "tar.bz2"
+
+# @info: shared envs across projects for efficiency
+META_BASE_ENV_NAME: "base"
+META_WORK_ENV_NAME: "mx-work-py3.7"
+PACKAGE_VENV_BASE: "road-eval-dashboard-py3.7"
+
+# @info: project specific venvs
+META_TEST_ENV_NAME: "road-eval-dashboard-mx-test-py3.7"
+META_DEV_ENV_NAME: "road-eval-dashboard-mx-dev-py3.7"
+META_BUILD_ENV_NAME: "road-eval-dashboard-mx-build-py3.7"
+
+DENV_EXE: "./_infra/mxpack_lib/tools/denv.sh"
+VENV_EXE: "./_infra/mxpack_lib/tools/venv.sh"
+MXPACK_EXE: "mxp_cli"
+
+# ---- publish part ----
+channel_mapping:
+  pre: https://artifactory.sddc.mobileye.com:/artifactory/objx-conda-pre-local
+  rc: https://artifactory.sddc.mobileye.com:/artifactory/me-conda-rc-local
+  release: https://artifactory.sddc.mobileye.com:/artifactory/me-conda-dev-local

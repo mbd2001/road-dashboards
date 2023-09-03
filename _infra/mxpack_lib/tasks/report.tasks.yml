@@ -1,0 +1,6 @@
+version: "3"
+
+tasks:
+  report:
+    cmds:
+    - "{{.MXPACK_EXE}} report_ci_details"

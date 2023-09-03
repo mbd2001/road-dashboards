@@ -1,0 +1,13 @@
+
+options:
+  native:
+    pipe_type: native
+    node_label: algo-ci-generic-deb8-x86_64
+  k8s:
+    pipe_type: k8s
+    pod_template_yaml: version/recipe-jenlib/package.deliver.pipe.pod.tmpl.yaml
+    cloud: k8s-objx-prod-28102020
+    container: mxcc-prod
+    # FIX: change to objx
+    ssh-agent: sys_objx_ssh
+default: k8s

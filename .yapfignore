@@ -1,0 +1,8 @@
+.venv
+setup.py
+tools
+*/_version.py
+__localbuild__
+__build_info
+_infra
+

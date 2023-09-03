@@ -1,0 +1,42 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mxcc-prod
+spec:
+  containers:
+    - name: mxcc-prod
+      image:  artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda:0.5.3
+      alwaysPullImage: true
+      envFrom:
+      - secretRef:
+          name: objx-ldap-secret
+      - secretRef:
+          name: objx-aws-prod
+      - secretRef:
+          name: objx-artifactory-token
+      - secretRef:
+          name: objx-git-vars
+      - secretRef:
+          name: angie-deploy-secret
+      command:
+      - cat
+      tty: true
+      resources:
+        limits:
+          cpu: 2
+          memory: 4Gi
+        requests:
+          cpu: 2
+          memory: 4Gi
+      volumeMounts:
+      - name: dockersock
+        mountPath: "/var/run/docker.sock"
+      - name: dockerbin
+        mountPath: "/usr/bin/docker"
+  volumes:
+  - name: dockersock
+    hostPath:
+      path: /var/run/docker.sock
+  - name: dockerbin
+    hostPath:
+      path: /usr/bin/docker

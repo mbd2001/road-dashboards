@@ -1,0 +1,13 @@
+mkdocs-techdocs-core
+markdown==3.3.7
+mkdocs-awesome-pages-plugin
+pymdown-extensions
+mkdocstrings[python]
+mkdocs-jupyter
+ipython_genutils
+python-markdown-math
+mkdocs-mermaid2-plugin
+mdx_truly_sane_lists
+mkdocs-autorefs
+mkdocs-monorepo-plugin
+slugify

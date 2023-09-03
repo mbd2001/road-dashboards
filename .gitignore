@@ -1,0 +1,92 @@
+# output
+_out
+_out_*
+_local_store
+nohup.ou
+__build_info
+.empty
+.upgrade_report*
+
+# compiled code
+*.d
+*.o
+*.a
+*.so
+*.mk
+
+# pytest and coverage related artifacts
+htmlcov/
+.hypothesis
+.coverage*
+!.coveragerc
+.pytest_cache
+.hypothesis
+
+# byte-compiled python files
+*.pyc
+*.pyo
+__pycache__
+
+build
+dist
+*egg-info*
+# python type-checker cache directory
+.mypy_cache
+
+# Git conflict resolution
+*.orig
+
+# Temp data from Jupiter notebooks
+.ipynb_checkpoints
+
+# emacs backup files
+*~
+
+# IntelliJ IDE
+.idea
+
+# Personal PyCharm config files
+.pydevproject
+.project
+
+# vscode project config
+.vscode
+.mypy_cache
+.devcontainer
+
+record.pickle
+.nfs*
+
+SandBox/*
+
+# Eclipse IDE
+.cproject
+
+# Lib log files
+*.log
+
+# mamba envs
+envs
+__localbuild__
+__deps_localbuild__
+_build_info
+
+# Sphinx hidden / build directories
+docs/_*
+
+# zipped package resources data
+*.zip
+
+# cores
+core
+
+# mxpack related generated code
+_pysample_generated_build.sh
+_resources_
+site
+
+# pypi
+Pipfile
+
+# go-task
+.task/**
