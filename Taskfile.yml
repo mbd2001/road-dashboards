@@ -16,8 +16,6 @@ includes:
   ### -- infra task groups --
   # - python common tasks
   py: "_infra/mxpack_lib/tasks/py.tasks.yml"
-  # - version management
-  pyinstaller: "_infra/mxpack_lib/tasks/pyinstaller.tasks.yml"
   # - conda package management
   conda: "_infra/mxpack_lib/tasks/conda.tasks.yml"
   pypi: "_infra/mxpack_lib/tasks/pypi.tasks.yml"

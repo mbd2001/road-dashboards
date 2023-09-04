@@ -9,10 +9,6 @@ git_info:
 version_info:
   info_path: "mxpack/version_info.json"
 
-pyinstaller_info:
-  info_path: "mxpack/pyinstaller__pre_build__info.json"
-  post_path: "mxpack/pyinstaller__post_build__info.json"
-
 conda_build_info:
   info_path: "mxpack/conda_build__pre_build__info.json"
   post_path: "mxpack/conda_build__post_build__info.json"
