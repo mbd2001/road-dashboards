@@ -47,7 +47,7 @@ requirements:
   host:
     - python {{ python }}
     - pip
-    - mxpcli >=0.23,<0.24
+    - mxpcli >=0.24,<0.25
 
   run:
     - python
@@ -57,30 +57,20 @@ requirements:
     - loguru
     - orjson
     - typing_extensions >=3.7.4
-    - pycountry
-    - dash-bootstrap-components
-    - dash-daq
-    - numpy
-    - pandas
-    - boto3
-    - tqdm
-    - fsspec
-    - s3fs
 
   mx_build_deps:
     - boa
     - conda-build
-    - python >=3.7,<3.8
+    - python
     - conda-pack
     - conda-lock
     - build
     - twine
     - typing_extensions >=3.7.4
-    - Pyinstaller
     - pyyaml
     - semver
     - orjson
-    - mxpcli >=0.23,<0.24
+    - mxpcli >=0.24,<0.25
     - requests
 
   mx_test_deps:
@@ -94,7 +84,7 @@ requirements:
     - semver
     - pydantic
     - loguru
-    - mxpcli >=0.23,<0.24
+    - mxpcli >=0.24,<0.25
 
   mx_dev_only_deps:
     - jupyter
@@ -104,10 +94,9 @@ requirements:
     - pyyaml
     - orjson
     - rope
-    - mxpcli >=0.23,<0.24
+    - mxpcli >=0.24,<0.25
 
 about:
-  # TODO: fill your project info, emails etc.
   author: "Nadav Shemesh"
   home: http://gitlab.mobileye.com/road_algo/road_eval_dashboard
   home_dir: road_eval_dashboard

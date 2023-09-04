@@ -1,5 +1,5 @@
 """ mxp projects version getter
-this getter supports both py packages and pyinstaller bins created with mxp
+this getter supports both py packages created with mxp
 """
 
 
@@ -22,7 +22,6 @@ def get_version(root=None):
             with pkg_resources.path(_resources_, "__build_info.zip") as path_p:
                 return _read_version_from_build_info_zip(path_p)
         except (FileNotFoundError, ImportError):
-            # for pyinstaller bin
             root = root or Path(__file__).absolute()
             path_p = Path(root) / "_resources_" / "__build_info.zip"
             return _read_version_from_build_info_zip(path_p)

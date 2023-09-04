@@ -14,6 +14,6 @@
 - [ ] Docs Updated
 - [ ] Tests Added
 - [ ] Code Formatted (use `task py:format:all`) **or** No Code was changed
-- [ ] Code Reviewed, See [How to Code Review](http://objx-static.sddc.mobileye.com/docs/angie-docs/master/latest/software_contributions/guidelines/code_review.html)
+- [ ] Code Reviewed, See [How to Code Review](https://algoobjd-prod-1-backstage.sddc.mobileye.com/docs/angie/group/angie/software_contributions/code_convention/)
 
 **Above tasks should be completed before merging this MR**
