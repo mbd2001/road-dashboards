@@ -6,12 +6,17 @@ tasks:
   fmt:
     desc: run code auto format
     cmds:
-      - yapf -ir .
+      - black . --line-length 120 .
 
   check:
     desc: check code
     cmds:
       - pylint .
+
+  check-black:
+    desc: check code with black formatter
+    cmds:
+      - black --check --line-length 120 .
 
   jupyter:
     desc: run jupyter server
