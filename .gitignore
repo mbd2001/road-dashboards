@@ -6,6 +6,7 @@ nohup.ou
 __build_info
 .empty
 .upgrade_report*
+cache
 
 # compiled code
 *.d

@@ -32,6 +32,7 @@ tasks:
     cmds:
       - task ci:conda:info
       - task ci:init-clean-flow
+      - task ci:check-code-format
       - task ci:build-flow
       - task ci:prepare:test-flow
       - task ci:test-flow
@@ -74,7 +75,17 @@ tasks:
       - "{{.DENV_EXE}} task conda:package:build"
       - "{{.DENV_EXE}} task ci:pypi:build"
       - "{{.DENV_EXE}} task post:build"
-  
+
+  check-code-format:
+    desc: Check code
+    cmds:
+      - "{{.DENV_EXE}} {{.VENV_EXE}} build run task py:check-black"
+
+  format-code:
+    desc: Run format
+    cmds:
+      - "{{.VENV_EXE}} build run task py:fmt"
+
   pypi:build:
     cmds:
       - "{{.DENV_EXE}} task pypi:build"
