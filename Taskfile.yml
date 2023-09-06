@@ -25,6 +25,7 @@ includes:
   version: "_infra/mxpack_lib/tasks/version.tasks.yml"
   # - docker environment management
   denv: "_infra/mxpack_lib/tasks/denv.tasks.yml"
+  docker: "_infra/mxpack_lib/tasks/docker.tasks.yml"
   # - project reporting
   report: "_infra/mxpack_lib/tasks/report.tasks.yml"
 
