@@ -1,11 +1,11 @@
 branch_mapping:
   release:
-    - 'main'
+    - 'prod'
     - 'release*'
   rc:
     - 'rc*'
   pre:
     - 'pre*'
   git_push:
-    - 'main'
+    - 'prod'
     - 'release*'

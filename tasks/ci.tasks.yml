@@ -122,6 +122,15 @@ tasks:
         [ -z {{.PIP_BASED_RELEASE}} ] || \
         [ $(jq '.branch_type | index( "release" )' ./__build_info/mxpack/git_info.json) = "null" ]
 
+  publish:docker:
+    cmds:
+      - task docker:build_and_push
+    status:
+      - |
+        [ -z {{.JOB_NAME}} ] || \
+        [ -z {{.JENKINS_URL}} ] || \
+        [ $(jq '.branch_type | index( "release" )' ./__build_info/mxpack/git_info.json) = "null" ]
+
   publish-docs:
     desc: _
     cmds:
@@ -137,6 +146,7 @@ tasks:
     cmds:
       - task ci:publish:conda
       - task ci:publish:pypi
+      - task ci:publish:docker
       - task ci:publish-docs
       - task ci:push-version
 
