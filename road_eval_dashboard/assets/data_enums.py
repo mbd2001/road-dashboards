@@ -1,3 +1,6 @@
+from enum import IntEnum
+
+
 class LMType(IntEnum):
     ignore = -1
     solid = 0
