@@ -4,7 +4,7 @@ from road_eval_dashboard.components.components_ids import FRAME_COUNT, MD_FILTER
 from road_eval_dashboard.components.layout_wrapper import loading_wrapper, card_wrapper
 from road_eval_dashboard.components.queries_manager import generate_count_query
 from road_eval_dashboard.graphs.big_number import human_format_int
-from maffe_bins.utils.aws.athena_utils import query_athena
+from road_database_toolkit.athena.athena_utils import query_athena
 
 layout = card_wrapper(
     [html.Div([html.H3("Num Frames"), loading_wrapper([html.H1(id=FRAME_COUNT, style={"fontSize": "72px"})])])]

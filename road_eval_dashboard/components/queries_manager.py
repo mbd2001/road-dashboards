@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 
-from maffe_bins.utils.aws.athena_utils import query_athena, athena_run_multiple_queries
+from road_database_toolkit.athena.athena_utils import query_athena, athena_run_multiple_queries
 
 BASE_QUERY = """
     SELECT * FROM

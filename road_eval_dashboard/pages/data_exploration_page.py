@@ -35,7 +35,7 @@ from road_eval_dashboard.graphs.countries_map import (
 )
 from road_eval_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_eval_dashboard.graphs.pie_chart import basic_pie_chart
-from maffe_bins.utils.aws.athena_utils import query_athena
+from road_database_toolkit.athena.athena_utils import query_athena
 
 extra_properties = PageProperties("search")
 register_page(__name__, path="/data_exploration", name="Data Exploration", order=1, **extra_properties.__dict__)

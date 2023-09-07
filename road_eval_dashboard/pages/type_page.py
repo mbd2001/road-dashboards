@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc, register_page, Input, Output, callback, State, no_update, ALL
 
-from maffe_bins.road4.road4_consts import LMType
+from road_eval_dashboard.assets.data_enums import LMType
 from road_eval_dashboard.components.confusion_matrices_layout import (
     generate_matrices_graphs,
     generate_matrices_layout,

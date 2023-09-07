@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc, callback, Input, Output, register_page, State, no_update, ALL
 
-from maffe_bins.road4.road4_consts import LMColor
+from road_eval_dashboard.assets.data_enums import LMColor
 from road_eval_dashboard.components import (
     meta_data_filter,
     base_dataset_statistics,

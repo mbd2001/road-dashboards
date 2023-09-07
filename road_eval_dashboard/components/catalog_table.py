@@ -4,7 +4,7 @@ from dash import dash_table, html, Output, Input, State, no_update, callback
 from threading import Thread
 from queue import Queue
 
-from maffe_bins.road_db.run_eval_db.run_eval_db_manager import RunEvalDBManager
+from road_database_toolkit.dynamo_db.db_manager import DBManager
 from road_eval_dashboard.components.common_filters import ALL_FILTERS
 from road_eval_dashboard.components.components_ids import (
     NETS,
@@ -25,10 +25,10 @@ from road_eval_dashboard.components.queries_manager import (
     generate_fb_query,
 )
 from road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
-from maffe_bins.utils.aws.athena_utils import query_athena
-from maffe_bins.utils.color_prints import warning_print
+from road_database_toolkit.athena.athena_utils import query_athena
+from road_database_toolkit.loggers.color_prints import warning_print
 
-run_eval_db_manager = RunEvalDBManager()
+run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
 
 
 def generate_catalog_layout():
