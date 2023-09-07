@@ -85,7 +85,7 @@ requirements:
     - black
 
   mx_test_deps:
-    - python >=3.7,<3.8
+    - python
     - pytest
     - pytest-xdist
     - pytest-cov
