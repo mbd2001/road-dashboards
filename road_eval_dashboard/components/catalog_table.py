@@ -25,7 +25,7 @@ from road_eval_dashboard.components.queries_manager import (
     generate_fb_query,
 )
 from road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
-from maffe_bins.utils.aws.athena_utils import query_athena
+from road_database_toolkit.athena.athena_utils import query_athena
 from maffe_bins.utils.color_prints import warning_print
 
 run_eval_db_manager = RunEvalDBManager()

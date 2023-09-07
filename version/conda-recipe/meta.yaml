@@ -66,6 +66,7 @@ requirements:
     - tqdm
     - s3fs
     - fsspec
+    - road-database-toolkit
 
   mx_build_deps:
     - boa
