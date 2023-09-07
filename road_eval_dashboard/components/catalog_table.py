@@ -26,7 +26,7 @@ from road_eval_dashboard.components.queries_manager import (
 )
 from road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
 from road_database_toolkit.athena.athena_utils import query_athena
-from maffe_bins.utils.color_prints import warning_print
+from road_database_toolkit.loggers.color_prints import warning_print import warning_print
 
 run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
 
