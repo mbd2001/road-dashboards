@@ -16,6 +16,7 @@ def draw_path_net_graph(data, distances, title="", host=False):
         xaxis_title="Time (s)",
         yaxis_title=title.title(),
         xaxis=dict(constrain="domain"),
+        yaxis=dict(range=[0, 1]),
         font=dict(size=16),
     )
     return fig

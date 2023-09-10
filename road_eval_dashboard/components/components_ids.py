@@ -1,9 +1,15 @@
+# tables names
+PATHNET_GT = "pathnet_gt_table"
+PATHNET_PRED = "pathnet_pred_table"
+
+
 # stores
 NETS = "nets"
 MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"
 MD_COLUMNS_TO_DISTINCT_VALUES = "md_columns_to_distinct_values"
 MD_FILTERS = "md_filters"
+PATHNET_FILTERS = "pathnet_filters"
 EFFECTIVE_SAMPLES_PER_BATCH = "effective_samples_per_batch"
 NET_ID_TO_FB_BEST_THRESH = "net_id_to_fb_best_threshold"
 
@@ -109,6 +115,14 @@ PATH_NET_FALSES_NEXT = "path_net_losses_next"
 
 PATH_NET_ACC_HOST = "path_net_accuracy_host"
 PATH_NET_ACC_NEXT = "path_net_accuracy_next"
+PATH_NET_MISSES_HOST = "path_net_misses_host"
+PATH_NET_MISSES_NEXT = "path_net_misses_next"
+PATH_NET_CONF_MAT = "path_net_conf_mat"
+PATH_NET_ALL_CONF_DIAGONAL = "overall_conf_mat_diagonal"
+PATH_NET_HOST_CONF_DIAGONAL = "overall_host_conf_mat_diagonal"
+PATH_NET_OVERALL_CONF_MAT = "path_net_overall_conf_mats"
+PATH_NET_HOST_CONF_MAT = "path_net_host_conf_mats"
+PATH_NET_ALL_CONF_MATS = "path_net_all_conf_mats"
 
 
 # vmax page

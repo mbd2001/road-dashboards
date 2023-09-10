@@ -320,7 +320,7 @@ def generate_path_net_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[f'"dist_{sec}"' for sec, thresh in distances_dict.items()],
+        extra_columns=[f'"dist_{sec}"' for sec, thresh in distances_dict.items()] + ["split_role"],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         pathnet_oriented=True,
@@ -466,6 +466,8 @@ def generate_conf_mat_query(
     meta_data_filters="",
     extra_filters="",
     host=False,
+    pathnet_oriented=False,
+    ca_oriented=False,
 ):
     base_query = generate_base_query(
         data_tables,
@@ -474,7 +476,8 @@ def generate_conf_mat_query(
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         host=host,
-        ca_oriented=True,
+        ca_oriented=ca_oriented,
+        pathnet_oriented=pathnet_oriented,
     )
     conf_query = CONF_MAT_QUERY.format(
         label_col=label_col, pred_col=pred_col, base_query=base_query, count_name="res_count"

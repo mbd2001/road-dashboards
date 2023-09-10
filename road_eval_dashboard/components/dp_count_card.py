@@ -21,6 +21,6 @@ def get_nets_dp_count(meta_data_filters, nets):
     if not nets:
         return 0
 
-    query = generate_count_query(nets["dp_tables"], nets["meta_data"], meta_data_filters=meta_data_filters)
+    query = generate_count_query(nets["pathnet_pred_table"], nets["meta_data"], meta_data_filters=meta_data_filters)
     data, _ = query_athena(database="run_eval_db", query=query)
     return human_format_int(data.overall[0])
