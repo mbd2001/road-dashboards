@@ -4,8 +4,8 @@ from dash import Dash, dcc, html, DiskcacheManager, CeleryManager, Output, Input
 from uuid import uuid4
 
 from road_eval_dashboard.components import sidebar, page_content
-from road_eval_dashboard.components.components_ids import URL
 from road_eval_dashboard.components.dcc_stores import init_dcc_stores
+from road_eval_dashboard.components.components_ids import URL
 
 
 launch_uid = uuid4()
