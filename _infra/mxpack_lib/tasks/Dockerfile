@@ -30,4 +30,4 @@ USER root
 EXPOSE 6007
 
 # Run app.py when the container launches
-CMD ["python", "/app/maffe_bins/train/common/eval/eval_dashboard/app.py"]
+CMD ["python", "/app/road_eval_dashboard/app.py"]
