@@ -11,7 +11,8 @@ class Net:
     frame_table: str
     pred_table: str = ""
     gt_table: str = ""
-    dp_table: str = ""
+    pathnet_pred_table: str = ""
+    pathnet_gt_table: str = ""
 
 
 @dataclass
@@ -24,7 +25,8 @@ class Nets:
         self.frame_tables = [net["frame_table"] for net in self.nets]
         self.pred_tables = [net["pred_table"] for net in self.nets if net["pred_table"]]
         self.gt_tables = [net["gt_table"] for net in self.nets if net["gt_table"]]
-        self.dp_tables = [net["dp_table"] for net in self.nets if net["dp_table"]]
+        self.pathnet_pred_table = [net["pathnet_pred_table"] for net in self.nets if net["pathnet_pred_table"]]
+        self.pathnet_gt_table = [net["pathnet_gt_table"] for net in self.nets if net["pathnet_gt_table"]]
         self.population = (
             "Test"
             if all("test" in net["population"] for net in self.nets)

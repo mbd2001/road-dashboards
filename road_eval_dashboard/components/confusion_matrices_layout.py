@@ -81,7 +81,15 @@ def generate_confusion_matrix_card_layout(net, ind, overall_conf_mat_id, host_co
 
 
 def generate_matrices_graphs(
-    label_col, pred_col, nets_tables, meta_data_table, net_names, meta_data_filters="", host=False, class_names=[]
+    label_col,
+    pred_col,
+    nets_tables,
+    meta_data_table,
+    net_names,
+    meta_data_filters="",
+    host=False,
+    class_names=[],
+    pathnet_oriented=False,
 ):
     query = generate_conf_mat_query(
         nets_tables,
@@ -91,6 +99,7 @@ def generate_matrices_graphs(
         meta_data_filters=meta_data_filters,
         extra_filters=f"{label_col} != -1",
         host=host,
+        pathnet_oriented=pathnet_oriented,
     )
 
     data, _ = run_query_with_nets_names_processing(query)
