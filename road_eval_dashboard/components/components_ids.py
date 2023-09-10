@@ -122,7 +122,7 @@ PATH_NET_ALL_CONF_DIAGONAL = "overall_conf_mat_diagonal"
 PATH_NET_HOST_CONF_DIAGONAL = "overall_host_conf_mat_diagonal"
 PATH_NET_OVERALL_CONF_MAT = "path_net_overall_conf_mats"
 PATH_NET_HOST_CONF_MAT = "path_net_host_conf_mats"
-PATH_NET_ALL_CONF_MATS = "path_net_all_conf_mats"
+PATH_NET_ALL_CONF_MATS = "all_pathnet_conf_mats"
 
 
 # vmax page
