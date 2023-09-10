@@ -1,5 +1,6 @@
 branch_mapping:
   release:
+    - 'push_docker'
     - 'master'
     - 'release*'
   rc:
@@ -7,5 +8,6 @@ branch_mapping:
   pre:
     - 'pre*'
   git_push:
+    - 'push_docker'
     - 'master'
     - 'release*'

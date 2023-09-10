@@ -112,7 +112,7 @@ tasks:
   # ECR #
   #######
   login_ecr:
-    - aws ecr --profile sso-mobileye-di/AlgoRoad get-login-password --region us-east-1 | docker login --username AWS --password-stdin {{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin {{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com
 
   pull_ecr:
     desc: |
