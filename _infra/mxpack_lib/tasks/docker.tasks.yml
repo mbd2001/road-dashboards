@@ -69,12 +69,6 @@ tasks:
       - task: login_ecr
       - aws ecr list-images --repository-name {{.registry_name}} | grep imageTag
 
-  pull_menta:
-    desc: pulls menta ecr docker
-    cmds:
-      - task: login_ecr
-      - docker pull {{.full_ecr_name_latest}}
-
   build_and_push:
     desc: builds the docker to {{.image_name}}
     cmds:
@@ -86,39 +80,14 @@ tasks:
     cmds:
       - docker run -it --rm {{.docker_params}} {{.image_name}} /bin/bash
 
-
   push:
     desc: "tags the docker with current date and time and pushes to ecr"
     cmds:
-      - docker tag {{.image_name}} {{.full_ecr_name}}
-      - docker push {{.full_ecr_name}}
-
-  tag_and_push_latest:
-    desc: "tags the docker with latest and push"
-    cmds:
       - docker tag {{.image_name}} {{.full_ecr_name_latest}}
-      - echo "If you want to overwrite the latest version please run:"
-      - echo "docker push {{.full_ecr_name_latest}}"
-
-  run_local_gpu:
-    desc: ssh to megpu207 and run menta. Specify GPU=# for specific GPU.
-    cmds:
-    - ssh megpu207
-    - task: pull_ecr
-    - echo 'Running on core {{.GPU}}'
-    - docker run -it --rm --gpus="device={{.GPU}}" {{.docker_params}} {{.full_ecr_name_latest}} bash
+      - docker push {{.full_ecr_name_latest}}
 
   #######
   # ECR #
   #######
   login_ecr:
-    - aws ecr --profile sso-mobileye-di/AlgoRoad get-login-password --region us-east-1 | docker login --username AWS --password-stdin {{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com
-
-  pull_ecr:
-    desc: |
-      Pulls the docker from ECR using the "docker_tag" - {{.docker_tag}}
-                              You can list all the tags in our repo by "task list_ecr_tags"
-    deps:
-      - task: login_ecr
-    cmds:
-      - docker pull {{.full_ecr_name}}
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin {{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com
