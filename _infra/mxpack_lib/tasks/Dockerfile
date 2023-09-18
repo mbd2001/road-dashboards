@@ -9,6 +9,10 @@ COPY . /app
 
 RUN chmod 777 -R /app
 
+RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
+    pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
+
+
 # pip installations
 RUN pip install --upgrade pip
 RUN pip install pycountry
