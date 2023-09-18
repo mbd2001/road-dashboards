@@ -21,6 +21,7 @@ RUN pip install boto3
 RUN pip install tqdm
 RUN pip install fsspec
 RUN pip install s3fs
+RUN pip install road-database-toolkit
 
 ENV PYTHONPATH=/app
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
