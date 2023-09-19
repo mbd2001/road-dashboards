@@ -59,7 +59,7 @@ def get_fb_host(meta_data_filters, nets):
         return no_update
 
     query = generate_fb_query(
-        nets["gt_tables"], nets["pred_tables"], nets["meta_data"], meta_data_filters=meta_data_filters, host=True
+        nets["gt_tables"], nets["pred_tables"], nets["meta_data"], meta_data_filters=meta_data_filters, role="host"
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data.fillna(1)
