@@ -137,16 +137,3 @@ DYNAMIC_PIE_CHART_SLIDER = "dynamic_pie_chart_slider"
 
 ROAD_TYPE_PIE_CHART = "road_type_pie_chart"
 LANE_MARK_COLOR_PIE_CHART = "lane_mark_color_pie_chart"
-
-
-# scene page
-SCENE_RIGHT = "scene_right"
-SCENE_LEFT = "scene_left"
-
-ALL_SCENE_CONF_MATS = "all_scene_conf_mats"
-
-RIGHT_SCENE_CONF_MAT = "right_scene_conf_mat"
-LEFT_SCENE_CONF_MAT = "left_scene_conf_mat"
-
-RIGHT_SCENE_CONF_DIAGONAL = "right_scene_conf_diagonal"
-LEFT_SCENE_CONF_DIAGONAL = "left_scene_conf_diagonal"
