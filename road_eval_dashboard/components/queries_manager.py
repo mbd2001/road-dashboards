@@ -22,9 +22,9 @@ JOIN_QUERY = """
     """
 
 COUNT_QUERY = """
-    SELECT {group_by} AS {group_name}, {count_metric}
+    SELECT net_id, {group_by_label} as {label_col}, {group_by_pred} as {pred_col}, COUNT(*) AS {count_name} 
     FROM ({base_query})
-    GROUP BY {group_by}
+    GROUP BY net_id, {group_by_label}, {group_by_pred}
     """
 
 CONF_MAT_QUERY = """
@@ -456,6 +456,7 @@ def generate_conf_mat_query(
     role="",
     include_all=False,
     ca_oriented=False,
+    compare_sign=False,
 ):
     base_query = generate_base_query(
         data_tables,
@@ -466,7 +467,11 @@ def generate_conf_mat_query(
         ca_oriented=ca_oriented,
         include_all=include_all,
     )
+    group_by_label = f"SIGN({label_col})" if compare_sign else label_col
+    group_by_pred = f"SIGN({pred_col})" if compare_sign else pred_col
     conf_query = CONF_MAT_QUERY.format(
+        group_by_label=group_by_label,
+        group_by_pred=group_by_pred,
         label_col=label_col,
         pred_col=pred_col,
         base_query=base_query,
@@ -534,6 +539,7 @@ def generate_compare_query(
     role="",
     ca_oriented=False,
     include_all=False,
+    compare_sign=False,
     compare_operator="=",
 ):
     base_query = generate_base_query(
@@ -545,6 +551,8 @@ def generate_compare_query(
         role=role,
         extra_filters=extra_filters,
     )
+    label_col = f"SIGN({label_col})" if compare_sign else label_col
+    pred_col = f"SIGN({pred_col})" if compare_sign else pred_col
     compare_query = COMPARE_QUERY.format(
         label_col=label_col, pred_col=pred_col, base_query=base_query, operator=compare_operator
     )

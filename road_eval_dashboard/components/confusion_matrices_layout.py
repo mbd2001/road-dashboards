@@ -88,6 +88,7 @@ def generate_matrices_graphs(
     class_names=[],
     ca_oriented=False,
     include_all=False,
+    compare_sign=False,
     ignore_val=-1,
 ):
     query = generate_conf_mat_query(
@@ -100,6 +101,7 @@ def generate_matrices_graphs(
         role=role,
         include_all=include_all,
         ca_oriented=ca_oriented,
+        compare_sign=compare_sign,
     )
     data, _ = run_query_with_nets_names_processing(query)
     mats_figs, normalize_mats = draw_multiple_nets_confusion_matrix(
