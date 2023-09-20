@@ -48,10 +48,26 @@ COLOR_HOST = "color_host"
 COLOR_OVERALL_DAY = "color_overall_day"
 COLOR_OVERALL_NIGHT = "color_overall_night"
 
+ALL_COLOR_CONF_MATS = "all_color_conf_mats"
+
+OVERALL_COLOR_CONF_MAT = "overall_color_conf_mat"
+HOST_COLOR_CONF_MAT = "host_color_conf_mat"
+
+OVERALL_COLOR_CONF_DIAGONAL = "overall_color_conf_diagonal"
+HOST_COLOR_CONF_DIAGONAL = "host_color_conf_diagonal"
+
 
 # type page
 TYPE_OVERALL = "type_overall"
 TYPE_HOST = "type_host"
+
+ALL_TYPE_CONF_MATS = "all_type_conf_mats"
+
+OVERALL_TYPE_CONF_MAT = "overall_type_conf_mat"
+HOST_TYPE_CONF_MAT = "host_type_conf_mat"
+
+OVERALL_TYPE_CONF_DIAGONAL = "overall_type_conf_diagonal"
+HOST_TYPE_CONF_DIAGONAL = "host_type_conf_diagonal"
 
 
 # emdp page
@@ -83,24 +99,6 @@ FRAME_COUNT = "frame_count"
 OBJ_COUNT = "obj_count"
 EMDP_COUNT = "emdp_count"
 DP_COUNT = "dp_count"
-
-
-# conf mats
-ALL_COLOR_CONF_MATS = "all_color_conf_mats"
-
-OVERALL_COLOR_CONF_MAT = "overall_color_conf_mat"
-HOST_COLOR_CONF_MAT = "host_color_conf_mat"
-
-OVERALL_COLOR_CONF_DIAGONAL = "overall_color_conf_diagonal"
-HOST_COLOR_CONF_DIAGONAL = "host_color_conf_diagonal"
-
-ALL_TYPE_CONF_MATS = "all_type_conf_mats"
-
-OVERALL_TYPE_CONF_MAT = "overall_type_conf_mat"
-HOST_TYPE_CONF_MAT = "host_type_conf_mat"
-
-OVERALL_TYPE_CONF_DIAGONAL = "overall_type_conf_diagonal"
-HOST_TYPE_CONF_DIAGONAL = "host_type_conf_diagonal"
 
 
 # path_net page

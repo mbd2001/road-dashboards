@@ -180,7 +180,7 @@ def generate_grab_index_hist_query(
     meta_data,
     interesting_filters,
 ):
-    base_query = generate_base_query(data_tables, meta_data, only_meta_data=True)
+    base_query = generate_base_query(data_tables, meta_data, include_all=True)
     metrics = ", ".join(
         [LOG_COUNT_METRIC.format(extra_filters=f"({filter})", ind=name) for name, filter in interesting_filters.items()]
     )
@@ -229,10 +229,9 @@ def generate_vmax_success_rate_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[label_col, pred_col],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        only_meta_data=True,
+        include_all=True,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
@@ -264,10 +263,9 @@ def generate_vmax_fb_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[label_col, pred_col],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        only_meta_data=True,
+        include_all=True,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
@@ -286,12 +284,9 @@ def generate_emdp_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        host=False,
-        ca_oriented=False,
-        only_meta_data=True,
+        include_all=True,
     )
     metrics = ", ".join(
         COMPARE_METRIC.format(
@@ -309,7 +304,7 @@ def generate_path_net_query(
     state,
     meta_data_filters="",
     extra_filters="",
-    host=False,
+    role="non-host",
 ):
     operator = "<" if state == "acc" else ">"
     distances_dict = sec_to_dist_acc if state == "acc" else sec_to_dist_falses
@@ -320,11 +315,9 @@ def generate_path_net_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[f'"dist_{sec}"' for sec, thresh in distances_dict.items()],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        pathnet_oriented=True,
-        host=host,
+        role=role,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
@@ -338,7 +331,7 @@ def generate_fb_query(
     input_thresh={},
     meta_data_filters="",
     extra_filters="",
-    host=False,
+    role="",
 ):
     recall_query = generate_recall_query(
         gt_data_tables,
@@ -347,7 +340,7 @@ def generate_fb_query(
         input_thresh=input_thresh,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        host=host,
+        role=role,
     )
 
     precision_filter = "match_score >= 0"
@@ -356,10 +349,9 @@ def generate_fb_query(
         meta_data,
         interesting_filters=interesting_filters,
         input_thresh=input_thresh,
-        extra_columns=["match_score"],
         meta_data_filters=meta_data_filters,
         extra_filters=precision_filter if not extra_filters else f"{extra_filters} AND {precision_filter}",
-        host=host,
+        role=role,
     )
 
     final_query = JOIN_QUERY.format(t1=recall_query, t2=precision_query, col="net_id")
@@ -371,10 +363,9 @@ def generate_precision_query(
     meta_data,
     interesting_filters={},
     input_thresh={},
-    extra_columns=[],
     meta_data_filters="",
     extra_filters="",
-    host=False,
+    role="",
 ):
     metrics = (
         get_fb_per_filter_metrics(interesting_filters, FB_PRECISION_METRIC)
@@ -384,10 +375,9 @@ def generate_precision_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=extra_columns,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        host=host,
+        role=role,
     )
     group_by = get_fb_group_by(input_thresh)
     final_query = DYNAMIC_METRICS_QUERY.format(
@@ -401,18 +391,16 @@ def generate_recall_query(
     meta_data,
     interesting_filters={},
     input_thresh={},
-    extra_columns=[],
     meta_data_filters="",
     extra_filters="",
-    host=False,
+    role="",
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=extra_columns,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        host=host,
+        role=role,
     )
     metrics = (
         get_fb_per_filter_metrics(interesting_filters, FB_OVERALL_METRIC)
@@ -465,19 +453,24 @@ def generate_conf_mat_query(
     pred_col,
     meta_data_filters="",
     extra_filters="",
-    host=False,
+    role="",
+    include_all=False,
+    ca_oriented=False,
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[label_col, pred_col],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        host=host,
-        ca_oriented=True,
+        role=role,
+        ca_oriented=ca_oriented,
+        include_all=include_all,
     )
     conf_query = CONF_MAT_QUERY.format(
-        label_col=label_col, pred_col=pred_col, base_query=base_query, count_name="res_count"
+        label_col=label_col,
+        pred_col=pred_col,
+        base_query=base_query,
+        count_name="res_count",
     )
     return conf_query
 
@@ -489,15 +482,15 @@ def generate_count_query(
     meta_data_filters="",
     extra_filters="",
     bins_factor=None,
-    host=False,
+    role="",
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        host=host,
-        only_meta_data=True,
+        role=role,
+        include_all=True,
     )
     metrics = COUNT_ALL_METRIC.format(count_name="overall")
     group_by = f"FLOOR({group_by_column} / {bins_factor}) * {bins_factor}" if bins_factor else group_by_column
@@ -513,7 +506,7 @@ def generate_dynamic_count_query(
     interesting_filters,
     meta_data_filters="",
     extra_filters="",
-    host=False,
+    role="",
 ):
     metrics = ", ".join(
         COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name)
@@ -524,8 +517,8 @@ def generate_dynamic_count_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        host=host,
-        only_meta_data=True,
+        role=role,
+        include_all=True,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
@@ -538,20 +531,19 @@ def generate_compare_query(
     pred_col,
     meta_data_filters="",
     extra_filters="",
-    host=False,
-    compare_operator="=",
+    role="",
     ca_oriented=False,
-    only_meta_data=False,
+    include_all=False,
+    compare_operator="=",
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
         meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
-        host=host,
+        include_all=include_all,
         ca_oriented=ca_oriented,
-        only_meta_data=only_meta_data,
+        role=role,
+        extra_filters=extra_filters,
     )
     compare_query = COMPARE_QUERY.format(
         label_col=label_col, pred_col=pred_col, base_query=base_query, operator=compare_operator
@@ -562,24 +554,15 @@ def generate_compare_query(
 def generate_base_query(
     data_tables,
     meta_data,
-    extra_columns=[],
     meta_data_filters="",
-    extra_filters="",
-    host=False,
+    include_all=False,
     ca_oriented=False,
-    pathnet_oriented=False,
-    only_meta_data=False,
+    role="",
+    extra_filters="",
 ):
-    # TODO: remove generate_base_data if no big impact on performance
-    base_data = generate_base_data(
-        data_tables,
-        extra_columns=extra_columns,
-        ca_oriented=ca_oriented,
-        pathnet_oriented=pathnet_oriented,
-        only_meta_data=only_meta_data,
-    )
+    base_data = generate_base_data(data_tables)
     intersect_filter = generate_intersect_filter(data_tables)
-    stats_filters = generate_stats_filters(ca_oriented, pathnet_oriented, extra_filters, host, only_meta_data)
+    stats_filters = generate_stats_filters(include_all, ca_oriented, role, extra_filters)
     meta_data_filters = "AND " + meta_data_filters if meta_data_filters else ""
     base_query = BASE_QUERY.format(
         base_data=base_data,
@@ -591,37 +574,24 @@ def generate_base_query(
     return base_query
 
 
-def generate_base_data(data_paths, extra_columns=[], ca_oriented=False, pathnet_oriented=False, only_meta_data=False):
-    columns = ["clip_name", "grabIndex", "net_id"] + extra_columns
-    if pathnet_oriented:
-        columns += ["role"]
-    elif ca_oriented:
-        columns += ["ca_role", "match", "confidence"]
-    elif not only_meta_data:
-        columns += ["role", "ignore", "confidence"]
-
-    column_str = ", ".join(columns)
-    union_str = f" UNION ALL SELECT {column_str} FROM ".join(data_paths)
-    return f"SELECT {column_str} FROM {union_str}"
+def generate_base_data(data_paths):
+    union_str = f" UNION ALL SELECT * FROM ".join(data_paths)
+    return f"SELECT * FROM {union_str}"
 
 
 def generate_stats_filters(
+    include_all=False,
     ca_oriented=False,
-    pathnet_oriented=False,
+    role="",
     extra_filters="",
-    host=False,
-    only_meta_data=False,
 ):
+    role_col = "ca_role" if ca_oriented else "role"
     ignore_string = (
-        "confidence > 0 AND match <> -1 AND ca_role <> 'other'"
-        if ca_oriented
-        else ("" if only_meta_data or pathnet_oriented else f"ignore = FALSE")
+        ""
+        if include_all
+        else (f"confidence > 0 AND match <> -1 AND {role_col} <> 'other'" if ca_oriented else "ignore = FALSE")
     )
-    role_string = (
-        f"{'ca_role' if ca_oriented else 'role'} = 'host'"
-        if host
-        else ("" if not pathnet_oriented else "role = 'non-host'")
-    )
+    role_string = f"{role_col} = '{role}'" if role else ""
     filters = [ignore_string, role_string, extra_filters]
     stats_filter = " AND ".join(ftr for ftr in filters if ftr)
     return f"AND {stats_filter}" if stats_filter else ""

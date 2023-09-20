@@ -92,10 +92,10 @@ def generate_matrices_components(nets):
 
     children = generate_matrices_layout(
         nets=nets,
-        overall_diag_id=OVERALL_COLOR_CONF_DIAGONAL,
-        host_diag_id=HOST_COLOR_CONF_DIAGONAL,
-        overall_conf_mat_id=OVERALL_COLOR_CONF_MAT,
-        host_conf_mat_id=HOST_COLOR_CONF_MAT,
+        upper_diag_id=OVERALL_COLOR_CONF_DIAGONAL,
+        lower_diag_id=HOST_COLOR_CONF_DIAGONAL,
+        left_conf_mat_id=OVERALL_COLOR_CONF_MAT,
+        right_conf_mat_id=HOST_COLOR_CONF_MAT,
     )
     return children
 
@@ -118,6 +118,7 @@ def generate_overall_matrices(nets, meta_data_filters):
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
         class_names=color_class_names,
+        ca_oriented=True,
     )
     return diagonal_compare, mats_figs
 
@@ -139,13 +140,14 @@ def generate_host_matrices(nets, meta_data_filters):
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        host=True,
+        role="host",
         class_names=color_class_names,
+        ca_oriented=True,
     )
     return diagonal_compare, mats_figs
 
 
-def get_color_score(meta_data_filters, nets, host=False):
+def get_color_score(meta_data_filters, nets, role=""):
     labels = "color_label"
     preds = "color_pred"
     query = generate_compare_query(
@@ -155,7 +157,7 @@ def get_color_score(meta_data_filters, nets, host=False):
         preds,
         meta_data_filters=meta_data_filters,
         extra_filters=f"{labels} != -1",
-        host=host,
+        role=role,
         ca_oriented=True,
     )
     data, _ = run_query_with_nets_names_processing(query)
@@ -187,7 +189,7 @@ def get_host_color_score(meta_data_filters, nets):
     if not nets:
         return no_update
 
-    data = get_color_score(meta_data_filters, nets, host=True)
+    data = get_color_score(meta_data_filters, nets, role="host")
     fig = basic_bar_graph(data, x="net_id", y="score", title="Host Color Score", color="net_id")
     return fig
 

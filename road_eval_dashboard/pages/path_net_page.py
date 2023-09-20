@@ -23,7 +23,7 @@ from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
 extra_properties = PageProperties("line-chart")
-register_page(__name__, path="/path_net", name="Path Net", order=8, **extra_properties.__dict__)
+register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_properties.__dict__)
 
 layout = html.Div(
     [
@@ -81,10 +81,10 @@ def get_path_net_acc_host(meta_data_filters, nets):
         nets["meta_data"],
         "acc",
         meta_data_filters=meta_data_filters,
-        host=True,
+        role="host",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy", host=True)
+    return draw_path_net_graph(df, distances, "accuracy", role="host")
 
 
 @callback(
@@ -122,10 +122,10 @@ def get_path_net_falses_host(meta_data_filters, nets):
         nets["meta_data"],
         "falses",
         meta_data_filters=meta_data_filters,
-        host=True,
+        role="host",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "falses", host=True)
+    return draw_path_net_graph(df, distances, "falses", role="host")
 
 
 @callback(

@@ -70,10 +70,10 @@ def generate_matrices_components(nets):
 
     children = generate_matrices_layout(
         nets=nets,
-        overall_diag_id=OVERALL_TYPE_CONF_DIAGONAL,
-        host_diag_id=HOST_TYPE_CONF_DIAGONAL,
-        overall_conf_mat_id=OVERALL_TYPE_CONF_MAT,
-        host_conf_mat_id=HOST_TYPE_CONF_MAT,
+        upper_diag_id=OVERALL_TYPE_CONF_DIAGONAL,
+        lower_diag_id=HOST_TYPE_CONF_DIAGONAL,
+        left_conf_mat_id=OVERALL_TYPE_CONF_MAT,
+        right_conf_mat_id=HOST_TYPE_CONF_MAT,
     )
     return children
 
@@ -96,6 +96,7 @@ def generate_overall_matrices(nets, meta_data_filters):
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
         class_names=type_class_names,
+        ca_oriented=True,
     )
     return diagonal_compare, mats_figs
 
@@ -117,8 +118,9 @@ def generate_host_matrices(nets, meta_data_filters):
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        host=True,
+        role="host",
         class_names=type_class_names,
+        ca_oriented=True,
     )
     return diagonal_compare, mats_figs
 
@@ -168,7 +170,7 @@ def get_host_type_score(meta_data_filters, nets):
         preds,
         meta_data_filters=meta_data_filters,
         extra_filters=f"{labels} != -1",
-        host=True,
+        role="host",
         ca_oriented=True,
     )
     data, _ = run_query_with_nets_names_processing(query)

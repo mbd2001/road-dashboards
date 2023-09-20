@@ -246,7 +246,7 @@ def get_fb_fig(meta_data_filters, nets, interesting_filters, effective_samples, 
         meta_data_filters=meta_data_filters,
         interesting_filters=interesting_filters,
         input_thresh=thresh,
-        host=is_host,
+        role="host" if is_host else "",
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data_post_process(data, interesting_filters.keys())
