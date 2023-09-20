@@ -22,15 +22,15 @@ JOIN_QUERY = """
     """
 
 COUNT_QUERY = """
-    SELECT net_id, {group_by_label} as {label_col}, {group_by_pred} as {pred_col}, COUNT(*) AS {count_name} 
+    SELECT {group_by} AS {group_name}, {count_metric}
     FROM ({base_query})
-    GROUP BY net_id, {group_by_label}, {group_by_pred}
+    GROUP BY {group_by}
     """
 
 CONF_MAT_QUERY = """
-    SELECT net_id, {label_col}, {pred_col}, COUNT(*) AS {count_name} 
+    SELECT net_id, {group_by_label} as {label_col}, {group_by_pred} as {pred_col}, COUNT(*) AS {count_name} 
     FROM ({base_query})
-    GROUP BY net_id, {label_col}, {pred_col}
+    GROUP BY net_id, {group_by_label}, {group_by_pred}
     """
 
 DYNAMIC_METRICS_QUERY = """
