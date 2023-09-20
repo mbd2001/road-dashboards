@@ -84,7 +84,7 @@ def generate_matrices_graphs(
     net_names,
     meta_data_filters="",
     role="",
-    conf_name="",
+    mat_name="",
     class_names=[],
     ca_oriented=False,
     include_all=False,
@@ -111,9 +111,9 @@ def generate_matrices_graphs(
         net_names,
         class_names,
         role=role,
-        conf_name=conf_name,
+        mat_name=mat_name,
     )
     diagonal_compare = draw_conf_diagonal_compare(
-        normalize_mats, net_names, class_names, role=role, conf_name=conf_name
+        normalize_mats, net_names, class_names, role=role, mat_name=mat_name
     )
     return diagonal_compare, mats_figs

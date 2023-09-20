@@ -100,7 +100,7 @@ def generate_left_matrices(nets, meta_data_filters):
         class_names=scene_class_names,
         compare_sign=True,
         ignore_val=0,
-        conf_name="shadowsguardrail hostleft",
+        mat_name="shadowsguardrail hostleft",
     )
     return diagonal_compare, mats_figs
 
@@ -128,7 +128,7 @@ def generate_right_matrices(nets, meta_data_filters):
         class_names=scene_class_names,
         compare_sign=True,
         ignore_val=0,
-        conf_name="shadowsguardrail hostright",
+        mat_name="shadowsguardrail hostright",
     )
     return diagonal_compare, mats_figs
 

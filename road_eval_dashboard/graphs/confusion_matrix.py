@@ -17,10 +17,10 @@ def compute_confusion_matrix(data, labels_col, preds_col, num_classes):
     return conf_matrix, normalize_mat
 
 
-def draw_confusion_matrix(data, labels_col, preds_col, class_names, role="", conf_name=""):
+def draw_confusion_matrix(data, labels_col, preds_col, class_names, role="", mat_name=""):
     num_classes = len(class_names)
     conf_matrix, normalize_mat = compute_confusion_matrix(data, labels_col, preds_col, num_classes)
-    title = f'{(conf_name or role or "overall").title()} Confusion Matrix'
+    title = f'{(mat_name or role or "overall").title()} Confusion Matrix'
     fig = px.imshow(
         normalize_mat,
         text_auto=".2f",
@@ -43,13 +43,13 @@ def draw_confusion_matrix(data, labels_col, preds_col, class_names, role="", con
     return fig, normalize_mat
 
 
-def draw_multiple_nets_confusion_matrix(data, labels_col, preds_col, net_names, class_names, role="", conf_name=""):
+def draw_multiple_nets_confusion_matrix(data, labels_col, preds_col, net_names, class_names, role="", mat_name=""):
     figs = []
     normalize_mats = []
     for net_name in net_names:
         net_data = data[data["net_id"] == process_net_name(net_name)]
         fig, normalize_mat = draw_confusion_matrix(
-            net_data, labels_col, preds_col, class_names, role=role, conf_name=conf_name
+            net_data, labels_col, preds_col, class_names, role=role, mat_name=mat_name
         )
         figs.append(fig)
         normalize_mats.append(normalize_mat)
