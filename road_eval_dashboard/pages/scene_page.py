@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import html, dcc, register_page, Input, Output, callback, State, no_update, ALL
+from dash import html, dcc, register_page, Input, Output, State, callback, no_update, ALL
 
 from road_eval_dashboard.components.confusion_matrices_layout import (
     generate_matrices_graphs,
