@@ -162,7 +162,6 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets):
         "falses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        host=True,
         role="host",
     )
     df, _ = run_query_with_nets_names_processing(query)
@@ -208,6 +207,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
         "misses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
+        role="host"
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", host=True)
