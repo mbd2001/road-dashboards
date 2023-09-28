@@ -9,6 +9,10 @@ COPY . /app
 
 RUN chmod 777 -R /app
 
+RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
+    pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
+
+
 # pip installations
 RUN pip install --upgrade pip
 RUN pip install pycountry
@@ -21,6 +25,7 @@ RUN pip install boto3
 RUN pip install tqdm
 RUN pip install fsspec
 RUN pip install s3fs
+RUN pip install road-database-toolkit
 
 ENV PYTHONPATH=/app
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional

@@ -11,7 +11,7 @@ from road_eval_dashboard.graphs.confusion_matrix import draw_multiple_nets_confu
 from road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
 
 
-def generate_matrices_layout(nets, overall_diag_id, host_diag_id, overall_conf_mat_id, host_conf_mat_id):
+def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_id, right_conf_mat_id):
     if not nets:
         return []
 
@@ -22,7 +22,7 @@ def generate_matrices_layout(nets, overall_diag_id, host_diag_id, overall_conf_m
                     [
                         dbc.Row(
                             [
-                                dcc.Graph(id=overall_diag_id, config={"displayModeBar": False}),
+                                dcc.Graph(id=upper_diag_id, config={"displayModeBar": False}),
                             ]
                         )
                     ]
@@ -35,7 +35,7 @@ def generate_matrices_layout(nets, overall_diag_id, host_diag_id, overall_conf_m
                     [
                         dbc.Row(
                             [
-                                dcc.Graph(id=host_diag_id, config={"displayModeBar": False}),
+                                dcc.Graph(id=lower_diag_id, config={"displayModeBar": False}),
                             ]
                         )
                     ]
@@ -44,14 +44,14 @@ def generate_matrices_layout(nets, overall_diag_id, host_diag_id, overall_conf_m
         ),
     ] + [
         generate_confusion_matrix_card_layout(
-            process_net_name(nets["names"][ind]), ind, overall_conf_mat_id, host_conf_mat_id
+            process_net_name(nets["names"][ind]), ind, left_conf_mat_id, right_conf_mat_id
         )
         for ind in range(len(nets["names"]))
     ]
     return children
 
 
-def generate_confusion_matrix_card_layout(net, ind, overall_conf_mat_id, host_conf_mat_id):
+def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf_mat_id):
     layout = card_wrapper(
         [
             dbc.Row([html.H4(children=net, style={"textAlign": "center"})]),
@@ -59,17 +59,13 @@ def generate_confusion_matrix_card_layout(net, ind, overall_conf_mat_id, host_co
                 [
                     dbc.Col(
                         loading_wrapper(
-                            [
-                                dcc.Graph(
-                                    id={"type": overall_conf_mat_id, "index": ind}, config={"displayModeBar": False}
-                                )
-                            ]
+                            [dcc.Graph(id={"type": left_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
                         ),
                         width=6,
                     ),
                     dbc.Col(
                         loading_wrapper(
-                            [dcc.Graph(id={"type": host_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
+                            [dcc.Graph(id={"type": right_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
                         ),
                         width=6,
                     ),
@@ -87,9 +83,12 @@ def generate_matrices_graphs(
     meta_data_table,
     net_names,
     meta_data_filters="",
-    host=False,
+    role="",
+    mat_name="",
     class_names=[],
-    pathnet_oriented=False,
+    ca_oriented=False,
+    include_all=False,
+    ignore_val=-1,
 ):
     query = generate_conf_mat_query(
         nets_tables,
@@ -97,14 +96,20 @@ def generate_matrices_graphs(
         label_col,
         pred_col,
         meta_data_filters=meta_data_filters,
-        extra_filters=f"{label_col} != -1",
-        host=host,
-        pathnet_oriented=pathnet_oriented,
+        extra_filters=f"{label_col} != {ignore_val}",
+        role=role,
+        include_all=include_all,
+        ca_oriented=ca_oriented,
     )
-
     data, _ = run_query_with_nets_names_processing(query)
     mats_figs, normalize_mats = draw_multiple_nets_confusion_matrix(
-        data, label_col, pred_col, net_names, class_names, host=host
+        data,
+        label_col,
+        pred_col,
+        net_names,
+        class_names,
+        role=role,
+        mat_name=mat_name,
     )
-    diagonal_compare = draw_conf_diagonal_compare(normalize_mats, net_names, class_names, host=host)
+    diagonal_compare = draw_conf_diagonal_compare(normalize_mats, net_names, class_names, role=role, mat_name=mat_name)
     return diagonal_compare, mats_figs

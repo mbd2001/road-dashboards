@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 
 
-def draw_path_net_graph(data, distances, title="", host=False):
+def draw_path_net_graph(data, distances, title="", role="non-host"):
     fig = go.Figure()
     for ind, row in data.iterrows():
         fig.add_trace(
@@ -12,7 +12,7 @@ def draw_path_net_graph(data, distances, title="", host=False):
             )
         )
     fig.update_layout(
-        title=f"<b>{'Host' if host else 'Non-Host'} {title.title()}<b>",
+        title=f"<b>{role.title()} {title.title()}<b>",
         xaxis_title="Time (s)",
         yaxis_title=title.title(),
         xaxis=dict(constrain="domain"),

@@ -49,9 +49,8 @@ def generate_catalog_layout():
                     sort_action="native",
                     sort_mode="multi",
                     sort_by=[
-                        {"column_id": "last_change", "direction": "desc"},
-                        {"column_id": "dataset", "direction": "desc"},
                         {"column_id": "user", "direction": "desc"},
+                        {"column_id": "last_change", "direction": "desc"},
                     ],
                     row_selectable="multi",
                     selected_rows=[],
@@ -188,7 +187,7 @@ def get_distinct_values_dict(nets, md_columns_to_type):
     )
     tables_lists = nets["frame_tables"]
     meta_data = nets["meta_data"]
-    base_query = generate_base_query(tables_lists, meta_data, only_meta_data=True)
+    base_query = generate_base_query(tables_lists, meta_data, include_all=True)
     query = f"SELECT {distinct_select} FROM ({base_query})"
     data, _ = query_athena(database="run_eval_db", query=query)
     distinct_dict = data.to_dict("list")
