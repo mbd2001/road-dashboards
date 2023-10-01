@@ -44,4 +44,4 @@ class Nets:
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
         ).__dict__
-        self.dp_tables = Table(dp_tables, ["clip_name", "grabIndex", "net_id", "role"], "role <> 'other'").__dict__
+        self.dp_tables = Table(dp_tables, ["clip_name", "grabIndex", "net_id", "role"], "").__dict__

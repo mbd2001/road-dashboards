@@ -306,8 +306,8 @@ def generate_path_net_query(
     extra_filters="",
     role="",
 ):
-    operator = "<" if state == "acc" else ">"
-    distances_dict = sec_to_dist_acc if state == "acc" else sec_to_dist_falses
+    operator = "<" if state == "accuracy" else ">"
+    distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
     metrics = ", ".join(
         DIST_METRIC.format(thresh_filter=f"{operator} {thresh}", dist=sec, extra_filters="")
         for sec, thresh in distances_dict.items()
