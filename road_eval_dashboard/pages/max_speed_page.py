@@ -212,6 +212,7 @@ def get_max_speed_fig(
         )
     else:
         fig = get_max_speed_fb_fig(meta_data_filters, nets, label, pred, interesting_filters, effective_samples, title)
+
     return fig
 
 

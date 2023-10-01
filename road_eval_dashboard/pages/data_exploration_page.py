@@ -206,16 +206,16 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, nets
 
     column_type = meta_data_dict[group_by_column]
     bins_factor = None
-    ignores_filter = ""
+    ignore_filter = ""
     if column_type.startswith(("int", "float", "double")):
         bin_size = exponent_transform(slider_value)
         bins_factor = bin_size
-        ignores_filter = f"{group_by_column} <> 999 AND {group_by_column} <> -999"
+        ignore_filter = f"{group_by_column} <> 999 AND {group_by_column} <> -999"
 
     query = generate_count_query(
         nets["frame_tables"],
         nets["meta_data"],
-        meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignores_filter] if filter_str),
+        meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignore_filter] if filter_str),
         group_by_column=group_by_column,
         bins_factor=bins_factor,
     )

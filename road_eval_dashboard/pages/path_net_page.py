@@ -98,10 +98,7 @@ def get_path_net_acc_next(meta_data_filters, nets):
         return no_update
 
     query = generate_path_net_query(
-        nets["dp_tables"],
-        nets["meta_data"],
-        "acc",
-        meta_data_filters=meta_data_filters,
+        nets["dp_tables"], nets["meta_data"], "acc", meta_data_filters=meta_data_filters, role="non-host"
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy")
@@ -139,10 +136,7 @@ def get_path_net_falses_next(meta_data_filters, nets):
         return no_update
 
     query = generate_path_net_query(
-        nets["dp_tables"],
-        nets["meta_data"],
-        "falses",
-        meta_data_filters=meta_data_filters,
+        nets["dp_tables"], nets["meta_data"], "falses", meta_data_filters=meta_data_filters, role="non-host"
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses")

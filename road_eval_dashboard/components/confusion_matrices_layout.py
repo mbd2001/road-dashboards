@@ -87,7 +87,6 @@ def generate_matrices_graphs(
     mat_name="",
     class_names=[],
     ca_oriented=False,
-    include_all=False,
     ignore_val=-1,
 ):
     query = generate_conf_mat_query(
@@ -98,7 +97,6 @@ def generate_matrices_graphs(
         meta_data_filters=meta_data_filters,
         extra_filters=f"{label_col} != {ignore_val}",
         role=role,
-        include_all=include_all,
         ca_oriented=ca_oriented,
     )
     data, _ = run_query_with_nets_names_processing(query)
