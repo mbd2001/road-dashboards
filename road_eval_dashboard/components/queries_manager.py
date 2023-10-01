@@ -304,7 +304,7 @@ def generate_path_net_query(
     state,
     meta_data_filters="",
     extra_filters="",
-    role="non-host",
+    role="",
 ):
     operator = "<" if state == "acc" else ">"
     distances_dict = sec_to_dist_acc if state == "acc" else sec_to_dist_falses
