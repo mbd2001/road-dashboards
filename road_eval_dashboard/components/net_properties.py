@@ -1,32 +1,47 @@
 from dataclasses import dataclass
-from typing import List
+from typing import Optional, List
 
 
 @dataclass
-class Net:
-    name: str
-    checkpoint: str
-    population: str
-    meta_data_table: str
-    frame_table: str
-    pred_table: str = ""
-    gt_table: str = ""
-    dp_table: str = ""
+class Table:
+    paths: List[str]
+    required_columns: list
+    ignore_filter: str
+    ca_ignore_filter: Optional[str] = ""
+
+    def __bool__(self):
+        return self.paths is not None
 
 
 @dataclass
 class Nets:
-    nets: List[dict]
-
-    def __post_init__(self):
-        self.names = [f"{net['name']}_{net['checkpoint']}" for net in self.nets]
-        self.meta_data = "" if not self.nets else self.nets[0]["meta_data_table"]
-        self.frame_tables = [net["frame_table"] for net in self.nets]
-        self.pred_tables = [net["pred_table"] for net in self.nets if net["pred_table"]]
-        self.gt_tables = [net["gt_table"] for net in self.nets if net["gt_table"]]
-        self.dp_tables = [net["dp_table"] for net in self.nets if net["dp_table"]]
+    def __init__(self, net_names, checkpoints, populations, **kwargs):
+        self.names = [f"{net_name}_{checkpoint}" for net_name, checkpoint in zip(net_names, checkpoints)]
         self.population = (
             "Test"
-            if all("test" in net["population"] for net in self.nets)
-            else ("Train" if all("train" in net["population"] for net in self.nets) else "Mix")
+            if all("test" in population for population in populations)
+            else ("Train" if all("train" in population for population in populations) else "Mix")
         )
+
+        meta_data_tables = kwargs.get("meta_data_table")
+        frame_tables = kwargs.get("frame_table")
+        pred_tables = kwargs.get("pred_table")
+        gt_tables = kwargs.get("gt_table")
+        dp_tables = kwargs.get("dp_table")
+        assert meta_data_tables is not None and frame_tables is not None, "missing frame_table and meta_data_table"
+
+        self.meta_data = meta_data_tables[0]
+        self.frame_tables = Table(frame_tables, ["clip_name", "grabIndex", "net_id"], "").__dict__
+        self.pred_tables = Table(
+            pred_tables,
+            ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match", "match_score"],
+            "ignore = FALSE",
+            "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
+        ).__dict__
+        self.gt_tables = Table(
+            gt_tables,
+            ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match"],
+            "ignore = FALSE",
+            "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
+        ).__dict__
+        self.dp_tables = Table(dp_tables, ["clip_name", "grabIndex", "net_id", "role"], "").__dict__

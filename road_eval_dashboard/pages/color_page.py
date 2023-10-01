@@ -103,10 +103,10 @@ def generate_matrices_components(nets):
 @callback(
     Output(OVERALL_COLOR_CONF_DIAGONAL, "figure"),
     Output({"type": OVERALL_COLOR_CONF_MAT, "index": ALL}, "figure"),
-    Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
+    State(NETS, "data"),
 )
-def generate_overall_matrices(nets, meta_data_filters):
+def generate_overall_matrices(meta_data_filters, nets):
     if not nets:
         return no_update
 
@@ -126,10 +126,10 @@ def generate_overall_matrices(nets, meta_data_filters):
 @callback(
     Output(HOST_COLOR_CONF_DIAGONAL, "figure"),
     Output({"type": HOST_COLOR_CONF_MAT, "index": ALL}, "figure"),
-    Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
+    State(NETS, "data"),
 )
-def generate_host_matrices(nets, meta_data_filters):
+def generate_host_matrices(meta_data_filters, nets):
     if not nets:
         return no_update
 
