@@ -96,7 +96,6 @@ def generate_left_matrices(nets, meta_data_filters):
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        include_all=True,
         class_names=scene_class_names,
         compare_sign=True,
         ignore_val=0,
@@ -124,7 +123,6 @@ def generate_right_matrices(nets, meta_data_filters):
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        include_all=True,
         class_names=scene_class_names,
         compare_sign=True,
         ignore_val=0,
@@ -152,7 +150,6 @@ def get_left_scene_score(meta_data_filters, nets):
         preds,
         meta_data_filters=meta_data_filters,
         extra_filters=f"{labels} != 0",
-        include_all=True,
         compare_sign=True,
     )
     data, _ = run_query_with_nets_names_processing(query)
@@ -179,7 +176,6 @@ def get_right_scene_score(meta_data_filters, nets):
         preds,
         meta_data_filters=meta_data_filters,
         extra_filters=f"{labels} != 0",
-        include_all=True,
         compare_sign=True,
     )
     data, _ = run_query_with_nets_names_processing(query)
