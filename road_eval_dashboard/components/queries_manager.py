@@ -180,7 +180,7 @@ def generate_grab_index_hist_query(
     meta_data,
     interesting_filters,
 ):
-    base_query = generate_base_query(data_tables, meta_data, include_all=True)
+    base_query = generate_base_query(data_tables, meta_data)
     metrics = ", ".join(
         [LOG_COUNT_METRIC.format(extra_filters=f"({filter})", ind=name) for name, filter in interesting_filters.items()]
     )
@@ -231,7 +231,7 @@ def generate_vmax_success_rate_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        include_all=True,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
@@ -265,7 +265,7 @@ def generate_vmax_fb_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        include_all=True,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
@@ -286,7 +286,7 @@ def generate_emdp_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        include_all=True,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
     )
     metrics = ", ".join(
         COMPARE_METRIC.format(
@@ -304,10 +304,10 @@ def generate_path_net_query(
     state,
     meta_data_filters="",
     extra_filters="",
-    role="non-host",
+    role="",
 ):
-    operator = "<" if state == "acc" else ">"
-    distances_dict = sec_to_dist_acc if state == "acc" else sec_to_dist_falses
+    operator = "<" if state == "accuracy" else ">"
+    distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
     metrics = ", ".join(
         DIST_METRIC.format(thresh_filter=f"{operator} {thresh}", dist=sec, extra_filters="")
         for sec, thresh in distances_dict.items()
@@ -454,18 +454,17 @@ def generate_conf_mat_query(
     meta_data_filters="",
     extra_filters="",
     role="",
-    include_all=False,
     ca_oriented=False,
     compare_sign=False,
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         role=role,
         ca_oriented=ca_oriented,
-        include_all=include_all,
     )
     group_by_label = f"SIGN({label_col})" if compare_sign else label_col
     group_by_pred = f"SIGN({pred_col})" if compare_sign else pred_col
@@ -538,15 +537,14 @@ def generate_compare_query(
     extra_filters="",
     role="",
     ca_oriented=False,
-    include_all=False,
     compare_sign=False,
     compare_operator="=",
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
         meta_data_filters=meta_data_filters,
-        include_all=include_all,
         ca_oriented=ca_oriented,
         role=role,
         extra_filters=extra_filters,
@@ -567,10 +565,12 @@ def generate_base_query(
     ca_oriented=False,
     role="",
     extra_filters="",
+    extra_columns=[],
 ):
-    base_data = generate_base_data(data_tables)
-    intersect_filter = generate_intersect_filter(data_tables)
-    stats_filters = generate_stats_filters(include_all, ca_oriented, role, extra_filters)
+    base_data = generate_base_data(data_tables["paths"], data_tables["required_columns"], extra_columns)
+    intersect_filter = generate_intersect_filter(data_tables["paths"])
+    ignore_str = data_tables["ca_ignore_filter"] if ca_oriented else data_tables["ignore_filter"]
+    stats_filters = generate_stats_filters(ignore_str, include_all, ca_oriented, role, extra_filters)
     meta_data_filters = "AND " + meta_data_filters if meta_data_filters else ""
     base_query = BASE_QUERY.format(
         base_data=base_data,
@@ -582,24 +582,23 @@ def generate_base_query(
     return base_query
 
 
-def generate_base_data(data_paths):
-    union_str = f" UNION ALL SELECT * FROM ".join(data_paths)
-    return f"SELECT * FROM {union_str}"
+def generate_base_data(data_paths, base_columns, extra_columns=[]):
+    data_columns = ", ".join(base_columns + extra_columns)
+    union_str = f" UNION ALL SELECT {data_columns} FROM ".join(data_paths)
+    return f"SELECT {data_columns} FROM {union_str}"
 
 
 def generate_stats_filters(
+    filter_str,
     include_all=False,
     ca_oriented=False,
     role="",
     extra_filters="",
 ):
+    ignore_string = "" if include_all else filter_str
     role_col = "ca_role" if ca_oriented else "role"
-    ignore_string = (
-        ""
-        if include_all
-        else (f"confidence > 0 AND match <> -1 AND {role_col} <> 'other'" if ca_oriented else "ignore = FALSE")
-    )
     role_string = f"{role_col} = '{role}'" if role else ""
+
     filters = [ignore_string, role_string, extra_filters]
     stats_filter = " AND ".join(ftr for ftr in filters if ftr)
     return f"AND {stats_filter}" if stats_filter else ""

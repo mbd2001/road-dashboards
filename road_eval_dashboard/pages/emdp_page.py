@@ -18,7 +18,6 @@ from road_eval_dashboard.components import (
 )
 from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
-    NETS,
     EMDP_ROAD_TYPE,
     EMDP_ROAD_TYPE_WORLD,
     EMDP_ROAD_TYPE_PRECISION,
@@ -36,6 +35,7 @@ from road_eval_dashboard.components.components_ids import (
     EMDP_WEATHER_PRECISION,
     EMDP_CURVE_BY_DIST,
     EFFECTIVE_SAMPLES_PER_BATCH,
+    NETS,
 )
 from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,

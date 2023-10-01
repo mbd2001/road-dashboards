@@ -87,7 +87,6 @@ def generate_matrices_graphs(
     mat_name="",
     class_names=[],
     ca_oriented=False,
-    include_all=False,
     compare_sign=False,
     ignore_val=-1,
 ):
@@ -99,7 +98,6 @@ def generate_matrices_graphs(
         meta_data_filters=meta_data_filters,
         extra_filters=f"{label_col} != {ignore_val}",
         role=role,
-        include_all=include_all,
         ca_oriented=ca_oriented,
         compare_sign=compare_sign,
     )

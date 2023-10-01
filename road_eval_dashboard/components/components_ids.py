@@ -17,7 +17,6 @@ CLOSEUP_NET = "closeup_net"
 LOAD_NETS_DATA_NOTIFICATION = "load_nets_data_notification"
 
 
-# graph components
 # accuracy page
 FB_PER_ROAD_TYPE_GRAPH = "fb_per_road_type_graph"
 FB_PER_ROAD_TYPE_HOST = "fb_per_road_type_host"

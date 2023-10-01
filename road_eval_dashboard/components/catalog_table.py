@@ -18,7 +18,7 @@ from road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
 )
 from road_eval_dashboard.components.layout_wrapper import loading_wrapper
-from road_eval_dashboard.components.net_properties import Nets, Net
+from road_eval_dashboard.components.net_properties import Nets
 from road_eval_dashboard.components.queries_manager import (
     generate_base_query,
     generate_grab_index_hist_query,
@@ -155,17 +155,12 @@ def generate_effective_samples_per_batch(nets):
 
 
 def init_nets(rows, derived_virtual_selected_rows):
-    rows = [rows[i] for i in derived_virtual_selected_rows]
+    rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
     nets = Nets(
-        list(
-            Net(
-                row["net"],
-                row["checkpoint"],
-                row["population"],
-                **{table: row[table] for table in row if table.endswith("table") and row[table]},
-            ).__dict__
-            for row in rows
-        )
+        rows["net"],
+        rows["checkpoint"],
+        rows["population"],
+        **{table: rows[table] for table in rows.columns if table.endswith("table") and any(rows[table])},
     ).__dict__
     return nets
 
@@ -187,7 +182,7 @@ def get_distinct_values_dict(nets, md_columns_to_type):
     )
     tables_lists = nets["frame_tables"]
     meta_data = nets["meta_data"]
-    base_query = generate_base_query(tables_lists, meta_data, include_all=True)
+    base_query = generate_base_query(tables_lists, meta_data)
     query = f"SELECT {distinct_select} FROM ({base_query})"
     data, _ = query_athena(database="run_eval_db", query=query)
     distinct_dict = data.to_dict("list")
