@@ -87,8 +87,8 @@ def generate_left_matrices(nets, meta_data_filters):
     if not nets:
         return no_update
 
-    label_col = "availability_shadowsguardrail_hostleft_label"
-    pred_col = "availability_shadowsguardrail_hostleft_pred"
+    label_col = "scene_signals_shadowsguardrail_hostleft_label"
+    pred_col = "scene_signals_shadowsguardrail_hostleft_pred"
     diagonal_compare, mats_figs = generate_matrices_graphs(
         label_col=label_col,
         pred_col=pred_col,
@@ -114,8 +114,8 @@ def generate_right_matrices(nets, meta_data_filters):
     if not nets:
         return no_update
 
-    label_col = "availability_shadowsguardrail_hostright_label"
-    pred_col = "availability_shadowsguardrail_hostright_pred"
+    label_col = "scene_signals_shadowsguardrail_hostright_label"
+    pred_col = "scene_signals_shadowsguardrail_hostright_pred"
     diagonal_compare, mats_figs = generate_matrices_graphs(
         label_col=label_col,
         pred_col=pred_col,
@@ -141,8 +141,8 @@ def get_left_scene_score(meta_data_filters, nets):
     if not nets:
         return no_update
 
-    labels = "availability_shadowsguardrail_hostleft_label"
-    preds = "availability_shadowsguardrail_hostleft_pred"
+    labels = "scene_signals_shadowsguardrail_hostleft_label"
+    preds = "scene_signals_shadowsguardrail_hostleft_pred"
     query = generate_compare_query(
         nets["frame_tables"],
         nets["meta_data"],
@@ -167,8 +167,8 @@ def get_right_scene_score(meta_data_filters, nets):
     if not nets:
         return no_update
 
-    labels = "availability_shadowsguardrail_hostright_label"
-    preds = "availability_shadowsguardrail_hostright_pred"
+    labels = "scene_signals_shadowsguardrail_hostright_label"
+    preds = "scene_signals_shadowsguardrail_hostright_pred"
     query = generate_compare_query(
         nets["frame_tables"],
         nets["meta_data"],
