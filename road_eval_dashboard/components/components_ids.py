@@ -1,6 +1,6 @@
 # tables names
-PATHNET_GT = "pathnet_gt_table"
-PATHNET_PRED = "pathnet_pred_table"
+PATHNET_GT = "pathnet_gt_tables"
+PATHNET_PRED = "pathnet_pred_tables"
 
 
 # stores

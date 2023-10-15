@@ -248,10 +248,10 @@ def generate_matrices_components(nets):
 
     children = generate_matrices_layout(
         nets=nets,
-        overall_diag_id=PATH_NET_ALL_CONF_DIAGONAL,
-        host_diag_id=PATH_NET_HOST_CONF_DIAGONAL,
-        overall_conf_mat_id=PATH_NET_OVERALL_CONF_MAT,
-        host_conf_mat_id=PATH_NET_HOST_CONF_MAT,
+        upper_diag_id=PATH_NET_ALL_CONF_DIAGONAL,
+        lower_diag_id=PATH_NET_HOST_CONF_DIAGONAL,
+        left_conf_mat_id=PATH_NET_OVERALL_CONF_MAT,
+        right_conf_mat_id=PATH_NET_HOST_CONF_MAT,
     )
     return children
 
