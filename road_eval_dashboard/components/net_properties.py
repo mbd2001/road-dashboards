@@ -45,7 +45,20 @@ class Nets:
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
         )
-        pathnet_columns = ["clip_name", "grabIndex", "net_id", "role", "matched_role", "split_role", "matched_split_role", "merge_role", "matched_merge_role", "primary_role", "matched_primary_role", "smooth_index"] + [f'"dist_{dist / 2}"' for dist in range(1, 11)]
+        pathnet_columns = [
+            "clip_name",
+            "grabIndex",
+            "net_id",
+            "role",
+            "matched_role",
+            "split_role",
+            "matched_split_role",
+            "merge_role",
+            "matched_merge_role",
+            "primary_role",
+            "matched_primary_role",
+            "smooth_index",
+        ] + [f'"dist_{dist / 2}"' for dist in range(1, 11)]
         self.pathnet_pred_tables = Table(pathnet_pred_tables, pathnet_columns, "")
         self.pathnet_gt_tables = Table(pathnet_gt_tables, pathnet_columns, "")
         self.pred_tables = self.pred_tables.__dict__ if self.pred_tables else None

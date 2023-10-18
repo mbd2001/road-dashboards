@@ -140,7 +140,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets):
         "accuracy",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role="non-host"
+        role="non-host",
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy")
@@ -186,7 +186,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets):
         "falses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role="non-host"
+        role="non-host",
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses")
@@ -209,7 +209,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
         "misses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role="host"
+        role="host",
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="host")
@@ -232,7 +232,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets):
         "misses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role="non-host"
+        role="non-host",
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="non-host")
