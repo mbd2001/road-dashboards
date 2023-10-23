@@ -51,12 +51,6 @@ class Nets:
             "net_id",
             "role",
             "matched_role",
-            "split_role",
-            "matched_split_role",
-            "merge_role",
-            "matched_merge_role",
-            "primary_role",
-            "matched_primary_role",
             "smooth_index",
         ] + [f'"dist_{dist / 2}"' for dist in range(1, 11)]
         self.pathnet_pred_tables = Table(pathnet_pred_tables, pathnet_columns, "")
