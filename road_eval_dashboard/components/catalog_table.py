@@ -26,7 +26,6 @@ from road_eval_dashboard.components.queries_manager import (
 )
 from road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
 from road_database_toolkit.athena.athena_utils import query_athena
-from road_database_toolkit.loggers.color_prints import warning_print
 
 run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
 
@@ -148,7 +147,7 @@ def generate_effective_samples_per_batch(nets):
         effective_samples_per_batch = data.to_dict("records")[0]
         return effective_samples_per_batch
     except:
-        warning_print(
+        print(
             "It seems like you're working with old dataset. In order to enjoy the full capabilites of the dashboard please re-run the 'parquets_converter_cfg' and 'generate_meta_data_table' stages of the dump."
         )
         return {}
