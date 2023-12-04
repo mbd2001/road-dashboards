@@ -40,17 +40,30 @@ CURVE_BY_RAD_FILTERS = {
 CURVE_BY_DIST_FILTERS = {
     "dist40_rad100": "curve_rad_ahead < 100",
     "dist40_100rad500": "curve_rad_ahead BETWEEN 100 AND 500",
-    "dist40_500rad1000": "curve_rad_ahead BETWEEN 500 AND 1000",
+    "dist40_500rad1000": "curve_rad_ahead BETWEEN 501 AND 1000",
     "40dist90_rad100": "curve_rad_ahead_40_90 < 100",
     "40dist90_100rad500": "curve_rad_ahead_40_90 BETWEEN 100 AND 500",
-    "40dist90_500rad1000": "curve_rad_ahead_40_90 BETWEEN 500 AND 1000",
+    "40dist90_500rad1000": "curve_rad_ahead_40_90 BETWEEN 501 AND 1000",
     "90dist120_rad100": "curve_rad_ahead_90_120 < 100",
     "90dist120_100rad500": "curve_rad_ahead_90_120 BETWEEN 100 AND 500",
-    "90dist120_500rad1000": "curve_rad_ahead_90_120 BETWEEN 500 AND 1000",
+    "90dist120_500rad1000": "curve_rad_ahead_90_120 BETWEEN 501 AND 1000",
     "120dist_rad100": "curve_rad_ahead_gt_120 < 100",
     "120dist_100rad500": "curve_rad_ahead_gt_120 BETWEEN 100 AND 500",
-    "120dist_500rad1000": "curve_rad_ahead_gt_120 BETWEEN 500 AND 1000",
+    "120dist_500rad1000": "curve_rad_ahead_gt_120 BETWEEN 501 AND 1000",
 }
+
+VMAX_BINS_FILTERS = {
+    "vmax_ignore": "vmax_full_range = -1",
+    "vmax_0_5": "vmax_full_range BETWEEN 0 AND 4",
+    "vmax_5_10": "vmax_full_range BETWEEN 5 AND 9",
+    "vmax_10_15": "vmax_full_range BETWEEN 10 AND 14",
+    "vmax_15_20": "vmax_full_range BETWEEN 15 AND 19",
+    "vmax_20_25": "vmax_full_range BETWEEN 20 AND 24",
+    "vmax_25_30": "vmax_full_range BETWEEN 25 AND 29",
+    "vmax_30_35": "vmax_full_range BETWEEN 30 AND 34",
+    "vmax_35_above": "vmax_full_range >= 35",
+}
+
 
 EVENT_FILTERS = {
     "junction": "dist_to_intersection BETWEEN 0 AND 30",
@@ -76,4 +89,5 @@ ALL_FILTERS = {
     **EVENT_FILTERS,
     **WEATHER_FILTERS,
     **MAX_SPEED_FILTERS,
+    **VMAX_BINS_FILTERS
 }
