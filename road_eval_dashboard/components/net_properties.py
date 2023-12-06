@@ -27,7 +27,8 @@ class Nets:
         frame_tables = kwargs.get("frame_table")
         pred_tables = kwargs.get("pred_table")
         gt_tables = kwargs.get("gt_table")
-        dp_tables = kwargs.get("dp_table")
+        pathnet_pred_tables = kwargs.get("pathnet_pred_table")
+        pathnet_gt_tables = kwargs.get("pathnet_gt_table")
         assert meta_data_tables is not None and frame_tables is not None, "missing frame_table and meta_data_table"
 
         self.meta_data = meta_data_tables[0]
@@ -37,11 +38,24 @@ class Nets:
             ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match", "match_score"],
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
-        ).__dict__
+        )
         self.gt_tables = Table(
             gt_tables,
             ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match"],
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
-        ).__dict__
-        self.dp_tables = Table(dp_tables, ["clip_name", "grabIndex", "net_id", "role"], "").__dict__
+        )
+        pathnet_columns = [
+            "clip_name",
+            "grabIndex",
+            "net_id",
+            "role",
+            "matched_role",
+            "smooth_index",
+        ] + [f'"dist_{dist / 2}"' for dist in range(1, 11)]
+        self.pathnet_pred_tables = Table(pathnet_pred_tables, pathnet_columns, "")
+        self.pathnet_gt_tables = Table(pathnet_gt_tables, pathnet_columns, "")
+        self.pred_tables = self.pred_tables.__dict__ if self.pred_tables else None
+        self.gt_tables = self.gt_tables.__dict__ if self.gt_tables else None
+        self.pathnet_pred_tables = self.pathnet_pred_tables.__dict__ if self.pathnet_pred_tables else None
+        self.pathnet_gt_tables = self.pathnet_gt_tables.__dict__ if self.pathnet_gt_tables else None
