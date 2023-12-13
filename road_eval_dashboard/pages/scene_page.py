@@ -77,18 +77,13 @@ def generate_matrices_components(nets):
     return children
 
 
-@callback(
-    Output(LEFT_SCENE_CONF_DIAGONAL, "figure"),
-    Output({"type": LEFT_SCENE_CONF_MAT, "index": ALL}, "figure"),
-    Input(NETS, "data"),
-    Input(MD_FILTERS, "data"),
-)
-def generate_left_matrices(nets, meta_data_filters):
+def generate_matrices(nets, meta_data_filters, signal=None):
+    assert signal is not None
     if not nets:
         return no_update
 
-    label_col = "scene_signals_shadowsguardrail_hostleft_label"
-    pred_col = "scene_signals_shadowsguardrail_hostleft_pred"
+    label_col = f"scene_signals_{signal}_label"
+    pred_col = f"scene_signals_{signal}_pred"
     diagonal_compare, mats_figs = generate_matrices_graphs(
         label_col=label_col,
         pred_col=pred_col,
@@ -99,9 +94,19 @@ def generate_left_matrices(nets, meta_data_filters):
         class_names=scene_class_names,
         compare_sign=True,
         ignore_val=0,
-        mat_name="shadowsguardrail hostleft",
+        mat_name=f"{signal.replace('_', ' ')}",
     )
     return diagonal_compare, mats_figs
+
+
+@callback(
+    Output(LEFT_SCENE_CONF_DIAGONAL, "figure"),
+    Output({"type": LEFT_SCENE_CONF_MAT, "index": ALL}, "figure"),
+    Input(NETS, "data"),
+    Input(MD_FILTERS, "data"),
+)
+def generate_left_matrices(nets, meta_data_filters):
+    return generate_matrices(nets, meta_data_filters, signal="shadowsguardrail_hostleft")
 
 
 @callback(
@@ -111,24 +116,32 @@ def generate_left_matrices(nets, meta_data_filters):
     Input(MD_FILTERS, "data"),
 )
 def generate_right_matrices(nets, meta_data_filters):
+    return generate_matrices(nets, meta_data_filters, signal="shadowsguardrail_hostright")
+
+
+def get_scene_score(meta_data_filters, nets, signal=None):
+    assert signal is not None
     if not nets:
         return no_update
 
-    label_col = "scene_signals_shadowsguardrail_hostright_label"
-    pred_col = "scene_signals_shadowsguardrail_hostright_pred"
-    diagonal_compare, mats_figs = generate_matrices_graphs(
-        label_col=label_col,
-        pred_col=pred_col,
-        nets_tables=nets["frame_tables"],
-        meta_data_table=nets["meta_data"],
-        net_names=nets["names"],
+    labels = f"scene_signals_{signal}_label"
+    preds = f"scene_signals_{signal}_pred"
+    query = generate_compare_query(
+        nets["frame_tables"],
+        nets["meta_data"],
+        labels,
+        preds,
         meta_data_filters=meta_data_filters,
-        class_names=scene_class_names,
+        extra_filters=f"{labels} != 0",
         compare_sign=True,
-        ignore_val=0,
-        mat_name="shadowsguardrail hostright",
     )
-    return diagonal_compare, mats_figs
+    data, _ = run_query_with_nets_names_processing(query)
+    fig = basic_bar_graph(data,
+                          x="net_id",
+                          y="score",
+                          title=f"{signal.replace('_', ' ')} Score",
+                          color="net_id")
+    return fig
 
 
 @callback(
@@ -138,23 +151,7 @@ def generate_right_matrices(nets, meta_data_filters):
     background=True,
 )
 def get_left_scene_score(meta_data_filters, nets):
-    if not nets:
-        return no_update
-
-    labels = "scene_signals_shadowsguardrail_hostleft_label"
-    preds = "scene_signals_shadowsguardrail_hostleft_pred"
-    query = generate_compare_query(
-        nets["frame_tables"],
-        nets["meta_data"],
-        labels,
-        preds,
-        meta_data_filters=meta_data_filters,
-        extra_filters=f"{labels} != 0",
-        compare_sign=True,
-    )
-    data, _ = run_query_with_nets_names_processing(query)
-    fig = basic_bar_graph(data, x="net_id", y="score", title="Shadowsguardrail Hostleft Score", color="net_id")
-    return fig
+    return get_scene_score(meta_data_filters, nets, signal="shadowsguardrail_hostleft")
 
 
 @callback(
@@ -164,20 +161,4 @@ def get_left_scene_score(meta_data_filters, nets):
     background=True,
 )
 def get_right_scene_score(meta_data_filters, nets):
-    if not nets:
-        return no_update
-
-    labels = "scene_signals_shadowsguardrail_hostright_label"
-    preds = "scene_signals_shadowsguardrail_hostright_pred"
-    query = generate_compare_query(
-        nets["frame_tables"],
-        nets["meta_data"],
-        labels,
-        preds,
-        meta_data_filters=meta_data_filters,
-        extra_filters=f"{labels} != 0",
-        compare_sign=True,
-    )
-    data, _ = run_query_with_nets_names_processing(query)
-    fig = basic_bar_graph(data, x="net_id", y="score", title="Shadowsguardrail Hostright Score", color="net_id")
-    return fig
+    return get_scene_score(meta_data_filters, nets, signal="shadowsguardrail_hostright")
