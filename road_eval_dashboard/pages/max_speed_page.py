@@ -6,6 +6,7 @@ from road_eval_dashboard.components.common_filters import (
     MAX_SPEED_FILTERS,
     CURVE_BY_RAD_FILTERS,
     CURVE_BY_DIST_FILTERS,
+    VMAX_BINS_FILTERS,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
@@ -27,6 +28,10 @@ from road_eval_dashboard.components.components_ids import (
     VLIMIT_CURVE_BY_DIST,
     VMAX_CURVE_BY_DIST,
     EFFECTIVE_SAMPLES_PER_BATCH,
+    VLIMIT_BINS_SUCCESS_RATE,
+    VLIMIT_BINS,
+    VMAX_BINS,
+    VMAX_BINS_SUCCESS_RATE,
 )
 from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
@@ -87,8 +92,10 @@ layout = html.Div(
         base_dataset_statistics.frame_layout,
         get_base_graph_layout(VMAX_ROAD_TYPE, VMAX_ROAD_TYPE_SUCCESS_RATE),
         get_base_graph_layout(VMAX_CURVE, VMAX_CURVE_SUCCESS_RATE, VMAX_CURVE_BY_DIST),
+        get_base_graph_layout(VMAX_BINS, VMAX_BINS_SUCCESS_RATE),
         get_base_graph_layout(VLIMIT_ROAD_TYPE, VLIMIT_ROAD_TYPE_SUCCESS_RATE),
         get_base_graph_layout(VLIMIT_CURVE, VLIMIT_CURVE_SUCCESS_RATE, VLIMIT_CURVE_BY_DIST),
+        get_base_graph_layout(VLIMIT_BINS, VLIMIT_BINS_SUCCESS_RATE),
     ]
 )
 
@@ -141,6 +148,32 @@ def get_vmax_curve(meta_data_filters, is_success_rate, by_dist, nets, effective_
         label="vlimit_label",
         pred="vmax_binary_pred",
         interesting_filters=interesting_filters,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+
+@callback(
+    Output(VMAX_BINS, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(VMAX_BINS_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_vmax_bins(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"VMax {'Success Rate' if is_success_rate else 'Fb Score'} per Vmax Bin"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vmax_binary_pred",
+        interesting_filters=VMAX_BINS_FILTERS,
         effective_samples=effective_samples,
         title=title,
     )
@@ -203,6 +236,32 @@ def get_vlimit_curve(meta_data_filters, is_success_rate, by_dist, nets, effectiv
     return fig
 
 
+@callback(
+    Output(VLIMIT_BINS, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(VLIMIT_BINS_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_vlimit_vmax_bins(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"VLimit {'Success Rate' if is_success_rate else 'Fb Score'} per Vmax Bin"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vlimit_pred",
+        interesting_filters=VMAX_BINS_FILTERS,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+
 def get_max_speed_fig(
     meta_data_filters, is_success_rate, nets, label, pred, interesting_filters, effective_samples, title=""
 ):
@@ -256,5 +315,7 @@ def calc_success_rate(row, filter):
     tp = row[f"tp_{filter}"]
     tn = row[f"tn_{filter}"]
     overall = row[f"overall_{filter}"]
+    if not overall:
+        return
     success_rate = (tp + tn) / overall
     return success_rate

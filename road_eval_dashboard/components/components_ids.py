@@ -130,12 +130,18 @@ VMAX_CURVE = "vmax_curve"
 VMAX_CURVE_SUCCESS_RATE = "vmax_curve_success_rate"
 VMAX_CURVE_BY_DIST = "vmax_curve_by_dist"
 
+VMAX_BINS = "vmax_bins"
+VMAX_BINS_SUCCESS_RATE = "vmax_bins_success_rate"
+
 VLIMIT_ROAD_TYPE = "vlimit_road_type"
 VLIMIT_ROAD_TYPE_SUCCESS_RATE = "vlimit_road_type_success_rate"
 
 VLIMIT_CURVE = "vlimit_curve"
 VLIMIT_CURVE_SUCCESS_RATE = "vlimit_curve_success_rate"
 VLIMIT_CURVE_BY_DIST = "vlimit_curve_by_dist"
+
+VLIMIT_BINS = "vlimit_bins"
+VLIMIT_BINS_SUCCESS_RATE = "vlimit_bins_success_rate"
 
 
 # data exploration page
