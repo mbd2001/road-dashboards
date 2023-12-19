@@ -58,7 +58,11 @@ for i in range(1, len(VMAX_BINS)):
     bin_name = f"vmax_{VMAX_BINS[i - 1]}_{VMAX_BINS[i] - 1}"
     bin_condition = f"vmax_full_range BETWEEN {VMAX_BINS[i - 1]} AND {VMAX_BINS[i] - 1}"
     VMAX_BINS_FILTERS[bin_name] = bin_condition
-VMAX_BINS_FILTERS = {"vmax_ignore": "vmax_full_range = -1", **VMAX_BINS_FILTERS, f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35"}
+VMAX_BINS_FILTERS = {
+    "vmax_ignore": "vmax_full_range = -1",
+    **VMAX_BINS_FILTERS,
+    f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35",
+}
 
 EVENT_FILTERS = {
     "junction": "dist_to_intersection BETWEEN 0 AND 30",
