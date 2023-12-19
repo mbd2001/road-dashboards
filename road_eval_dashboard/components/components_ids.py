@@ -12,6 +12,7 @@ MD_FILTERS = "md_filters"
 PATHNET_FILTERS = "pathnet_filters"
 EFFECTIVE_SAMPLES_PER_BATCH = "effective_samples_per_batch"
 NET_ID_TO_FB_BEST_THRESH = "net_id_to_fb_best_threshold"
+SCENE_SIGNALS_LIST = "scene_signals_list"
 
 # logical components
 URL = "url"
@@ -163,3 +164,6 @@ LEFT_SCENE_CONF_MAT = "left_scene_conf_mat"
 
 RIGHT_SCENE_CONF_DIAGONAL = "right_scene_conf_diagonal"
 LEFT_SCENE_CONF_DIAGONAL = "left_scene_conf_diagonal"
+
+RIGHT_SCENE_FB_TRADEOFF = "right_scene_fb_tradeoff"
+LEFT_SCENE_FB_TRADEOFF = "left_scene_fb_tradeoff"

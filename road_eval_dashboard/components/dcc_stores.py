@@ -9,6 +9,7 @@ from road_eval_dashboard.components.components_ids import (
     PATHNET_FILTERS,
     EFFECTIVE_SAMPLES_PER_BATCH,
     NET_ID_TO_FB_BEST_THRESH,
+    SCENE_SIGNALS_LIST,
 )
 
 
@@ -23,5 +24,6 @@ def init_dcc_stores():
             dcc.Store(id=PATHNET_FILTERS),
             dcc.Store(id=EFFECTIVE_SAMPLES_PER_BATCH),
             dcc.Store(id=NET_ID_TO_FB_BEST_THRESH),
+            dcc.Store(id=SCENE_SIGNALS_LIST),
         ]
     )

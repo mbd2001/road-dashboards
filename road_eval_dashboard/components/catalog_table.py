@@ -16,6 +16,7 @@ from road_eval_dashboard.components.components_ids import (
     LOAD_NETS_DATA_NOTIFICATION,
     EFFECTIVE_SAMPLES_PER_BATCH,
     NET_ID_TO_FB_BEST_THRESH,
+    SCENE_SIGNALS_LIST,
 )
 from road_eval_dashboard.components.layout_wrapper import loading_wrapper
 from road_eval_dashboard.components.net_properties import Nets
@@ -23,6 +24,7 @@ from road_eval_dashboard.components.queries_manager import (
     generate_base_query,
     generate_grab_index_hist_query,
     generate_fb_query,
+    generate_cols_query,
 )
 from road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
 from road_database_toolkit.athena.athena_utils import query_athena
@@ -88,6 +90,7 @@ def generate_catalog_layout():
     Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data"),
     Output(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     Output(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Output(SCENE_SIGNALS_LIST, "data"),
     Output(LOAD_NETS_DATA_NOTIFICATION, "children"),
     Input(UPDATE_RUNS_BTN, "n_clicks"),
     State(RUN_EVAL_CATALOG, "derived_virtual_data"),
@@ -96,18 +99,20 @@ def generate_catalog_layout():
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
-        return no_update, no_update, no_update, no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     nets = init_nets(rows, derived_virtual_selected_rows)
 
-    q1, q2, q3 = Queue(), Queue(), Queue()
+    q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
     Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
     Thread(target=wrapper, args=(generate_effective_samples_per_batch, nets, q2)).start()
     Thread(target=wrapper, args=(get_best_fb_per_net, nets, q3)).start()
+    Thread(target=wrapper, args=(get_list_of_scene_signals, nets, q4)).start()
 
     md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = q1.get()
     effective_samples_per_batch = q2.get()
     net_id_to_best_thresh = q3.get()
+    scene_signals_list = q4.get()
 
     notification = dbc.Alert("Nets data loaded successfully!", color="success", dismissable=True)
     return (
@@ -117,6 +122,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         md_columns_to_distinguish_values,
         effective_samples_per_batch,
         net_id_to_best_thresh,
+        scene_signals_list,
         notification,
     )
 
@@ -201,3 +207,33 @@ def get_best_fb_per_net(nets):
     data = data.fillna(1)
     net_id_to_best_thresh = calc_best_thresh(data)
     return net_id_to_best_thresh
+
+
+def get_list_of_scene_signals(nets):
+    if not nets["frame_tables"]:
+        return None
+
+    cols_query = generate_cols_query(nets["frame_tables"], search_string="scene_signals_")
+    cols_data, _ = query_athena(database="run_eval_db", query=cols_query)
+    cols_mest_names = set.intersection(
+        *[
+            set(
+                name.replace("scene_signals_", "").replace("_mest_pred", "")
+                for name in cols_data[cols_data["TABLE_NAME"] == table_name]["COLUMN_NAME"]
+                if name.endswith("_mest_pred")
+            )
+            for table_name in cols_data["TABLE_NAME"]
+        ]
+    )
+    cols_pred_names = set.intersection(
+        *[
+            set(
+                name.replace("scene_signals_", "").replace("_pred", "")
+                for name in cols_data[cols_data["TABLE_NAME"] == table_name]["COLUMN_NAME"]
+                if not name.endswith("_mest_pred") and name.endswith("_pred")
+            )
+            for table_name in cols_data["TABLE_NAME"]
+        ]
+    )
+    list_of_scene_signals = {"pred": sorted(cols_pred_names), "mest": sorted(cols_mest_names)}
+    return list_of_scene_signals

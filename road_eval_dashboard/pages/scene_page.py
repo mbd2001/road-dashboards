@@ -20,13 +20,18 @@ from road_eval_dashboard.components.components_ids import (
     LEFT_SCENE_CONF_MAT,
     RIGHT_SCENE_CONF_DIAGONAL,
     LEFT_SCENE_CONF_DIAGONAL,
+    RIGHT_SCENE_FB_TRADEOFF,
+    LEFT_SCENE_FB_TRADEOFF,
 )
 from road_eval_dashboard.components.queries_manager import (
+    generate_scene_roc_query,
     generate_compare_query,
     run_query_with_nets_names_processing,
+    SCENE_THRESHOLDS,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph
+from road_eval_dashboard.graphs.precision_recall_curve import draw_roc_curve
 
 
 scene_class_names = ["False", "True"]
@@ -52,11 +57,31 @@ layout = html.Div(
                 )
             ]
         ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=LEFT_SCENE_FB_TRADEOFF, config={"displayModeBar": False})]),
+                            width=6,
+                        ),
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=RIGHT_SCENE_FB_TRADEOFF, config={"displayModeBar": False})]),
+                            width=6,
+                        ),
+                    ],
+                )
+            ]
+        ),
         html.Div(
             id=ALL_SCENE_CONF_MATS,
         ),
     ]
 )
+
+
+def _name2title(name):
+    return name.replace("_", " ")
 
 
 @callback(
@@ -94,7 +119,7 @@ def generate_matrices(nets, meta_data_filters, signal=None):
         class_names=scene_class_names,
         compare_sign=True,
         ignore_val=0,
-        mat_name=f"{signal.replace('_', ' ')}",
+        mat_name=_name2title(signal),
     )
     return diagonal_compare, mats_figs
 
@@ -136,11 +161,7 @@ def get_scene_score(meta_data_filters, nets, signal=None):
         compare_sign=True,
     )
     data, _ = run_query_with_nets_names_processing(query)
-    fig = basic_bar_graph(data,
-                          x="net_id",
-                          y="score",
-                          title=f"{signal.replace('_', ' ')} Score",
-                          color="net_id")
+    fig = basic_bar_graph(data, x="net_id", y="score", title=f"{_name2title(signal)} Score", color="net_id")
     return fig
 
 
@@ -162,3 +183,39 @@ def get_left_scene_score(meta_data_filters, nets):
 )
 def get_right_scene_score(meta_data_filters, nets):
     return get_scene_score(meta_data_filters, nets, signal="shadowsguardrail_hostright")
+
+
+def get_fb_tradeoff(meta_data_filters, nets, signal=None):
+    assert signal is not None
+    if not nets:
+        return no_update
+
+    query = generate_scene_roc_query(
+        nets["frame_tables"],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        signal=signal,
+    )
+    data, _ = run_query_with_nets_names_processing(query)
+    data = data.fillna(1)
+    return draw_roc_curve(data, _name2title(signal), thresholds=SCENE_THRESHOLDS)
+
+
+@callback(
+    Output(LEFT_SCENE_FB_TRADEOFF, "figure"),
+    Input(MD_FILTERS, "data"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_left_fb_tradeoff(meta_data_filters, nets):
+    return get_fb_tradeoff(meta_data_filters, nets, signal="shadowsguardrail_hostleft")
+
+
+@callback(
+    Output(RIGHT_SCENE_FB_TRADEOFF, "figure"),
+    Input(MD_FILTERS, "data"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_right_fb_tradeoff(meta_data_filters, nets):
+    return get_fb_tradeoff(meta_data_filters, nets, signal="shadowsguardrail_hostright")
