@@ -52,18 +52,13 @@ CURVE_BY_DIST_FILTERS = {
     "120dist_500rad1000": "curve_rad_ahead_gt_120 BETWEEN 501 AND 1000",
 }
 
-VMAX_BINS_FILTERS = {
-    "vmax_ignore": "vmax_full_range = -1",
-    "vmax_0_5": "vmax_full_range BETWEEN 0 AND 4",
-    "vmax_5_10": "vmax_full_range BETWEEN 5 AND 9",
-    "vmax_10_15": "vmax_full_range BETWEEN 10 AND 14",
-    "vmax_15_20": "vmax_full_range BETWEEN 15 AND 19",
-    "vmax_20_25": "vmax_full_range BETWEEN 20 AND 24",
-    "vmax_25_30": "vmax_full_range BETWEEN 25 AND 29",
-    "vmax_30_35": "vmax_full_range BETWEEN 30 AND 34",
-    "vmax_35_above": "vmax_full_range >= 35",
-}
-
+VMAX_BINS = [0, 5, 10, 15, 20, 25, 30, 35]
+VMAX_BINS_FILTERS = {}
+for i in range(1, len(VMAX_BINS)):
+    bin_name = f"vmax_{VMAX_BINS[i - 1]}_{VMAX_BINS[i] - 1}"
+    bin_condition = f"vmax_full_range BETWEEN {VMAX_BINS[i - 1]} AND {VMAX_BINS[i] - 1}"
+    VMAX_BINS_FILTERS[bin_name] = bin_condition
+VMAX_BINS_FILTERS = {"vmax_ignore": "vmax_full_range = -1", **VMAX_BINS_FILTERS, f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35"}
 
 EVENT_FILTERS = {
     "junction": "dist_to_intersection BETWEEN 0 AND 30",
