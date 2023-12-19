@@ -5,7 +5,8 @@ from dash import html, dcc, register_page, Input, Output, callback, State, no_up
 from road_eval_dashboard.components.common_filters import (
     MAX_SPEED_FILTERS,
     CURVE_BY_RAD_FILTERS,
-    CURVE_BY_DIST_FILTERS, VMAX_BINS_FILTERS,
+    CURVE_BY_DIST_FILTERS,
+    VMAX_BINS_FILTERS,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
@@ -26,7 +27,11 @@ from road_eval_dashboard.components.components_ids import (
     VMAX_ROAD_TYPE,
     VLIMIT_CURVE_BY_DIST,
     VMAX_CURVE_BY_DIST,
-    EFFECTIVE_SAMPLES_PER_BATCH, VLIMIT_BINS_SUCCESS_RATE, VLIMIT_BINS, VMAX_BINS, VMAX_BINS_SUCCESS_RATE,
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    VLIMIT_BINS_SUCCESS_RATE,
+    VLIMIT_BINS,
+    VMAX_BINS,
+    VMAX_BINS_SUCCESS_RATE,
 )
 from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
@@ -148,6 +153,7 @@ def get_vmax_curve(meta_data_filters, is_success_rate, by_dist, nets, effective_
     )
     return fig
 
+
 @callback(
     Output(VMAX_BINS, "figure"),
     Input(MD_FILTERS, "data"),
@@ -172,6 +178,7 @@ def get_vmax_bins(meta_data_filters, is_success_rate, nets, effective_samples):
         title=title,
     )
     return fig
+
 
 @callback(
     Output(VLIMIT_ROAD_TYPE, "figure"),
@@ -228,6 +235,7 @@ def get_vlimit_curve(meta_data_filters, is_success_rate, by_dist, nets, effectiv
     )
     return fig
 
+
 @callback(
     Output(VLIMIT_BINS, "figure"),
     Input(MD_FILTERS, "data"),
@@ -252,6 +260,7 @@ def get_vlimit_vmax_bins(meta_data_filters, is_success_rate, nets, effective_sam
         title=title,
     )
     return fig
+
 
 def get_max_speed_fig(
     meta_data_filters, is_success_rate, nets, label, pred, interesting_filters, effective_samples, title=""
