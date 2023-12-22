@@ -603,22 +603,6 @@ def generate_scene_roc_query(
     return stats_query
 
 
-def get_scene_stats_per_filter_metrics(signal, interesting_filters, metric):
-    metrics = ", ".join(
-        metric.format(signal=signal, extra_filters=f"AND ({filter})", ind=name)
-        for name, filter in interesting_filters.items()
-    )
-    return metrics
-
-
-def get_scene_stats_curve_metrics(signal, metric):
-    metrics = ", ".join(
-        metric.format(signal=signal, extra_filters="", ind=ind, threshold=threshold)
-        for ind, threshold in enumerate(SCENE_THRESHOLDS)
-    )
-    return metrics
-
-
 def generate_scene_stats_query(
     data_tables,
     meta_data,

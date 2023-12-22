@@ -1,7 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
 
-from road_eval_dashboard.components.queries_manager import THRESHOLDS
+from road_eval_dashboard.components.queries_manager import process_net_name, THRESHOLDS
 
 f_beta = 1
 B2 = f_beta**2
@@ -46,7 +46,7 @@ def draw_roc_curve(data, prefix="", thresholds=THRESHOLDS):
             row, thresholds=thresholds
         )
 
-        net_id = row["net_id"]
+        net_id = process_net_name(row["net_id"])
         fb0 = fb_scores[np.argmin(np.abs(thresholds))]
         name = f"{net_id}, Nom Fb: {fb0: .3f} Best Fb: {best_fb:.3f}, Th: {best_thresh:.2f}"
         fig.add_trace(

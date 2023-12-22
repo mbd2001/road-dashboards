@@ -1,9 +1,10 @@
+from functools import reduce
+from operator import iconcat
 import dash_bootstrap_components as dbc
-from dash import html, dcc, register_page, Input, Output, State, callback, no_update, ALL
+from dash import html, dcc, register_page, Input, Output, State, callback, no_update, ALL, MATCH
 
 from road_eval_dashboard.components.confusion_matrices_layout import (
     generate_matrices_graphs,
-    generate_matrices_layout,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components import (
@@ -13,20 +14,25 @@ from road_eval_dashboard.components import (
 from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
+    SCENE_SIGNALS_LIST,
+    ALL_SCENE_SCORES,
+    SCENE_SCORE,
     ALL_SCENE_CONF_MATS,
-    SCENE_RIGHT,
-    SCENE_LEFT,
-    RIGHT_SCENE_CONF_MAT,
-    LEFT_SCENE_CONF_MAT,
-    RIGHT_SCENE_CONF_DIAGONAL,
-    LEFT_SCENE_CONF_DIAGONAL,
-    RIGHT_SCENE_FB_TRADEOFF,
-    LEFT_SCENE_FB_TRADEOFF,
+    SCENE_CONF_MAT,
+    ALL_SCENE_CONF_DIAGONALS,
+    SCENE_CONF_DIAGONAL,
+    ALL_SCENE_CONF_MATS_MEST,
+    SCENE_CONF_MAT_MEST,
+    ALL_SCENE_CONF_DIAGONALS_MEST,
+    SCENE_CONF_DIAGONAL_MEST,
+    ALL_SCENE_ROC_CURVES,
+    SCENE_ROC_CURVE,
 )
 from road_eval_dashboard.components.queries_manager import (
     generate_scene_roc_query,
     generate_compare_query,
     run_query_with_nets_names_processing,
+    process_net_name,
     SCENE_THRESHOLDS,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
@@ -43,35 +49,20 @@ layout = html.Div(
         html.H1("Scene Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=SCENE_LEFT, config={"displayModeBar": False})])], width=6
-                        ),
-                        dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=SCENE_RIGHT, config={"displayModeBar": False})])], width=6
-                        ),
-                    ]
-                )
-            ]
+        html.Div(
+            id=ALL_SCENE_SCORES,
         ),
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=LEFT_SCENE_FB_TRADEOFF, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=RIGHT_SCENE_FB_TRADEOFF, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                    ],
-                )
-            ]
+        html.Div(
+            id=ALL_SCENE_ROC_CURVES,
+        ),
+        html.Div(
+            id=ALL_SCENE_CONF_DIAGONALS_MEST,
+        ),
+        html.Div(
+            id=ALL_SCENE_CONF_DIAGONALS,
+        ),
+        html.Div(
+            id=ALL_SCENE_CONF_MATS_MEST,
         ),
         html.Div(
             id=ALL_SCENE_CONF_MATS,
@@ -81,74 +72,156 @@ layout = html.Div(
 
 
 def _name2title(name):
-    return name.replace("_", " ")
-
-
-@callback(
-    Output(ALL_SCENE_CONF_MATS, "children"),
-    Input(NETS, "data"),
-)
-def generate_matrices_components(nets):
-    if not nets:
-        return []
-
-    children = generate_matrices_layout(
-        nets=nets,
-        upper_diag_id=LEFT_SCENE_CONF_DIAGONAL,
-        lower_diag_id=RIGHT_SCENE_CONF_DIAGONAL,
-        left_conf_mat_id=LEFT_SCENE_CONF_MAT,
-        right_conf_mat_id=RIGHT_SCENE_CONF_MAT,
+    return " ".join(
+        [
+            (word if word.isupper() else word.capitalize())
+            for word in name.replace("scene_", "").replace("_", " ").split()
+        ]
     )
+
+
+def _generate_charts_per_net(base_id, scene_signals):
+    # arrange charts in 2 columns such that left/right signals appear
+    # first on the same row and then the rest of the signals
+    children = []
+    lr_signals = [
+        [signal, signal.replace("left", "right")]
+        for signal in sorted(scene_signals)
+        if "left" in signal and signal.replace("left", "right") in scene_signals
+    ]
+    other_signals = sorted(set(scene_signals) - set(reduce(iconcat, lr_signals, [])))
+    for signal_pair in lr_signals:
+        children.append(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            loading_wrapper(
+                                [
+                                    dcc.Graph(
+                                        id={**base_id, **{"signal": signal_pair[0]}}, config={"displayModeBar": False}
+                                    )
+                                ]
+                            )
+                        ],
+                        width=6,
+                    ),
+                    dbc.Col(
+                        [
+                            loading_wrapper(
+                                [
+                                    dcc.Graph(
+                                        id={**base_id, **{"signal": signal_pair[1]}}, config={"displayModeBar": False}
+                                    )
+                                ]
+                            )
+                        ],
+                        width=6,
+                    ),
+                ]
+            ),
+        )
+    for ind, _ in enumerate(other_signals[:-1:2]):
+        children.append(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            loading_wrapper(
+                                [
+                                    dcc.Graph(
+                                        id={**base_id, **{"signal": other_signals[ind]}},
+                                        config={"displayModeBar": False},
+                                    )
+                                ]
+                            )
+                        ],
+                        width=6,
+                    ),
+                    dbc.Col(
+                        [
+                            loading_wrapper(
+                                [
+                                    dcc.Graph(
+                                        id={**base_id, **{"signal": other_signals[ind + 1]}},
+                                        config={"displayModeBar": False},
+                                    )
+                                ]
+                            )
+                        ],
+                        width=6,
+                    ),
+                ]
+            ),
+        )
+    if len(scene_signals) % 2:
+        children.append(
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            loading_wrapper(
+                                [
+                                    dcc.Graph(
+                                        id={**base_id, **{"signal": other_signals[-1]}},
+                                        config={"displayModeBar": False},
+                                    )
+                                ]
+                            )
+                        ],
+                        width=6,
+                    ),
+                    dbc.Col([], width=6),
+                ]
+            ),
+        )
     return children
 
 
-def generate_matrices(nets, meta_data_filters, signal=None):
-    assert signal is not None
-    if not nets:
-        return no_update
+def _process_net_names(net_names):
+    return sorted([process_net_name(net_name) for net_name in net_names], reverse=True)
 
-    label_col = f"scene_signals_{signal}_label"
-    pred_col = f"scene_signals_{signal}_pred"
-    diagonal_compare, mats_figs = generate_matrices_graphs(
-        label_col=label_col,
-        pred_col=pred_col,
-        nets_tables=nets["frame_tables"],
-        meta_data_table=nets["meta_data"],
-        net_names=nets["names"],
-        meta_data_filters=meta_data_filters,
-        class_names=scene_class_names,
-        compare_sign=True,
-        ignore_val=0,
-        mat_name=_name2title(signal),
-    )
-    return diagonal_compare, mats_figs
+
+def _generate_charts(chart_type, nets, scene_signals_list, per_net=False):
+    if not nets or not scene_signals_list:
+        return []
+    if isinstance(scene_signals_list, dict):
+        scene_signals_list = scene_signals_list.get("pred", None)
+    if not scene_signals_list:
+        return []
+
+    children = []
+    children.append(dbc.Row(html.H2(_name2title(chart_type), className="mb-5")))
+    base_id = {"type": chart_type}
+    if not per_net:
+        children.extend(_generate_charts_per_net(base_id, scene_signals_list))
+    else:
+        net_names = _process_net_names(nets["names"])
+        for net_name in net_names:
+            base_id["net"] = net_name
+            children.append(dbc.Row(html.H3(base_id["net"], className="mb-5")))
+            children.extend(_generate_charts_per_net(base_id, scene_signals_list))
+    children = card_wrapper(children)
+    return children
+
+
+@callback(Output(ALL_SCENE_SCORES, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+def generate_score_charts(nets, scene_signals_list):
+    return _generate_charts(SCENE_SCORE, nets, scene_signals_list)
 
 
 @callback(
-    Output(LEFT_SCENE_CONF_DIAGONAL, "figure"),
-    Output({"type": LEFT_SCENE_CONF_MAT, "index": ALL}, "figure"),
-    Input(NETS, "data"),
+    Output({"type": SCENE_SCORE, "signal": MATCH}, "figure"),
+    Input({"type": SCENE_SCORE, "signal": MATCH}, "id"),
     Input(MD_FILTERS, "data"),
+    State(NETS, "data"),
+    background=True,
 )
-def generate_left_matrices(nets, meta_data_filters):
-    return generate_matrices(nets, meta_data_filters, signal="shadowsguardrail_hostleft")
-
-
-@callback(
-    Output(RIGHT_SCENE_CONF_DIAGONAL, "figure"),
-    Output({"type": RIGHT_SCENE_CONF_MAT, "index": ALL}, "figure"),
-    Input(NETS, "data"),
-    Input(MD_FILTERS, "data"),
-)
-def generate_right_matrices(nets, meta_data_filters):
-    return generate_matrices(nets, meta_data_filters, signal="shadowsguardrail_hostright")
-
-
-def get_scene_score(meta_data_filters, nets, signal=None):
-    assert signal is not None
+def get_scene_score(id, meta_data_filters, nets):
     if not nets:
         return no_update
 
+    signal = id["signal"]
     labels = f"scene_signals_{signal}_label"
     preds = f"scene_signals_{signal}_pred"
     query = generate_compare_query(
@@ -165,31 +238,23 @@ def get_scene_score(meta_data_filters, nets, signal=None):
     return fig
 
 
+@callback(Output(ALL_SCENE_ROC_CURVES, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+def generate_roc_curves(nets, scene_signals_list):
+    return _generate_charts(SCENE_ROC_CURVE, nets, scene_signals_list)
+
+
 @callback(
-    Output(SCENE_LEFT, "figure"),
+    Output({"type": SCENE_ROC_CURVE, "signal": MATCH}, "figure"),
+    Input({"type": SCENE_ROC_CURVE, "signal": MATCH}, "id"),
     Input(MD_FILTERS, "data"),
     State(NETS, "data"),
     background=True,
 )
-def get_left_scene_score(meta_data_filters, nets):
-    return get_scene_score(meta_data_filters, nets, signal="shadowsguardrail_hostleft")
-
-
-@callback(
-    Output(SCENE_RIGHT, "figure"),
-    Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
-    background=True,
-)
-def get_right_scene_score(meta_data_filters, nets):
-    return get_scene_score(meta_data_filters, nets, signal="shadowsguardrail_hostright")
-
-
-def get_fb_tradeoff(meta_data_filters, nets, signal=None):
-    assert signal is not None
+def get_scene_roc_curve(id, meta_data_filters, nets):
     if not nets:
         return no_update
 
+    signal = id["signal"]
     query = generate_scene_roc_query(
         nets["frame_tables"],
         nets["meta_data"],
@@ -201,21 +266,78 @@ def get_fb_tradeoff(meta_data_filters, nets, signal=None):
     return draw_roc_curve(data, _name2title(signal), thresholds=SCENE_THRESHOLDS)
 
 
-@callback(
-    Output(LEFT_SCENE_FB_TRADEOFF, "figure"),
-    Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
-    background=True,
-)
-def get_left_fb_tradeoff(meta_data_filters, nets):
-    return get_fb_tradeoff(meta_data_filters, nets, signal="shadowsguardrail_hostleft")
+@callback(Output(ALL_SCENE_CONF_DIAGONALS, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+def generate_scene_conf_diagonals(nets, scene_signals_list):
+    return _generate_charts(SCENE_CONF_DIAGONAL, nets, scene_signals_list)
+
+
+@callback(Output(ALL_SCENE_CONF_MATS, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+def generate_scene_conf_mats(nets, scene_signals_list):
+    return _generate_charts(SCENE_CONF_MAT, nets, scene_signals_list, per_net=True)
+
+
+def _get_mest_scene_signals(scene_signals_list):
+    if not scene_signals_list or not isinstance(scene_signals_list, dict):
+        return []
+    scene_signals = [f"{signal}_mest" for signal in scene_signals_list.get("mest", [])]
+    return scene_signals
+
+
+@callback(Output(ALL_SCENE_CONF_DIAGONALS_MEST, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+def generate_scene_conf_diagonals_mest(nets, scene_signals_list):
+    scene_signals = _get_mest_scene_signals(scene_signals_list)
+    return _generate_charts(SCENE_CONF_DIAGONAL_MEST, nets, scene_signals)
+
+
+@callback(Output(ALL_SCENE_CONF_MATS_MEST, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+def generate_scene_conf_mats_mest(nets, scene_signals_list):
+    scene_signals = _get_mest_scene_signals(scene_signals_list)
+    return _generate_charts(SCENE_CONF_MAT_MEST, nets, scene_signals)
+
+
+def generate_matrices(nets, meta_data_filters, signal=None):
+    assert signal is not None
+    if not nets:
+        return no_update, no_update
+
+    label_col = f"scene_signals_{signal.replace('_mest', '')}_label"
+    pred_col = f"scene_signals_{signal}_pred"
+    net_names = _process_net_names(nets["names"])
+    if signal.endswith("_mest"):
+        net_names = [net_names[0]]
+    diagonal_compare, mats_figs = generate_matrices_graphs(
+        label_col=label_col,
+        pred_col=pred_col,
+        nets_tables=nets["frame_tables"],
+        meta_data_table=nets["meta_data"],
+        net_names=net_names,
+        meta_data_filters=meta_data_filters,
+        class_names=scene_class_names,
+        compare_sign=True,
+        ignore_val=0,
+        mat_name=_name2title(signal),
+    )
+    return diagonal_compare, mats_figs
 
 
 @callback(
-    Output(RIGHT_SCENE_FB_TRADEOFF, "figure"),
+    Output({"type": SCENE_CONF_DIAGONAL, "signal": MATCH}, "figure"),
+    Output({"type": SCENE_CONF_MAT, "net": ALL, "signal": MATCH}, "figure"),
+    Input({"type": SCENE_CONF_DIAGONAL, "signal": MATCH}, "id"),
+    Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
-    background=True,
 )
-def get_right_fb_tradeoff(meta_data_filters, nets):
-    return get_fb_tradeoff(meta_data_filters, nets, signal="shadowsguardrail_hostright")
+def generate_scene_conf_mat_chart(id, nets, meta_data_filters):
+    return generate_matrices(nets, meta_data_filters, signal=id["signal"])
+
+
+@callback(
+    Output({"type": SCENE_CONF_DIAGONAL_MEST, "signal": MATCH}, "figure"),
+    Output({"type": SCENE_CONF_MAT_MEST, "signal": MATCH}, "figure"),
+    Input({"type": SCENE_CONF_DIAGONAL_MEST, "signal": MATCH}, "id"),
+    Input(NETS, "data"),
+    Input(MD_FILTERS, "data"),
+)
+def generate_scene_conf_mat_chart_mest(id, nets, meta_data_filters):
+    diagonal_compare_fig, mats_figs = generate_matrices(nets, meta_data_filters, signal=id["signal"])
+    return diagonal_compare_fig, mats_figs[0]

@@ -154,16 +154,15 @@ LANE_MARK_COLOR_PIE_CHART = "lane_mark_color_pie_chart"
 
 
 # scene page
-SCENE_RIGHT = "scene_right"
-SCENE_LEFT = "scene_left"
-
+ALL_SCENE_SCORES = "all_scene_scores"
+SCENE_SCORE = "scene_score"
 ALL_SCENE_CONF_MATS = "all_scene_conf_mats"
-
-RIGHT_SCENE_CONF_MAT = "right_scene_conf_mat"
-LEFT_SCENE_CONF_MAT = "left_scene_conf_mat"
-
-RIGHT_SCENE_CONF_DIAGONAL = "right_scene_conf_diagonal"
-LEFT_SCENE_CONF_DIAGONAL = "left_scene_conf_diagonal"
-
-RIGHT_SCENE_FB_TRADEOFF = "right_scene_fb_tradeoff"
-LEFT_SCENE_FB_TRADEOFF = "left_scene_fb_tradeoff"
+SCENE_CONF_MAT = "scene_conf_mat"
+ALL_SCENE_CONF_DIAGONALS = "all_scene_conf_diagonals"
+SCENE_CONF_DIAGONAL = "scene_conf_diagonal"
+ALL_SCENE_CONF_MATS_MEST = "all_scene_conf_mats_MEST"
+SCENE_CONF_MAT_MEST = "scene_conf_mat_MEST"
+ALL_SCENE_CONF_DIAGONALS_MEST = "all_scene_conf_diagonals_MEST"
+SCENE_CONF_DIAGONAL_MEST = "scene_conf_diagonal_MEST"
+ALL_SCENE_ROC_CURVES = "all_scene_ROC_curves"
+SCENE_ROC_CURVE = "scene_ROC_curve"

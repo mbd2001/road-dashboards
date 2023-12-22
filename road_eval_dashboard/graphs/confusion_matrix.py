@@ -2,8 +2,6 @@ import plotly.express as px
 import numpy as np
 import pandas as pd
 
-from road_eval_dashboard.components.queries_manager import process_net_name
-
 
 def compute_confusion_matrix(data, labels_col, preds_col, num_classes):
     conf_matrix = pd.DataFrame(np.zeros((num_classes, num_classes), dtype=int))
@@ -47,7 +45,7 @@ def draw_multiple_nets_confusion_matrix(data, labels_col, preds_col, net_names, 
     figs = []
     normalize_mats = []
     for net_name in net_names:
-        net_data = data[data["net_id"] == process_net_name(net_name)]
+        net_data = data[data["net_id"] == net_name]
         fig, normalize_mat = draw_confusion_matrix(
             net_data, labels_col, preds_col, class_names, role=role, mat_name=mat_name
         )
