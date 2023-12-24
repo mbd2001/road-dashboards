@@ -14,7 +14,7 @@ def draw_precision_recall_curve(data, prefix="", thresholds=THRESHOLDS):
     for ind, row in data.iterrows():
         precision, recall, best_fb, best_thresh = get_fb_stat_for_net(row, thresholds=thresholds)
 
-        net_id = row["net_id"]
+        net_id = process_net_name(row["net_id"])
         name = f"{net_id}, Best Fb: {best_fb:.3f}, Thresh: {best_thresh:.2f}"
         fig.add_trace(
             go.Scatter(
