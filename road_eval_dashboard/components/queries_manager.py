@@ -573,8 +573,8 @@ def generate_compare_query(
         role=role,
         extra_filters=extra_filters,
     )
-    label_col = f"SIGN({label_col})" if compare_sign else label_col
-    pred_col = f"SIGN({pred_col})" if compare_sign else pred_col
+    label_col = f"(CASE WHEN {label_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else label_col
+    pred_col = f"(CASE WHEN {pred_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else pred_col
     compare_query = COMPARE_QUERY.format(
         label_col=label_col, pred_col=pred_col, base_query=base_query, operator=compare_operator
     )
