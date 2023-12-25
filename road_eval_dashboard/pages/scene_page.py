@@ -1,10 +1,11 @@
 from functools import reduce
 from operator import iconcat
+import numpy as np
 import dash_bootstrap_components as dbc
 from dash import html, dcc, register_page, Input, Output, State, callback, no_update, ALL, MATCH
 
 from road_eval_dashboard.components.confusion_matrices_layout import (
-    generate_matrices_graphs,
+    generate_conf_matrices,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components import (
@@ -20,13 +21,14 @@ from road_eval_dashboard.components.components_ids import (
     ALL_SCENE_CONF_MATS,
     SCENE_CONF_MAT,
     ALL_SCENE_CONF_DIAGONALS,
-    SCENE_CONF_DIAGONAL,
+    SCENE_CONF_DIAGONALS,
     ALL_SCENE_CONF_MATS_MEST,
     SCENE_CONF_MAT_MEST,
     ALL_SCENE_CONF_DIAGONALS_MEST,
-    SCENE_CONF_DIAGONAL_MEST,
+    SCENE_CONF_DIAGONALS_MEST,
     ALL_SCENE_ROC_CURVES,
     SCENE_ROC_CURVE,
+    SCENE_SIGNALS_CONF_MATS_DATA,
 )
 from road_eval_dashboard.components.queries_manager import (
     generate_scene_roc_query,
@@ -38,17 +40,28 @@ from road_eval_dashboard.components.queries_manager import (
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph
 from road_eval_dashboard.graphs.precision_recall_curve import draw_roc_curve
-
+from road_eval_dashboard.graphs.confusion_matrix import draw_confusion_matrix
+from road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
 
 scene_class_names = ["False", "True"]
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/scene", name="Scene", order=8, **extra_properties.__dict__)
+
+
+def _init_dcc_stores():
+    return html.Div(
+        [
+            dcc.Store(id=SCENE_SIGNALS_CONF_MATS_DATA),
+        ]
+    )
+
 
 layout = html.Div(
     [
         html.H1("Scene Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
+        _init_dcc_stores(),
         html.Div(
             id=ALL_SCENE_SCORES,
         ),
@@ -210,6 +223,45 @@ def generate_score_charts(nets, scene_signals_list):
     return _generate_charts(SCENE_SCORE, nets, scene_signals_list)
 
 
+def _generate_matrices_per_signal(nets, meta_data_filters, signal):
+    label_col = f"scene_signals_{signal.replace('_mest', '')}_label"
+    pred_col = f"scene_signals_{signal}_pred"
+    net_names = _process_net_names(nets["names"])
+    if signal.endswith("_mest"):
+        net_names = [net_names[0]]
+    mats = generate_conf_matrices(
+        label_col=label_col,
+        pred_col=pred_col,
+        nets_tables=nets["frame_tables"],
+        meta_data_table=nets["meta_data"],
+        net_names=net_names,
+        meta_data_filters=meta_data_filters,
+        class_names=scene_class_names,
+        compare_sign=True,
+        ignore_val=0,
+    )
+    return mats
+
+
+@callback(
+    Output(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
+    Input(MD_FILTERS, "data"),
+    State(NETS, "data"),
+    State(SCENE_SIGNALS_LIST, "data"),
+    background=True,
+)
+def _generate_matrices(meta_data_filters, nets, signals):
+    if not nets or not signals:
+        return no_update
+    conf_mats = {}
+    for signal in signals.get("pred", []):
+        conf_mats[signal] = _generate_matrices_per_signal(nets, meta_data_filters, signal)
+    for signal in signals.get("mest", []):
+        signal_name = f"{signal}_mest"
+        conf_mats[signal_name] = _generate_matrices_per_signal(nets, meta_data_filters, signal_name)
+    return conf_mats
+
+
 @callback(
     Output({"type": SCENE_SCORE, "signal": MATCH}, "figure"),
     Input({"type": SCENE_SCORE, "signal": MATCH}, "id"),
@@ -238,7 +290,11 @@ def get_scene_score(id, meta_data_filters, nets):
     return fig
 
 
-@callback(Output(ALL_SCENE_ROC_CURVES, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+@callback(
+    Output(ALL_SCENE_ROC_CURVES, "children"),
+    Input(NETS, "data"),
+    Input(SCENE_SIGNALS_LIST, "data"),
+)
 def generate_roc_curves(nets, scene_signals_list):
     return _generate_charts(SCENE_ROC_CURVE, nets, scene_signals_list)
 
@@ -268,7 +324,7 @@ def get_scene_roc_curve(id, meta_data_filters, nets):
 
 @callback(Output(ALL_SCENE_CONF_DIAGONALS, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_scene_conf_diagonals(nets, scene_signals_list):
-    return _generate_charts(SCENE_CONF_DIAGONAL, nets, scene_signals_list)
+    return _generate_charts(SCENE_CONF_DIAGONALS, nets, scene_signals_list)
 
 
 @callback(Output(ALL_SCENE_CONF_MATS, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
@@ -286,7 +342,7 @@ def _get_mest_scene_signals(scene_signals_list):
 @callback(Output(ALL_SCENE_CONF_DIAGONALS_MEST, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_scene_conf_diagonals_mest(nets, scene_signals_list):
     scene_signals = _get_mest_scene_signals(scene_signals_list)
-    return _generate_charts(SCENE_CONF_DIAGONAL_MEST, nets, scene_signals)
+    return _generate_charts(SCENE_CONF_DIAGONALS_MEST, nets, scene_signals)
 
 
 @callback(Output(ALL_SCENE_CONF_MATS_MEST, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
@@ -295,49 +351,67 @@ def generate_scene_conf_mats_mest(nets, scene_signals_list):
     return _generate_charts(SCENE_CONF_MAT_MEST, nets, scene_signals)
 
 
-def generate_matrices(nets, meta_data_filters, signal=None):
-    assert signal is not None
-    if not nets:
-        return no_update, no_update
-
-    label_col = f"scene_signals_{signal.replace('_mest', '')}_label"
-    pred_col = f"scene_signals_{signal}_pred"
-    net_names = _process_net_names(nets["names"])
-    if signal.endswith("_mest"):
-        net_names = [net_names[0]]
-    diagonal_compare, mats_figs = generate_matrices_graphs(
-        label_col=label_col,
-        pred_col=pred_col,
-        nets_tables=nets["frame_tables"],
-        meta_data_table=nets["meta_data"],
-        net_names=net_names,
-        meta_data_filters=meta_data_filters,
-        class_names=scene_class_names,
-        compare_sign=True,
-        ignore_val=0,
-        mat_name=_name2title(signal),
+def _generate_scene_conf_mat_chart(id, conf_mats):
+    if not conf_mats:
+        return no_update
+    signal = id["signal"]
+    try:
+        net = id["net"]
+    except KeyError:
+        net = next(iter(conf_mats[signal].keys()))
+    mat_name = _name2title(signal)
+    return draw_confusion_matrix(
+        np.array(conf_mats[signal][net]["conf_matrix"]),
+        np.array(conf_mats[signal][net]["normalize_mat"]),
+        scene_class_names,
+        mat_name=mat_name,
     )
-    return diagonal_compare, mats_figs
 
 
 @callback(
-    Output({"type": SCENE_CONF_DIAGONAL, "signal": MATCH}, "figure"),
     Output({"type": SCENE_CONF_MAT, "net": ALL, "signal": MATCH}, "figure"),
-    Input({"type": SCENE_CONF_DIAGONAL, "signal": MATCH}, "id"),
-    Input(NETS, "data"),
-    Input(MD_FILTERS, "data"),
+    Input({"type": SCENE_CONF_MAT, "net": ALL, "signal": MATCH}, "id"),
+    Input(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
 )
-def generate_scene_conf_mat_chart(id, nets, meta_data_filters):
-    return generate_matrices(nets, meta_data_filters, signal=id["signal"])
+def generate_scene_conf_mat_chart(ids, conf_mats):
+    figs = []
+    for id in ids:
+        figs.append(_generate_scene_conf_mat_chart(id, conf_mats))
+    return figs
 
 
 @callback(
-    Output({"type": SCENE_CONF_DIAGONAL_MEST, "signal": MATCH}, "figure"),
     Output({"type": SCENE_CONF_MAT_MEST, "signal": MATCH}, "figure"),
-    Input({"type": SCENE_CONF_DIAGONAL_MEST, "signal": MATCH}, "id"),
-    Input(NETS, "data"),
-    Input(MD_FILTERS, "data"),
+    Input({"type": SCENE_CONF_MAT_MEST, "signal": MATCH}, "id"),
+    Input(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
 )
-def generate_scene_conf_mat_chart_mest(id, nets, meta_data_filters):
-    diagonal_compare_fig, mats_figs = generate_matrices(nets, meta_data_filters, signal=id["signal"])
-    return diagonal_compare_fig, mats_figs[0]
+def generate_scene_conf_mat_chart_mest(id, conf_mats):
+    return _generate_scene_conf_mat_chart(id, conf_mats)
+
+
+def _generate_scene_conf_diagonals_chart(id, conf_mats):
+    if not conf_mats:
+        return no_update
+    signal = id["signal"]
+    normalize_mats = [np.array(mat["normalize_mat"]) for mat in conf_mats[signal].values()]
+    net_names = list(conf_mats[signal].keys())
+    mat_name = _name2title(signal)
+    return draw_conf_diagonal_compare(normalize_mats, net_names, scene_class_names, mat_name=mat_name)
+
+
+@callback(
+    Output({"type": SCENE_CONF_DIAGONALS, "signal": MATCH}, "figure"),
+    Input({"type": SCENE_CONF_DIAGONALS, "signal": MATCH}, "id"),
+    Input(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
+)
+def generate_scene_conf_diagonal_chart(id, conf_mats):
+    return _generate_scene_conf_diagonals_chart(id, conf_mats)
+
+
+@callback(
+    Output({"type": SCENE_CONF_DIAGONALS_MEST, "signal": MATCH}, "figure"),
+    Input({"type": SCENE_CONF_DIAGONALS_MEST, "signal": MATCH}, "id"),
+    Input(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
+)
+def generate_scene_conf_diagonals_mest_chart(id, conf_mats):
+    return _generate_scene_conf_diagonals_chart(id, conf_mats)
