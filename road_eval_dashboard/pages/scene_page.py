@@ -29,6 +29,7 @@ from road_eval_dashboard.components.components_ids import (
     ALL_SCENE_ROC_CURVES,
     SCENE_ROC_CURVE,
     SCENE_SIGNALS_CONF_MATS_DATA,
+    SCENE_SIGNALS_DATA_READY,
 )
 from road_eval_dashboard.components.queries_manager import (
     generate_scene_roc_query,
@@ -68,6 +69,7 @@ layout = html.Div(
         html.Div(
             id=ALL_SCENE_ROC_CURVES,
         ),
+        loading_wrapper([html.Div(id=SCENE_SIGNALS_DATA_READY)]),
         html.Div(
             id=ALL_SCENE_CONF_DIAGONALS_MEST,
         ),
@@ -245,6 +247,7 @@ def _generate_matrices_per_signal(nets, meta_data_filters, signal):
 
 @callback(
     Output(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
+    Output(SCENE_SIGNALS_DATA_READY, "children"),
     Input(MD_FILTERS, "data"),
     State(NETS, "data"),
     State(SCENE_SIGNALS_LIST, "data"),
@@ -259,7 +262,8 @@ def _generate_matrices(meta_data_filters, nets, signals):
     for signal in signals.get("mest", []):
         signal_name = f"{signal}_mest"
         conf_mats[signal_name] = _generate_matrices_per_signal(nets, meta_data_filters, signal_name)
-    return conf_mats
+    notification = dbc.Alert("Confusion matrices data is ready.", color="success", dismissable=True, duration=2000)
+    return conf_mats, notification
 
 
 @callback(
