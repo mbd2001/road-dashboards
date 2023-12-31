@@ -80,11 +80,11 @@ FB_PRECISION_METRIC = """
     AS precision_{ind}
     """
 
-FB_SCENE_STATS_METRIC = """
-    CAST(COUNT(CASE WHEN scene_signals_{signal}_label > 0 AND scene_signals_{signal}_pred >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tp_{ind},
-    CAST(COUNT(CASE WHEN scene_signals_{signal}_label < 0 AND scene_signals_{signal}_pred >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS fp_{ind},
-    CAST(COUNT(CASE WHEN scene_signals_{signal}_label < 0 AND scene_signals_{signal}_pred <  {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tn_{ind},
-    CAST(COUNT(CASE WHEN scene_signals_{signal}_label > 0 AND scene_signals_{signal}_pred <  {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS fn_{ind}
+ROC_STATS_METRIC = """
+    CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tp_{ind},
+    CAST(COUNT(CASE WHEN {label_col} < 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS fp_{ind},
+    CAST(COUNT(CASE WHEN {label_col} < 0 AND {pred_col} <  {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tn_{ind},
+    CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} <  {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS fn_{ind}
     """
 
 FB_CURVE_METRIC = """
@@ -160,7 +160,7 @@ THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
 )
 
-SCENE_THRESHOLDS = np.concatenate(
+ROC_THRESHOLDS = np.concatenate(
     (
         np.array([-1000]),
         np.linspace(-10, -1, 10),
@@ -581,44 +581,29 @@ def generate_compare_query(
     return compare_query
 
 
-def generate_scene_roc_query(
+def generate_roc_query(
     data_tables,
     meta_data,
-    signal=None,
+    label_col=None,
+    pred_col=None,
     interesting_filters={},
     input_thresh={},
-    meta_data_filters="",
-    extra_filters="",
-):
-    assert signal is not None
-    stats_query = generate_scene_stats_query(
-        data_tables,
-        meta_data,
-        signal,
-        interesting_filters=interesting_filters,
-        input_thresh=input_thresh,
-        meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
-    )
-    return stats_query
-
-
-def generate_scene_stats_query(
-    data_tables,
-    meta_data,
-    signal,
-    interesting_filters={},
-    input_thresh={},
+    thresholds=ROC_THRESHOLDS,
     meta_data_filters="",
     extra_filters="",
     role="",
 ):
+    assert label_col is not None
+    assert pred_col is not None
+
     metrics = (
-        get_scene_stats_per_filter_metrics(signal, interesting_filters, FB_SCENE_STATS_METRIC, threshold=input_thresh)
+        get_roc_stats_per_filter_metrics(
+            label_col, pred_col, interesting_filters, ROC_STATS_METRIC, threshold=input_thresh
+        )
         if interesting_filters
-        else get_scene_stats_curve_metrics(signal, FB_SCENE_STATS_METRIC)
+        else get_roc_stats_curve_metrics(label_col, pred_col, ROC_STATS_METRIC, thresholds=thresholds)
     )
-    extra_columns = [f"scene_signals_{signal}_{type}" for type in ["label", "pred"]]
+    extra_columns = [label_col, pred_col]
     base_query = generate_base_query(
         data_tables,
         meta_data,
@@ -627,36 +612,38 @@ def generate_scene_stats_query(
         extra_filters=extra_filters,
         role=role,
     )
-    group_by = get_scene_fb_group_by(signal, input_thresh)
+    group_by = get_roc_group_by(label_col, pred_col, input_thresh)
     final_query = DYNAMIC_METRICS_QUERY.format(
         metrics=metrics, base_query=base_query, group_by=group_by if interesting_filters else "net_id"
     )
     return final_query
 
 
-def get_scene_stats_per_filter_metrics(signal, interesting_filters, metric, threshold=0):
+def get_roc_stats_per_filter_metrics(label_col, pred_col, interesting_filters, metric, threshold=0):
     metrics = ", ".join(
-        metric.format(signal=signal, extra_filters=f"AND ({filter})", threshold=threshold, ind=name)
+        metric.format(
+            label_col=label_col, pred_col=pred_col, extra_filters=f"AND ({filter})", threshold=threshold, ind=name
+        )
         for name, filter in interesting_filters.items()
     )
     return metrics
 
 
-def get_scene_stats_curve_metrics(signal, metric):
+def get_roc_stats_curve_metrics(label_col, pred_col, metric, thresholds=ROC_THRESHOLDS):
     metrics = ", ".join(
-        metric.format(signal=signal, extra_filters="", ind=ind, threshold=threshold)
-        for ind, threshold in enumerate(SCENE_THRESHOLDS)
+        metric.format(label_col=label_col, pred_col=pred_col, extra_filters="", ind=ind, threshold=threshold)
+        for ind, threshold in enumerate(thresholds)
     )
     return metrics
 
 
-def get_scene_fb_group_by(signal, input_thresh={}):
+def get_roc_group_by(label_col, pred_col, input_thresh={}):
     if not input_thresh:
         group_by = "net_id"
         return group_by
 
     cases = "\n".join(
-        f"WHEN net_id = '{net_id}' AND scene_signals_{signal}_pred >= {thresh} THEN '{net_id}'"
+        f"WHEN net_id = '{net_id}' AND {pred_col} >= {thresh} THEN '{net_id}'"
         for net_id, thresh in input_thresh.items()
     )
     group_by = f"CASE {cases} END"

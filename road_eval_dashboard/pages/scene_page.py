@@ -32,15 +32,15 @@ from road_eval_dashboard.components.components_ids import (
     SCENE_SIGNALS_DATA_READY,
 )
 from road_eval_dashboard.components.queries_manager import (
-    generate_scene_roc_query,
+    generate_roc_query,
     generate_compare_query,
     run_query_with_nets_names_processing,
     process_net_name,
-    SCENE_THRESHOLDS,
+    ROC_THRESHOLDS,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph
-from road_eval_dashboard.graphs.precision_recall_curve import draw_roc_curve
+from road_eval_dashboard.graphs.roc_curve import draw_roc_curve
 from road_eval_dashboard.graphs.confusion_matrix import draw_confusion_matrix
 from road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
 
@@ -315,15 +315,19 @@ def get_scene_roc_curve(id, meta_data_filters, nets):
         return no_update
 
     signal = id["signal"]
-    query = generate_scene_roc_query(
+    label_col = f"scene_signals_{signal}_label"
+    pred_col = f"scene_signals_{signal}_pred"
+    query = generate_roc_query(
         nets["frame_tables"],
         nets["meta_data"],
         meta_data_filters=meta_data_filters,
-        signal=signal,
+        label_col=label_col,
+        pred_col=pred_col,
+        thresholds=ROC_THRESHOLDS,
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data.fillna(1)
-    return draw_roc_curve(data, _name2title(signal), thresholds=SCENE_THRESHOLDS)
+    return draw_roc_curve(data, _name2title(signal), thresholds=ROC_THRESHOLDS)
 
 
 @callback(Output(ALL_SCENE_CONF_DIAGONALS, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
