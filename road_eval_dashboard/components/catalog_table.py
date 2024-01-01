@@ -215,6 +215,8 @@ def get_list_of_scene_signals(nets):
 
     cols_query = generate_cols_query(nets["frame_tables"], search_string="scene_signals_")
     cols_data, _ = query_athena(database="run_eval_db", query=cols_query)
+    if cols_data.empty:
+        return None
     cols_mest_names = set.intersection(
         *[
             set(
