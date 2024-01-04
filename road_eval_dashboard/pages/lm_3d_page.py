@@ -66,7 +66,7 @@ def get_lm_3d_acc_overall(meta_data_filters, nets):
         meta_data_filters=meta_data_filters,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="overall")
+    return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="overall", hover=True)
 
 @callback(
     Output(LM_3D_ACC_HOST, "figure"),
@@ -86,7 +86,7 @@ def get_lm_3d_acc_host(meta_data_filters, nets):
         role="host",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="host")
+    return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="host", hover=True)
 
 
 @callback(
@@ -107,4 +107,4 @@ def get_lm_3d_acc_next(meta_data_filters, nets):
         role="next",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, lm_3d_distances, "accuracy")
+    return draw_path_net_graph(df, lm_3d_distances, "accuracy", hover=True)

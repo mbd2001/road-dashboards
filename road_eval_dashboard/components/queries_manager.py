@@ -336,11 +336,11 @@ def generate_lm_3d_query(data_tables,
     distances_dict = lm_3D_sec_to_dist_acc
     extra_columns = [f'"pos_dZ_dists_{dist}"' for dist in lm_3d_distances]
     query = get_dist_query("pos_dZ_dists", data_tables, distances_dict, extra_filters, meta_data,
-                           meta_data_filters, operator, role, extra_columns=extra_columns)
+                           meta_data_filters, operator, role, extra_columns=extra_columns, is_add_filters_count=True)
     return query
 
 def get_dist_query(base_dist_column_name, data_tables, distances_dict, extra_filters, meta_data, meta_data_filters,
-                   operator, role, extra_columns=None):
+                   operator, role, extra_columns=None, is_add_filters_count=False):
     if extra_columns is None:
         extra_columns = []
     metrics = ", ".join(
@@ -357,6 +357,14 @@ def get_dist_query(base_dist_column_name, data_tables, distances_dict, extra_fil
         extra_columns=extra_columns
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+
+    if is_add_filters_count:
+        count_metrics = {f'{str(sec).replace(".", "_")}': f'"{base_dist_column_name}_{sec}" {operator} {thresh}' for sec, thresh in lm_3D_sec_to_dist_acc.items()}
+        metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
+        group_by = 'net_id'
+        md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+        query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
+
     return query
 
 

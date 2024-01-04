@@ -1,7 +1,7 @@
 import plotly.graph_objects as go
 
 
-def draw_path_net_graph(data, distances, title="", role="non-host"):
+def draw_path_net_graph(data, distances, title="", role="non-host", hover=False):
     fig = go.Figure()
     for ind, row in data.iterrows():
         fig.add_trace(
@@ -9,6 +9,7 @@ def draw_path_net_graph(data, distances, title="", role="non-host"):
                 x=distances,
                 y=[row[f"score_{dist}"] for dist in distances],
                 name=row.net_id,
+                hovertext=["lane marks: " + str(row[f"count_{str(col).replace('.', '_')}"]) for col in distances] if hover else None,
             )
         )
     fig.update_layout(
