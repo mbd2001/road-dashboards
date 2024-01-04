@@ -90,8 +90,8 @@ MD_FILTER_COUNT = """
     """
 
 DIST_METRIC = """
-    CAST(COUNT(CASE WHEN "dist_{dist}" {thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) / 
-    COUNT(CASE WHEN "dist_{dist}" IS NOT NULL THEN 1 ELSE NULL END)
+    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" {thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) / 
+    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) AND ("{base_dist_column_name}_{dist}" < 999) THEN 1 ELSE NULL END)
     AS "score_{dist}"
     """
 
@@ -145,6 +145,19 @@ CORRELATION_SUM_METRIC = """
 THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
 )
+
+
+lm_3D_sec_to_dist_acc = {
+    0.5: 0.08,
+    1.0: 0.12,
+    1.3: 0.2,
+    1.5: 0.2,
+    2.0: 0.3,
+    2.5: 0.4,
+    3.0: 0.5
+}
+
+lm_3d_distances = list(lm_3D_sec_to_dist_acc.keys())
 
 sec_to_dist_acc = {
     0.5: 0.2,
@@ -308,8 +321,31 @@ def generate_path_net_query(
 ):
     operator = "<" if state == "accuracy" else ">"
     distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
+    query = get_dist_query("dist", data_tables, distances_dict, extra_filters, meta_data,
+                           meta_data_filters, operator, role)
+    return query
+
+
+def generate_lm_3d_query(data_tables,
+    meta_data,
+    state,
+    meta_data_filters="",
+    extra_filters="",
+    role=""):
+    operator = "<" if state == "accuracy" else ">"
+    distances_dict = lm_3D_sec_to_dist_acc
+    extra_columns = [f'"pos_dZ_dists_{dist}"' for dist in lm_3d_distances]
+    query = get_dist_query("pos_dZ_dists", data_tables, distances_dict, extra_filters, meta_data,
+                           meta_data_filters, operator, role, extra_columns=extra_columns)
+    return query
+
+def get_dist_query(base_dist_column_name, data_tables, distances_dict, extra_filters, meta_data, meta_data_filters,
+                   operator, role, extra_columns=None):
+    if extra_columns is None:
+        extra_columns = []
     metrics = ", ".join(
-        DIST_METRIC.format(thresh_filter=f"{operator} {thresh}", dist=sec, extra_filters="")
+        DIST_METRIC.format(thresh_filter=f"{operator} {thresh}", dist=sec, extra_filters="",
+                           base_dist_column_name=base_dist_column_name)
         for sec, thresh in distances_dict.items()
     )
     base_query = generate_base_query(
@@ -318,6 +354,7 @@ def generate_path_net_query(
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         role=role,
+        extra_columns=extra_columns
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query

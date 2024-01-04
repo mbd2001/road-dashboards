@@ -121,6 +121,11 @@ PATH_NET_OVERALL_CONF_MAT = "path_net_overall_conf_mats"
 PATH_NET_HOST_CONF_MAT = "path_net_host_conf_mats"
 PATH_NET_ALL_CONF_MATS = "all_pathnet_conf_mats"
 
+#lm 3d page
+LM_3D_ACC_OVERALL = "lm_3d_accuracy_overall"
+LM_3D_ACC_HOST = "lm_3d_accuracy_host"
+LM_3D_ACC_NEXT = "lm_3d_accuracy_next"
+
 
 # vmax page
 VMAX_ROAD_TYPE = "vmax_road_type"
