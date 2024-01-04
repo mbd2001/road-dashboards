@@ -6,7 +6,8 @@ from road_eval_dashboard.components.common_filters import (
     MAX_SPEED_FILTERS,
     CURVE_BY_RAD_FILTERS,
     CURVE_BY_DIST_FILTERS,
-    VMAX_BINS_FILTERS,
+    VMAX_BINS_FILTERS, DIST_FROM_CURVE_VMAX_35_FILTERS, DIST_FROM_CURVE_VMAX_25_FILTERS,
+    DIST_FROM_CURVE_VMAX_15_FILTERS,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
@@ -31,7 +32,11 @@ from road_eval_dashboard.components.components_ids import (
     VLIMIT_BINS_SUCCESS_RATE,
     VLIMIT_BINS,
     VMAX_BINS,
-    VMAX_BINS_SUCCESS_RATE,
+    VMAX_BINS_SUCCESS_RATE, DIST_FROM_CURVE_VMAX_35_VMAX, DIST_FROM_CURVE_VMAX_25_VMAX, DIST_FROM_CURVE_VMAX_15_VMAX,
+    DIST_FROM_CURVE_VMAX_35_VLIMIT, DIST_FROM_CURVE_VMAX_25_VLIMIT, DIST_FROM_CURVE_VMAX_15_VLIMIT,
+    DIST_FROM_CURVE_VMAX_35_VMAX_SUCCESS_RATE, DIST_FROM_CURVE_VMAX_25_VMAX_SUCCESS_RATE,
+    DIST_FROM_CURVE_VMAX_15_VMAX_SUCCESS_RATE, DIST_FROM_CURVE_VMAX_35_VLIMIT_SUCCESS_RATE,
+    DIST_FROM_CURVE_VMAX_25_VLIMIT_SUCCESS_RATE, DIST_FROM_CURVE_VMAX_15_VLIMIT_SUCCESS_RATE,
 )
 from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
@@ -93,9 +98,15 @@ layout = html.Div(
         get_base_graph_layout(VMAX_ROAD_TYPE, VMAX_ROAD_TYPE_SUCCESS_RATE),
         get_base_graph_layout(VMAX_CURVE, VMAX_CURVE_SUCCESS_RATE, VMAX_CURVE_BY_DIST),
         get_base_graph_layout(VMAX_BINS, VMAX_BINS_SUCCESS_RATE),
+        get_base_graph_layout(DIST_FROM_CURVE_VMAX_35_VMAX, DIST_FROM_CURVE_VMAX_35_VMAX_SUCCESS_RATE),
+        get_base_graph_layout(DIST_FROM_CURVE_VMAX_25_VMAX, DIST_FROM_CURVE_VMAX_25_VMAX_SUCCESS_RATE),
+        get_base_graph_layout(DIST_FROM_CURVE_VMAX_15_VMAX, DIST_FROM_CURVE_VMAX_15_VMAX_SUCCESS_RATE),
         get_base_graph_layout(VLIMIT_ROAD_TYPE, VLIMIT_ROAD_TYPE_SUCCESS_RATE),
         get_base_graph_layout(VLIMIT_CURVE, VLIMIT_CURVE_SUCCESS_RATE, VLIMIT_CURVE_BY_DIST),
         get_base_graph_layout(VLIMIT_BINS, VLIMIT_BINS_SUCCESS_RATE),
+        get_base_graph_layout(DIST_FROM_CURVE_VMAX_35_VLIMIT, DIST_FROM_CURVE_VMAX_35_VLIMIT_SUCCESS_RATE),
+        get_base_graph_layout(DIST_FROM_CURVE_VMAX_25_VLIMIT, DIST_FROM_CURVE_VMAX_25_VLIMIT_SUCCESS_RATE),
+        get_base_graph_layout(DIST_FROM_CURVE_VMAX_15_VLIMIT, DIST_FROM_CURVE_VMAX_15_VLIMIT_SUCCESS_RATE),
     ]
 )
 
@@ -181,6 +192,82 @@ def get_vmax_bins(meta_data_filters, is_success_rate, nets, effective_samples):
 
 
 @callback(
+    Output(DIST_FROM_CURVE_VMAX_35_VMAX, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(DIST_FROM_CURVE_VMAX_35_VMAX_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_dist_from_curve_vmax_35_vmax(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"Dist from curve vmax 35 vmax {'Success Rate' if is_success_rate else 'Fb Score'}"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vmax_binary_pred",
+        interesting_filters=DIST_FROM_CURVE_VMAX_35_FILTERS,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+@callback(
+    Output(DIST_FROM_CURVE_VMAX_25_VMAX, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(DIST_FROM_CURVE_VMAX_25_VMAX_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_dist_from_curve_vmax_25_vmax(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"Dist from curve vmax 25 vmax {'Success Rate' if is_success_rate else 'Fb Score'}"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vmax_binary_pred",
+        interesting_filters=DIST_FROM_CURVE_VMAX_25_FILTERS,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+@callback(
+    Output(DIST_FROM_CURVE_VMAX_15_VMAX, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(DIST_FROM_CURVE_VMAX_15_VMAX_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_dist_from_curve_vmax_15_vmax(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"Dist from curve vmax 15 vmax {'Success Rate' if is_success_rate else 'Fb Score'}"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vmax_binary_pred",
+        interesting_filters=DIST_FROM_CURVE_VMAX_15_FILTERS,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+
+@callback(
     Output(VLIMIT_ROAD_TYPE, "figure"),
     Input(MD_FILTERS, "data"),
     Input(VLIMIT_ROAD_TYPE_SUCCESS_RATE, "on"),
@@ -235,7 +322,6 @@ def get_vlimit_curve(meta_data_filters, is_success_rate, by_dist, nets, effectiv
     )
     return fig
 
-
 @callback(
     Output(VLIMIT_BINS, "figure"),
     Input(MD_FILTERS, "data"),
@@ -256,6 +342,82 @@ def get_vlimit_vmax_bins(meta_data_filters, is_success_rate, nets, effective_sam
         label="vlimit_label",
         pred="vlimit_pred",
         interesting_filters=VMAX_BINS_FILTERS,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+
+@callback(
+    Output(DIST_FROM_CURVE_VMAX_35_VLIMIT, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(DIST_FROM_CURVE_VMAX_35_VLIMIT_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_dist_from_curve_vmax_35_vlimit(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"Dist from curve vmax 35 vlimit {'Success Rate' if is_success_rate else 'Fb Score'}"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vlimit_pred",
+        interesting_filters=DIST_FROM_CURVE_VMAX_35_FILTERS,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+@callback(
+    Output(DIST_FROM_CURVE_VMAX_25_VLIMIT, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(DIST_FROM_CURVE_VMAX_25_VLIMIT_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_dist_from_curve_vmax_35_vlimit(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"Dist from curve vmax 25 vlimit {'Success Rate' if is_success_rate else 'Fb Score'}"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vlimit_pred",
+        interesting_filters=DIST_FROM_CURVE_VMAX_25_FILTERS,
+        effective_samples=effective_samples,
+        title=title,
+    )
+    return fig
+
+@callback(
+    Output(DIST_FROM_CURVE_VMAX_15_VLIMIT, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(DIST_FROM_CURVE_VMAX_15_VLIMIT_SUCCESS_RATE, "on"),
+    State(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_dist_from_curve_vmax_15_vlimit(meta_data_filters, is_success_rate, nets, effective_samples):
+    if not nets:
+        return no_update
+
+    title = f"Dist from curve vmax 15 vlimit {'Success Rate' if is_success_rate else 'Fb Score'}"
+    fig = get_max_speed_fig(
+        meta_data_filters=meta_data_filters,
+        is_success_rate=is_success_rate,
+        nets=nets,
+        label="vlimit_label",
+        pred="vlimit_pred",
+        interesting_filters=DIST_FROM_CURVE_VMAX_15_FILTERS,
         effective_samples=effective_samples,
         title=title,
     )

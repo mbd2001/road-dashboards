@@ -58,6 +58,43 @@ for i in range(1, len(VMAX_BINS)):
     bin_name = f"vmax_{VMAX_BINS[i - 1]}_{VMAX_BINS[i] - 1}"
     bin_condition = f"vmax_full_range BETWEEN {VMAX_BINS[i - 1]} AND {VMAX_BINS[i] - 1}"
     VMAX_BINS_FILTERS[bin_name] = bin_condition
+
+VMAX_BINS_FILTERS = {
+    "vmax_ignore": "vmax_full_range = -1",
+    **VMAX_BINS_FILTERS,
+    f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35",
+}
+
+VMAX_DIST_OPTIONS = [15, 25, 35]
+VMAX_DIST_BINS = [0, 50, 100, 200]
+
+dist_from_curve_vmax_filters = []
+for option in VMAX_DIST_OPTIONS:
+    dist_from_curve_vmax_option_filters = {}
+    for i in range(1, len(VMAX_DIST_BINS)):
+        bin_name = f"dist_from_curve_vmax_{option}_{VMAX_DIST_BINS[i - 1]}_{VMAX_DIST_BINS[i] - 1}"
+        bin_condition = f"dist_from_curve_vmax_{option} BETWEEN {VMAX_DIST_BINS[i - 1]} AND {VMAX_DIST_BINS[i] - 1}"
+        dist_from_curve_vmax_option_filters[bin_name] = bin_condition
+    dist_from_curve_vmax_filters.append(dist_from_curve_vmax_option_filters)
+
+DIST_FROM_CURVE_VMAX_15_FILTERS = {
+    "dist_from_curve_vmax_15_ignore": "dist_from_curve_vmax_15 = -1",
+    **dist_from_curve_vmax_filters[0],
+    f"dist_from_curve_vmax_15_{VMAX_DIST_BINS[-1]}_above": f"dist_from_curve_vmax_15 >= {VMAX_DIST_BINS[-1]}",
+}
+
+DIST_FROM_CURVE_VMAX_25_FILTERS = {
+    "dist_from_curve_vmax_25_ignore": "dist_from_curve_vmax_25 = -1",
+    **dist_from_curve_vmax_filters[1],
+    f"dist_from_curve_vmax_25_{VMAX_DIST_BINS[-1]}_above": f"dist_from_curve_vmax_25 >= {VMAX_DIST_BINS[-1]}",
+}
+
+DIST_FROM_CURVE_VMAX_35_FILTERS = {
+    "dist_from_curve_vmax_35_ignore": "dist_from_curve_vmax_35 = -1",
+    **dist_from_curve_vmax_filters[2],
+    f"dist_from_curve_vmax_35_{VMAX_DIST_BINS[-1]}_above": f"dist_from_curve_vmax_35 >= {VMAX_DIST_BINS[-1]}",
+}
+
 VMAX_BINS_FILTERS = {
     "vmax_ignore": "vmax_full_range = -1",
     **VMAX_BINS_FILTERS,
@@ -89,4 +126,7 @@ ALL_FILTERS = {
     **WEATHER_FILTERS,
     **MAX_SPEED_FILTERS,
     **VMAX_BINS_FILTERS,
+    **DIST_FROM_CURVE_VMAX_35_FILTERS,
+    **DIST_FROM_CURVE_VMAX_25_FILTERS,
+    **DIST_FROM_CURVE_VMAX_15_FILTERS
 }
