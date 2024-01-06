@@ -123,9 +123,10 @@ PATH_NET_ALL_CONF_MATS = "all_pathnet_conf_mats"
 
 #lm 3d page
 LM_3D_ACC_OVERALL = "lm_3d_accuracy_overall"
+LM_3D_ACC_OVERALL_Z_X = "lm_3d_accuracy_overall_Z_X"
 LM_3D_ACC_HOST = "lm_3d_accuracy_host"
+LM_3D_ACC_HOST_Z_X = "lm_3d_accuracy_host_Z_X"
 LM_3D_ACC_NEXT = "lm_3d_accuracy_next"
-
 
 # vmax page
 VMAX_ROAD_TYPE = "vmax_road_type"
