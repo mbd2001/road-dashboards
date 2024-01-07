@@ -65,7 +65,9 @@ layout = html.Div(
                     labelPosition="top",
                 ),
         ]),
-        get_host_next_graph(LM_3D_ACC_HOST, LM_3D_ACC_NEXT, LM_3D_ACC_HOST_Z_X),
+        get_host_next_graph({"type": LM_3D_ACC_HOST, "extra_filter": ""},
+                             {"type": LM_3D_ACC_NEXT, "extra_filter": ""},
+                             {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": ""}),
     ] + [get_host_next_graph({"type": LM_3D_ACC_HOST, "extra_filter": filter_name},
                              {"type": LM_3D_ACC_NEXT, "extra_filter": filter_name},
                              {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": filter_name}) for filter_name in LM_3D_FILTERS]
@@ -94,100 +96,40 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, nets):
     return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="overall", hover=True)
 
 @callback(
-    Output(LM_3D_ACC_HOST, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(LM_3D_ACC_HOST_Z_X, "on"),
-    State(NETS, "data"),
-    background=True,
-)
-def get_lm_3d_acc_host(meta_data_filters, is_Z, nets):
-    if not nets:
-        return no_update
-
-    query = generate_lm_3d_query(
-        nets['gt_tables'],
-        nets["meta_data"],
-        "accuracy",
-        meta_data_filters=meta_data_filters,
-        role="host",
-        is_Z=is_Z
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="host", hover=True)
-
-
-@callback(
-    Output(LM_3D_ACC_NEXT, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(LM_3D_ACC_HOST_Z_X, "on"),
-    State(NETS, "data"),
-    background=True,
-)
-def get_lm_3d_acc_next(meta_data_filters, is_Z, nets):
-    if not nets:
-        return no_update
-
-    query = generate_lm_3d_query(
-        nets['gt_tables'],
-        nets["meta_data"],
-        "accuracy",
-        meta_data_filters=meta_data_filters,
-        role="next",
-        is_Z=is_Z
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, lm_3d_distances, "accuracy", hover=True)
-
-@callback(
     Output({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, "figure"),
+    Output({"type": LM_3D_ACC_NEXT, "extra_filter": MATCH}, "figure"),
     Input(MD_FILTERS, "data"),
     Input({"type": LM_3D_ACC_HOST_Z_X, "extra_filter": MATCH}, "on"),
     State(NETS, "data"),
     State({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, 'id'),
     background=True,
 )
-def get_lm_3d_acc_host_interesting_filter(meta_data_filters, is_Z, nets, id):
+def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, nets, id):
     if not nets:
         return no_update
 
-    intresting_filter = LM_3D_FILTERS[id['extra_filter']]
-    query = generate_lm_3d_query(
-        nets['gt_tables'],
-        nets["meta_data"],
-        "accuracy",
-        meta_data_filters=meta_data_filters,
-        role="host",
-        is_Z=is_Z,
-        intresting_filters=intresting_filter
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    intresting_filter_names = list(intresting_filter.keys())
-    cols_names = [f"{INTERSTING_FILTERS_DIST_TO_CHECK}_{col}" for col in intresting_filter_names]
-    return draw_path_net_graph(df, cols_names, "accuracy", role="host", hover=True)
+    extra_filter = id['extra_filter']
+    intresting_filter = LM_3D_FILTERS[extra_filter] if extra_filter else None
+    figs = []
+    for role in ['host', 'next']:
+        query = generate_lm_3d_query(
+            nets['gt_tables'],
+            nets["meta_data"],
+            "accuracy",
+            meta_data_filters=meta_data_filters,
+            role=role,
+            is_Z=is_Z,
+            intresting_filters=intresting_filter
+        )
+        df, _ = run_query_with_nets_names_processing(query)
+        cols_names = get_cols_names(intresting_filter)
+        fig = draw_path_net_graph(df, cols_names, "accuracy", role=role, hover=True)
+        figs.append(fig)
+    return figs
 
-@callback(
-    Output({"type": LM_3D_ACC_NEXT, "extra_filter": MATCH}, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input({"type": LM_3D_ACC_HOST_Z_X, "extra_filter": MATCH}, "on"),
-    State(NETS, "data"),
-    State({"type": LM_3D_ACC_NEXT, "extra_filter": MATCH}, 'id'),
-    background=True,
-)
-def get_lm_3d_acc_next_interesting_filter(meta_data_filters, is_Z, nets, id):
-    if not nets:
-        return no_update
 
-    intresting_filter = LM_3D_FILTERS[id['extra_filter']]
-    query = generate_lm_3d_query(
-        nets['gt_tables'],
-        nets["meta_data"],
-        "accuracy",
-        meta_data_filters=meta_data_filters,
-        role="next",
-        is_Z=is_Z,
-        intresting_filters=intresting_filter
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    intresting_filter_names = list(intresting_filter.keys())
-    cols_names = [f"{INTERSTING_FILTERS_DIST_TO_CHECK}_{col}" for col in intresting_filter_names]
-    return draw_path_net_graph(df, cols_names, "accuracy", hover=True)
+def get_cols_names(intresting_filter):
+    if intresting_filter:
+        intresting_filter_names = list(intresting_filter.keys())
+        return [f"{INTERSTING_FILTERS_DIST_TO_CHECK}_{col}" for col in intresting_filter_names]
+    return lm_3d_distances
