@@ -10,6 +10,7 @@ from road_eval_dashboard.components.common_filters import LM_3D_FILTERS
 from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS, LM_3D_ACC_NEXT, LM_3D_ACC_HOST, LM_3D_ACC_OVERALL, LM_3D_ACC_OVERALL_Z_X, LM_3D_ACC_HOST_Z_X,
+    EFFECTIVE_SAMPLES_PER_BATCH,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
@@ -102,14 +103,17 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, nets):
     Input({"type": LM_3D_ACC_HOST_Z_X, "extra_filter": MATCH}, "on"),
     State(NETS, "data"),
     State({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, 'id'),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
 )
-def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, nets, id):
+def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, nets, id, effective_samples):
     if not nets:
         return no_update
 
     extra_filter = id['extra_filter']
     intresting_filter = LM_3D_FILTERS[extra_filter] if extra_filter else None
+    if intresting_filter is None:
+        effective_samples = {}
     figs = []
     for role in ['host', 'next']:
         query = generate_lm_3d_query(
@@ -123,7 +127,7 @@ def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, nets, id):
         )
         df, _ = run_query_with_nets_names_processing(query)
         cols_names = get_cols_names(intresting_filter)
-        fig = draw_path_net_graph(df, cols_names, "accuracy", role=role, hover=True)
+        fig = draw_path_net_graph(df, cols_names, "accuracy", role=role, hover=True, effective_samples=effective_samples)
         figs.append(fig)
     return figs
 

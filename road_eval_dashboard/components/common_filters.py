@@ -1,3 +1,5 @@
+from road_eval_dashboard.components.queries_manager import INTERSTING_FILTERS_DIST_TO_CHECK
+
 ROAD_TYPE_FILTERS = {
     "highway": "mdbi_road_highway = TRUE OR mdbi_road_freeway = TRUE",
     "country": "mdbi_road_country = TRUE",
@@ -89,6 +91,11 @@ LM_3D_FILTERS = {'road_type': ROAD_TYPE_FILTERS,
                  'weather': WEATHER_FILTERS
                  }
 
+# AND ("pos_dZ_{axis}_dists_1.3" < 999)
+LM_3D_INTRESTING_FILTERS = {
+    f'{INTERSTING_FILTERS_DIST_TO_CHECK}_{extra_filter_name}': f'({extra_filter})' for filters_names, filters in LM_3D_FILTERS.items() for extra_filter_name, extra_filter in filters.items() for axis in ['X', 'Z']
+}
+
 ALL_FILTERS = {
     **LANE_MARK_TYPE_FILTERS,
     **LANE_MARK_COLOR_FILTERS,
@@ -97,4 +104,5 @@ ALL_FILTERS = {
     **WEATHER_FILTERS,
     **MAX_SPEED_FILTERS,
     **VMAX_BINS_FILTERS,
+    **LM_3D_INTRESTING_FILTERS
 }

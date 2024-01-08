@@ -86,7 +86,7 @@ FB_OVERALL_METRIC = """
 
 MD_FILTER_COUNT = """
     COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END)
-    AS count_{ind}
+    AS "count_{ind}"
     """
 
 DIST_METRIC = """
@@ -124,7 +124,7 @@ COUNT_FILTER_METRIC = """
 
 LOG_COUNT_METRIC = """
     LOG(2, COUNT(CASE WHEN {extra_filters} THEN 1 ELSE NULL END) + 1)
-    AS overall_{ind}
+    AS "overall_{ind}"
     """
 
 COUNT_ALL_METRIC = """
@@ -133,13 +133,13 @@ COUNT_ALL_METRIC = """
     """
 
 SUM_METRIC = """
-    SUM({col})
-    AS sum_{ind}
+    SUM("{col}")
+    AS "sum_{ind}"
     """
 
 CORRELATION_SUM_METRIC = """
-    SUM({col}) - (POWER(SUM({col}) - 1, 2)) / (SUM({col}) + ((MAX(CASE WHEN {col} > 0 THEN grabIndex ELSE NULL END) - MIN(CASE WHEN {col} > 0 THEN grabIndex ELSE NULL END)) / 20))
-    AS sum_{ind}
+    SUM("{col}") - (POWER(SUM("{col}") - 1, 2)) / (SUM("{col}") + ((MAX(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END) - MIN(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END)) / 20))
+    AS "sum_{ind}"
     """
 
 THRESHOLDS = np.concatenate(
@@ -351,17 +351,14 @@ def generate_lm_3d_query(data_tables,
         distances = {INTERSTING_FILTERS_DIST_TO_CHECK: distances[INTERSTING_FILTERS_DIST_TO_CHECK]}
     axis = 'Z' if is_Z else 'X'
     base_column_name = f"pos_dZ_{axis}_dists"
-    extra_columns = [f'"{base_column_name}_{dist}"' for dist in lm_3d_distances]
     query = get_dist_query(base_column_name, data_tables, distances, extra_filters, meta_data,
-                           meta_data_filters, operator, role, extra_columns=extra_columns, is_add_filters_count=True, intresting_filters=intresting_filters)
+                           meta_data_filters, operator, role, is_add_filters_count=True, intresting_filters=intresting_filters)
     return query
 
 def get_dist_query(base_dist_column_name, data_tables, distances_dict, extra_filters, meta_data, meta_data_filters,
-                   operator, role, extra_columns=None, is_add_filters_count=False, intresting_filters=None):
+                   operator, role, is_add_filters_count=False, intresting_filters=None):
     if intresting_filters is None:
         intresting_filters = {"": ""}
-    if extra_columns is None:
-        extra_columns = []
     metrics = ", ".join(
         DIST_METRIC.format(thresh_filter=f"{operator} {thresh}", dist=sec, extra_filters=f"AND {extra_filter}" if extra_filter_name else "",
                            base_dist_column_name=base_dist_column_name, ind=f"{sec}_{extra_filter_name}" if extra_filter_name else sec)
@@ -372,8 +369,7 @@ def get_dist_query(base_dist_column_name, data_tables, distances_dict, extra_fil
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        role=role,
-        extra_columns=extra_columns
+        role=role
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
@@ -391,7 +387,7 @@ def get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_fil
     count_metrics = {}
     for sec, thresh in distances_dict.items():
         for extra_filter_name, extra_filter in intresting_filters.items():
-            filter_name = f'{str(sec).replace(".", "_")}_{extra_filter_name}' if extra_filter_name else f'{str(sec).replace(".", "_")}'
+            filter_name = f'{sec}_{extra_filter_name}' if extra_filter_name else f'{sec}'
             extra_filter_str = f"AND {extra_filter}" if extra_filter_name else ""
             count_metrics[filter_name] = f'"{base_dist_column_name}_{sec}" {operator} {thresh} {extra_filter_str}'
     return count_metrics
