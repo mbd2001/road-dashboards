@@ -47,9 +47,7 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
             ]
         ),
     ] + [
-        generate_confusion_matrix_card_layout(
-            net_name, ind, left_conf_mat_id, right_conf_mat_id
-        )
+        generate_confusion_matrix_card_layout(net_name, ind, left_conf_mat_id, right_conf_mat_id)
         for ind, net_name in enumerate(process_net_names_list(nets["names"]))
     ]
     return children
