@@ -5,6 +5,7 @@ from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_
 from road_eval_dashboard.components.queries_manager import (
     generate_conf_mat_query,
     run_query_with_nets_names_processing,
+    process_net_names_list,
     process_net_name,
 )
 from road_eval_dashboard.graphs.confusion_matrix import (
@@ -47,9 +48,9 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
         ),
     ] + [
         generate_confusion_matrix_card_layout(
-            process_net_name(nets["names"][ind]), ind, left_conf_mat_id, right_conf_mat_id
+            net_name, ind, left_conf_mat_id, right_conf_mat_id
         )
-        for ind in range(len(nets["names"]))
+        for ind, net_name in enumerate(process_net_names_list(nets["names"]))
     ]
     return children
 
@@ -129,6 +130,7 @@ def generate_matrices_graphs(
     compare_sign=False,
     ignore_val=-1,
 ):
+    net_names = process_net_names_list(net_names)
     mats = generate_conf_matrices(
         label_col,
         pred_col,

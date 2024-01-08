@@ -35,7 +35,7 @@ from road_eval_dashboard.components.queries_manager import (
     generate_roc_query,
     generate_compare_query,
     run_query_with_nets_names_processing,
-    process_net_name,
+    process_net_names_list,
     ROC_THRESHOLDS,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
@@ -193,10 +193,6 @@ def _generate_charts_per_net(base_id, scene_signals):
     return children
 
 
-def _process_net_names(net_names):
-    return sorted([process_net_name(net_name) for net_name in net_names], reverse=True)
-
-
 def _generate_charts(chart_type, nets, scene_signals_list, per_net=False):
     if not nets or not scene_signals_list:
         return []
@@ -211,7 +207,7 @@ def _generate_charts(chart_type, nets, scene_signals_list, per_net=False):
     if not per_net:
         children.extend(_generate_charts_per_net(base_id, scene_signals_list))
     else:
-        net_names = _process_net_names(nets["names"])
+        net_names = process_net_names_list(nets["names"])
         for net_name in net_names:
             base_id["net"] = net_name
             children.append(dbc.Row(html.H3(base_id["net"], className="mb-5")))
@@ -228,7 +224,7 @@ def generate_score_charts(nets, scene_signals_list):
 def _generate_matrices_per_signal(nets, meta_data_filters, signal):
     label_col = f"scene_signals_{signal.replace('_mest', '')}_label"
     pred_col = f"scene_signals_{signal}_pred"
-    net_names = _process_net_names(nets["names"])
+    net_names = process_net_names_list(nets["names"])
     if signal.endswith("_mest"):
         net_names = [net_names[0]]
     mats = generate_conf_matrices(

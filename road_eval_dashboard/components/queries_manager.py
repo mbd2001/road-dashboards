@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pandas as pd
 
@@ -729,7 +730,11 @@ def process_df_net_names(df, nets_names_col="net_id"):
     return df
 
 
+def process_net_names_list(net_names):
+    return sorted([process_net_name(net_name) for net_name in net_names], reverse=True)
+
+
 def process_net_name(net_name):
     if pd.isnull(net_name):
         return net_name
-    return net_name.lstrip("0123456789-")
+    return re.sub(r"^\d{18}-", "", net_name)
