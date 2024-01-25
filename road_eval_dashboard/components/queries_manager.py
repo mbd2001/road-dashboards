@@ -105,7 +105,7 @@ MD_FILTER_COUNT = """
     """
 
 DIST_METRIC = """
-    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
+    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
     COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) AND ("{base_dist_column_name}_{dist}" < 999) {extra_filters} THEN 1 ELSE NULL END)
     AS "score_{ind}"
     """
@@ -364,23 +364,20 @@ def generate_lm_3d_query(data_tables,
     meta_data,
     state,
     meta_data_filters="",
-    extra_filters="",
     role="",
     is_Z=False,
     intresting_filters=None):
-
-
     operator = "<" if state == "accuracy" else ">"
     distances = lm_3D_sec_to_Z_dist_acc if is_Z else lm_3D_sec_to_X_dist_acc
     if intresting_filters is not None:
         distances = {INTERSTING_FILTERS_DIST_TO_CHECK: distances[INTERSTING_FILTERS_DIST_TO_CHECK]}
     axis = 'Z' if is_Z else 'X'
     base_column_name = f"pos_dZ_{axis}_dists"
-    query = get_dist_query(base_column_name, data_tables, distances, extra_filters, meta_data,
+    query = get_dist_query(base_column_name, data_tables, distances, meta_data,
                            meta_data_filters, operator, role, is_add_filters_count=True, intresting_filters=intresting_filters)
     return query
 
-def get_dist_query(base_dist_column_name, data_tables, distances_dict, extra_filters, meta_data, meta_data_filters,
+def get_dist_query(base_dist_column_name, data_tables, distances_dict, meta_data, meta_data_filters,
                    operator, role, is_add_filters_count=False, intresting_filters=None):
     if intresting_filters is None:
         intresting_filters = {"": ""}
@@ -393,7 +390,7 @@ def get_dist_query(base_dist_column_name, data_tables, distances_dict, extra_fil
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
+        extra_filters="confidence > 0 AND match <> -1",
         role=role
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
