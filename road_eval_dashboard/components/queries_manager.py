@@ -111,8 +111,8 @@ DIST_METRIC = """
     """
 
 VIEW_RANGE_SUCCESS_RATE_QUERY = """
-    SUM(CAST(view_range_max_Z_3d_pred >= {Z_sample} AND view_range_max_Z_3d_label >= {Z_sample} AS DOUBLE)) / 
-    SUM(CAST(view_range_max_Z_3d_label >= {Z_sample} AS DOUBLE))
+    SUM(CAST({max_Z_col}_pred >= {Z_sample} AND {max_Z_col}_label >= {Z_sample} AS DOUBLE)) / 
+    SUM(CAST({max_Z_col}_label >= {Z_sample} AS DOUBLE))
     AS "vr_score_{Z_sample}"
     """
 
@@ -372,18 +372,21 @@ def generate_view_range_success_rate_query(data_tables,
                                            meta_data_filters="",
                                            extra_filters="",
                                            role="",
+                                           naive_Z=False,
                                            is_Z=False,
                                            intresting_filters=None):
 
-
-    metrics = ", ".join(VIEW_RANGE_SUCCESS_RATE_QUERY.format(Z_sample=f"{Z_sample}") for Z_sample in Z_samples)
+    max_Z_col = "view_range_max_Z"
+    if not naive_Z:
+        max_Z_col += "_3d"
+    metrics = ", ".join(VIEW_RANGE_SUCCESS_RATE_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z_sample) for Z_sample in Z_samples)
     base_query = generate_base_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
-        extra_filters="confidence > 0 AND match <> -1 AND view_range_max_Z_3d_pred IS NOT NULL AND view_range_max_Z_3d_label IS NOT NULL",
+        extra_filters="confidence > 0 AND match <> -1", # AND {max_Z_col}_pred IS NOT NULL AND {max_Z_col}_label IS NOT NULL",
         role=role,
-        extra_columns=["view_range_max_Z_3d_pred", "view_range_max_Z_3d_label"],
+        extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
@@ -403,21 +406,24 @@ def generate_view_range_histogram_query(data_tables,
                                         meta_data_filters="",
                                         extra_filters="",
                                         role="",
-                                        is_Z=False,
-                                        intresting_filters=None):
+                                        naive_Z=False,
+                                        interesting_filters=None):
+    max_Z_col = "view_range_max_Z"
+    if not naive_Z:
+        max_Z_col += "_3d"
     query = generate_count_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
         bins_factor=bin_size,
-        extra_filters="confidence > 0 AND match <> -1 AND view_range_max_Z_3d_pred IS NOT NULL AND view_range_max_Z_3d_label IS NOT NULL",
+        extra_filters="confidence > 0 AND match <> -1",
         role=role,
-        extra_columns=["view_range_max_Z_3d_pred", "view_range_max_Z_3d_label"],
-        group_by_column="view_range_max_Z_3d_pred",
+        extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
+        group_by_column=f"{max_Z_col}_pred",
         group_by_net_id=True
     )
 
-    query = f"{query} ORDER BY net_id, view_range_max_Z_3d_pred"
+    query = f"{query} ORDER BY net_id, {max_Z_col}_pred"
 
     # if is_add_filters_count:
     #     count_metrics = get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)

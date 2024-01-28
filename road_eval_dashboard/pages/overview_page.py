@@ -12,7 +12,7 @@ from road_eval_dashboard.components.components_ids import (
 )
 from road_eval_dashboard.components.layout_wrapper import loading_wrapper, card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
-
+from road_eval_dashboard.pages.card_generators import view_range_histogram_card
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/overview", name="Overview", order=2, **extra_properties.__dict__)
@@ -37,5 +37,6 @@ layout = html.Div(
                 ),
             ]
         ),
+        view_range_histogram_card(),
     ]
 )
