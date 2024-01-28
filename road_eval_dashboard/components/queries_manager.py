@@ -110,6 +110,12 @@ DIST_METRIC = """
     AS "score_{ind}"
     """
 
+VIEW_RANGE_SUCCESS_RATE_QUERY = """
+    SUM(CAST(view_range_max_Z_3d_pred >= {Z_sample} AND view_range_max_Z_3d_label >= {Z_sample} AS DOUBLE)) / 
+    SUM(CAST(view_range_max_Z_3d_label >= {Z_sample} AS DOUBLE))
+    AS "vr_score_{Z_sample}"
+    """
+
 TP_METRIC = """
     CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} > {thresh} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE)
     AS tp_{ind}
@@ -360,6 +366,69 @@ def generate_path_net_query(
     return query
 
 
+def generate_view_range_success_rate_query(data_tables,
+                                           meta_data,
+                                           Z_samples,
+                                           meta_data_filters="",
+                                           extra_filters="",
+                                           role="",
+                                           is_Z=False,
+                                           intresting_filters=None):
+
+
+    metrics = ", ".join(VIEW_RANGE_SUCCESS_RATE_QUERY.format(Z_sample=f"{Z_sample}") for Z_sample in Z_samples)
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters="confidence > 0 AND match <> -1 AND view_range_max_Z_3d_pred IS NOT NULL AND view_range_max_Z_3d_label IS NOT NULL",
+        role=role,
+        extra_columns=["view_range_max_Z_3d_pred", "view_range_max_Z_3d_label"],
+    )
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+
+    # if is_add_filters_count:
+    #     count_metrics = get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
+    #     metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
+    #     group_by = 'net_id'
+    #     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+    #     query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
+
+    return query
+
+
+def generate_view_range_histogram_query(data_tables,
+                                        meta_data,
+                                        bin_size,
+                                        meta_data_filters="",
+                                        extra_filters="",
+                                        role="",
+                                        is_Z=False,
+                                        intresting_filters=None):
+    query = generate_count_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        bins_factor=bin_size,
+        extra_filters="confidence > 0 AND match <> -1 AND view_range_max_Z_3d_pred IS NOT NULL AND view_range_max_Z_3d_label IS NOT NULL",
+        role=role,
+        extra_columns=["view_range_max_Z_3d_pred", "view_range_max_Z_3d_label"],
+        group_by_column="view_range_max_Z_3d_pred",
+        group_by_net_id=True
+    )
+
+    query = f"{query} ORDER BY net_id, view_range_max_Z_3d_pred"
+
+    # if is_add_filters_count:
+    #     count_metrics = get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
+    #     metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
+    #     group_by = 'net_id'
+    #     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+    #     query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
+
+    return query
+
+
 def generate_lm_3d_query(data_tables,
     meta_data,
     state,
@@ -579,6 +648,9 @@ def generate_count_query(
     extra_filters="",
     bins_factor=None,
     role="",
+    include_all=True,
+    extra_columns=None,
+    group_by_net_id=False,
 ):
     base_query = generate_base_query(
         data_tables,
@@ -586,10 +658,13 @@ def generate_count_query(
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         role=role,
-        include_all=True,
+        include_all=include_all,
+        extra_columns=extra_columns
     )
     metrics = COUNT_ALL_METRIC.format(count_name="overall")
     group_by = f"FLOOR({group_by_column} / {bins_factor}) * {bins_factor}" if bins_factor else group_by_column
+    if group_by_net_id:
+        group_by = "net_id, " + group_by
     query = COUNT_QUERY.format(
         base_query=base_query, count_metric=metrics, group_by=group_by, group_name=group_by_column
     )
@@ -732,8 +807,10 @@ def generate_base_query(
     ca_oriented=False,
     role="",
     extra_filters="",
-    extra_columns=[],
+    extra_columns=None,
 ):
+    if extra_columns is None:
+        extra_columns = []
     base_data = generate_base_data(data_tables["paths"], data_tables["required_columns"], extra_columns)
     intersect_filter = generate_intersect_filter(data_tables["paths"])
     ignore_str = data_tables["ca_ignore_filter"] if ca_oriented else data_tables["ignore_filter"]

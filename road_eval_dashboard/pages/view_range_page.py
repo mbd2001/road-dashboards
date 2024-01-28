@@ -1,0 +1,227 @@
+import dash_bootstrap_components as dbc
+import dash_daq as daq
+import pandas as pd
+import plotly.express as px
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
+
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
+from road_eval_dashboard.components.components_ids import (
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    MD_FILTERS,
+    NETS,
+    VIEW_RANGE_HISTOGRAM,
+    VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER,
+    VIEW_RANGE_SUCCESS_RATE,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z,
+    VIEW_RANGE_SUCCESS_RATE_Z,
+)
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.components.queries_manager import (
+    INTERSTING_FILTERS_DIST_TO_CHECK,
+    generate_view_range_histogram_query,
+    generate_view_range_success_rate_query,
+    lm_3d_distances,
+    run_query_with_nets_names_processing,
+)
+
+extra_properties = PageProperties("line-chart")
+register_page(__name__, path="/lm_view_range", name="LM View Range", order=3, **extra_properties.__dict__)
+
+Z_SAMPLES = [30, 60, 90, 120]
+
+
+layout = html.Div(
+    [
+        html.H1("Lane Mark View Range", className="mb-5"),
+        meta_data_filter.layout,
+        base_dataset_statistics.gt_layout,
+        card_wrapper(
+            [
+                dbc.Row(loading_wrapper([dcc.Graph(id=VIEW_RANGE_SUCCESS_RATE, config={"displayModeBar": False})])),
+                daq.BooleanSwitch(
+                    id=VIEW_RANGE_SUCCESS_RATE_Z,
+                    on=False,
+                    label="show by Z",
+                    labelPosition="top",
+                ),
+            ]
+        ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    loading_wrapper(
+                        [
+                            dcc.Graph(
+                                id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": ""},
+                                config={"displayModeBar": False},
+                            )
+                        ]
+                    )
+                ),
+                daq.BooleanSwitch(
+                    id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z, "extra_filter": ""},
+                    on=False,
+                    label="show by Z",
+                    labelPosition="top",
+                ),
+            ]
+        ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=VIEW_RANGE_HISTOGRAM, config={"displayModeBar": False})]),
+                            width=11,
+                        ),
+                        dbc.Col(
+                            dcc.Slider(
+                                10,
+                                50,
+                                10,
+                                id=VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER,
+                                vertical=True,
+                                marks={i: str(i) for i in range(10, 51, 10)},
+                                value=10,
+                            ),
+                            width=1,
+                        ),
+                    ]
+                ),
+            ]
+        ),
+    ]
+)
+
+
+@callback(
+    Output(VIEW_RANGE_SUCCESS_RATE, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(VIEW_RANGE_SUCCESS_RATE_Z, "on"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_view_range_success_rate_plot(meta_data_filters, is_Z, nets):
+    if not nets:
+        return no_update
+    query = generate_view_range_success_rate_query(
+        nets["gt_tables"],
+        nets["meta_data"],
+        Z_samples=Z_SAMPLES,
+        meta_data_filters=meta_data_filters,
+        # is_Z=is_Z
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    df_melted = pd.melt(df, id_vars=["net_id"], var_name="Z_sample", value_name="vr_score")
+    df_melted["Z_sample"] = df_melted["Z_sample"].str.extract("(\d+)").astype(int)
+    df_melted.sort_values(by=["net_id", "Z_sample"], inplace=True)
+    fig = px.line(
+        df_melted,
+        x="Z_sample",
+        y="vr_score",
+        labels={"Z_sample": "Z_sample", "vr_score": "vr_score"},
+        markers=True,
+        color="net_id",
+    )
+    fig.update_xaxes(tickvals=Z_SAMPLES)
+    fig.update_layout(
+        title=f"<b>View Range Success Rate<b>",
+        xaxis_title="Z(m)",
+        yaxis_title="Success Rate",
+        xaxis=dict(constrain="domain"),
+        yaxis=dict(range=[0, 1]),
+        font=dict(size=16),
+    )
+    return fig
+
+
+@callback(
+    Output({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": MATCH}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z, "extra_filter": MATCH}, "on"),
+    State(NETS, "data"),
+    State({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": MATCH}, "id"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    background=True,
+)
+def get_view_range_success_rate_interesting_plots(meta_data_filters, is_Z, nets, id, effective_samples):
+    if not nets:
+        return no_update
+
+    # extra_filter = id['extra_filter']
+    # interesting_filters = VR_FILTERS[extra_filter] if extra_filter else None
+    # if interesting_filters is None:
+    #     effective_samples = {}
+
+    #################
+    dfs = []
+    for col, role in enumerate(["host", "next"]):
+        query = generate_view_range_success_rate_query(
+            nets["gt_tables"],
+            nets["meta_data"],
+            Z_samples=Z_SAMPLES,
+            meta_data_filters=meta_data_filters,
+            role=role,
+            is_Z=is_Z,
+        )
+
+        df, _ = run_query_with_nets_names_processing(query)
+        df_melted = pd.melt(df, id_vars=["net_id"], var_name="Z_sample", value_name="vr_score")
+        df_melted["Z_sample"] = df_melted["Z_sample"].str.extract("(\d+)").astype(int)
+        df_melted.sort_values(by=["net_id", "Z_sample"], inplace=True)
+        df_melted["role"] = role
+        dfs.append(df_melted)
+    full_df = pd.concat(dfs)
+    fig = px.line(full_df, x="Z_sample", y="vr_score", color="net_id", facet_col="role", markers=True)
+    fig.update_xaxes(tickvals=Z_SAMPLES)
+    fig.update_yaxes(range=[0, 1])
+    return fig
+
+    # fig.update_layout(
+    #     title=f"<b>View Range Success Rate - {role.title()}<b>",
+    #     xaxis_title="Z(m)",
+    #     yaxis_title="Success Rate",
+    #     xaxis=dict(constrain="domain"),
+    #     yaxis=dict(range=[0, 1]),
+    #     font=dict(size=16),
+    # )
+    # cols_names = get_cols_names(interesting_filters)
+    # fig = draw_path_net_graph(df, cols_names, "accuracy", role=role, hover=True, effective_samples=effective_samples)
+    ###################
+
+
+@callback(
+    Output(VIEW_RANGE_HISTOGRAM, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER, "value"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_view_range_histogram_plot(meta_data_filters, bin_size, nets):
+    if not nets:
+        return no_update
+
+    query = generate_view_range_histogram_query(
+        nets["gt_tables"],
+        nets["meta_data"],
+        bin_size=bin_size,
+        meta_data_filters=meta_data_filters,
+        # is_Z=is_Z
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    df.sort_values(by=["net_id", "view_range_max_Z_3d_pred"], inplace=True)
+    fig = px.line(df, x="view_range_max_Z_3d_pred", y="overall", color="net_id", markers=True)
+    # df2, _ = run_query_with_nets_names_processing(q)
+    # fig = px.histogram(df2, x="view_range_max_Z_3d_pred", color="net_id", marginal="violin", nbins=bin_size)
+    # fig.update_xaxes(tickvals=Z_SAMPLES)
+    # fig.update_layout(
+    #     title=f"<b>View Range Success Rate<b>",
+    #     xaxis_title="Z(m)",
+    #     yaxis_title="Success Rate",
+    #     xaxis=dict(constrain="domain"),
+    #     yaxis=dict(range=[0, 1]),
+    #     font=dict(size=16),
+    # )
+    return fig

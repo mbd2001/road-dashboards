@@ -129,6 +129,15 @@ LM_3D_ACC_HOST = "lm_3d_accuracy_host"
 LM_3D_ACC_HOST_Z_X = "lm_3d_accuracy_host_Z_X"
 LM_3D_ACC_NEXT = "lm_3d_accuracy_next"
 
+# view range page
+VIEW_RANGE_SUCCESS_RATE = "view_range_success_rate"
+VIEW_RANGE_SUCCESS_RATE_Z = f"{VIEW_RANGE_SUCCESS_RATE}_Z"
+VIEW_RANGE_SUCCESS_RATE_HOST_NEXT = f"{VIEW_RANGE_SUCCESS_RATE}_host_next"
+VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z = f"{VIEW_RANGE_SUCCESS_RATE}_host_next_Z"
+VIEW_RANGE_HISTOGRAM = "view_range_histogram"
+VIEW_RANGE_HISTOGRAM_Z = f"{VIEW_RANGE_HISTOGRAM}_Z"
+VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER = f"{VIEW_RANGE_HISTOGRAM}_bin_size_slider"
+
 # vmax page
 VMAX_ROAD_TYPE = "vmax_road_type"
 VMAX_ROAD_TYPE_SUCCESS_RATE = "vmax_road_type_success_rate"
