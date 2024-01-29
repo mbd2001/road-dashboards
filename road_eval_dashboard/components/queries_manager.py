@@ -116,6 +116,8 @@ VIEW_RANGE_SUCCESS_RATE_QUERY = """
     AS "vr_score_{Z_sample}"
     """
 
+VIEW_RANGE_COUNT_GT_QUERY = """ SUM(CAST({max_Z_col}_label >= {Z_sample} AS DOUBLE)) AS "vr_num_gt_{Z_sample}" """
+
 TP_METRIC = """
     CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} > {thresh} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE)
     AS tp_{ind}
@@ -379,7 +381,11 @@ def generate_view_range_success_rate_query(data_tables,
     max_Z_col = "view_range_max_Z"
     if not naive_Z:
         max_Z_col += "_3d"
-    metrics = ", ".join(VIEW_RANGE_SUCCESS_RATE_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z_sample) for Z_sample in Z_samples)
+    metrics_lst = []
+    for Z in Z_samples:
+        metrics_lst.append(VIEW_RANGE_SUCCESS_RATE_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z))
+        metrics_lst.append(VIEW_RANGE_COUNT_GT_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z))
+    metrics = ", ".join(metrics_lst)
     base_query = generate_base_query(
         data_tables,
         meta_data,

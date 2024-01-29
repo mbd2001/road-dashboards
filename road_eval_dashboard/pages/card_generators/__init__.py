@@ -121,7 +121,7 @@ def view_range_host_next_success_rate_card():
                     html.Div(
                         [
                             dcc.RangeSlider(
-                                id=VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE,
+                                id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE, "extra_filter": ""},
                                 min=10,
                                 max=250,
                                 step=10,
@@ -134,7 +134,7 @@ def view_range_host_next_success_rate_card():
                     html.Div(
                         [
                             dcc.Slider(
-                                id=VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
+                                id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP, "extra_filter": ""},
                                 min=5,
                                 max=50,
                                 step=5,
