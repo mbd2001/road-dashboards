@@ -51,6 +51,9 @@ class Nets:
             "grabIndex",
             "net_id",
             "role",
+            "split_role",
+            "matched_split_role",
+            "bin_population",
             "smooth_index",
         ] + [f'"dist_{dist / 2}"' for dist in range(1, 11)]
         bounadaries_columns = ["clip_name", "grabIndex", "net_id"] + \

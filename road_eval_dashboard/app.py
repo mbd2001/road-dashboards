@@ -50,4 +50,4 @@ def redirect_to_home(pathname):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6007", debug=True)
+    app.run_server(host="0.0.0.0", port="6001", debug=True)

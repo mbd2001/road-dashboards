@@ -9,7 +9,7 @@ MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"
 MD_COLUMNS_TO_DISTINCT_VALUES = "md_columns_to_distinct_values"
 MD_FILTERS = "md_filters"
-PATHNET_FILTERS = "pathnet_filters"
+PATHNET_FILTERS = "`pathnet_filters`"
 EFFECTIVE_SAMPLES_PER_BATCH = "effective_samples_per_batch"
 NET_ID_TO_FB_BEST_THRESH = "net_id_to_fb_best_threshold"
 SCENE_SIGNALS_LIST = "scene_signals_list"
@@ -158,7 +158,10 @@ DYNAMIC_PIE_CHART_SLIDER = "dynamic_pie_chart_slider"
 ROAD_TYPE_PIE_CHART = "road_type_pie_chart"
 LANE_MARK_COLOR_PIE_CHART = "lane_mark_color_pie_chart"
 
-
+BIN_POPULATION_DROPDOWN = "population_dropdown"
+SPLIT_ROLE_POPULATION_DROPDOWN = "split_role_population_dropdown"
+ROLE_POPULATION_VALUE = "role_population_value"
+BIN_POPULATION_OPTIONS = ['rear', 'front', 'clustered']
 # scene page
 ALL_SCENE_SCORES = "all_scene_scores"
 SCENE_SCORE = "scene_score"
