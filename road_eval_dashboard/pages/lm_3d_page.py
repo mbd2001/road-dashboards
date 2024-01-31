@@ -19,35 +19,10 @@ from road_eval_dashboard.components.queries_manager import (
     INTERSTING_FILTERS_DIST_TO_CHECK,
 )
 from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
+from road_eval_dashboard.pages.card_generators import get_host_next_graph
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/lm_3d", name="LM 3D", order=3, **extra_properties.__dict__)
-
-
-def get_host_next_graph(host_id, next_id, is_Z_id):
-    return card_wrapper(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=host_id, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=next_id, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                ]
-            ),
-            daq.BooleanSwitch(
-                id=is_Z_id,
-                on=False,
-                label="show by Z",
-                labelPosition="top",
-            ),
-        ]
-    )
-
 
 layout = html.Div(
     [
@@ -97,14 +72,15 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, nets):
     return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="overall", hover=True)
 
 @callback(
-    Output({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, "figure"),
-    Output({"type": LM_3D_ACC_NEXT, "extra_filter": MATCH}, "figure"),
+    Output({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, "figure", allow_duplicate=True),
+    Output({"type": LM_3D_ACC_NEXT, "extra_filter": MATCH}, "figure", allow_duplicate=True),
     Input(MD_FILTERS, "data"),
     Input({"type": LM_3D_ACC_HOST_Z_X, "extra_filter": MATCH}, "on"),
     State(NETS, "data"),
     State({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, 'id'),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
+    prevent_initial_call=True,
 )
 def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, nets, id, effective_samples):
     if not nets:
