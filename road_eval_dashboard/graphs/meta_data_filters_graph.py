@@ -56,12 +56,16 @@ def draw_meta_data_filters(
             go.Scatter(
                 x=interesting_columns,
                 y=[score_func(row, col) for col in interesting_columns],
-                marker=dict(
-                    symbol=[choose_symbol(col, reds[row.net_id], greens[row.net_id]) for col in interesting_columns],
-                    size=10,
-                )
-                if effective_samples
-                else None,
+                marker=(
+                    dict(
+                        symbol=[
+                            choose_symbol(col, reds[row.net_id], greens[row.net_id]) for col in interesting_columns
+                        ],
+                        size=10,
+                    )
+                    if effective_samples
+                    else None
+                ),
                 name=row.net_id,
                 hovertext=["lane marks: " + str(row[f"count_{col}"]) for col in interesting_columns] if hover else None,
             )
