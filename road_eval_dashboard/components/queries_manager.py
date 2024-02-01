@@ -1,3 +1,4 @@
+import enum
 import re
 import numpy as np
 import pandas as pd
@@ -193,6 +194,12 @@ lm_3D_sec_to_X_dist_acc = {
 
 lm_3d_distances = list(lm_3D_sec_to_X_dist_acc.keys())
 
+class ZSources(str, enum.Enum):
+    FUSION = 'fusion'
+    dZ = 'dZ'
+    dY = 'dY'
+
+
 sec_to_dist_acc = {
     0.5: 0.2,
     1.0: 0.2,
@@ -366,13 +373,14 @@ def generate_lm_3d_query(data_tables,
     meta_data_filters="",
     role="",
     is_Z=False,
-    intresting_filters=None):
+    intresting_filters=None,
+    Z_source=ZSources.FUSION):
     operator = "<" if state == "accuracy" else ">"
     distances = lm_3D_sec_to_Z_dist_acc if is_Z else lm_3D_sec_to_X_dist_acc
     if intresting_filters is not None:
         distances = {INTERSTING_FILTERS_DIST_TO_CHECK: distances[INTERSTING_FILTERS_DIST_TO_CHECK]}
     axis = 'Z' if is_Z else 'X'
-    base_column_name = f"pos_dZ_{axis}_dists"
+    base_column_name = f"pos_dZ_{Z_source}_{axis}_dists"
     query = get_dist_query(base_column_name, data_tables, distances, meta_data,
                            meta_data_filters, operator, role, is_add_filters_count=True, intresting_filters=intresting_filters)
     return query
