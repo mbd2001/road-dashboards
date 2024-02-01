@@ -728,7 +728,7 @@ def generate_stats_filters(
     role_col = "ca_role" if ca_oriented else "role"
     role_string = f"{role_col} = '{role}'" if role else ""
     if type(role) == list:
-        role_string = f"({role_col} = {' OR role='.join(role)})"
+        role_string = f"({role_col} = {f' OR {role_col}='.join(role)})"
 
     filters = [ignore_string, role_string, extra_filters]
     stats_filter = " AND ".join(ftr for ftr in filters if ftr)
