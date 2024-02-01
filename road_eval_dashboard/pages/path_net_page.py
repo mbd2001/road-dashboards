@@ -32,22 +32,24 @@ from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     generate_path_net_query,
     distances,
-    run_query_with_nets_names_processing, generate_avail_query,
+    run_query_with_nets_names_processing,
+    generate_avail_query,
 )
 from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
 from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout, generate_matrices_graphs
+
 basic_operations = [
-            {"label": "Greater", "value": ">"},
-            {"label": "Greater or equal", "value": ">="},
-            {"label": "Less", "value": "<"},
-            {"label": "Less or equal", "value": "<="},
-            {"label": "Equal", "value": "="},
-            {"label": "Not Equal", "value": "<>"},
-            {"label": "Is NULL", "value": "IS NULL"},
-            {"label": "Is not NULL", "value": "IS NOT NULL"},
-        ]
+    {"label": "Greater", "value": ">"},
+    {"label": "Greater or equal", "value": ">="},
+    {"label": "Less", "value": "<"},
+    {"label": "Less or equal", "value": "<="},
+    {"label": "Equal", "value": "="},
+    {"label": "Not Equal", "value": "<>"},
+    {"label": "Is NULL", "value": "IS NULL"},
+    {"label": "Is not NULL", "value": "IS NOT NULL"},
+]
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_properties.__dict__)
 
@@ -58,30 +60,18 @@ layout = html.Div(
         base_dataset_statistics.dp_layout,
         card_wrapper(
             [
+                dbc.Row([dbc.Col(loading_wrapper(dcc.Dropdown(id=BIN_POPULATION_DROPDOWN, value="")), width=4)]),
                 dbc.Row(
                     [
-                        dbc.Col(
-                            loading_wrapper(dcc.Dropdown(id=BIN_POPULATION_DROPDOWN, value="")),
-                            width=4)
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            loading_wrapper(dcc.Dropdown(id=SPLIT_ROLE_POPULATION_DROPDOWN, value="")),
-                            width=4
-                        ),
+                        dbc.Col(loading_wrapper(dcc.Dropdown(id=SPLIT_ROLE_POPULATION_DROPDOWN, value="")), width=4),
                         dbc.Col(
                             loading_wrapper(dcc.Dropdown(id="roles_operation", options=basic_operations, value="")),
-                            width=4),
-                        dbc.Col(
-                            loading_wrapper(dcc.Dropdown(id=ROLE_POPULATION_VALUE, value="")),
-                            width=4),
+                            width=4,
+                        ),
+                        dbc.Col(loading_wrapper(dcc.Dropdown(id=ROLE_POPULATION_VALUE, value="")), width=4),
                     ]
                 ),
-                dbc.Row(
-                    [dbc.Col(dbc.Button("Update Filters", id="pathnet_update_filters_btn", color="success"))]
-                )
+                dbc.Row([dbc.Col(dbc.Button("Update Filters", id="pathnet_update_filters_btn", color="success"))]),
             ]
         ),
         card_wrapper(
@@ -158,6 +148,7 @@ def update_pathnet_filters(bin_population, column, value, roles_operation, n_cli
 
     return " AND ".join(filters)
 
+
 @callback(
     Output(BIN_POPULATION_DROPDOWN, "options"),
     Input(MD_FILTERS, "data"),
@@ -174,7 +165,8 @@ def create_population_dropdown(meta_data_filters, nets):
         column_name="bin_population",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return [{'label': population, 'value': population} for population in df['bin_population']]
+    return [{"label": population, "value": population} for population in df["bin_population"]]
+
 
 @callback(
     Output(SPLIT_ROLE_POPULATION_DROPDOWN, "options"),
@@ -184,8 +176,10 @@ def create_population_dropdown(meta_data_filters, nets):
 def create_dp_split_role_dropdown(nets):
     if not nets:
         return no_update
-    options = [{'label': 'split_role', 'value': 'split_role'},
-               {'label': 'matched_split_role', 'value': 'matched_split_role'}]
+    options = [
+        {"label": "split_role", "value": "split_role"},
+        {"label": "matched_split_role", "value": "matched_split_role"},
+    ]
     return options
 
 
@@ -205,9 +199,8 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
         column_name=split_role_population_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    options = [{'label': population, 'value': population} for population in df[split_role_population_values]]
+    options = [{"label": population, "value": population} for population in df[split_role_population_values]]
     return options
-
 
 
 @callback(
@@ -227,7 +220,6 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="host",
-
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy", role="host")
@@ -250,7 +242,6 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="non-host",
-
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy")
@@ -272,8 +263,7 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets):
         "falses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role=["'host'",  "'unmatched-host'"],
-
+        role=["'host'", "'unmatched-host'"],
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses", role="host")
@@ -295,8 +285,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets):
         "falses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role=["'non-host'",  "'unmatched-non-host'"],
-
+        role=["'non-host'", "'unmatched-non-host'"],
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses")
@@ -318,8 +307,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
         "misses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role=["'host'",  "'unmatched-host'"],
-
+        role=["'host'", "'unmatched-host'"],
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="host")
@@ -341,8 +329,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets):
         "misses",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
-        role=["'non-host'",  "'unmatched-non-host'"],
-
+        role=["'non-host'", "'unmatched-non-host'"],
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="non-host")
