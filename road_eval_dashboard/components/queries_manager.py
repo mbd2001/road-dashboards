@@ -328,14 +328,16 @@ def generate_emdp_query(
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
 
+
 def generate_avail_query(
-        data_tables,
-        meta_data,
-        meta_data_filters="",
-        extra_filters="",
-        extra_columns=[],
-        column_name="",
-        role="",):
+    data_tables,
+    meta_data,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    column_name="",
+    role="",
+):
     base_query = generate_base_query(
         data_tables,
         meta_data,
@@ -346,6 +348,7 @@ def generate_avail_query(
     )
     query = COLUMN_OPTION_QUERY.format(base_query=base_query, column_name=column_name)
     return query
+
 
 def generate_path_net_query(
     data_tables,

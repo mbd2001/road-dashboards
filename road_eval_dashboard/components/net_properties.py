@@ -56,11 +56,9 @@ class Nets:
             "bin_population",
             "smooth_index",
         ] + [f'"dist_{dist / 2}"' for dist in range(1, 11)]
-        bounadaries_columns = ["clip_name", "grabIndex", "net_id"] + \
-                              [
-                                  f'"{dist}_{side}"' for dist in ["dist_0.5", "dist_1.3", "dist_2.0"]
-                                  for side in ["left", "right"]
-                               ]
+        bounadaries_columns = ["clip_name", "grabIndex", "net_id"] + [
+            f'"{dist}_{side}"' for dist in ["dist_0.5", "dist_1.3", "dist_2.0"] for side in ["left", "right"]
+        ]
         self.pathnet_pred_tables = Table(pathnet_pred_tables, pathnet_columns, "")
         self.pathnet_gt_tables = Table(pathnet_gt_tables, pathnet_columns, "")
         self.pathnet_host_boundaries = Table(pathnet_host_boundaries, bounadaries_columns, "")

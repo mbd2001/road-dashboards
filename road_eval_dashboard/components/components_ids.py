@@ -161,7 +161,7 @@ LANE_MARK_COLOR_PIE_CHART = "lane_mark_color_pie_chart"
 BIN_POPULATION_DROPDOWN = "population_dropdown"
 SPLIT_ROLE_POPULATION_DROPDOWN = "split_role_population_dropdown"
 ROLE_POPULATION_VALUE = "role_population_value"
-BIN_POPULATION_OPTIONS = ['rear', 'front', 'clustered']
+BIN_POPULATION_OPTIONS = ["rear", "front", "clustered"]
 # scene page
 ALL_SCENE_SCORES = "all_scene_scores"
 SCENE_SCORE = "scene_score"

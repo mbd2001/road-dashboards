@@ -142,7 +142,7 @@ def init_nets(rows, derived_virtual_selected_rows):
 
 def handle_pathnet_ambiguous_names(rows):
     for index, row in rows.iterrows():
-        if row['dp_table'] is not None:
-            rows.at[index, 'pathnet_pred_table'] = row['dp_table']
-        if row['gt_dp_table'] is not None:
-            rows.at[index, 'pathnet_gt_table'] = row['gt_dp_table']
+        if row["dp_table"] is not None:
+            rows.at[index, "pathnet_pred_table"] = row["dp_table"]
+        if row["gt_dp_table"] is not None:
+            rows.at[index, "pathnet_gt_table"] = row["gt_dp_table"]
