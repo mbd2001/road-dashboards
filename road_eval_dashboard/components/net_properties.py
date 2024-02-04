@@ -63,15 +63,3 @@ class Nets:
         self.gt_tables = self.gt_tables.__dict__ if self.gt_tables else None
         self.pathnet_pred_tables = self.pathnet_pred_tables.__dict__ if self.pathnet_pred_tables else None
         self.pathnet_gt_tables = self.pathnet_gt_tables.__dict__ if self.pathnet_gt_tables else None
-
-
-    @staticmethod
-    def nets_dict_to_hash(nets_dict):
-        return "#" + base64.b64encode(
-            json.dumps(nets_dict)
-            .encode("utf-8")
-        ).decode("utf-8")
-
-    @staticmethod
-    def hash_to_nets_dict(hash):
-        return json.loads(base64.b64decode(hash)) if hash else {}

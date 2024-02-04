@@ -18,7 +18,7 @@ from road_eval_dashboard.components.init_threads import (
     get_best_fb_per_net,
     get_list_of_scene_signals,
 )
-from road_eval_dashboard.components.net_properties import Nets
+from road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, get_state
 
 launch_uid = uuid4()
 if "REDIS_URL" in os.environ:
@@ -79,9 +79,9 @@ def redirect_to_home(pathname):
     prevent_initial_call=True,
 )
 def init_run(state, nets):
-    if not state or (nets and Nets.nets_dict_to_hash(nets) == state):
+    if not state or (nets and get_state(state, NETS_STATE_KEY) == nets):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
-    nets = Nets.hash_to_nets_dict(state)
+    nets = get_state(state, NETS_STATE_KEY)
 
     q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
     Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
