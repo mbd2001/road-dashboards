@@ -22,6 +22,7 @@ RUN_EVAL_CATALOG = "run_eval_catalog"
 UPDATE_RUNS_BTN = "update_runs_btn"
 CLOSEUP_NET = "closeup_net"
 LOAD_NETS_DATA_NOTIFICATION = "load_nets_data_notification"
+STATE_NOTIFICATION = "state-notification"
 
 
 # accuracy page
