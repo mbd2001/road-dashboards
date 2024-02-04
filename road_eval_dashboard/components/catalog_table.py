@@ -25,6 +25,7 @@ from road_eval_dashboard.components.init_threads import (
 )
 from road_eval_dashboard.components.layout_wrapper import loading_wrapper
 from road_eval_dashboard.components.net_properties import Nets
+from road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, add_state
 
 run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
 
@@ -100,7 +101,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     nets = init_nets(rows, derived_virtual_selected_rows)
-    main_url = Nets.nets_dict_to_hash(nets)
+    new_state = add_state(NETS_STATE_KEY, nets)
 
     q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
     Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
@@ -123,7 +124,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         net_id_to_best_thresh,
         scene_signals_list,
         notification,
-        main_url
+        new_state
     )
 
 

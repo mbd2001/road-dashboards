@@ -14,7 +14,7 @@ layout = card_wrapper(
 @callback(
     Output(FRAME_COUNT, "children"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_frame_count(meta_data_filters, nets):
