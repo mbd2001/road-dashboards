@@ -1,6 +1,6 @@
 import pandas as pd
 import dash_bootstrap_components as dbc
-from dash import dash_table, html, Output, Input, State, no_update, callback
+from dash import dash_table, html, Output, Input, State, no_update, callback, ALL, ctx
 from threading import Thread
 from queue import Queue
 
@@ -15,7 +15,7 @@ from road_eval_dashboard.components.components_ids import (
     LOAD_NETS_DATA_NOTIFICATION,
     EFFECTIVE_SAMPLES_PER_BATCH,
     NET_ID_TO_FB_BEST_THRESH,
-    SCENE_SIGNALS_LIST,
+    SCENE_SIGNALS_LIST, URL,
 )
 from road_eval_dashboard.components.init_threads import (
     generate_meta_data_dicts,
@@ -79,26 +79,28 @@ def generate_catalog_layout():
     )
     return layout
 
-
 @callback(
-    Output(NETS, "data"),
-    Output(MD_COLUMNS_TO_TYPE, "data"),
-    Output(MD_COLUMNS_OPTION, "data"),
-    Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data"),
-    Output(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    Output(NET_ID_TO_FB_BEST_THRESH, "data"),
-    Output(SCENE_SIGNALS_LIST, "data"),
-    Output(LOAD_NETS_DATA_NOTIFICATION, "children"),
+    Output(NETS, "data", allow_duplicate=True),
+    Output(MD_COLUMNS_TO_TYPE, "data", allow_duplicate=True),
+    Output(MD_COLUMNS_OPTION, "data", allow_duplicate=True),
+    Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data", allow_duplicate=True),
+    Output(EFFECTIVE_SAMPLES_PER_BATCH, "data", allow_duplicate=True),
+    Output(NET_ID_TO_FB_BEST_THRESH, "data", allow_duplicate=True),
+    Output(SCENE_SIGNALS_LIST, "data", allow_duplicate=True),
+    Output(LOAD_NETS_DATA_NOTIFICATION, "children", allow_duplicate=True),
+    Output(URL, "hash", allow_duplicate=True),
     Input(UPDATE_RUNS_BTN, "n_clicks"),
     State(RUN_EVAL_CATALOG, "derived_virtual_data"),
     State(RUN_EVAL_CATALOG, "derived_virtual_selected_rows"),
     background=True,
+    prevent_initial_call=True,
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
-        return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     nets = init_nets(rows, derived_virtual_selected_rows)
+    main_url = Nets.nets_dict_to_hash(nets)
 
     q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
     Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
@@ -121,6 +123,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         net_id_to_best_thresh,
         scene_signals_list,
         notification,
+        main_url
     )
 
 
@@ -134,6 +137,6 @@ def init_nets(rows, derived_virtual_selected_rows):
         rows["net"],
         rows["checkpoint"],
         rows["population"],
-        **{table: rows[table] for table in rows.columns if table.endswith("table") and any(rows[table])},
+        **{table: rows[table].tolist() for table in rows.columns if table.endswith("table") and any(rows[table])},
     ).__dict__
     return nets
