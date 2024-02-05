@@ -8,9 +8,18 @@ from dash import Dash, dcc, html, DiskcacheManager, CeleryManager, Output, Input
 
 from road_eval_dashboard.components import sidebar, page_content
 from road_eval_dashboard.components.catalog_table import wrapper
-from road_eval_dashboard.components.components_ids import URL, NETS, MD_COLUMNS_TO_TYPE, MD_COLUMNS_OPTION, \
-    MD_COLUMNS_TO_DISTINCT_VALUES, EFFECTIVE_SAMPLES_PER_BATCH, NET_ID_TO_FB_BEST_THRESH, SCENE_SIGNALS_LIST, \
-    STATE_NOTIFICATION, MD_FILTERS
+from road_eval_dashboard.components.components_ids import (
+    URL,
+    NETS,
+    MD_COLUMNS_TO_TYPE,
+    MD_COLUMNS_OPTION,
+    MD_COLUMNS_TO_DISTINCT_VALUES,
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    NET_ID_TO_FB_BEST_THRESH,
+    SCENE_SIGNALS_LIST,
+    STATE_NOTIFICATION,
+    MD_FILTERS,
+)
 from road_eval_dashboard.components.dcc_stores import init_dcc_stores
 from road_eval_dashboard.components.init_threads import (
     generate_meta_data_dicts,
@@ -47,7 +56,7 @@ app = Dash(
         # The app state is serialised in the URL hash without refreshing the page
         # This URL can be copied and then parsed on page load
         "state": State(URL, "hash"),
-   },
+    },
 )
 
 app.layout = html.Div(
@@ -56,8 +65,10 @@ app.layout = html.Div(
         dcc.Location(id=URL),
         sidebar.sidebar(),
         page_content.layout,
-    ], className="wrapper"
+    ],
+    className="wrapper",
 )
+
 
 @app.callback(Output(URL, "pathname"), Input(URL, "pathname"))
 def redirect_to_home(pathname):
@@ -86,19 +97,19 @@ def init_run(state, nets, query):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
     nets = get_state(state, NETS_STATE_KEY)
 
-    q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
-    Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
-    Thread(target=wrapper, args=(generate_effective_samples_per_batch, nets, q2)).start()
-    Thread(target=wrapper, args=(get_best_fb_per_net, nets, q3)).start()
-    Thread(target=wrapper, args=(get_list_of_scene_signals, nets, q4)).start()
-
-    md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = q1.get()
-    effective_samples_per_batch = q2.get()
-    net_id_to_best_thresh = q3.get()
-    scene_signals_list = q4.get()
+    (
+        effective_samples_per_batch,
+        md_columns_options,
+        md_columns_to_distinguish_values,
+        md_columns_to_type,
+        net_id_to_best_thresh,
+        scene_signals_list,
+    ) = update_state_by_nets(nets)
 
     meta_data_filters_state = get_state(state, META_DATA_STATE_KEY)
-    filters_str = recursive_build_meta_data_filters(meta_data_filters_state[0]) if meta_data_filters_state else no_update
+    filters_str = (
+        recursive_build_meta_data_filters(meta_data_filters_state[0]) if meta_data_filters_state else no_update
+    )
     meta_data_filters_query = no_update if filters_str == query else filters_str
 
     notification = dbc.Alert("State loaded successfully!", color="success", dismissable=True, duration=2500, fade=True)
@@ -111,8 +122,9 @@ def init_run(state, nets, query):
         net_id_to_best_thresh,
         scene_signals_list,
         meta_data_filters_query,
-        notification
+        notification,
     )
+
 
 if __name__ == "__main__":
     app.run_server(host="0.0.0.0", port="6007", debug=True)

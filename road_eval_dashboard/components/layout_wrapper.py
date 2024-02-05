@@ -10,9 +10,4 @@ def loading_wrapper(object_list, is_full_screen=False):
     """A Loading component that wraps any other component list and displays a spinner
     until the wrapped component has rendered."""
 
-    return dcc.Loading(
-        id="loading",
-        type="circle",
-        children=object_list,
-        fullscreen=is_full_screen
-    )
+    return dcc.Loading(id="loading", type="circle", children=object_list, fullscreen=is_full_screen)

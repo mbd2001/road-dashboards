@@ -15,7 +15,9 @@ from road_eval_dashboard.components.components_ids import (
     LOAD_NETS_DATA_NOTIFICATION,
     EFFECTIVE_SAMPLES_PER_BATCH,
     NET_ID_TO_FB_BEST_THRESH,
-    SCENE_SIGNALS_LIST, URL, CATALOG,
+    SCENE_SIGNALS_LIST,
+    URL,
+    CATALOG,
 )
 from road_eval_dashboard.components.init_threads import (
     generate_meta_data_dicts,
@@ -77,6 +79,7 @@ def generate_catalog_layout():
     )
     return layout
 
+
 @callback(
     Output(NETS, "data", allow_duplicate=True),
     Output(MD_COLUMNS_TO_TYPE, "data", allow_duplicate=True),
@@ -100,16 +103,14 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     nets = init_nets(rows, derived_virtual_selected_rows)
     new_state = add_state(NETS_STATE_KEY, nets)
 
-    q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
-    Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
-    Thread(target=wrapper, args=(generate_effective_samples_per_batch, nets, q2)).start()
-    Thread(target=wrapper, args=(get_best_fb_per_net, nets, q3)).start()
-    Thread(target=wrapper, args=(get_list_of_scene_signals, nets, q4)).start()
-
-    md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = q1.get()
-    effective_samples_per_batch = q2.get()
-    net_id_to_best_thresh = q3.get()
-    scene_signals_list = q4.get()
+    (
+        effective_samples_per_batch,
+        md_columns_options,
+        md_columns_to_distinguish_values,
+        md_columns_to_type,
+        net_id_to_best_thresh,
+        scene_signals_list,
+    ) = update_state_by_nets(nets)
 
     notification = dbc.Alert("Nets data loaded successfully!", color="success", dismissable=True)
     return (
@@ -121,7 +122,27 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         net_id_to_best_thresh,
         scene_signals_list,
         notification,
-        new_state
+        new_state,
+    )
+
+
+def update_state_by_nets(nets):
+    q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
+    Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
+    Thread(target=wrapper, args=(generate_effective_samples_per_batch, nets, q2)).start()
+    Thread(target=wrapper, args=(get_best_fb_per_net, nets, q3)).start()
+    Thread(target=wrapper, args=(get_list_of_scene_signals, nets, q4)).start()
+    md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = q1.get()
+    effective_samples_per_batch = q2.get()
+    net_id_to_best_thresh = q3.get()
+    scene_signals_list = q4.get()
+    return (
+        effective_samples_per_batch,
+        md_columns_options,
+        md_columns_to_distinguish_values,
+        md_columns_to_type,
+        net_id_to_best_thresh,
+        scene_signals_list,
     )
 
 
