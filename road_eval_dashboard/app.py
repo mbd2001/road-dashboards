@@ -98,10 +98,10 @@ def init_run(state, nets, query):
     scene_signals_list = q4.get()
 
     meta_data_filters_state = get_state(state, META_DATA_STATE_KEY)
-    filters_str = recursive_build_meta_data_filters(meta_data_filters_state[0])
-    meta_data_filters_query = no_update if not meta_data_filters_state or filters_str == query else filters_str
+    filters_str = recursive_build_meta_data_filters(meta_data_filters_state[0]) if meta_data_filters_state else no_update
+    meta_data_filters_query = no_update if filters_str == query else filters_str
 
-    notification = dbc.Alert("State loaded successfully!", color="success", dismissable=True)
+    notification = dbc.Alert("State loaded successfully!", color="success", dismissable=True, duration=2500, fade=True)
     return (
         nets,
         md_columns_to_type,
