@@ -6,7 +6,10 @@ from road_eval_dashboard.components.components_ids import SIDEBAR, URL
 MAFFE_LOGO = "https://gitlab.mobileye.com/uploads/-/system/project/avatar/807/index.jpeg"
 
 def sidebar():
-    return get_sidebar_layout()
+    return html.Div(children=get_sidebar_layout(),
+        id=SIDEBAR,
+        className="sidebar",
+    )
 
 @callback(
     Output(SIDEBAR, "children"),
@@ -17,8 +20,7 @@ def update_sidebar(url):
     return get_sidebar_layout(url)
 
 def get_sidebar_layout(url=""):
-    layout = html.Div(
-        [
+    layout = [
             html.Div(
                 [html.H2("Statistics")],
                 className="sidebar-header",
@@ -32,7 +34,8 @@ def get_sidebar_layout(url=""):
                     ],
                     href="https://algoobjd-prod-1-backstage.sddc.mobileye.com/docs/your-group/component/maffe_bins",
                     active="exact",
-                    target='_blank'
+                    target='_blank',
+                    external_link=True
                 )]
                 +
                 [
@@ -43,7 +46,6 @@ def get_sidebar_layout(url=""):
                         ],
                         href=page["path"] + url,
                         active="exact",
-                        external_link=True
                     )
                     for page in page_registry.values()
                     if not page["name"].startswith("Not")
@@ -51,8 +53,5 @@ def get_sidebar_layout(url=""):
                 vertical=True,
                 pills=True,
             ),
-        ],
-        id=SIDEBAR,
-        className="sidebar",
-    )
+        ]
     return layout
