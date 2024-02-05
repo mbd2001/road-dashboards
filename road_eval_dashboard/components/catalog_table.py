@@ -15,7 +15,7 @@ from road_eval_dashboard.components.components_ids import (
     LOAD_NETS_DATA_NOTIFICATION,
     EFFECTIVE_SAMPLES_PER_BATCH,
     NET_ID_TO_FB_BEST_THRESH,
-    SCENE_SIGNALS_LIST, URL,
+    SCENE_SIGNALS_LIST, URL, CATALOG,
 )
 from road_eval_dashboard.components.init_threads import (
     generate_meta_data_dicts,
@@ -31,8 +31,6 @@ run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
 
 
 def generate_catalog_layout():
-    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop("batches", axis=1)
-    catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(
         [
             dbc.Row(html.H2("Net Catalog", className="mb-5")),
@@ -43,7 +41,6 @@ def generate_catalog_layout():
                         {"name": i, "id": i, "deletable": False, "selectable": True}
                         for i in ["net", "checkpoint", "dataset", "population", "total_frames", "user", "last_change"]
                     ],
-                    data=catalog_data_dict,
                     filter_action="native",
                     sort_action="native",
                     sort_mode="multi",
@@ -91,8 +88,8 @@ def generate_catalog_layout():
     Output(LOAD_NETS_DATA_NOTIFICATION, "children", allow_duplicate=True),
     Output(URL, "hash", allow_duplicate=True),
     Input(UPDATE_RUNS_BTN, "n_clicks"),
-    State(RUN_EVAL_CATALOG, "derived_virtual_data"),
-    State(RUN_EVAL_CATALOG, "derived_virtual_selected_rows"),
+    State(CATALOG, "data"),
+    State(RUN_EVAL_CATALOG, "selected_rows"),
     background=True,
     prevent_initial_call=True,
 )
