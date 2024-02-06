@@ -121,20 +121,3 @@ def update_pathnet_data_values_options(operation, index):
         value="",
         options=distinguish_values,
     )
-
-
-@callback(
-    Output(PATHNET_FILTERS, "data"),
-    Input("pathnet_update_filters_btn", "n_clicks"),
-    State({"type": "pathnet_data_types", "index": ALL}, "value"),
-    State({"type": "pathnet_data_operation", "index": ALL}, "value"),
-    State({"type": "pathnet_data_val", "index": ALL}, "value"),
-)
-def generate_pathnet_filters_string(n_clicks, meta_data_columns, meta_data_operations, meta_data_vals):
-    meta_data_filters = " AND ".join(
-        [
-            parse_one_filter(*filter_triplet)
-            for filter_triplet in zip(meta_data_columns, meta_data_operations, meta_data_vals)
-        ]
-    )
-    return "" if meta_data_filters.isspace() else meta_data_filters

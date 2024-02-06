@@ -7,7 +7,7 @@ def draw_conf_diagonal_compare(normalize_mats, names, class_names, role="", mat_
         fig.add_trace(
             go.Scatter(
                 x=class_names,
-                y=normalize_mat.to_numpy().diagonal(),
+                y=normalize_mat.diagonal(),
                 name=name,
             )
         )

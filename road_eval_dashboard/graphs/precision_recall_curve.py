@@ -1,20 +1,20 @@
 import numpy as np
 import plotly.graph_objects as go
 
-from road_eval_dashboard.components.queries_manager import THRESHOLDS
+from road_eval_dashboard.components.queries_manager import process_net_name, THRESHOLDS
 
 f_beta = 1
 B2 = f_beta**2
 
 
-def draw_precision_recall_curve(data, prefix=""):
+def draw_precision_recall_curve(data, prefix="", thresholds=THRESHOLDS):
     fig = go.Figure()
     fig.add_shape(type="line", line=dict(dash="dash"), x0=0, x1=1, y0=1, y1=0)
 
     for ind, row in data.iterrows():
-        precision, recall, best_fb, best_thresh = get_fb_stat_for_net(row)
+        precision, recall, best_fb, best_thresh = get_fb_stat_for_net(row, thresholds=thresholds)
 
-        net_id = row["net_id"]
+        net_id = process_net_name(row["net_id"])
         name = f"{net_id}, Best Fb: {best_fb:.3f}, Thresh: {best_thresh:.2f}"
         fig.add_trace(
             go.Scatter(
@@ -22,7 +22,7 @@ def draw_precision_recall_curve(data, prefix=""):
                 y=precision,
                 name=name,
                 mode="lines",
-                hovertext=[f"Thresh: {THRESHOLDS[i]:.2f}" for i in range(THRESHOLDS.size)],
+                hovertext=[f"Thresh: {thresholds[i]:.2f}" for i in range(thresholds.size)],
             )
         )
 
@@ -41,14 +41,14 @@ def calc_fb(precision, recall):
     return ((1 + B2) * precision * recall) / ((B2 * precision) + recall + 1e-10)
 
 
-def get_fb_stat_for_net(data):
-    precision = [data[f"precision_{i}"] for i in range(THRESHOLDS.size)]
-    recall = [data[f"recall_{i}"] for i in range(THRESHOLDS.size)]
+def get_fb_stat_for_net(data, thresholds=THRESHOLDS):
+    precision = [data[f"precision_{i}"] for i in range(thresholds.size)]
+    recall = [data[f"recall_{i}"] for i in range(thresholds.size)]
 
     fb_scores = np.array([calc_fb(i, j) for i, j in zip(precision, recall)])
     best_fb_ind = np.argmax(fb_scores)
     best_fb = fb_scores[best_fb_ind]
-    best_thresh = THRESHOLDS[best_fb_ind]
+    best_thresh = thresholds[best_fb_ind]
 
     return precision, recall, best_fb, best_thresh
 

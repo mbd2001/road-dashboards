@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pandas as pd
 
@@ -13,8 +14,15 @@ BASE_QUERY = """
     WHERE TRUE {meta_data_filters}
     """
 
+COLS_QUERY = """
+    SELECT TABLE_NAME, COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME IN ({paths}) AND COLUMN_NAME LIKE '%{search_string}%'
+    ORDER BY TABLE_NAME, COLUMN_NAME
+    """
+
 JOIN_QUERY = """
-    SELECT * FROM 
+    SELECT * FROM
     ({t1})
     INNER JOIN
     ({t2})
@@ -28,10 +36,16 @@ COUNT_QUERY = """
     """
 
 CONF_MAT_QUERY = """
-    SELECT net_id, {label_col}, {pred_col}, COUNT(*) AS {count_name} 
+    SELECT net_id, {group_by_label} as {label_col}, {group_by_pred} as {pred_col}, COUNT(*) AS {count_name}
     FROM ({base_query})
-    GROUP BY net_id, {label_col}, {pred_col}
+    GROUP BY net_id, {group_by_label}, {group_by_pred}
     """
+
+COLUMN_OPTION_QUERY = """
+    SELECT DISTINCT {column_name}
+    FROM ({base_query})
+"""
+
 
 DYNAMIC_METRICS_QUERY = """
     SELECT ({group_by}) AS net_id,
@@ -41,7 +55,7 @@ DYNAMIC_METRICS_QUERY = """
     """
 
 GRAB_INDEX_HISTOGRAM_QUERY = """
-    SELECT 
+    SELECT
     {third_metrics_layer}
     FROM
     (SELECT clip_name,
@@ -55,7 +69,7 @@ GRAB_INDEX_HISTOGRAM_QUERY = """
     """
 
 COMPARE_QUERY = """
-    SELECT net_id, CAST(COUNT(CASE WHEN ({label_col} {operator} {pred_col}) THEN 1 ELSE NULL END) AS DOUBLE) / COUNT(*) AS score 
+    SELECT net_id, CAST(COUNT(CASE WHEN ({label_col} {operator} {pred_col}) THEN 1 ELSE NULL END) AS DOUBLE) / COUNT(*) AS score
     FROM ({base_query})
     GROUP BY net_id
     ORDER BY score
@@ -69,12 +83,19 @@ COMPARE_METRIC = """
 
 FB_PRECISION_METRIC = """
     CAST(COUNT(CASE WHEN match_score < 1 {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) /
-    COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END) 
+    COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END)
     AS precision_{ind}
     """
 
+ROC_STATS_METRIC = """
+    CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tp_{ind},
+    CAST(COUNT(CASE WHEN {label_col} < 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS fp_{ind},
+    CAST(COUNT(CASE WHEN {label_col} < 0 AND {pred_col} <  {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tn_{ind},
+    CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} <  {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS fn_{ind}
+    """
+
 FB_CURVE_METRIC = """
-    CAST(COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
+    CAST(COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) /
     COUNT(*)
     AS recall_{ind}
     """
@@ -90,7 +111,7 @@ MD_FILTER_COUNT = """
     """
 
 DIST_METRIC = """
-    CAST(COUNT(CASE WHEN "dist_{dist}" {thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) / 
+    CAST(COUNT(CASE WHEN ("dist_{dist}" {thresh_filter}) THEN 1 ELSE NULL END) AS DOUBLE) / 
     COUNT(CASE WHEN "dist_{dist}" IS NOT NULL THEN 1 ELSE NULL END)
     AS "score_{dist}"
     """
@@ -128,7 +149,7 @@ LOG_COUNT_METRIC = """
     """
 
 COUNT_ALL_METRIC = """
-    COUNT(*) 
+    COUNT(*)
     AS {count_name}
     """
 
@@ -144,6 +165,16 @@ CORRELATION_SUM_METRIC = """
 
 THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
+)
+
+ROC_THRESHOLDS = np.concatenate(
+    (
+        np.array([-1000]),
+        np.linspace(-10, -1, 10),
+        np.linspace(-1 + 1 / 20, 1, 2 * 20),
+        np.linspace(2, 10, 9),
+        np.array([1000]),
+    )
 )
 
 sec_to_dist_acc = {
@@ -298,12 +329,34 @@ def generate_emdp_query(
     return query
 
 
+def generate_avail_query(
+    data_tables,
+    meta_data,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    column_name="",
+    role="",
+):
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=extra_columns,
+        role=role,
+    )
+    query = COLUMN_OPTION_QUERY.format(base_query=base_query, column_name=column_name)
+    return query
+
+
 def generate_path_net_query(
     data_tables,
     meta_data,
     state,
     meta_data_filters="",
     extra_filters="",
+    extra_columns=[],
     role="",
 ):
     operator = "<" if state == "accuracy" else ">"
@@ -317,6 +370,7 @@ def generate_path_net_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
+        extra_columns=extra_columns,
         role=role,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
@@ -455,6 +509,7 @@ def generate_conf_mat_query(
     extra_filters="",
     role="",
     ca_oriented=False,
+    compare_sign=False,
 ):
     base_query = generate_base_query(
         data_tables,
@@ -465,7 +520,11 @@ def generate_conf_mat_query(
         role=role,
         ca_oriented=ca_oriented,
     )
+    group_by_label = f"(CASE WHEN {label_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else label_col
+    group_by_pred = f"(CASE WHEN {pred_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else pred_col
     conf_query = CONF_MAT_QUERY.format(
+        group_by_label=group_by_label,
+        group_by_pred=group_by_pred,
         label_col=label_col,
         pred_col=pred_col,
         base_query=base_query,
@@ -532,6 +591,7 @@ def generate_compare_query(
     extra_filters="",
     role="",
     ca_oriented=False,
+    compare_sign=False,
     compare_operator="=",
 ):
     base_query = generate_base_query(
@@ -543,10 +603,87 @@ def generate_compare_query(
         role=role,
         extra_filters=extra_filters,
     )
+    label_col = f"(CASE WHEN {label_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else label_col
+    pred_col = f"(CASE WHEN {pred_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else pred_col
     compare_query = COMPARE_QUERY.format(
         label_col=label_col, pred_col=pred_col, base_query=base_query, operator=compare_operator
     )
     return compare_query
+
+
+def generate_roc_query(
+    data_tables,
+    meta_data,
+    label_col=None,
+    pred_col=None,
+    interesting_filters={},
+    input_thresh={},
+    thresholds=ROC_THRESHOLDS,
+    meta_data_filters="",
+    extra_filters="",
+    role="",
+):
+    assert label_col is not None
+    assert pred_col is not None
+
+    metrics = (
+        get_roc_stats_per_filter_metrics(
+            label_col, pred_col, interesting_filters, ROC_STATS_METRIC, threshold=input_thresh
+        )
+        if interesting_filters
+        else get_roc_stats_curve_metrics(label_col, pred_col, ROC_STATS_METRIC, thresholds=thresholds)
+    )
+    extra_columns = [label_col, pred_col]
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_columns=extra_columns,
+        extra_filters=extra_filters,
+        role=role,
+    )
+    group_by = get_roc_group_by(label_col, pred_col, input_thresh)
+    final_query = DYNAMIC_METRICS_QUERY.format(
+        metrics=metrics, base_query=base_query, group_by=group_by if interesting_filters else "net_id"
+    )
+    return final_query
+
+
+def get_roc_stats_per_filter_metrics(label_col, pred_col, interesting_filters, metric, threshold=0):
+    metrics = ", ".join(
+        metric.format(
+            label_col=label_col, pred_col=pred_col, extra_filters=f"AND ({filter})", threshold=threshold, ind=name
+        )
+        for name, filter in interesting_filters.items()
+    )
+    return metrics
+
+
+def get_roc_stats_curve_metrics(label_col, pred_col, metric, thresholds=ROC_THRESHOLDS):
+    metrics = ", ".join(
+        metric.format(label_col=label_col, pred_col=pred_col, extra_filters="", ind=ind, threshold=threshold)
+        for ind, threshold in enumerate(thresholds)
+    )
+    return metrics
+
+
+def get_roc_group_by(label_col, pred_col, input_thresh={}):
+    if not input_thresh:
+        group_by = "net_id"
+        return group_by
+
+    cases = "\n".join(
+        f"WHEN net_id = '{net_id}' AND {pred_col} >= {thresh} THEN '{net_id}'"
+        for net_id, thresh in input_thresh.items()
+    )
+    group_by = f"CASE {cases} END"
+    return group_by
+
+
+def generate_cols_query(data_tables, search_string):
+    paths = ",".join(f"'{path}'" for path in data_tables["paths"])
+    cols_query = COLS_QUERY.format(paths=paths, search_string=search_string)
+    return cols_query
 
 
 def generate_base_query(
@@ -590,6 +727,8 @@ def generate_stats_filters(
     ignore_string = "" if include_all else filter_str
     role_col = "ca_role" if ca_oriented else "role"
     role_string = f"{role_col} = '{role}'" if role else ""
+    if type(role) == list:
+        role_string = f"({role_col} = {f' OR {role_col}='.join(role)})"
 
     filters = [ignore_string, role_string, extra_filters]
     stats_filter = " AND ".join(ftr for ftr in filters if ftr)
@@ -622,7 +761,11 @@ def process_df_net_names(df, nets_names_col="net_id"):
     return df
 
 
+def process_net_names_list(net_names):
+    return sorted([process_net_name(net_name) for net_name in net_names], reverse=True)
+
+
 def process_net_name(net_name):
     if pd.isnull(net_name):
         return net_name
-    return net_name.lstrip("0123456789-")
+    return re.sub(r"^\d{18}-", "", net_name)
