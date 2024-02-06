@@ -122,41 +122,6 @@ PATH_NET_OVERALL_CONF_MAT = "path_net_overall_conf_mats"
 PATH_NET_HOST_CONF_MAT = "path_net_host_conf_mats"
 PATH_NET_ALL_CONF_MATS = "all_pathnet_conf_mats"
 
-
-# vmax page
-VMAX_ROAD_TYPE = "vmax_road_type"
-VMAX_ROAD_TYPE_SUCCESS_RATE = "vmax_road_type_success_rate"
-
-VMAX_CURVE = "vmax_curve"
-VMAX_CURVE_SUCCESS_RATE = "vmax_curve_success_rate"
-VMAX_CURVE_BY_DIST = "vmax_curve_by_dist"
-
-VMAX_BINS = "vmax_bins"
-DIST_FROM_CURVE_VMAX_35_VMAX = "dist_from_curve_vmax_35_vmax"
-DIST_FROM_CURVE_VMAX_25_VMAX = "dist_from_curve_vmax_25_vmax"
-DIST_FROM_CURVE_VMAX_15_VMAX = "dist_from_curve_vmax_15_vmax"
-VMAX_BINS_SUCCESS_RATE = "vmax_bins_success_rate"
-DIST_FROM_CURVE_VMAX_35_VMAX_SUCCESS_RATE = "dist_from_curve_vmax_35_vmax_success_rate"
-DIST_FROM_CURVE_VMAX_25_VMAX_SUCCESS_RATE = "dist_from_curve_vmax_25_vmax_success_rate"
-DIST_FROM_CURVE_VMAX_15_VMAX_SUCCESS_RATE = "dist_from_curve_vmax_15_vmax_success_rate"
-
-VLIMIT_ROAD_TYPE = "vlimit_road_type"
-VLIMIT_ROAD_TYPE_SUCCESS_RATE = "vlimit_road_type_success_rate"
-
-VLIMIT_CURVE = "vlimit_curve"
-VLIMIT_CURVE_SUCCESS_RATE = "vlimit_curve_success_rate"
-VLIMIT_CURVE_BY_DIST = "vlimit_curve_by_dist"
-
-VLIMIT_BINS = "vlimit_bins"
-DIST_FROM_CURVE_VMAX_35_VLIMIT = "dist_from_curve_vmax_35_vlimit"
-DIST_FROM_CURVE_VMAX_25_VLIMIT = "dist_from_curve_vmax_25_vlimit"
-DIST_FROM_CURVE_VMAX_15_VLIMIT = "dist_from_curve_vmax_15_vlimit"
-VLIMIT_BINS_SUCCESS_RATE = "vlimit_bins_success_rate"
-DIST_FROM_CURVE_VMAX_35_VLIMIT_SUCCESS_RATE = "dist_from_curve_vmax_35_vlimit_success_rate"
-DIST_FROM_CURVE_VMAX_25_VLIMIT_SUCCESS_RATE = "dist_from_curve_vmax_25_vlimit_success_rate"
-DIST_FROM_CURVE_VMAX_15_VLIMIT_SUCCESS_RATE = "dist_from_curve_vmax_15_vlimit_success_rate"
-
-
 # data exploration page
 COUNTRIES_HEAT_MAP = "countries_heat_map"
 
