@@ -42,6 +42,12 @@ CONF_MAT_QUERY = """
     GROUP BY net_id, {group_by_label}, {group_by_pred}
     """
 
+COLUMN_OPTION_QUERY = """
+    SELECT DISTINCT {column_name}
+    FROM ({base_query})
+"""
+
+
 DYNAMIC_METRICS_QUERY = """
     SELECT ({group_by}) AS net_id,
     {metrics}
@@ -352,12 +358,34 @@ def generate_emdp_query(
     return query
 
 
+def generate_avail_query(
+    data_tables,
+    meta_data,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    column_name="",
+    role="",
+):
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=extra_columns,
+        role=role,
+    )
+    query = COLUMN_OPTION_QUERY.format(base_query=base_query, column_name=column_name)
+    return query
+
+
 def generate_path_net_query(
     data_tables,
     meta_data,
     state,
     meta_data_filters="",
     extra_filters="",
+    extra_columns=[],
     role="",
 ):
     operator = "<" if state == "accuracy" else ">"
@@ -398,6 +426,9 @@ def get_dist_query(base_dist_column_name, data_tables, distances_dict, meta_data
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=extra_columns,
+        role=role,
         extra_filters="confidence > 0 AND match <> -1",
         role=role
     )
@@ -773,6 +804,8 @@ def generate_stats_filters(
     ignore_string = "" if include_all else filter_str
     role_col = "ca_role" if ca_oriented else "role"
     role_string = f"{role_col} = '{role}'" if role else ""
+    if type(role) == list:
+        role_string = f"({role_col} = {f' OR {role_col}='.join(role)})"
 
     filters = [ignore_string, role_string, extra_filters]
     stats_filter = " AND ".join(ftr for ftr in filters if ftr)

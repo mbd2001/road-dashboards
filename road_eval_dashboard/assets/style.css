@@ -75,11 +75,11 @@ body {
   margin-left: 7rem;
   margin-right: 2rem;
   padding: 2rem 1rem;
+  transition: margin-left 0.1s ease-in-out;
 }
 
 .wrapper:has(.sidebar:hover) .content {
   margin-left: 18rem;
-  transition: margin-left 0.1s ease-in-out;
 }
 
 .wrapper {}

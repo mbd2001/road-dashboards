@@ -6,7 +6,8 @@ from road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
-    MD_COLUMNS_OPTION, URL,
+    MD_COLUMNS_OPTION,
+    URL,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.utils.url_state_utils import hash_to_dict, META_DATA_STATE_KEY, add_state, get_state
@@ -129,6 +130,7 @@ def init_layout(md_columns_options, state, filters):
     if meta_data_filters_state == filters:
         return no_update
     return meta_data_filters_state
+
 
 @callback(
     Output({"type": "filters_list", "index": MATCH}, "children"),
