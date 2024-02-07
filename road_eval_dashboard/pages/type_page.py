@@ -82,7 +82,7 @@ def generate_matrices_components(nets):
     Output(OVERALL_TYPE_CONF_DIAGONAL, "figure"),
     Output({"type": OVERALL_TYPE_CONF_MAT, "index": ALL}, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
 )
 def generate_overall_matrices(meta_data_filters, nets):
     if not nets:
@@ -105,7 +105,7 @@ def generate_overall_matrices(meta_data_filters, nets):
     Output(HOST_TYPE_CONF_DIAGONAL, "figure"),
     Output({"type": HOST_TYPE_CONF_MAT, "index": ALL}, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
 )
 def generate_host_matrices(meta_data_filters, nets):
     if not nets:
@@ -128,7 +128,7 @@ def generate_host_matrices(meta_data_filters, nets):
 @callback(
     Output(TYPE_OVERALL, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_overall_type_score(meta_data_filters, nets):
@@ -154,7 +154,7 @@ def get_overall_type_score(meta_data_filters, nets):
 @callback(
     Output(TYPE_HOST, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_host_type_score(meta_data_filters, nets):
