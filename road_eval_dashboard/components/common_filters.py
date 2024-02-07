@@ -77,6 +77,7 @@ for option in VMAX_DIST_OPTIONS:
         dist_from_curve_vmax_option_filters[bin_name] = bin_condition
     dist_from_curve_vmax_filters.append(dist_from_curve_vmax_option_filters)
 
+
 def get_dist_from_curve_filters(dist, dist_from_curve_vmax_filters):
     return {
         f"dist_from_curve_vmax_{dist}_ignore": f"dist_from_curve_vmax_{dist} = -1",
@@ -84,9 +85,10 @@ def get_dist_from_curve_filters(dist, dist_from_curve_vmax_filters):
         f"dist_from_curve_vmax_{dist}_{VMAX_DIST_BINS[-1]}_above": f"dist_from_curve_vmax_{dist} >= {VMAX_DIST_BINS[-1]}",
     }
 
-DIST_FROM_CURVE_VMAX_15_FILTERS = get_dist_from_curve_filters('15', dist_from_curve_vmax_filters[0])
-DIST_FROM_CURVE_VMAX_25_FILTERS = get_dist_from_curve_filters('25', dist_from_curve_vmax_filters[1])
-DIST_FROM_CURVE_VMAX_35_FILTERS = get_dist_from_curve_filters('35', dist_from_curve_vmax_filters[2])
+
+DIST_FROM_CURVE_VMAX_15_FILTERS = get_dist_from_curve_filters("15", dist_from_curve_vmax_filters[0])
+DIST_FROM_CURVE_VMAX_25_FILTERS = get_dist_from_curve_filters("25", dist_from_curve_vmax_filters[1])
+DIST_FROM_CURVE_VMAX_35_FILTERS = get_dist_from_curve_filters("35", dist_from_curve_vmax_filters[2])
 
 VMAX_BINS_FILTERS = {
     "vmax_ignore": "vmax_full_range = -1",
