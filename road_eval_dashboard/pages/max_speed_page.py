@@ -10,7 +10,9 @@ from road_eval_dashboard.components.common_filters import (
     MAX_SPEED_FILTERS,
     CURVE_BY_RAD_FILTERS,
     CURVE_BY_DIST_FILTERS,
-    VMAX_BINS_FILTERS, DIST_FROM_CURVE_VMAX_35_FILTERS, DIST_FROM_CURVE_VMAX_25_FILTERS,
+    VMAX_BINS_FILTERS,
+    DIST_FROM_CURVE_VMAX_35_FILTERS,
+    DIST_FROM_CURVE_VMAX_25_FILTERS,
     DIST_FROM_CURVE_VMAX_15_FILTERS,
 )
 from road_eval_dashboard.components.components_ids import (
@@ -37,15 +39,18 @@ B2 = f_beta**2
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/max_speed", name="Max Speed", order=7, **extra_properties.__dict__)
 
-MAX_SPEED_FILTERS = {'road_type': MAX_SPEED_FILTERS,
-                     'vmax_bins': VMAX_BINS_FILTERS,
-                     'dist_from_curve_35': DIST_FROM_CURVE_VMAX_35_FILTERS,
-                     'dist_from_curve_25': DIST_FROM_CURVE_VMAX_25_FILTERS,
-                     'dist_from_curve_15': DIST_FROM_CURVE_VMAX_15_FILTERS}
-MAX_SPEED_DIST_FILTERS = {'curve': (CURVE_BY_DIST_FILTERS, CURVE_BY_RAD_FILTERS)}
-VMAX_TYPE_KEY = 'vmax'
-VLIMIT_TYPE_KEY = 'vlimit'
+MAX_SPEED_FILTERS = {
+    "road_type": MAX_SPEED_FILTERS,
+    "vmax_bins": VMAX_BINS_FILTERS,
+    "dist_from_curve_35": DIST_FROM_CURVE_VMAX_35_FILTERS,
+    "dist_from_curve_25": DIST_FROM_CURVE_VMAX_25_FILTERS,
+    "dist_from_curve_15": DIST_FROM_CURVE_VMAX_15_FILTERS,
+}
+MAX_SPEED_DIST_FILTERS = {"curve": (CURVE_BY_DIST_FILTERS, CURVE_BY_RAD_FILTERS)}
+VMAX_TYPE_KEY = "vmax"
+VLIMIT_TYPE_KEY = "vlimit"
 MAX_SPEED_TYPES = [VMAX_TYPE_KEY, VLIMIT_TYPE_KEY]
+
 
 def get_filters_graphs():
     graphs = []
@@ -56,14 +61,34 @@ def get_filters_graphs():
             graphs.append(get_base_graph_layout(filter_name, t, True))
     return graphs
 
+
 def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
     layout = card_wrapper(
         [
-            dbc.Row(loading_wrapper([dcc.Graph(id={'out': 'graph', 'filter': filter_name, 'type': max_speed_type, 'is_sort_by_dist': is_sort_by_dist}, config={"displayModeBar": False})])),
+            dbc.Row(
+                loading_wrapper(
+                    [
+                        dcc.Graph(
+                            id={
+                                "out": "graph",
+                                "filter": filter_name,
+                                "type": max_speed_type,
+                                "is_sort_by_dist": is_sort_by_dist,
+                            },
+                            config={"displayModeBar": False},
+                        )
+                    ]
+                )
+            ),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
-                        id={'out': 'success_rate', 'filter': filter_name, 'type': max_speed_type, 'is_sort_by_dist': is_sort_by_dist},
+                        id={
+                            "out": "success_rate",
+                            "filter": filter_name,
+                            "type": max_speed_type,
+                            "is_sort_by_dist": is_sort_by_dist,
+                        },
                         on=False,
                         label="Fb <-> Success Rate",
                         labelPosition="top",
@@ -72,7 +97,12 @@ def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
                 + (
                     [
                         daq.BooleanSwitch(
-                            id={'out': 'sort_by_dist', 'filter': filter_name, 'type': max_speed_type, 'is_sort_by_dist': is_sort_by_dist},
+                            id={
+                                "out": "sort_by_dist",
+                                "filter": filter_name,
+                                "type": max_speed_type,
+                                "is_sort_by_dist": is_sort_by_dist,
+                            },
                             on=False,
                             label="Sort By Dist",
                             labelPosition="top",
@@ -90,55 +120,69 @@ def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
 
 
 layout = html.Div(
-    [
-        html.H1("Max Speed Metrics", className="mb-5"),
-        meta_data_filter.layout,
-        base_dataset_statistics.frame_layout] + get_filters_graphs())
+    [html.H1("Max Speed Metrics", className="mb-5"), meta_data_filter.layout, base_dataset_statistics.frame_layout]
+    + get_filters_graphs()
+)
+
+
 @callback(
-    Output({'out': 'graph', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': False}, "figure"),
+    Output({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "figure"),
     Input(MD_FILTERS, "data"),
-    Input({'out': 'success_rate', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': False}, "on"),
+    Input({"out": "success_rate", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "on"),
     State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State({'out': 'graph', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': False}, 'id'),
+    State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "id"),
     background=True,
 )
 def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samples, id):
     if not nets:
         return no_update
-    filter_name = id['filter']
-    fig = get_fig_by_filter(effective_samples=effective_samples, filter_name=filter_name,
-                            interesting_filters=MAX_SPEED_FILTERS[filter_name], is_success_rate=is_success_rate,
-                            meta_data_filters=meta_data_filters,
-                            nets=nets, max_speed_type=id['type'])
+    filter_name = id["filter"]
+    fig = get_fig_by_filter(
+        effective_samples=effective_samples,
+        filter_name=filter_name,
+        interesting_filters=MAX_SPEED_FILTERS[filter_name],
+        is_success_rate=is_success_rate,
+        meta_data_filters=meta_data_filters,
+        nets=nets,
+        max_speed_type=id["type"],
+    )
     return fig
 
 
 @callback(
-    Output({'out': 'graph', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': True}, "figure"),
+    Output({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "figure"),
     Input(MD_FILTERS, "data"),
-    Input({'out': 'success_rate', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': True}, "on"),
-    Input({'out': 'sort_by_dist', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': True}, "on"),
+    Input({"out": "success_rate", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "on"),
+    Input({"out": "sort_by_dist", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "on"),
     State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State({'out': 'graph', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': True}, 'id'),
+    State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "id"),
     background=True,
 )
 def get_dist_graph(meta_data_filters, is_success_rate, by_dist, nets, effective_samples, id):
     if not nets:
         return no_update
-    filter_name = id['filter']
+    filter_name = id["filter"]
     filters = MAX_SPEED_DIST_FILTERS[filter_name]
     interesting_filters = filters[1] if by_dist else filters[0]
-    fig = get_fig_by_filter(effective_samples=effective_samples, filter_name=filter_name, interesting_filters=interesting_filters, is_success_rate=is_success_rate, meta_data_filters=meta_data_filters,
-                            nets=nets, max_speed_type=id['type'])
+    fig = get_fig_by_filter(
+        effective_samples=effective_samples,
+        filter_name=filter_name,
+        interesting_filters=interesting_filters,
+        is_success_rate=is_success_rate,
+        meta_data_filters=meta_data_filters,
+        nets=nets,
+        max_speed_type=id["type"],
+    )
     return fig
 
 
-def get_fig_by_filter(effective_samples, filter_name, max_speed_type, interesting_filters, is_success_rate, meta_data_filters,
-                      nets):
-    filter_name_to_display = ' '.join(filter_name.split('_')).capitalize()
-    pred_key = "vmax_binary_pred" if max_speed_type == VMAX_TYPE_KEY else 'vlimit_pred'
+def get_fig_by_filter(
+    effective_samples, filter_name, max_speed_type, interesting_filters, is_success_rate, meta_data_filters, nets
+):
+    filter_name_to_display = " ".join(filter_name.split("_")).capitalize()
+    pred_key = "vmax_binary_pred" if max_speed_type == VMAX_TYPE_KEY else "vlimit_pred"
     title = f"{max_speed_type.capitalize()} {'Success Rate' if is_success_rate else 'Fb Score'} per {filter_name_to_display}"
     fig = get_max_speed_fig(
         meta_data_filters=meta_data_filters,
@@ -151,6 +195,7 @@ def get_fig_by_filter(effective_samples, filter_name, max_speed_type, interestin
         title=title,
     )
     return fig
+
 
 def get_max_speed_fig(
     meta_data_filters, is_success_rate, nets, label, pred, interesting_filters, effective_samples, title=""
