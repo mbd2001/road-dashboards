@@ -134,10 +134,10 @@ layout = html.Div(
     State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "id"),
     background=True,
 )
-def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samples, id):
+def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samples, input_id):
     if not nets:
         return no_update
-    filter_name = id["filter"]
+    filter_name = input_id["filter"]
     fig = get_fig_by_filter(
         effective_samples=effective_samples,
         filter_name=filter_name,
@@ -145,7 +145,7 @@ def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samp
         is_success_rate=is_success_rate,
         meta_data_filters=meta_data_filters,
         nets=nets,
-        max_speed_type=id["type"],
+        max_speed_type=input_id["type"],
     )
     return fig
 
@@ -160,10 +160,10 @@ def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samp
     State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "id"),
     background=True,
 )
-def get_dist_graph(meta_data_filters, is_success_rate, by_dist, nets, effective_samples, id):
+def get_dist_graph(meta_data_filters, is_success_rate, by_dist, nets, effective_samples, input_id):
     if not nets:
         return no_update
-    filter_name = id["filter"]
+    filter_name = input_id["filter"]
     filters = MAX_SPEED_DIST_FILTERS[filter_name]
     interesting_filters = filters[1] if by_dist else filters[0]
     fig = get_fig_by_filter(
@@ -173,7 +173,7 @@ def get_dist_graph(meta_data_filters, is_success_rate, by_dist, nets, effective_
         is_success_rate=is_success_rate,
         meta_data_filters=meta_data_filters,
         nets=nets,
-        max_speed_type=id["type"],
+        max_speed_type=input_id["type"],
     )
     return fig
 
