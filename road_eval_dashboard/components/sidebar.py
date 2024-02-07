@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import html, page_registry, callback, State, Output, Input
+from dash import html, page_registry, callback, Output, Input
 
 from road_eval_dashboard.components.components_ids import SIDEBAR, URL
 
@@ -8,7 +8,6 @@ MAFFE_LOGO = "https://gitlab.mobileye.com/uploads/-/system/project/avatar/807/in
 
 def sidebar():
     return html.Div(
-        children=get_sidebar_layout(),
         id=SIDEBAR,
         className="sidebar",
     )
@@ -17,13 +16,8 @@ def sidebar():
 @callback(
     Output(SIDEBAR, "children"),
     Input(URL, "hash"),
-    background=True,
 )
 def update_sidebar(url):
-    return get_sidebar_layout(url)
-
-
-def get_sidebar_layout(url=""):
     layout = [
         html.Div(
             [html.H2("Statistics")],

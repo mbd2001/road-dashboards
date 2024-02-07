@@ -1,13 +1,11 @@
 import os
-from queue import Queue
-from threading import Thread
 from uuid import uuid4
 
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html, DiskcacheManager, CeleryManager, Output, Input, State, no_update
 
 from road_eval_dashboard.components import sidebar, page_content
-from road_eval_dashboard.components.catalog_table import wrapper
+from road_eval_dashboard.components.catalog_table import update_state_by_nets
 from road_eval_dashboard.components.components_ids import (
     URL,
     NETS,
@@ -21,12 +19,6 @@ from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
 )
 from road_eval_dashboard.components.dcc_stores import init_dcc_stores
-from road_eval_dashboard.components.init_threads import (
-    generate_meta_data_dicts,
-    generate_effective_samples_per_batch,
-    get_best_fb_per_net,
-    get_list_of_scene_signals,
-)
 from road_eval_dashboard.components.meta_data_filter import recursive_build_meta_data_filters
 from road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, get_state, META_DATA_STATE_KEY
 
