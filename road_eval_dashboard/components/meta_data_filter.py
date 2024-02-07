@@ -7,8 +7,10 @@ from road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     MD_COLUMNS_OPTION,
+    URL,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.utils.url_state_utils import hash_to_dict, META_DATA_STATE_KEY, add_state, get_state
 
 NUM_FILTERS_PER_GROUP = 10
 
@@ -118,9 +120,16 @@ layout = html.Div(
 @callback(
     Output("filters", "children"),
     Input(MD_COLUMNS_OPTION, "data"),
+    State(URL, "hash"),
+    State("filters", "children"),
 )
-def init_layout(md_columns_options):
-    return [get_group_layout(1, md_columns_options)]
+def init_layout(md_columns_options, state, filters):
+    meta_data_filters_state = get_state(state, META_DATA_STATE_KEY)
+    if not meta_data_filters_state:
+        return [get_group_layout(1, md_columns_options)]
+    if meta_data_filters_state == filters:
+        return no_update
+    return meta_data_filters_state
 
 
 @callback(
@@ -317,17 +326,21 @@ def update_meta_data_values_options(operation, index, col, distinct_values_dict,
 
 
 @callback(
-    Output(MD_FILTERS, "data"),
+    Output(MD_FILTERS, "data", allow_duplicate=True),
+    Output(URL, "hash", allow_duplicate=True),
     Input("update_filters_btn", "n_clicks"),
+    State(URL, "hash"),
     State("filters", "children"),
+    prevent_initial_call=True,
 )
-def generate_meta_data_filters_string(n_clicks, filters):
+def generate_meta_data_filters_string(n_clicks, url_state, filters):
     if not filters:
-        return ""
+        return "", no_update
 
+    new_state = add_state(META_DATA_STATE_KEY, filters, url_state)
     first_group = filters[0]
     filters_str = recursive_build_meta_data_filters(first_group)
-    return filters_str
+    return filters_str, new_state
 
 
 def recursive_build_meta_data_filters(filters):
