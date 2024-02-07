@@ -47,6 +47,15 @@ VMAX_TYPE_KEY = 'vmax'
 VLIMIT_TYPE_KEY = 'vlimit'
 MAX_SPEED_TYPES = [VMAX_TYPE_KEY, VLIMIT_TYPE_KEY]
 
+def get_filters_graphs():
+    graphs = []
+    for t in MAX_SPEED_TYPES:
+        for filter_name in MAX_SPEED_FILTERS:
+            graphs.append(get_base_graph_layout(filter_name, t))
+        for filter_name in MAX_SPEED_DIST_FILTERS:
+            graphs.append(get_base_graph_layout(filter_name, t, True))
+    return graphs
+
 def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
     layout = card_wrapper(
         [
@@ -84,15 +93,7 @@ layout = html.Div(
     [
         html.H1("Max Speed Metrics", className="mb-5"),
         meta_data_filter.layout,
-        base_dataset_statistics.frame_layout] + [
-        get_base_graph_layout(filter_name, t) for filter_name in MAX_SPEED_FILTERS for t in MAX_SPEED_TYPES
-    ] +
-    [
-        get_base_graph_layout(filter_name, t, True) for filter_name in MAX_SPEED_DIST_FILTERS for t in MAX_SPEED_TYPES
-    ]
-)
-
-
+        base_dataset_statistics.frame_layout] + get_filters_graphs())
 @callback(
     Output({'out': 'graph', 'filter': MATCH, 'type': MATCH, 'is_sort_by_dist': False}, "figure"),
     Input(MD_FILTERS, "data"),
