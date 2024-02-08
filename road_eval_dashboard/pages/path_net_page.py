@@ -152,7 +152,7 @@ def update_pathnet_filters(bin_population, column, value, roles_operation, n_cli
 @callback(
     Output(BIN_POPULATION_DROPDOWN, "options"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def create_population_dropdown(meta_data_filters, nets):
@@ -207,7 +207,7 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
     Output(PATH_NET_ACC_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets):
@@ -229,7 +229,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets):
     Output(PATH_NET_ACC_NEXT, "figure"),
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets):
@@ -251,7 +251,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets):
     Output(PATH_NET_FALSES_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets):
@@ -273,7 +273,7 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets):
     Output(PATH_NET_FALSES_NEXT, "figure"),
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets):
@@ -295,7 +295,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets):
     Output(PATH_NET_MISSES_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
@@ -317,7 +317,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
     Output(PATH_NET_MISSES_NEXT, "figure"),
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets):

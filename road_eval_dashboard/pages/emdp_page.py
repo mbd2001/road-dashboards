@@ -106,7 +106,7 @@ layout = html.Div(
     Input(MD_FILTERS, "data"),
     Input(EMDP_ROAD_TYPE_WORLD, "on"),
     Input(EMDP_ROAD_TYPE_PRECISION, "on"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
 )
@@ -131,7 +131,7 @@ def get_emdp_road_type(meta_data_filters, is_world, is_precision, nets, effectiv
     Input(MD_FILTERS, "data"),
     Input(EMDP_LANE_MARK_TYPE_WORLD, "on"),
     Input(EMDP_LANE_MARK_TYPE_PRECISION, "on"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
 )
@@ -157,7 +157,7 @@ def get_emdp_lane_mark_type(meta_data_filters, is_world, is_precision, nets, eff
     Input(EMDP_CURVE_WORLD, "on"),
     Input(EMDP_CURVE_BY_DIST, "on"),
     Input(EMDP_CURVE_PRECISION, "on"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
 )
@@ -183,7 +183,7 @@ def get_emdp_curve(meta_data_filters, is_world, by_dist, is_precision, nets, eff
     Input(MD_FILTERS, "data"),
     Input(EMDP_EVENT_WORLD, "on"),
     Input(EMDP_EVENT_PRECISION, "on"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
 )
@@ -208,7 +208,7 @@ def get_emdp_event(meta_data_filters, is_world, is_precision, nets, effective_sa
     Input(MD_FILTERS, "data"),
     Input(EMDP_WEATHER_WORLD, "on"),
     Input(EMDP_WEATHER_PRECISION, "on"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
 )

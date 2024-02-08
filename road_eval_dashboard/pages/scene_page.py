@@ -245,7 +245,7 @@ def _generate_matrices_per_signal(nets, meta_data_filters, signal):
     Output(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
     Output(SCENE_SIGNALS_DATA_READY, "children"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State(SCENE_SIGNALS_LIST, "data"),
     background=True,
 )
@@ -266,7 +266,7 @@ def _generate_matrices(meta_data_filters, nets, signals):
     Output({"type": SCENE_SCORE, "signal": MATCH}, "figure"),
     Input({"type": SCENE_SCORE, "signal": MATCH}, "id"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_scene_score(id, meta_data_filters, nets):
@@ -303,7 +303,7 @@ def generate_roc_curves(nets, scene_signals_list):
     Output({"type": SCENE_ROC_CURVE, "signal": MATCH}, "figure"),
     Input({"type": SCENE_ROC_CURVE, "signal": MATCH}, "id"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_scene_roc_curve(id, meta_data_filters, nets):
