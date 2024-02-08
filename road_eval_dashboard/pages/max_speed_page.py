@@ -160,12 +160,12 @@ def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samp
     State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "id"),
     background=True,
 )
-def get_dist_graph(meta_data_filters, is_success_rate, by_dist, nets, effective_samples, input_id):
+def get_dist_graph(meta_data_filters, is_success_rate, filter_by_dist, nets, effective_samples, input_id):
     if not nets:
         return no_update
     filter_name = input_id["filter"]
     filters = MAX_SPEED_DIST_FILTERS[filter_name]
-    interesting_filters = filters[1] if by_dist else filters[0]
+    interesting_filters = filters[1] if filter_by_dist else filters[0]
     fig = get_fig_by_filter(
         effective_samples=effective_samples,
         filter_name=filter_name,
