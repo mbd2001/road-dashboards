@@ -426,11 +426,8 @@ def get_dist_query(base_dist_column_name, data_tables, distances_dict, meta_data
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
-        extra_columns=extra_columns,
-        role=role,
         extra_filters="confidence > 0 AND match <> -1",
-        role=role
+        role=role,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
