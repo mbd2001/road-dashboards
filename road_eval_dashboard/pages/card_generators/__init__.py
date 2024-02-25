@@ -150,3 +150,27 @@ def view_range_host_next_success_rate_card():
             ),
         ]
     )
+
+def get_host_next_graph(host_id, next_id, is_Z_id):
+    return card_wrapper(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=host_id, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=next_id, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                ]
+            ),
+            daq.BooleanSwitch(
+                id=is_Z_id,
+                on=False,
+                label="show by Z",
+                labelPosition="top",
+            ),
+        ]
+    )

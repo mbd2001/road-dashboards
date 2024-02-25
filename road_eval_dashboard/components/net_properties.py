@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional, List
 
-from road_eval_dashboard.components.queries_manager import lm_3d_distances
+from road_eval_dashboard.components.queries_manager import lm_3d_distances, ZSources
 
 
 @dataclass
@@ -44,7 +44,7 @@ class Nets:
         )
         self.gt_tables = Table(
             gt_tables,
-            ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match"] + [f'"pos_dZ_{axis}_dists_{sec}"' for sec in lm_3d_distances for axis in ["Z", "X"]],
+            ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match"] + [f'"pos_dZ_{source}_{axis}_dists_{sec}"' for sec in lm_3d_distances for axis in ["Z", "X"] for source in [s.value for s in ZSources]],
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
         )

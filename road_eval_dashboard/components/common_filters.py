@@ -125,7 +125,7 @@ LM_3D_FILTERS = {'road_type': ROAD_TYPE_FILTERS,
 
 # AND ("pos_dZ_{axis}_dists_1.3" < 999)
 LM_3D_INTRESTING_FILTERS = {
-    f'{INTERSTING_FILTERS_DIST_TO_CHECK}_{extra_filter_name}': f'({extra_filter})' for filters_names, filters in LM_3D_FILTERS.items() for extra_filter_name, extra_filter in filters.items() for axis in ['X', 'Z']
+    f'{INTERSTING_FILTERS_DIST_TO_CHECK}_{extra_filter_name}': f'({extra_filter})' for filters_names, filters in LM_3D_FILTERS.items() for extra_filter_name, extra_filter in filters.items()
 }
 
 ALL_FILTERS = {

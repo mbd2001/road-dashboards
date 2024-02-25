@@ -31,5 +31,7 @@ def draw_path_net_graph(data, cols, title="", role="non-host", hover=False, effe
         xaxis=dict(constrain="domain"),
         yaxis=dict(range=[0, 1]),
         font=dict(size=16),
-    )
+        legend_xanchor='center',
+        legend_x=0.5,
+        legend_y=-1)
     return fig
