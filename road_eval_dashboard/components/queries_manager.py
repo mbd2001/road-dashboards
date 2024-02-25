@@ -41,6 +41,12 @@ CONF_MAT_QUERY = """
     GROUP BY net_id, {group_by_label}, {group_by_pred}
     """
 
+COLUMN_OPTION_QUERY = """
+    SELECT DISTINCT {column_name}
+    FROM ({base_query})
+"""
+
+
 DYNAMIC_METRICS_QUERY = """
     SELECT ({group_by}) AS net_id,
     {metrics}
@@ -350,6 +356,27 @@ def generate_emdp_query(
         for name, filter in interesting_filters.items()
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+    return query
+
+
+def generate_avail_query(
+    data_tables,
+    meta_data,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    column_name="",
+    role="",
+):
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=extra_columns,
+        role=role,
+    )
+    query = COLUMN_OPTION_QUERY.format(base_query=base_query, column_name=column_name)
     return query
 
 
@@ -854,6 +881,8 @@ def generate_stats_filters(
     ignore_string = "" if include_all else filter_str
     role_col = "ca_role" if ca_oriented else "role"
     role_string = f"{role_col} = '{role}'" if role else ""
+    if type(role) == list:
+        role_string = f"({role_col} = {f' OR {role_col}='.join(role)})"
 
     filters = [ignore_string, role_string, extra_filters]
     stats_filter = " AND ".join(ftr for ftr in filters if ftr)

@@ -51,7 +51,7 @@ layout = html.Div(
 @callback(
     Output(FB_TRADEOFF_HOST, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_fb_host(meta_data_filters, nets):
@@ -69,7 +69,7 @@ def get_fb_host(meta_data_filters, nets):
 @callback(
     Output(FB_TRADEOFF_OVERALL, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_fb_overall(meta_data_filters, nets):

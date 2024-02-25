@@ -104,7 +104,7 @@ def generate_matrices_components(nets):
     Output(OVERALL_COLOR_CONF_DIAGONAL, "figure"),
     Output({"type": OVERALL_COLOR_CONF_MAT, "index": ALL}, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
 )
 def generate_overall_matrices(meta_data_filters, nets):
     if not nets:
@@ -127,7 +127,7 @@ def generate_overall_matrices(meta_data_filters, nets):
     Output(HOST_COLOR_CONF_DIAGONAL, "figure"),
     Output({"type": HOST_COLOR_CONF_MAT, "index": ALL}, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
 )
 def generate_host_matrices(meta_data_filters, nets):
     if not nets:
@@ -167,7 +167,7 @@ def get_color_score(meta_data_filters, nets, role=""):
 @callback(
     Output(COLOR_OVERALL, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_overall_color_score(meta_data_filters, nets):
@@ -182,7 +182,7 @@ def get_overall_color_score(meta_data_filters, nets):
 @callback(
     Output(COLOR_HOST, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_host_color_score(meta_data_filters, nets):
@@ -197,7 +197,7 @@ def get_host_color_score(meta_data_filters, nets):
 @callback(
     Output(COLOR_OVERALL_DAY, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_overall_day_color_score(meta_data_filters, nets):
@@ -213,7 +213,7 @@ def get_overall_day_color_score(meta_data_filters, nets):
 @callback(
     Output(COLOR_OVERALL_NIGHT, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_overall_night_color_score(meta_data_filters, nets):

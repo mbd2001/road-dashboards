@@ -5,6 +5,7 @@ PATHNET_PRED = "pathnet_pred_tables"
 
 # stores
 NETS = "nets"
+CATALOG = "catalog"
 MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"
 MD_COLUMNS_TO_DISTINCT_VALUES = "md_columns_to_distinct_values"
@@ -22,6 +23,7 @@ RUN_EVAL_CATALOG = "run_eval_catalog"
 UPDATE_RUNS_BTN = "update_runs_btn"
 CLOSEUP_NET = "closeup_net"
 LOAD_NETS_DATA_NOTIFICATION = "load_nets_data_notification"
+STATE_NOTIFICATION = "state-notification"
 
 
 # accuracy page
@@ -144,28 +146,6 @@ VIEW_RANGE_HISTOGRAM = "view_range_histogram"
 VIEW_RANGE_HISTOGRAM_NAIVE_Z = f"{VIEW_RANGE_HISTOGRAM}_naive_Z"
 VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER = f"{VIEW_RANGE_HISTOGRAM}_bin_size_slider"
 
-# vmax page
-VMAX_ROAD_TYPE = "vmax_road_type"
-VMAX_ROAD_TYPE_SUCCESS_RATE = "vmax_road_type_success_rate"
-
-VMAX_CURVE = "vmax_curve"
-VMAX_CURVE_SUCCESS_RATE = "vmax_curve_success_rate"
-VMAX_CURVE_BY_DIST = "vmax_curve_by_dist"
-
-VMAX_BINS = "vmax_bins"
-VMAX_BINS_SUCCESS_RATE = "vmax_bins_success_rate"
-
-VLIMIT_ROAD_TYPE = "vlimit_road_type"
-VLIMIT_ROAD_TYPE_SUCCESS_RATE = "vlimit_road_type_success_rate"
-
-VLIMIT_CURVE = "vlimit_curve"
-VLIMIT_CURVE_SUCCESS_RATE = "vlimit_curve_success_rate"
-VLIMIT_CURVE_BY_DIST = "vlimit_curve_by_dist"
-
-VLIMIT_BINS = "vlimit_bins"
-VLIMIT_BINS_SUCCESS_RATE = "vlimit_bins_success_rate"
-
-
 # data exploration page
 COUNTRIES_HEAT_MAP = "countries_heat_map"
 
@@ -179,7 +159,9 @@ DYNAMIC_PIE_CHART_SLIDER = "dynamic_pie_chart_slider"
 ROAD_TYPE_PIE_CHART = "road_type_pie_chart"
 LANE_MARK_COLOR_PIE_CHART = "lane_mark_color_pie_chart"
 
-
+BIN_POPULATION_DROPDOWN = "population_dropdown"
+SPLIT_ROLE_POPULATION_DROPDOWN = "split_role_population_dropdown"
+ROLE_POPULATION_VALUE = "role_population_value"
 # scene page
 ALL_SCENE_SCORES = "all_scene_scores"
 SCENE_SCORE = "scene_score"
