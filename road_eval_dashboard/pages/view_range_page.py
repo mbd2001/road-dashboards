@@ -17,7 +17,7 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
     VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
-    VIEW_RANGE_SUCCESS_RATE_Z_STEP,
+    VIEW_RANGE_SUCCESS_RATE_Z_STEP, VIEW_RANGE_HISTOGRAM_CUMULATIVE,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
@@ -65,7 +65,7 @@ layout = html.Div(
     Input(VIEW_RANGE_SUCCESS_RATE_NAIVE_Z, "on"),
     Input(VIEW_RANGE_SUCCESS_RATE_Z_RANGE, "value"),
     Input(VIEW_RANGE_SUCCESS_RATE_Z_STEP, "value"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_view_range_success_rate_plot(meta_data_filters, naive_Z, Z_range, Z_step, nets):
@@ -113,7 +113,7 @@ def get_view_range_success_rate_plot(meta_data_filters, naive_Z, Z_range, Z_step
     Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_NAIVE_Z, "extra_filter": MATCH}, "on"),
     Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE, "extra_filter": MATCH}, "value"),
     Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP, "extra_filter": MATCH}, "value"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": MATCH}, "id"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
@@ -181,11 +181,12 @@ def get_view_range_success_rate_interesting_plots(
     Input(MD_FILTERS, "data"),
     Input(VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER, "value"),
     Input(VIEW_RANGE_HISTOGRAM_NAIVE_Z, "on"),
-    State(NETS, "data"),
+    Input(VIEW_RANGE_HISTOGRAM_CUMULATIVE, "on"),
+    Input(NETS, "data"),
     background=True,
     prevent_initial_call=True,
 )
-def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, nets):
+def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, cumulative_graph, nets):
     if not nets:
         return no_update
 
@@ -200,6 +201,12 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, nets):
     max_Z_col = "view_range_max_Z"
     if not naive_Z:
         max_Z_col += "_3d"
+    if cumulative_graph:
+        cumsum_df = df.groupby(['net_id', 'view_range_max_Z_3d_pred']).sum().groupby(level=0).cumsum().reset_index()
+        cumsum_df = cumsum_df.sort_values(['net_id', f'{max_Z_col}_pred']).reset_index()
+        df = df.sort_values(['net_id', f'{max_Z_col}_pred']).reset_index()
+        cumsum_df['overall'] = cumsum_df['overall'] / df.groupby(['net_id'])['overall'].transform('sum')
+        df = cumsum_df
     df.sort_values(by=["net_id", f"{max_Z_col}_pred"], inplace=True)
     fig = px.line(
         df,

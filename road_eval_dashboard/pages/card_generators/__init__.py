@@ -13,7 +13,7 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
     VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
-    VIEW_RANGE_SUCCESS_RATE_Z_STEP,
+    VIEW_RANGE_SUCCESS_RATE_Z_STEP, VIEW_RANGE_HISTOGRAM_CUMULATIVE,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
@@ -87,12 +87,20 @@ def view_range_histogram_card():
                     ),
                 ]
             ),
+            dbc.Row([
             daq.BooleanSwitch(
                 id=VIEW_RANGE_HISTOGRAM_NAIVE_Z,
                 on=False,
                 label="use naive Z",
                 labelPosition="top",
             ),
+            daq.BooleanSwitch(
+                id=VIEW_RANGE_HISTOGRAM_CUMULATIVE,
+                on=True,
+                label="cumulative graph",
+                labelPosition="top",
+            ),
+                ])
         ]
     )
 
