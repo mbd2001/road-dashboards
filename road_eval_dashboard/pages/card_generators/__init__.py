@@ -87,7 +87,7 @@ def view_range_histogram_card():
                     ),
                 ]
             ),
-            dbc.Row([
+            dbc.Stack([
             daq.BooleanSwitch(
                 id=VIEW_RANGE_HISTOGRAM_NAIVE_Z,
                 on=False,
@@ -100,7 +100,8 @@ def view_range_histogram_card():
                 label="cumulative graph",
                 labelPosition="top",
             ),
-                ])
+                ], direction="horizontal",
+                gap=3,)
         ]
     )
 
