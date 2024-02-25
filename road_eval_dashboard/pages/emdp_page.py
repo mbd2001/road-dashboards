@@ -56,13 +56,13 @@ def get_base_graph_layout(graph_id, image_to_world_id, avail_to_precision_id, so
                 [
                     daq.BooleanSwitch(
                         id=image_to_world_id,
-                        on=False,
+                        on=True,
                         label="Image <-> World",
                         labelPosition="top",
                     ),
                     daq.BooleanSwitch(
                         id=avail_to_precision_id,
-                        on=False,
+                        on=True,
                         label="Avail <-> Precision",
                         labelPosition="top",
                     ),

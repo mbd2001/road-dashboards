@@ -460,7 +460,8 @@ def generate_view_range_histogram_query(data_tables,
         role=role,
         extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
         group_by_column=f"{max_Z_col}_pred",
-        group_by_net_id=True
+        group_by_net_id=True,
+        include_all=False
     )
 
     query = f"{query} ORDER BY net_id, {max_Z_col}_pred"
