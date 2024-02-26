@@ -409,12 +409,15 @@ def generate_view_range_success_rate_query(data_tables,
                                            extra_filters="",
                                            role="",
                                            naive_Z=False,
+                                           use_err_est=True,
                                            is_Z=False,
                                            intresting_filters=None):
 
     max_Z_col = "view_range_max_Z"
     if not naive_Z:
         max_Z_col += "_3d"
+    if use_err_est:
+        max_Z_col += "_err_est"
     metrics_lst = []
     for Z in Z_samples:
         metrics_lst.append(VIEW_RANGE_SUCCESS_RATE_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z))
@@ -447,10 +450,13 @@ def generate_view_range_histogram_query(data_tables,
                                         extra_filters="",
                                         role="",
                                         naive_Z=False,
+                                        use_err_est=True,
                                         interesting_filters=None):
     max_Z_col = "view_range_max_Z"
     if not naive_Z:
         max_Z_col += "_3d"
+    if use_err_est:
+        max_Z_col += "_err_est"
     query = generate_count_query(
         data_tables,
         meta_data,

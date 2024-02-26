@@ -17,7 +17,8 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
     VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
-    VIEW_RANGE_SUCCESS_RATE_Z_STEP, VIEW_RANGE_HISTOGRAM_CUMULATIVE,
+    VIEW_RANGE_SUCCESS_RATE_Z_STEP, VIEW_RANGE_HISTOGRAM_CUMULATIVE, VIEW_RANGE_SUCCESS_RATE_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST, VIEW_RANGE_HISTOGRAM_ERR_EST,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
@@ -63,12 +64,13 @@ layout = html.Div(
     Output(VIEW_RANGE_SUCCESS_RATE, "figure"),
     Input(MD_FILTERS, "data"),
     Input(VIEW_RANGE_SUCCESS_RATE_NAIVE_Z, "on"),
+    Input(VIEW_RANGE_SUCCESS_RATE_ERR_EST, "on"),
     Input(VIEW_RANGE_SUCCESS_RATE_Z_RANGE, "value"),
     Input(VIEW_RANGE_SUCCESS_RATE_Z_STEP, "value"),
     Input(NETS, "data"),
     background=True,
 )
-def get_view_range_success_rate_plot(meta_data_filters, naive_Z, Z_range, Z_step, nets):
+def get_view_range_success_rate_plot(meta_data_filters, naive_Z, filter_err_est, Z_range, Z_step, nets):
     if not nets:
         return no_update
     Z_samples = list(range(Z_range[0], Z_range[1] + 1, Z_step))
@@ -78,6 +80,7 @@ def get_view_range_success_rate_plot(meta_data_filters, naive_Z, Z_range, Z_step
         Z_samples=Z_samples,
         meta_data_filters=meta_data_filters,
         naive_Z=naive_Z,
+        use_err_est=filter_err_est,
     )
     df, _ = run_query_with_nets_names_processing(query)
     df_melted_score = melt_df_by_metric(df, "vr_score")
@@ -111,6 +114,7 @@ def get_view_range_success_rate_plot(meta_data_filters, naive_Z, Z_range, Z_step
     Output({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": MATCH}, "figure"),
     Input(MD_FILTERS, "data"),
     Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_NAIVE_Z, "extra_filter": MATCH}, "on"),
+    Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST, "extra_filter": MATCH}, "on"),
     Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE, "extra_filter": MATCH}, "value"),
     Input({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP, "extra_filter": MATCH}, "value"),
     Input(NETS, "data"),
@@ -119,7 +123,7 @@ def get_view_range_success_rate_plot(meta_data_filters, naive_Z, Z_range, Z_step
     background=True,
 )
 def get_view_range_success_rate_interesting_plots(
-    meta_data_filters, naive_Z, Z_range, Z_step, nets, id, effective_samples
+    meta_data_filters, naive_Z, filter_err_est, Z_range, Z_step, nets, id, effective_samples
 ):
     if not nets:
         return no_update
@@ -140,6 +144,7 @@ def get_view_range_success_rate_interesting_plots(
             meta_data_filters=meta_data_filters,
             role=role,
             naive_Z=naive_Z,
+            use_err_est=filter_err_est
         )
 
         df, _ = run_query_with_nets_names_processing(query)
@@ -181,12 +186,13 @@ def get_view_range_success_rate_interesting_plots(
     Input(MD_FILTERS, "data"),
     Input(VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER, "value"),
     Input(VIEW_RANGE_HISTOGRAM_NAIVE_Z, "on"),
+    Input(VIEW_RANGE_HISTOGRAM_ERR_EST, "on"),
     Input(VIEW_RANGE_HISTOGRAM_CUMULATIVE, "on"),
     Input(NETS, "data"),
     background=True,
     prevent_initial_call=True,
 )
-def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, cumulative_graph, nets):
+def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_err_est, cumulative_graph, nets):
     if not nets:
         return no_update
 
@@ -196,22 +202,27 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, cumulati
         bin_size=bin_size,
         meta_data_filters=meta_data_filters,
         naive_Z=naive_Z,
+        use_err_est=filter_err_est
     )
     df, _ = run_query_with_nets_names_processing(query)
     max_Z_col = "view_range_max_Z"
     if not naive_Z:
         max_Z_col += "_3d"
+    if filter_err_est:
+        max_Z_col += "_err_est"
     if cumulative_graph:
-        cumsum_df = df.groupby(['net_id', 'view_range_max_Z_3d_pred']).sum().groupby(level=0).cumsum().reset_index()
+        cumsum_df = df.groupby(['net_id', f'{max_Z_col}_pred']).sum().groupby(level=0).cumsum().reset_index()
         cumsum_df = cumsum_df.sort_values(['net_id', f'{max_Z_col}_pred']).reset_index()
         df = df.sort_values(['net_id', f'{max_Z_col}_pred']).reset_index()
-        cumsum_df['overall'] = cumsum_df['overall'] / df.groupby(['net_id'])['overall'].transform('sum')
+        cumsum_df['score'] = cumsum_df['overall'] / df.groupby(['net_id'])['overall'].transform('sum')
         df = cumsum_df
+    else:
+        df['score'] = df['overall']
     df.sort_values(by=["net_id", f"{max_Z_col}_pred"], inplace=True)
     fig = px.line(
         df,
         x=f"{max_Z_col}_pred",
-        y="overall",
+        y="score",
         color="net_id",
         markers=True,
         hover_data={f"{max_Z_col}_pred": True, "net_id": False, "overall": True},

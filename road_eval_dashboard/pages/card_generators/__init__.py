@@ -13,7 +13,8 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
     VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
-    VIEW_RANGE_SUCCESS_RATE_Z_STEP, VIEW_RANGE_HISTOGRAM_CUMULATIVE,
+    VIEW_RANGE_SUCCESS_RATE_Z_STEP, VIEW_RANGE_HISTOGRAM_CUMULATIVE, VIEW_RANGE_SUCCESS_RATE_ERR_EST,
+    VIEW_RANGE_HISTOGRAM_ERR_EST, VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
@@ -28,6 +29,12 @@ def view_range_success_rate_card():
                         id=VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
                         on=False,
                         label="use naive Z",
+                        labelPosition="top",
+                    ),
+                    daq.BooleanSwitch(
+                        id=VIEW_RANGE_SUCCESS_RATE_ERR_EST,
+                        on=True,
+                        label="filter error estimation",
                         labelPosition="top",
                     ),
                     html.Div(
@@ -100,6 +107,12 @@ def view_range_histogram_card():
                 label="cumulative graph",
                 labelPosition="top",
             ),
+                daq.BooleanSwitch(
+                    id=VIEW_RANGE_HISTOGRAM_ERR_EST,
+                    on=True,
+                    label="filter error estimation",
+                    labelPosition="top",
+                ),
                 ], direction="horizontal",
                 gap=3,)
         ]
@@ -125,6 +138,12 @@ def view_range_host_next_success_rate_card():
                         id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_NAIVE_Z, "extra_filter": ""},
                         on=False,
                         label="use naive Z",
+                        labelPosition="top",
+                    ),
+                    daq.BooleanSwitch(
+                        id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST, "extra_filter": ""},
+                        on=True,
+                        label="filter error estimation",
                         labelPosition="top",
                     ),
                     html.Div(
