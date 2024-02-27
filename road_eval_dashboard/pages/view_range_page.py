@@ -195,7 +195,7 @@ def get_view_range_success_rate_interesting_plots(
 def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_err_est, cumulative_graph, nets):
     if not nets:
         return no_update
-
+    xaxis_direction=None
     query = generate_view_range_histogram_query(
         nets["gt_tables"],
         nets["meta_data"],
@@ -210,12 +210,14 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_e
         max_Z_col += "_3d"
     if filter_err_est:
         max_Z_col += "_err_est"
+    df.loc[pd.isna(df[f"{max_Z_col}_pred"]), 'overall'] = 0
     if cumulative_graph:
-        cumsum_df = df.groupby(['net_id', f'{max_Z_col}_pred']).sum().groupby(level=0).cumsum().reset_index()
-        cumsum_df = cumsum_df.sort_values(['net_id', f'{max_Z_col}_pred']).reset_index()
-        df = df.sort_values(['net_id', f'{max_Z_col}_pred']).reset_index()
+        cumsum_df = df.groupby(['net_id', f'{max_Z_col}_pred']).sum()[::-1].groupby(level=0).cumsum().reset_index()
+        cumsum_df = cumsum_df.sort_values(['net_id', f'{max_Z_col}_pred'], ascending=False).reset_index()
+        df = df.sort_values(['net_id', f'{max_Z_col}_pred'], ascending=False).reset_index()
         cumsum_df['score'] = cumsum_df['overall'] / df.groupby(['net_id'])['overall'].transform('sum')
         df = cumsum_df
+        xaxis_direction='reversed'
     else:
         df['score'] = df['overall']
     df.sort_values(by=["net_id", f"{max_Z_col}_pred"], inplace=True)
@@ -234,5 +236,6 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_e
         yaxis_title="Count",
         font=dict(size=16),
         hoverlabel=dict(font_size=16),
+        xaxis=dict(autorange=xaxis_direction)
     )
     return fig
