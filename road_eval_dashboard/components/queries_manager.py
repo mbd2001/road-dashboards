@@ -376,13 +376,10 @@ def generate_path_net_query(
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
 
-def generate_emdp_view_range_Z_histogram_query(data_tables,
-                                        meta_data,
-                                        bin_size,
-                                        meta_data_filters="",
-                                        role="",
-                                        naive_Z=False,
-                                        use_monotonic=True):
+
+def generate_emdp_view_range_Z_histogram_query(
+    data_tables, meta_data, bin_size, meta_data_filters="", role="", naive_Z=False, use_monotonic=True
+):
     max_Z_col = "max_Z"
     max_Z_col = _get_emdp_col(max_Z_col, naive_Z, use_monotonic)
     query = generate_count_query(
@@ -394,20 +391,17 @@ def generate_emdp_view_range_Z_histogram_query(data_tables,
         extra_columns=[max_Z_col],
         group_by_column=max_Z_col,
         group_by_net_id=True,
-        include_all=False
+        include_all=False,
     )
 
     query = f"{query} ORDER BY net_id, {max_Z_col}"
 
     return query
 
-def generate_emdp_view_range_sec_histogram_query(data_tables,
-                                        meta_data,
-                                        meta_data_filters="",
-                                        role="",
-                                        naive_Z=False,
-                                        use_monotonic=True,
-                                         extra_filters=""):
+
+def generate_emdp_view_range_sec_histogram_query(
+    data_tables, meta_data, meta_data_filters="", role="", naive_Z=False, use_monotonic=True, extra_filters=""
+):
     VIEW_RANGE_SEC = [0.5 * x for x in range(0, 11)]
     max_Z_cols = [f"Z_{sec}" for sec in VIEW_RANGE_SEC]
     max_Z_cols = [_get_emdp_col(col, naive_Z, use_monotonic) for col in max_Z_cols]
@@ -417,13 +411,10 @@ def generate_emdp_view_range_sec_histogram_query(data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         extra_columns=[f'"{col}"' for col in max_Z_cols],
-        role=role
+        role=role,
     )
     metrics = ", ".join(
-        COUNT_FILTER_METRIC.format(
-            extra_filters=f'"{label_col}" = 1', ind=label_col
-        )
-        for label_col in max_Z_cols
+        COUNT_FILTER_METRIC.format(extra_filters=f'"{label_col}" = 1', ind=label_col) for label_col in max_Z_cols
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
@@ -613,7 +604,7 @@ def generate_count_query(
         extra_filters=extra_filters,
         role=role,
         include_all=include_all,
-        extra_columns=extra_columns
+        extra_columns=extra_columns,
     )
     metrics = COUNT_ALL_METRIC.format(count_name="overall")
     group_by = f"FLOOR({group_by_column} / {bins_factor}) * {bins_factor}" if bins_factor else group_by_column
