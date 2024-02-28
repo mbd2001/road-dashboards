@@ -86,27 +86,6 @@ EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC="emdp_view_range_histogram_monotonic"
 EMDP_VIEW_RANGE_HISTOGRAM_NORM="emdp_view_range_histogram_norm"
 EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC="emdp_view_range_histogram_by_sec"
 
-EMDP_ROAD_TYPE = "emdp_road_type"
-EMDP_ROAD_TYPE_WORLD = "emdp_road_type_world"
-EMDP_ROAD_TYPE_PRECISION = "emdp_road_type_precision"
-
-EMDP_LANE_MARK_TYPE = "emdp_lane_mark_type"
-EMDP_LANE_MARK_TYPE_WORLD = "emdp_lane_mark_type_world"
-EMDP_LANE_MARK_TYPE_PRECISION = "emdp_lane_mark_type_precision"
-
-EMDP_CURVE = "emdp_curve"
-EMDP_CURVE_WORLD = "emdp_curve_world"
-EMDP_CURVE_BY_DIST = "emdp_curve_by_dist"
-EMDP_CURVE_PRECISION = "emdp_curve_precision"
-
-EMDP_EVENT = "emdp_event"
-EMDP_EVENT_WORLD = "emdp_event_world"
-EMDP_EVENT_PRECISION = "emdp_event_precision"
-
-EMDP_WEATHER = "emdp_weather"
-EMDP_WEATHER_WORLD = "emdp_weather_world"
-EMDP_WEATHER_PRECISION = "emdp_weather_precision"
-
 
 # counters
 POPULATION_STATE = "population_state"

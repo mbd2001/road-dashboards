@@ -384,7 +384,7 @@ def generate_emdp_view_range_Z_histogram_query(data_tables,
                                         naive_Z=False,
                                         use_monotonic=True):
     max_Z_col = "max_Z"
-    max_Z_col = _get_emdp_view_range_col(max_Z_col, naive_Z, use_monotonic)
+    max_Z_col = _get_emdp_col(max_Z_col, naive_Z, use_monotonic)
     query = generate_count_query(
         data_tables,
         meta_data,
@@ -408,9 +408,9 @@ def generate_emdp_view_range_sec_histogram_query(data_tables,
                                         naive_Z=False,
                                         use_monotonic=True,
                                          extra_filters=""):
-    VIEW_RANGE_SEC = [0.5 * x for x in range(1, 11)]
+    VIEW_RANGE_SEC = [0.5 * x for x in range(0, 11)]
     max_Z_cols = [f"Z_{sec}" for sec in VIEW_RANGE_SEC]
-    max_Z_cols = [_get_emdp_view_range_col(col, naive_Z, use_monotonic) for col in max_Z_cols]
+    max_Z_cols = [_get_emdp_col(col, naive_Z, use_monotonic) for col in max_Z_cols]
     base_query = generate_base_query(
         data_tables,
         meta_data,
@@ -430,7 +430,7 @@ def generate_emdp_view_range_sec_histogram_query(data_tables,
     return query
 
 
-def _get_emdp_view_range_col(max_Z_col, naive_Z, use_monotonic):
+def _get_emdp_col(max_Z_col, naive_Z, use_monotonic):
     if use_monotonic:
         max_Z_col += "_monotonic"
     if not naive_Z:
