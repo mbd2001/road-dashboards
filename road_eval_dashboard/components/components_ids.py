@@ -79,6 +79,13 @@ HOST_TYPE_CONF_DIAGONAL = "host_type_conf_diagonal"
 
 
 # emdp page
+EMDP_VIEW_RANGE_HISTOGRAM = "emdp_view_range_histogram"
+EMDP_VIEW_RANGE_HISTOGRAM_NAIVE_Z="emdp_view_range_histogram_naive_z"
+EMDP_VIEW_RANGE_HISTOGRAM_CUMULATIVE="emdp_view_range_histogram_cumulative"
+EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC="emdp_view_range_histogram_monotonic"
+EMDP_VIEW_RANGE_HISTOGRAM_NORM="emdp_view_range_histogram_norm"
+EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC="emdp_view_range_histogram_by_sec"
+
 EMDP_ROAD_TYPE = "emdp_road_type"
 EMDP_ROAD_TYPE_WORLD = "emdp_road_type_world"
 EMDP_ROAD_TYPE_PRECISION = "emdp_road_type_precision"
