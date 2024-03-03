@@ -50,26 +50,33 @@ EMDP_FILTERS = {
     "weather": {"filters": WEATHER_FILTERS},
     "curve": {"filters": CURVE_BY_RAD_FILTERS, "dist_filters": CURVE_BY_DIST_FILTERS, "sort_by_dist": True},
 }
-HISTOGRAM_BOOLEAN_SWITCHES = [{"id": EMDP_VIEW_RANGE_HISTOGRAM_NAIVE_Z,
-                        "on": False,
-                        "label":"use naive Z",
-                        },
-{"id": EMDP_VIEW_RANGE_HISTOGRAM_CUMULATIVE,
-                        "on": True,
-                        "label":"cumulative graph",
-                        },
-{"id": EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC,
-                        "on": True,
-                        "label":"filter none monotonic",
-                        },
-{"id": EMDP_VIEW_RANGE_HISTOGRAM_NORM,
-                        "on": True,
-                        "label":"norm",
-                        },
-                        {"id": EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC,
-                        "on": True,
-                        "label":"by sec",
-                        }]
+HISTOGRAM_BOOLEAN_SWITCHES = [
+    {
+        "id": EMDP_VIEW_RANGE_HISTOGRAM_NAIVE_Z,
+        "on": False,
+        "label": "use naive Z",
+    },
+    {
+        "id": EMDP_VIEW_RANGE_HISTOGRAM_CUMULATIVE,
+        "on": True,
+        "label": "cumulative graph",
+    },
+    {
+        "id": EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC,
+        "on": True,
+        "label": "filter none monotonic",
+    },
+    {
+        "id": EMDP_VIEW_RANGE_HISTOGRAM_NORM,
+        "on": True,
+        "label": "norm",
+    },
+    {
+        "id": EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC,
+        "on": True,
+        "label": "by sec",
+    },
+]
 
 
 def get_base_graph_layout(filter_name, sort_by_dist=False):
@@ -188,7 +195,8 @@ def get_view_range_histogram_layout():
                         labelPosition="top",
                         persistence=True,
                         persistence_type="session",
-                    ) for boolean_switch_setting in HISTOGRAM_BOOLEAN_SWITCHES
+                    )
+                    for boolean_switch_setting in HISTOGRAM_BOOLEAN_SWITCHES
                 ],
                 direction="horizontal",
                 gap=3,
