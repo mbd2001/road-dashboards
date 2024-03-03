@@ -309,6 +309,8 @@ def get_view_range_histogram_plot(meta_data_filters, naive_Z, cumulative, monoto
     if cumulative:
         cumsum_df = df.copy().groupby(["net_id", max_Z_col]).sum()[::-1].groupby(level=0).cumsum().reset_index()
         cumsum_df["score"] = cumsum_df["overall"]
+        df = df.sort_values(by=["net_id", max_Z_col]).reset_index()
+        cumsum_df = cumsum_df.sort_values(by=["net_id", max_Z_col]).reset_index()
         cumsum_df["overall"] = df["overall"]
         df = cumsum_df
         xaxis_direction = "reversed"
