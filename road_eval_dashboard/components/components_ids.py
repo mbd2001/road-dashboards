@@ -1,11 +1,19 @@
+# tables names
+PATHNET_GT = "pathnet_gt_tables"
+PATHNET_PRED = "pathnet_pred_tables"
+
+
 # stores
 NETS = "nets"
+CATALOG = "catalog"
 MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"
 MD_COLUMNS_TO_DISTINCT_VALUES = "md_columns_to_distinct_values"
 MD_FILTERS = "md_filters"
+PATHNET_FILTERS = "pathnet_filters"
 EFFECTIVE_SAMPLES_PER_BATCH = "effective_samples_per_batch"
 NET_ID_TO_FB_BEST_THRESH = "net_id_to_fb_best_threshold"
+SCENE_SIGNALS_LIST = "scene_signals_list"
 
 
 # logical components
@@ -16,6 +24,7 @@ RUN_EVAL_CATALOG = "run_eval_catalog"
 UPDATE_RUNS_BTN = "update_runs_btn"
 CLOSEUP_NET = "closeup_net"
 LOAD_NETS_DATA_NOTIFICATION = "load_nets_data_notification"
+STATE_NOTIFICATION = "state-notification"
 
 
 # accuracy page
@@ -71,26 +80,12 @@ HOST_TYPE_CONF_DIAGONAL = "host_type_conf_diagonal"
 
 
 # emdp page
-EMDP_ROAD_TYPE = "emdp_road_type"
-EMDP_ROAD_TYPE_WORLD = "emdp_road_type_world"
-EMDP_ROAD_TYPE_PRECISION = "emdp_road_type_precision"
-
-EMDP_LANE_MARK_TYPE = "emdp_lane_mark_type"
-EMDP_LANE_MARK_TYPE_WORLD = "emdp_lane_mark_type_world"
-EMDP_LANE_MARK_TYPE_PRECISION = "emdp_lane_mark_type_precision"
-
-EMDP_CURVE = "emdp_curve"
-EMDP_CURVE_WORLD = "emdp_curve_world"
-EMDP_CURVE_BY_DIST = "emdp_curve_by_dist"
-EMDP_CURVE_PRECISION = "emdp_curve_precision"
-
-EMDP_EVENT = "emdp_event"
-EMDP_EVENT_WORLD = "emdp_event_world"
-EMDP_EVENT_PRECISION = "emdp_event_precision"
-
-EMDP_WEATHER = "emdp_weather"
-EMDP_WEATHER_WORLD = "emdp_weather_world"
-EMDP_WEATHER_PRECISION = "emdp_weather_precision"
+EMDP_VIEW_RANGE_HISTOGRAM = "emdp_view_range_histogram"
+EMDP_VIEW_RANGE_HISTOGRAM_NAIVE_Z = "emdp_view_range_histogram_naive_z"
+EMDP_VIEW_RANGE_HISTOGRAM_CUMULATIVE = "emdp_view_range_histogram_cumulative"
+EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC = "emdp_view_range_histogram_monotonic"
+EMDP_VIEW_RANGE_HISTOGRAM_NORM = "emdp_view_range_histogram_norm"
+EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC = "emdp_view_range_histogram_by_sec"
 
 
 # counters
@@ -107,23 +102,14 @@ PATH_NET_FALSES_NEXT = "path_net_losses_next"
 
 PATH_NET_ACC_HOST = "path_net_accuracy_host"
 PATH_NET_ACC_NEXT = "path_net_accuracy_next"
-
-
-# vmax page
-VMAX_ROAD_TYPE = "vmax_road_type"
-VMAX_ROAD_TYPE_SUCCESS_RATE = "vmax_road_type_success_rate"
-
-VMAX_CURVE = "vmax_curve"
-VMAX_CURVE_SUCCESS_RATE = "vmax_curve_success_rate"
-VMAX_CURVE_BY_DIST = "vmax_curve_by_dist"
-
-VLIMIT_ROAD_TYPE = "vlimit_road_type"
-VLIMIT_ROAD_TYPE_SUCCESS_RATE = "vlimit_road_type_success_rate"
-
-VLIMIT_CURVE = "vlimit_curve"
-VLIMIT_CURVE_SUCCESS_RATE = "vlimit_curve_success_rate"
-VLIMIT_CURVE_BY_DIST = "vlimit_curve_by_dist"
-
+PATH_NET_MISSES_HOST = "path_net_misses_host"
+PATH_NET_MISSES_NEXT = "path_net_misses_next"
+PATH_NET_CONF_MAT = "path_net_conf_mat"
+PATH_NET_ALL_CONF_DIAGONAL = "overall_conf_mat_diagonal"
+PATH_NET_HOST_CONF_DIAGONAL = "overall_host_conf_mat_diagonal"
+PATH_NET_OVERALL_CONF_MAT = "path_net_overall_conf_mats"
+PATH_NET_HOST_CONF_MAT = "path_net_host_conf_mats"
+PATH_NET_ALL_CONF_MATS = "all_pathnet_conf_mats"
 
 # data exploration page
 COUNTRIES_HEAT_MAP = "countries_heat_map"
@@ -137,3 +123,22 @@ DYNAMIC_PIE_CHART_SLIDER = "dynamic_pie_chart_slider"
 
 ROAD_TYPE_PIE_CHART = "road_type_pie_chart"
 LANE_MARK_COLOR_PIE_CHART = "lane_mark_color_pie_chart"
+
+BIN_POPULATION_DROPDOWN = "population_dropdown"
+SPLIT_ROLE_POPULATION_DROPDOWN = "split_role_population_dropdown"
+ROLE_POPULATION_VALUE = "role_population_value"
+# scene page
+ALL_SCENE_SCORES = "all_scene_scores"
+SCENE_SCORE = "scene_score"
+ALL_SCENE_CONF_MATS = "all_scene_conf_mats"
+SCENE_CONF_MAT = "scene_conf_mat"
+ALL_SCENE_CONF_DIAGONALS = "all_scene_conf_diagonals"
+SCENE_CONF_DIAGONALS = "scene_conf_diagonals"
+ALL_SCENE_CONF_MATS_MEST = "all_scene_conf_mats_MEST"
+SCENE_CONF_MAT_MEST = "scene_conf_mat_MEST"
+ALL_SCENE_CONF_DIAGONALS_MEST = "all_scene_conf_diagonals_MEST"
+SCENE_CONF_DIAGONALS_MEST = "scene_conf_diagonals_MEST"
+ALL_SCENE_ROC_CURVES = "all_scene_ROC_curves"
+SCENE_ROC_CURVE = "scene_ROC_curve"
+SCENE_SIGNALS_CONF_MATS_DATA = "scene_signals_conf_mats_data"
+SCENE_SIGNALS_DATA_READY = "scene_signals_data_ready"

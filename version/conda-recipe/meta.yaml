@@ -70,7 +70,7 @@ requirements:
 
   mx_build_deps:
     - boa
-    - conda-build
+    - conda-build =3.28.4
     - python
     - conda-pack
     - conda-lock

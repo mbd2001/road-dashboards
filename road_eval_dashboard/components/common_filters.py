@@ -40,16 +40,60 @@ CURVE_BY_RAD_FILTERS = {
 CURVE_BY_DIST_FILTERS = {
     "dist40_rad100": "curve_rad_ahead < 100",
     "dist40_100rad500": "curve_rad_ahead BETWEEN 100 AND 500",
-    "dist40_500rad1000": "curve_rad_ahead BETWEEN 500 AND 1000",
+    "dist40_500rad1000": "curve_rad_ahead BETWEEN 501 AND 1000",
     "40dist90_rad100": "curve_rad_ahead_40_90 < 100",
     "40dist90_100rad500": "curve_rad_ahead_40_90 BETWEEN 100 AND 500",
-    "40dist90_500rad1000": "curve_rad_ahead_40_90 BETWEEN 500 AND 1000",
+    "40dist90_500rad1000": "curve_rad_ahead_40_90 BETWEEN 501 AND 1000",
     "90dist120_rad100": "curve_rad_ahead_90_120 < 100",
     "90dist120_100rad500": "curve_rad_ahead_90_120 BETWEEN 100 AND 500",
-    "90dist120_500rad1000": "curve_rad_ahead_90_120 BETWEEN 500 AND 1000",
+    "90dist120_500rad1000": "curve_rad_ahead_90_120 BETWEEN 501 AND 1000",
     "120dist_rad100": "curve_rad_ahead_gt_120 < 100",
     "120dist_100rad500": "curve_rad_ahead_gt_120 BETWEEN 100 AND 500",
-    "120dist_500rad1000": "curve_rad_ahead_gt_120 BETWEEN 500 AND 1000",
+    "120dist_500rad1000": "curve_rad_ahead_gt_120 BETWEEN 501 AND 1000",
+}
+
+VMAX_BINS = [0, 5, 10, 15, 20, 25, 30, 35]
+VMAX_BINS_FILTERS = {}
+for i in range(1, len(VMAX_BINS)):
+    bin_name = f"vmax_{VMAX_BINS[i - 1]}_{VMAX_BINS[i] - 1}"
+    bin_condition = f"vmax_full_range BETWEEN {VMAX_BINS[i - 1]} AND {VMAX_BINS[i] - 1}"
+    VMAX_BINS_FILTERS[bin_name] = bin_condition
+
+VMAX_BINS_FILTERS = {
+    "vmax_ignore": "vmax_full_range = -1",
+    **VMAX_BINS_FILTERS,
+    f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35",
+}
+
+VMAX_DIST_OPTIONS = [15, 25, 35]
+VMAX_DIST_BINS = [0, 50, 100, 200]
+
+dist_from_curve_vmax_filters = []
+for option in VMAX_DIST_OPTIONS:
+    dist_from_curve_vmax_option_filters = {}
+    for i in range(1, len(VMAX_DIST_BINS)):
+        bin_name = f"dist_from_curve_vmax_{option}_{VMAX_DIST_BINS[i - 1]}_{VMAX_DIST_BINS[i] - 1}"
+        bin_condition = f"dist_from_curve_vmax_{option} BETWEEN {VMAX_DIST_BINS[i - 1]} AND {VMAX_DIST_BINS[i] - 1}"
+        dist_from_curve_vmax_option_filters[bin_name] = bin_condition
+    dist_from_curve_vmax_filters.append(dist_from_curve_vmax_option_filters)
+
+
+def get_dist_from_curve_filters(dist, dist_from_curve_vmax_filters):
+    return {
+        f"dist_from_curve_vmax_{dist}_ignore": f"dist_from_curve_vmax_{dist} = -1",
+        **dist_from_curve_vmax_filters,
+        f"dist_from_curve_vmax_{dist}_{VMAX_DIST_BINS[-1]}_above": f"dist_from_curve_vmax_{dist} >= {VMAX_DIST_BINS[-1]}",
+    }
+
+
+DIST_FROM_CURVE_VMAX_15_FILTERS = get_dist_from_curve_filters("15", dist_from_curve_vmax_filters[0])
+DIST_FROM_CURVE_VMAX_25_FILTERS = get_dist_from_curve_filters("25", dist_from_curve_vmax_filters[1])
+DIST_FROM_CURVE_VMAX_35_FILTERS = get_dist_from_curve_filters("35", dist_from_curve_vmax_filters[2])
+
+VMAX_BINS_FILTERS = {
+    "vmax_ignore": "vmax_full_range = -1",
+    **VMAX_BINS_FILTERS,
+    f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35",
 }
 
 EVENT_FILTERS = {
@@ -76,4 +120,8 @@ ALL_FILTERS = {
     **EVENT_FILTERS,
     **WEATHER_FILTERS,
     **MAX_SPEED_FILTERS,
+    **VMAX_BINS_FILTERS,
+    **DIST_FROM_CURVE_VMAX_35_FILTERS,
+    **DIST_FROM_CURVE_VMAX_25_FILTERS,
+    **DIST_FROM_CURVE_VMAX_15_FILTERS,
 }

@@ -24,7 +24,7 @@ RUN pip install pandas
 RUN pip install boto3
 RUN pip install tqdm
 RUN pip install fsspec
-RUN pip install s3fs
+RUN pip install s3fs==0.4.2
 RUN pip install road-database-toolkit
 
 ENV PYTHONPATH=/app

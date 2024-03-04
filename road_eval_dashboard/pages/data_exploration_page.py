@@ -119,7 +119,7 @@ layout = html.Div(
 @callback(
     Output(COUNTRIES_HEAT_MAP, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_countries_heat_map(meta_data_filters, nets):
@@ -144,7 +144,7 @@ def get_countries_heat_map(meta_data_filters, nets):
 @callback(
     Output(TVGT_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_tvgt_pie_chart(meta_data_filters, nets):
@@ -165,7 +165,7 @@ def get_tvgt_pie_chart(meta_data_filters, nets):
 @callback(
     Output(GTEM_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_gtem_pie_chart(meta_data_filters, nets):
@@ -196,7 +196,7 @@ def init_pie_dropdown(md_columns_options):
     Input(DYNAMIC_PIE_CHART_DROPDOWN, "value"),
     Input(DYNAMIC_PIE_CHART_SLIDER, "value"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     State(MD_COLUMNS_TO_TYPE, "data"),
     background=True,
 )
@@ -233,7 +233,7 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, nets
 @callback(
     Output(ROAD_TYPE_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_road_type_pie_chart(meta_data_filters, nets):
@@ -258,7 +258,7 @@ def get_road_type_pie_chart(meta_data_filters, nets):
 @callback(
     Output(LANE_MARK_COLOR_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
+    Input(NETS, "data"),
     background=True,
 )
 def get_lane_mark_color_pie_chart(meta_data_filters, nets):

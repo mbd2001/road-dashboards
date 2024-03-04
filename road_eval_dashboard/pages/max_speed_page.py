@@ -1,39 +1,32 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import html, dcc, register_page, Input, Output, callback, State, no_update
-
-from road_eval_dashboard.components.common_filters import (
-    MAX_SPEED_FILTERS,
-    CURVE_BY_RAD_FILTERS,
-    CURVE_BY_DIST_FILTERS,
-)
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from dash import html, dcc, register_page, Input, Output, callback, State, no_update, MATCH
 
 from road_eval_dashboard.components import (
     meta_data_filter,
     base_dataset_statistics,
 )
+from road_eval_dashboard.components.common_filters import (
+    MAX_SPEED_FILTERS,
+    CURVE_BY_RAD_FILTERS,
+    CURVE_BY_DIST_FILTERS,
+    VMAX_BINS_FILTERS,
+    DIST_FROM_CURVE_VMAX_35_FILTERS,
+    DIST_FROM_CURVE_VMAX_25_FILTERS,
+    DIST_FROM_CURVE_VMAX_15_FILTERS,
+)
 from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
-    VMAX_ROAD_TYPE_SUCCESS_RATE,
-    VMAX_CURVE_SUCCESS_RATE,
-    VMAX_CURVE,
-    VLIMIT_ROAD_TYPE_SUCCESS_RATE,
-    VLIMIT_ROAD_TYPE,
-    VLIMIT_CURVE_SUCCESS_RATE,
-    VLIMIT_CURVE,
-    VMAX_ROAD_TYPE,
-    VLIMIT_CURVE_BY_DIST,
-    VMAX_CURVE_BY_DIST,
     EFFECTIVE_SAMPLES_PER_BATCH,
 )
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
     generate_vmax_fb_query,
     generate_vmax_success_rate_query,
 )
-from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.graphs.meta_data_filters_graph import (
     draw_meta_data_filters,
     calc_fb_per_row,
@@ -46,15 +39,56 @@ B2 = f_beta**2
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/max_speed", name="Max Speed", order=7, **extra_properties.__dict__)
 
+MAX_SPEED_FILTERS = {
+    "road_type": MAX_SPEED_FILTERS,
+    "vmax_bins": VMAX_BINS_FILTERS,
+    "dist_from_curve_35": DIST_FROM_CURVE_VMAX_35_FILTERS,
+    "dist_from_curve_25": DIST_FROM_CURVE_VMAX_25_FILTERS,
+    "dist_from_curve_15": DIST_FROM_CURVE_VMAX_15_FILTERS,
+}
+MAX_SPEED_DIST_FILTERS = {"curve": (CURVE_BY_DIST_FILTERS, CURVE_BY_RAD_FILTERS)}
+VMAX_TYPE_KEY = "vmax"
+VLIMIT_TYPE_KEY = "vlimit"
+MAX_SPEED_TYPES = [VMAX_TYPE_KEY, VLIMIT_TYPE_KEY]
 
-def get_base_graph_layout(graph_id, fb_to_success_rate_id, sort_by_dist_id=None):
+
+def get_filters_graphs():
+    graphs = []
+    for t in MAX_SPEED_TYPES:
+        for filter_name in MAX_SPEED_FILTERS:
+            graphs.append(get_base_graph_layout(filter_name, t))
+        for filter_name in MAX_SPEED_DIST_FILTERS:
+            graphs.append(get_base_graph_layout(filter_name, t, True))
+    return graphs
+
+
+def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
     layout = card_wrapper(
         [
-            dbc.Row(loading_wrapper([dcc.Graph(id=graph_id, config={"displayModeBar": False})])),
+            dbc.Row(
+                loading_wrapper(
+                    [
+                        dcc.Graph(
+                            id={
+                                "out": "graph",
+                                "filter": filter_name,
+                                "type": max_speed_type,
+                                "is_sort_by_dist": is_sort_by_dist,
+                            },
+                            config={"displayModeBar": False},
+                        )
+                    ]
+                )
+            ),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
-                        id=fb_to_success_rate_id,
+                        id={
+                            "out": "success_rate",
+                            "filter": filter_name,
+                            "type": max_speed_type,
+                            "is_sort_by_dist": is_sort_by_dist,
+                        },
                         on=False,
                         label="Fb <-> Success Rate",
                         labelPosition="top",
@@ -63,13 +97,18 @@ def get_base_graph_layout(graph_id, fb_to_success_rate_id, sort_by_dist_id=None)
                 + (
                     [
                         daq.BooleanSwitch(
-                            id=sort_by_dist_id,
+                            id={
+                                "out": "sort_by_dist",
+                                "filter": filter_name,
+                                "type": max_speed_type,
+                                "is_sort_by_dist": is_sort_by_dist,
+                            },
                             on=False,
                             label="Sort By Dist",
                             labelPosition="top",
                         ),
                     ]
-                    if sort_by_dist_id
+                    if is_sort_by_dist
                     else []
                 ),
                 direction="horizontal",
@@ -81,121 +120,76 @@ def get_base_graph_layout(graph_id, fb_to_success_rate_id, sort_by_dist_id=None)
 
 
 layout = html.Div(
-    [
-        html.H1("Max Speed Metrics", className="mb-5"),
-        meta_data_filter.layout,
-        base_dataset_statistics.frame_layout,
-        get_base_graph_layout(VMAX_ROAD_TYPE, VMAX_ROAD_TYPE_SUCCESS_RATE),
-        get_base_graph_layout(VMAX_CURVE, VMAX_CURVE_SUCCESS_RATE, VMAX_CURVE_BY_DIST),
-        get_base_graph_layout(VLIMIT_ROAD_TYPE, VLIMIT_ROAD_TYPE_SUCCESS_RATE),
-        get_base_graph_layout(VLIMIT_CURVE, VLIMIT_CURVE_SUCCESS_RATE, VLIMIT_CURVE_BY_DIST),
-    ]
+    [html.H1("Max Speed Metrics", className="mb-5"), meta_data_filter.layout, base_dataset_statistics.frame_layout]
+    + get_filters_graphs()
 )
 
 
 @callback(
-    Output(VMAX_ROAD_TYPE, "figure"),
+    Output({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "figure"),
     Input(MD_FILTERS, "data"),
-    Input(VMAX_ROAD_TYPE_SUCCESS_RATE, "on"),
-    State(NETS, "data"),
+    Input({"out": "success_rate", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "on"),
+    Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "id"),
     background=True,
 )
-def get_vmax_road_type(meta_data_filters, is_success_rate, nets, effective_samples):
+def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samples, input_id):
     if not nets:
         return no_update
-
-    title = f"VMax {'Success Rate' if is_success_rate else 'Fb Score'} per Road Type"
-    fig = get_max_speed_fig(
-        meta_data_filters=meta_data_filters,
-        is_success_rate=is_success_rate,
-        nets=nets,
-        label="vlimit_label",
-        pred="vmax_binary_pred",
-        interesting_filters=MAX_SPEED_FILTERS,
+    filter_name = input_id["filter"]
+    fig = get_fig_by_filter(
         effective_samples=effective_samples,
-        title=title,
+        filter_name=filter_name,
+        interesting_filters=MAX_SPEED_FILTERS[filter_name],
+        is_success_rate=is_success_rate,
+        meta_data_filters=meta_data_filters,
+        nets=nets,
+        max_speed_type=input_id["type"],
     )
     return fig
 
 
 @callback(
-    Output(VMAX_CURVE, "figure"),
+    Output({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "figure"),
     Input(MD_FILTERS, "data"),
-    Input(VMAX_CURVE_SUCCESS_RATE, "on"),
-    Input(VMAX_CURVE_BY_DIST, "on"),
-    State(NETS, "data"),
+    Input({"out": "success_rate", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "on"),
+    Input({"out": "sort_by_dist", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "on"),
+    Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "id"),
     background=True,
 )
-def get_vmax_curve(meta_data_filters, is_success_rate, by_dist, nets, effective_samples):
+def get_dist_graph(meta_data_filters, is_success_rate, filter_by_dist, nets, effective_samples, input_id):
     if not nets:
         return no_update
-
-    title = f"VMax {'Success Rate' if is_success_rate else 'Fb Score'} per Curve"
-    interesting_filters = CURVE_BY_DIST_FILTERS if by_dist else CURVE_BY_RAD_FILTERS
-    fig = get_max_speed_fig(
-        meta_data_filters=meta_data_filters,
-        is_success_rate=is_success_rate,
-        nets=nets,
-        label="vlimit_label",
-        pred="vmax_binary_pred",
+    filter_name = input_id["filter"]
+    filters = MAX_SPEED_DIST_FILTERS[filter_name]
+    interesting_filters = filters[1] if filter_by_dist else filters[0]
+    fig = get_fig_by_filter(
+        effective_samples=effective_samples,
+        filter_name=filter_name,
         interesting_filters=interesting_filters,
-        effective_samples=effective_samples,
-        title=title,
+        is_success_rate=is_success_rate,
+        meta_data_filters=meta_data_filters,
+        nets=nets,
+        max_speed_type=input_id["type"],
     )
     return fig
 
 
-@callback(
-    Output(VLIMIT_ROAD_TYPE, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(VLIMIT_ROAD_TYPE_SUCCESS_RATE, "on"),
-    State(NETS, "data"),
-    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    background=True,
-)
-def get_vlimit_road_type(meta_data_filters, is_success_rate, nets, effective_samples):
-    if not nets:
-        return no_update
-
-    title = f"VLimit {'Success Rate' if is_success_rate else 'Fb Score'} per Road Type"
+def get_fig_by_filter(
+    effective_samples, filter_name, max_speed_type, interesting_filters, is_success_rate, meta_data_filters, nets
+):
+    filter_name_to_display = " ".join(filter_name.split("_")).capitalize()
+    pred_key = "vmax_binary_pred" if max_speed_type == VMAX_TYPE_KEY else "vlimit_pred"
+    title = f"{max_speed_type.capitalize()} {'Success Rate' if is_success_rate else 'Fb Score'} per {filter_name_to_display}"
     fig = get_max_speed_fig(
         meta_data_filters=meta_data_filters,
         is_success_rate=is_success_rate,
         nets=nets,
         label="vlimit_label",
-        pred="vlimit_pred",
-        interesting_filters=MAX_SPEED_FILTERS,
-        effective_samples=effective_samples,
-        title=title,
-    )
-    return fig
-
-
-@callback(
-    Output(VLIMIT_CURVE, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(VLIMIT_CURVE_SUCCESS_RATE, "on"),
-    Input(VLIMIT_CURVE_BY_DIST, "on"),
-    State(NETS, "data"),
-    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    background=True,
-)
-def get_vlimit_curve(meta_data_filters, is_success_rate, by_dist, nets, effective_samples):
-    if not nets:
-        return no_update
-
-    label = "vlimit_label"
-    pred = "vlimit_pred"
-    title = f"VLimit {'Success Rate' if is_success_rate else 'Fb Score'} per Curve"
-    interesting_filters = CURVE_BY_DIST_FILTERS if by_dist else CURVE_BY_RAD_FILTERS
-    fig = get_max_speed_fig(
-        meta_data_filters=meta_data_filters,
-        is_success_rate=is_success_rate,
-        nets=nets,
-        label=label,
-        pred=pred,
+        pred=pred_key,
         interesting_filters=interesting_filters,
         effective_samples=effective_samples,
         title=title,
@@ -256,5 +250,7 @@ def calc_success_rate(row, filter):
     tp = row[f"tp_{filter}"]
     tn = row[f"tn_{filter}"]
     overall = row[f"overall_{filter}"]
+    if not overall:
+        return
     success_rate = (tp + tn) / overall
     return success_rate

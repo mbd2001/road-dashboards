@@ -30,10 +30,11 @@ def get_greens_reds(data, interesting_columns, effective_samples, score_func):
         for (ind1, row1), (ind2, row2) in itertools.combinations(data.iterrows(), r=2):
             stat_value1 = score_func(row1, col)
             stat_value2 = score_func(row2, col)
-            z_score = compute_z_score_for_binomial_distribution(stat_value1, stat_value2, n1, n2)
-            if z_score > 1.96:  # threshold for 95%
-                greens[row1.net_id if stat_value1 > stat_value2 else row2.net_id].add(col)
-                reds[row2.net_id if stat_value1 > stat_value2 else row1.net_id].add(col)
+            if stat_value2 and stat_value1 and n1 and n2:
+                z_score = compute_z_score_for_binomial_distribution(stat_value1, stat_value2, n1, n2)
+                if z_score > 1.96:  # threshold for 95%
+                    greens[row1.net_id if stat_value1 > stat_value2 else row2.net_id].add(col)
+                    reds[row2.net_id if stat_value1 > stat_value2 else row1.net_id].add(col)
     for net in data.net_id:
         batches_to_remove = greens[net].intersection(reds[net])
         greens[net] -= batches_to_remove
@@ -55,12 +56,16 @@ def draw_meta_data_filters(
             go.Scatter(
                 x=interesting_columns,
                 y=[score_func(row, col) for col in interesting_columns],
-                marker=dict(
-                    symbol=[choose_symbol(col, reds[row.net_id], greens[row.net_id]) for col in interesting_columns],
-                    size=10,
-                )
-                if effective_samples
-                else None,
+                marker=(
+                    dict(
+                        symbol=[
+                            choose_symbol(col, reds[row.net_id], greens[row.net_id]) for col in interesting_columns
+                        ],
+                        size=10,
+                    )
+                    if effective_samples
+                    else None
+                ),
                 name=row.net_id,
                 hovertext=["lane marks: " + str(row[f"count_{col}"]) for col in interesting_columns] if hover else None,
             )
