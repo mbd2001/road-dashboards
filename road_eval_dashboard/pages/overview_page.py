@@ -8,7 +8,10 @@ from road_eval_dashboard.components import (
 )
 from road_eval_dashboard.components.components_ids import (
     COLOR_OVERALL,
-    TYPE_OVERALL, LM_3D_ACC_HOST, LM_3D_ACC_NEXT, LM_3D_ACC_HOST_Z_X,
+    TYPE_OVERALL,
+    LM_3D_ACC_HOST,
+    LM_3D_ACC_NEXT,
+    LM_3D_ACC_HOST_Z_X,
 )
 from road_eval_dashboard.components.layout_wrapper import loading_wrapper, card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
@@ -37,9 +40,11 @@ layout = html.Div(
                 ),
             ]
         ),
-        get_host_next_graph({"type": LM_3D_ACC_HOST, "extra_filter": ""},
-                             {"type": LM_3D_ACC_NEXT, "extra_filter": ""},
-                             {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": ""}),
+        get_host_next_graph(
+            {"type": LM_3D_ACC_HOST, "extra_filter": ""},
+            {"type": LM_3D_ACC_NEXT, "extra_filter": ""},
+            {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": ""},
+        ),
         view_range_histogram_card(),
     ]
 )

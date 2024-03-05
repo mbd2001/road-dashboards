@@ -9,14 +9,23 @@ from road_eval_dashboard.components import (
 from road_eval_dashboard.components.common_filters import LM_3D_FILTERS
 from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
-    NETS, LM_3D_ACC_NEXT, LM_3D_ACC_HOST, LM_3D_ACC_OVERALL, LM_3D_ACC_OVERALL_Z_X, LM_3D_ACC_HOST_Z_X,
-    EFFECTIVE_SAMPLES_PER_BATCH, LM_3D_SOURCE_DROPDOWN,
+    NETS,
+    LM_3D_ACC_NEXT,
+    LM_3D_ACC_HOST,
+    LM_3D_ACC_OVERALL,
+    LM_3D_ACC_OVERALL_Z_X,
+    LM_3D_ACC_HOST_Z_X,
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    LM_3D_SOURCE_DROPDOWN,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
-    run_query_with_nets_names_processing, lm_3d_distances, generate_lm_3d_query,
-    INTERSTING_FILTERS_DIST_TO_CHECK, ZSources,
+    run_query_with_nets_names_processing,
+    lm_3d_distances,
+    generate_lm_3d_query,
+    INTERSTING_FILTERS_DIST_TO_CHECK,
+    ZSources,
 )
 from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_eval_dashboard.pages.card_generators import get_host_next_graph
@@ -31,7 +40,8 @@ def get_3d_source_layout():
         [
             html.H6("Choose 3d source"),
             dcc.Dropdown(options, ZSources.FUSION, id=LM_3D_SOURCE_DROPDOWN),
-        ])
+        ]
+    )
 
 
 layout = html.Div(
@@ -41,23 +51,30 @@ layout = html.Div(
         base_dataset_statistics.gt_layout,
         get_3d_source_layout(),
         card_wrapper(
-        [
-                dbc.Row(
-                    loading_wrapper([dcc.Graph(id=LM_3D_ACC_OVERALL, config={"displayModeBar": False})])),
-
+            [
+                dbc.Row(loading_wrapper([dcc.Graph(id=LM_3D_ACC_OVERALL, config={"displayModeBar": False})])),
                 daq.BooleanSwitch(
                     id=LM_3D_ACC_OVERALL_Z_X,
                     on=False,
                     label="show by Z",
                     labelPosition="top",
                 ),
-        ]),
-        get_host_next_graph({"type": LM_3D_ACC_HOST, "extra_filter": ""},
-                             {"type": LM_3D_ACC_NEXT, "extra_filter": ""},
-                             {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": ""}),
-    ] + [get_host_next_graph({"type": LM_3D_ACC_HOST, "extra_filter": filter_name},
-                             {"type": LM_3D_ACC_NEXT, "extra_filter": filter_name},
-                             {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": filter_name}) for filter_name in LM_3D_FILTERS]
+            ]
+        ),
+        get_host_next_graph(
+            {"type": LM_3D_ACC_HOST, "extra_filter": ""},
+            {"type": LM_3D_ACC_NEXT, "extra_filter": ""},
+            {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": ""},
+        ),
+    ]
+    + [
+        get_host_next_graph(
+            {"type": LM_3D_ACC_HOST, "extra_filter": filter_name},
+            {"type": LM_3D_ACC_NEXT, "extra_filter": filter_name},
+            {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": filter_name},
+        )
+        for filter_name in LM_3D_FILTERS
+    ]
 )
 
 
@@ -74,15 +91,16 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, Z_source, nets):
         return no_update
 
     query = generate_lm_3d_query(
-        nets['gt_tables'],
+        nets["gt_tables"],
         nets["meta_data"],
         "accuracy",
         meta_data_filters=meta_data_filters,
         is_Z=is_Z,
-        Z_source=Z_source
+        Z_source=Z_source,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, lm_3d_distances, "accuracy", role="overall", hover=True)
+
 
 @callback(
     Output({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, "figure", allow_duplicate=True),
@@ -91,7 +109,7 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, Z_source, nets):
     Input({"type": LM_3D_ACC_HOST_Z_X, "extra_filter": MATCH}, "on"),
     Input(LM_3D_SOURCE_DROPDOWN, "value"),
     Input(NETS, "data"),
-    State({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, 'id'),
+    State({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, "id"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     background=True,
     prevent_initial_call=True,
@@ -100,25 +118,27 @@ def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, Z_source, nets, id
     if not nets:
         return no_update
 
-    extra_filter = id['extra_filter']
+    extra_filter = id["extra_filter"]
     intresting_filter = LM_3D_FILTERS[extra_filter] if extra_filter else None
     if intresting_filter is None:
         effective_samples = {}
     figs = []
-    for role in ['host', 'next']:
+    for role in ["host", "next"]:
         query = generate_lm_3d_query(
-            nets['gt_tables'],
+            nets["gt_tables"],
             nets["meta_data"],
             "accuracy",
             meta_data_filters=meta_data_filters,
             role=role,
             is_Z=is_Z,
             intresting_filters=intresting_filter,
-            Z_source=Z_source
+            Z_source=Z_source,
         )
         df, _ = run_query_with_nets_names_processing(query)
         cols_names = get_cols_names(intresting_filter)
-        fig = draw_path_net_graph(df, cols_names, "accuracy", role=role, hover=True, effective_samples=effective_samples)
+        fig = draw_path_net_graph(
+            df, cols_names, "accuracy", role=role, hover=True, effective_samples=effective_samples
+        )
         figs.append(fig)
     return figs
 

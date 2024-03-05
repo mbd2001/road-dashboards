@@ -44,7 +44,13 @@ class Nets:
         )
         self.gt_tables = Table(
             gt_tables,
-            ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match"] + [f'"pos_dZ_{source}_{axis}_dists_{sec}"' for sec in lm_3d_distances for axis in ["Z", "X"] for source in [s.value for s in ZSources]],
+            ["clip_name", "grabIndex", "net_id", "ca_role", "role", "confidence", "ignore", "match"]
+            + [
+                f'"pos_dZ_{source}_{axis}_dists_{sec}"'
+                for sec in lm_3d_distances
+                for axis in ["Z", "X"]
+                for source in [s.value for s in ZSources]
+            ],
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
         )

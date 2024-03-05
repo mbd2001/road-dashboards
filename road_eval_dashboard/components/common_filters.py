@@ -115,17 +115,20 @@ WEATHER_FILTERS = {
 
 MAX_SPEED_FILTERS = {"hwe": "dist_to_hwe BETWEEN 0 AND 30", **ROAD_TYPE_FILTERS}
 
-LM_3D_FILTERS = {'road_type': ROAD_TYPE_FILTERS,
-                 'lane_mark_type': LANE_MARK_TYPE_FILTERS,
-                 'lane_mark_color': LANE_MARK_COLOR_FILTERS,
-                 'curve_by_dist': CURVE_BY_DIST_FILTERS,
-                 'event': EVENT_FILTERS,
-                 'weather': WEATHER_FILTERS
-                 }
+LM_3D_FILTERS = {
+    "road_type": ROAD_TYPE_FILTERS,
+    "lane_mark_type": LANE_MARK_TYPE_FILTERS,
+    "lane_mark_color": LANE_MARK_COLOR_FILTERS,
+    "curve_by_dist": CURVE_BY_DIST_FILTERS,
+    "event": EVENT_FILTERS,
+    "weather": WEATHER_FILTERS,
+}
 
 # AND ("pos_dZ_{axis}_dists_1.3" < 999)
 LM_3D_INTRESTING_FILTERS = {
-    f'{INTERSTING_FILTERS_DIST_TO_CHECK}_{extra_filter_name}': f'({extra_filter})' for filters_names, filters in LM_3D_FILTERS.items() for extra_filter_name, extra_filter in filters.items()
+    f"{INTERSTING_FILTERS_DIST_TO_CHECK}_{extra_filter_name}": f"({extra_filter})"
+    for filters_names, filters in LM_3D_FILTERS.items()
+    for extra_filter_name, extra_filter in filters.items()
 }
 
 ALL_FILTERS = {
@@ -139,5 +142,5 @@ ALL_FILTERS = {
     **DIST_FROM_CURVE_VMAX_35_FILTERS,
     **DIST_FROM_CURVE_VMAX_25_FILTERS,
     **DIST_FROM_CURVE_VMAX_15_FILTERS,
-    **LM_3D_INTRESTING_FILTERS
+    **LM_3D_INTRESTING_FILTERS,
 }

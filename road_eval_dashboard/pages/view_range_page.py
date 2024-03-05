@@ -17,8 +17,11 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
     VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
-    VIEW_RANGE_SUCCESS_RATE_Z_STEP, VIEW_RANGE_HISTOGRAM_CUMULATIVE, VIEW_RANGE_SUCCESS_RATE_ERR_EST,
-    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST, VIEW_RANGE_HISTOGRAM_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_Z_STEP,
+    VIEW_RANGE_HISTOGRAM_CUMULATIVE,
+    VIEW_RANGE_SUCCESS_RATE_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST,
+    VIEW_RANGE_HISTOGRAM_ERR_EST,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
@@ -138,7 +141,7 @@ def get_view_range_success_rate_interesting_plots(
             meta_data_filters=meta_data_filters,
             role=role,
             naive_Z=naive_Z,
-            use_err_est=filter_err_est
+            use_err_est=filter_err_est,
         )
 
         df, _ = run_query_with_nets_names_processing(query)
@@ -189,14 +192,14 @@ def get_view_range_success_rate_interesting_plots(
 def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_err_est, cumulative_graph, nets):
     if not nets:
         return no_update
-    xaxis_direction=None
+    xaxis_direction = None
     query = generate_view_range_histogram_query(
         nets["gt_tables"],
         nets["meta_data"],
         bin_size=bin_size,
         meta_data_filters=meta_data_filters,
         naive_Z=naive_Z,
-        use_err_est=filter_err_est
+        use_err_est=filter_err_est,
     )
     df, _ = run_query_with_nets_names_processing(query)
     max_Z_col = "view_range_max_Z"
@@ -204,16 +207,16 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_e
         max_Z_col += "_3d"
     if filter_err_est:
         max_Z_col += "_err_est"
-    df.loc[pd.isna(df[f"{max_Z_col}_pred"]), 'overall'] = 0
+    df.loc[pd.isna(df[f"{max_Z_col}_pred"]), "overall"] = 0
     if cumulative_graph:
-        cumsum_df = df.groupby(['net_id', f'{max_Z_col}_pred']).sum()[::-1].groupby(level=0).cumsum().reset_index()
-        cumsum_df = cumsum_df.sort_values(['net_id', f'{max_Z_col}_pred'], ascending=False).reset_index()
-        df = df.sort_values(['net_id', f'{max_Z_col}_pred'], ascending=False).reset_index()
-        cumsum_df['score'] = cumsum_df['overall'] / df.groupby(['net_id'])['overall'].transform('sum')
+        cumsum_df = df.groupby(["net_id", f"{max_Z_col}_pred"]).sum()[::-1].groupby(level=0).cumsum().reset_index()
+        cumsum_df = cumsum_df.sort_values(["net_id", f"{max_Z_col}_pred"], ascending=False).reset_index()
+        df = df.sort_values(["net_id", f"{max_Z_col}_pred"], ascending=False).reset_index()
+        cumsum_df["score"] = cumsum_df["overall"] / df.groupby(["net_id"])["overall"].transform("sum")
         df = cumsum_df
-        xaxis_direction='reversed'
+        xaxis_direction = "reversed"
     else:
-        df['score'] = df['overall']
+        df["score"] = df["overall"]
     df.sort_values(by=["net_id", f"{max_Z_col}_pred"], inplace=True)
     fig = px.line(
         df,
@@ -222,7 +225,10 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_e
         color="net_id",
         markers=True,
         hover_data={f"{max_Z_col}_pred": True, "net_id": False, "overall": True},
-        labels={f"{max_Z_col}_pred": "Z", "overall": "Count", },
+        labels={
+            f"{max_Z_col}_pred": "Z",
+            "overall": "Count",
+        },
     )
     fig.update_layout(
         title=f"<b>View Range Histogram<b>",
@@ -230,6 +236,6 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_e
         yaxis_title="Count",
         font=dict(size=16),
         hoverlabel=dict(font_size=16),
-        xaxis=dict(autorange=xaxis_direction)
+        xaxis=dict(autorange=xaxis_direction),
     )
     return fig
