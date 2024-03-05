@@ -128,12 +128,6 @@ def get_view_range_success_rate_interesting_plots(
     if not nets:
         return no_update
 
-    # extra_filter = id['extra_filter']
-    # interesting_filters = VR_FILTERS[extra_filter] if extra_filter else None
-    # if interesting_filters is None:
-    #     effective_samples = {}
-
-    #################
     Z_samples = list(range(Z_range[0], Z_range[1] + 1, Z_step))
     dfs = []
     for col, role in enumerate(["host", "next"]):

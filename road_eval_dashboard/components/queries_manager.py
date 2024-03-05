@@ -427,18 +427,11 @@ def generate_view_range_success_rate_query(data_tables,
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
-        extra_filters="confidence > 0 AND match <> -1", # AND {max_Z_col}_pred IS NOT NULL AND {max_Z_col}_label IS NOT NULL",
+        extra_filters="confidence > 0 AND match <> -1",
         role=role,
         extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
-
-    # if is_add_filters_count:
-    #     count_metrics = get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
-    #     metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
-    #     group_by = 'net_id'
-    #     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
-    #     query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
 
     return query
 
@@ -471,13 +464,6 @@ def generate_view_range_histogram_query(data_tables,
     )
 
     query = f"{query} ORDER BY net_id, {max_Z_col}_pred"
-
-    # if is_add_filters_count:
-    #     count_metrics = get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
-    #     metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
-    #     group_by = 'net_id'
-    #     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
-    #     query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
 
     return query
 
