@@ -124,7 +124,6 @@ LM_3D_FILTERS = {
     "weather": WEATHER_FILTERS,
 }
 
-# AND ("pos_dZ_{axis}_dists_1.3" < 999)
 LM_3D_INTRESTING_FILTERS = {
     f"{INTERSTING_FILTERS_DIST_TO_CHECK}_{extra_filter_name}": f"({extra_filter})"
     for filters_names, filters in LM_3D_FILTERS.items()
