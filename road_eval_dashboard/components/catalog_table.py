@@ -102,7 +102,6 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
 
     nets = init_nets(rows, derived_virtual_selected_rows)
     new_state = add_state(NETS_STATE_KEY, nets)
-
     (
         effective_samples_per_batch,
         md_columns_options,
@@ -156,6 +155,6 @@ def init_nets(rows, derived_virtual_selected_rows):
         rows["net"],
         rows["checkpoint"],
         rows["population"],
-        **{table: rows[table].tolist() for table in rows.columns if table.endswith("table") and any(rows[table])},
+        **{table: rows[table].tolist() for table in rows.columns if table.endswith("_table") and any(rows[table])},
     ).__dict__
     return nets

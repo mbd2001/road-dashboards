@@ -1,7 +1,7 @@
 from dash import dcc, html
 
 from road_dump_dashboard.components.components_ids import (
-    MD_TABLE,
+    POPULATION_TABLES,
     MD_COLUMNS_TO_TYPE,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_FILTERS,
@@ -12,7 +12,7 @@ from road_dump_dashboard.components.components_ids import (
 def init_dcc_stores():
     return html.Div(
         [
-            dcc.Store(id=MD_TABLE),
+            dcc.Store(id=POPULATION_TABLES, data=[]),
             dcc.Store(id=MD_COLUMNS_TO_TYPE),
             dcc.Store(id=MD_COLUMNS_OPTION),
             dcc.Store(id=MD_COLUMNS_TO_DISTINCT_VALUES),

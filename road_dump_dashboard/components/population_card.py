@@ -1,31 +1,33 @@
-from dash import html, callback, Input, Output
+from dash import html, dcc, Input, Output, callback
 
-from road_dump_dashboard.components.components_ids import POPULATION_STATE, MD_TABLE
+from road_dump_dashboard.components.components_ids import POPULATION_TABLES, POPULATION_DROPDOWN
 from road_dump_dashboard.components.layout_wrapper import card_wrapper
 
 
-# layout = card_wrapper([html.Div([html.H3("Population"), html.H1(id=POPULATION_STATE, style={"fontSize": "72px"})])])
-
-
-# @callback(
-#     Output(POPULATION_STATE, "children"),
-#     Input(MD_TABLE, "data"),
-# )
-# def get_obj_count(md_table):
-#     if not md_table:
-#         return "-"
-#
-#     return nets["population"]
-
-layout = card_wrapper([html.Div([html.H3("Population"), html.H1(id=POPULATION_STATE, style={"fontSize": "72px"})])])
+layout = card_wrapper(
+    [
+        html.Div(
+            [
+                html.H3("Population"),
+                dcc.Dropdown(
+                    id=POPULATION_DROPDOWN,
+                    style={"minWidth": "100%"},
+                    multi=False,
+                    placeholder="----",
+                    value="",
+                ),
+            ]
+        )
+    ]
+)
 
 
 @callback(
-    Output(POPULATION_STATE, "children"),
-    Input(MD_TABLE, "data"),
+    Output(POPULATION_DROPDOWN, "options"),
+    Input(POPULATION_TABLES, "data"),
 )
-def get_obj_count(md_table):
-    if not md_table:
-        return "-"
-
-    return "Test"
+def init_population_options(population_tables):
+    if not population_tables:
+        return []
+    options = [{"label": key, "value": value} for key, value in population_tables.items()]
+    return options

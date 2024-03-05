@@ -1,5 +1,5 @@
 # stores
-MD_TABLE = "md_table"
+POPULATION_TABLES = "population_tables"
 MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"
 MD_COLUMNS_TO_DISTINCT_VALUES = "md_columns_to_distinct_values"
@@ -13,10 +13,10 @@ SIDEBAR = "sidebar"
 DUMP_CATALOG = "dump_catalog"
 UPDATE_RUNS_BTN = "update_runs_btn"
 LOAD_NETS_DATA_NOTIFICATION = "load_nets_data_notification"
+POPULATION_DROPDOWN = "population_dropdown"
 
 
 # counters
-POPULATION_STATE = "population_state"
 FRAME_COUNT = "frame_count"
 
 

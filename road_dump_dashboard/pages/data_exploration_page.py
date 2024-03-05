@@ -9,7 +9,7 @@ from road_dump_dashboard.components.common_filters import (
 )
 from road_dump_dashboard.components.components_ids import (
     MD_FILTERS,
-    MD_TABLE,
+    POPULATION_DROPDOWN,
     DYNAMIC_PIE_CHART,
     DYNAMIC_PIE_CHART_DROPDOWN,
     TVGT_PIE_CHART,
@@ -119,7 +119,7 @@ layout = html.Div(
 @callback(
     Output(COUNTRIES_HEAT_MAP, "figure"),
     Input(MD_FILTERS, "data"),
-    State(MD_TABLE, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
     background=True,
 )
 def get_countries_heat_map(meta_data_filters, md_table):
@@ -141,7 +141,7 @@ def get_countries_heat_map(meta_data_filters, md_table):
 @callback(
     Output(TVGT_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(MD_TABLE, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
     background=True,
 )
 def get_tvgt_pie_chart(meta_data_filters, md_table):
@@ -159,7 +159,7 @@ def get_tvgt_pie_chart(meta_data_filters, md_table):
 @callback(
     Output(GTEM_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(MD_TABLE, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
     background=True,
 )
 def get_gtem_pie_chart(meta_data_filters, md_table):
@@ -187,7 +187,7 @@ def init_pie_dropdown(md_columns_options):
     Input(DYNAMIC_PIE_CHART_DROPDOWN, "value"),
     Input(DYNAMIC_PIE_CHART_SLIDER, "value"),
     Input(MD_FILTERS, "data"),
-    State(MD_TABLE, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
     State(MD_COLUMNS_TO_TYPE, "data"),
     background=True,
 )
@@ -222,7 +222,7 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, md_t
 @callback(
     Output(ROAD_TYPE_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(MD_TABLE, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
     background=True,
 )
 def get_road_type_pie_chart(meta_data_filters, md_table):
@@ -246,7 +246,7 @@ def get_road_type_pie_chart(meta_data_filters, md_table):
 @callback(
     Output(LANE_MARK_COLOR_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(MD_TABLE, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
     background=True,
 )
 def get_lane_mark_color_pie_chart(meta_data_filters, md_table):

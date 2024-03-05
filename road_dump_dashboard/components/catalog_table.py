@@ -4,7 +4,7 @@ from dash import dash_table, html, Output, Input, State, no_update, callback
 
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 from road_dump_dashboard.components.components_ids import (
-    MD_TABLE,
+    POPULATION_TABLES,
     MD_COLUMNS_TO_TYPE,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     UPDATE_RUNS_BTN,
@@ -19,11 +19,11 @@ run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog")
 
 
 def generate_catalog_layout():
-    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop("batches", axis=1)
+    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop(["batches", "populations", "total_frames"], axis=1)
     catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(
         [
-            dbc.Row(html.H2("Net Catalog", className="mb-5")),
+            dbc.Row(html.H2("Dump Catalog", className="mb-5")),
             dbc.Row(
                 dash_table.DataTable(
                     id=DUMP_CATALOG,
@@ -70,7 +70,7 @@ def generate_catalog_layout():
 
 
 @callback(
-    Output(MD_TABLE, "data"),
+    Output(POPULATION_TABLES, "data"),
     Output(MD_COLUMNS_TO_TYPE, "data"),
     Output(MD_COLUMNS_OPTION, "data"),
     Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data"),
@@ -84,12 +84,19 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
         return no_update, no_update, no_update, no_update, no_update
 
-    md_table = rows[derived_virtual_selected_rows[0]]["meta_data_table"]
-    md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = generate_meta_data_dicts(md_table)
+    row = rows[derived_virtual_selected_rows[0]]
+    population_tables = {
+        get_population_name(table): row[table] for table in row.keys() if table.endswith("_table") and any(row[table])
+    }
 
-    notification = dbc.Alert("Nets data loaded successfully!", color="success", dismissable=True)
+    population_tables["All"] = f"(SELECT * FROM {'UNION SELECT * FROM'.join(population_tables.values())})"
+    md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = generate_meta_data_dicts(
+        population_tables["All"]
+    )
+
+    notification = dbc.Alert("Dump data loaded successfully!", color="success", dismissable=True)
     return (
-        md_table,
+        population_tables,
         md_columns_to_type,
         md_columns_options,
         md_columns_to_distinguish_values,
@@ -97,9 +104,13 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     )
 
 
-def generate_meta_data_dicts(md_table):
-    md_columns_to_type = get_meta_data_columns(md_table)
-    distinct_dict = get_distinct_values_dict(md_table, md_columns_to_type)
+def get_population_name(table_name):
+    return "Test" if "test" in table_name else "Train"
+
+
+def generate_meta_data_dicts(population_tables):
+    md_columns_to_type = get_meta_data_columns(population_tables)
+    distinct_dict = get_distinct_values_dict(population_tables, md_columns_to_type)
 
     md_columns_options = [{"label": col.replace("_", " ").title(), "value": col} for col in md_columns_to_type.keys()]
     md_columns_to_distinguish_values = {
@@ -117,7 +128,7 @@ def get_meta_data_columns(md_table):
     return md_columns_to_type
 
 
-def get_distinct_values_dict(md_table, md_columns_to_type):
+def get_distinct_values_dict(population_tables, md_columns_to_type):
     distinct_select = ",".join(
         [
             f' array_agg(DISTINCT "{col}") AS "{col}" '
@@ -125,7 +136,7 @@ def get_distinct_values_dict(md_table, md_columns_to_type):
             if md_columns_to_type[col] == "object"
         ]
     )
-    query = f"SELECT {distinct_select} FROM {md_table}"
+    query = f"SELECT {distinct_select} FROM {population_tables}"
     data, _ = query_athena(database="run_eval_db", query=query)
     distinct_dict = data.to_dict("list")
     return distinct_dict

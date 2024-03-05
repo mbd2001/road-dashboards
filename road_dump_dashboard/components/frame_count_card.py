@@ -1,6 +1,6 @@
-from dash import html, callback, Input, Output, State
+from dash import html, callback, Input, Output
 
-from road_dump_dashboard.components.components_ids import FRAME_COUNT, MD_FILTERS, MD_TABLE
+from road_dump_dashboard.components.components_ids import FRAME_COUNT, MD_FILTERS, POPULATION_DROPDOWN
 from road_dump_dashboard.components.layout_wrapper import loading_wrapper, card_wrapper
 from road_dump_dashboard.components.queries_manager import generate_count_query
 from road_dump_dashboard.graphs.big_number import human_format_int
@@ -14,7 +14,7 @@ layout = card_wrapper(
 @callback(
     Output(FRAME_COUNT, "children"),
     Input(MD_FILTERS, "data"),
-    State(MD_TABLE, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
     background=True,
 )
 def get_frame_count(meta_data_filters, md_table):
