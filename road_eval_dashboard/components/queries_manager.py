@@ -333,7 +333,7 @@ def generate_emdp_query(
     interesting_filters,
     meta_data_filters="",
     extra_filters="",
-    compare_operator="=",
+    compare_operator=">=",
 ):
     base_query = generate_base_query(
         data_tables,
