@@ -532,9 +532,9 @@ def get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_fil
         for extra_filter_name, extra_filter in intresting_filters.items():
             filter_name = f"{sec}_{extra_filter_name}" if extra_filter_name else f"{sec}"
             extra_filter_str = f"AND {extra_filter}" if extra_filter_name else ""
-            count_metrics[
-                filter_name
-            ] = f'"{base_dist_column_name}_{sec}" IS NOT NULL AND "{base_dist_column_name}_{sec}" {operator} {thresh} {extra_filter_str}'
+            count_metrics[filter_name] = (
+                f'"{base_dist_column_name}_{sec}" IS NOT NULL AND "{base_dist_column_name}_{sec}" {operator} {thresh} {extra_filter_str}'
+            )
     return count_metrics
 
 

@@ -165,16 +165,18 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
                         )
                     ]
                     if sort_by_dist
-                    else [])
-                + [html.Div(
+                    else []
+                )
+                + [
+                    html.Div(
                         [
                             dcc.Slider(
                                 id={
-                                "out": "sec_slider",
-                                "filter": filter_name,
-                                "emdp_type": EMDP_TYPE,
-                                "sort_by_dist": sort_by_dist,
-                            },
+                                    "out": "sec_slider",
+                                    "filter": filter_name,
+                                    "emdp_type": EMDP_TYPE,
+                                    "sort_by_dist": sort_by_dist,
+                                },
                                 min=0,
                                 max=5,
                                 step=0.5,
@@ -189,10 +191,12 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
                                     "emdp_type": EMDP_TYPE,
                                     "sort_by_dist": sort_by_dist,
                                 },
-                            placement="bottom")
+                                placement="bottom",
+                            ),
                         ],
                         style={"width": "80%", "text-align": "center"},
-                    ),],
+                    ),
+                ],
                 direction="horizontal",
                 gap=3,
             ),
@@ -276,7 +280,7 @@ def get_none_dist_graph(
         is_precision=is_precision,
         filter_name=filter_name,
         filter_none_monotonic=filter_none_monotonic and not is_precision,
-        sec_to_check=sec_to_check
+        sec_to_check=sec_to_check,
     )
     return fig, is_precision, is_precision
 
@@ -297,7 +301,15 @@ def get_none_dist_graph(
     background=True,
 )
 def get_dist_graph(
-    meta_data_filters, is_world, is_precision, filter_none_monotonic, sec_to_check, by_dist, nets, effective_samples, graph_id
+    meta_data_filters,
+    is_world,
+    is_precision,
+    filter_none_monotonic,
+    sec_to_check,
+    by_dist,
+    nets,
+    effective_samples,
+    graph_id,
 ):
     if not nets:
         return no_update, no_update, no_update
@@ -313,7 +325,7 @@ def get_dist_graph(
         is_precision=is_precision,
         filter_name=filter_name,
         filter_none_monotonic=filter_none_monotonic and not is_precision,
-        sec_to_check=sec_to_check
+        sec_to_check=sec_to_check,
     )
     return fig, is_precision, is_precision
 

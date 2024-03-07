@@ -24,12 +24,14 @@ def draw_path_net_graph(
                 y=[score_func(row, col) for col in cols],
                 name=row.net_id,
                 hovertext=["lane marks: " + f'{row[f"count_{col}"]}' for col in cols] if hover else None,
-                marker=dict(
-                    symbol=[choose_symbol(col, reds[row.net_id], greens[row.net_id]) for col in cols],
-                    size=10,
-                )
-                if effective_samples
-                else None,
+                marker=(
+                    dict(
+                        symbol=[choose_symbol(col, reds[row.net_id], greens[row.net_id]) for col in cols],
+                        size=10,
+                    )
+                    if effective_samples
+                    else None
+                ),
             )
         )
     fig.update_layout(
