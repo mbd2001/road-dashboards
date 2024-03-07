@@ -4,7 +4,7 @@ from dash import dash_table, html, Output, Input, State, no_update, callback
 
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 from road_dump_dashboard.components.components_ids import (
-    POPULATION_TABLES,
+    DUMPS,
     MD_COLUMNS_TO_TYPE,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     UPDATE_RUNS_BTN,
@@ -12,6 +12,7 @@ from road_dump_dashboard.components.components_ids import (
     MD_COLUMNS_OPTION,
     LOAD_NETS_DATA_NOTIFICATION,
 )
+from road_dump_dashboard.components.dump_properties import Dumps
 from road_dump_dashboard.components.layout_wrapper import loading_wrapper
 from road_database_toolkit.athena.athena_utils import query_athena
 
@@ -19,7 +20,8 @@ run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog")
 
 
 def generate_catalog_layout():
-    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop(["batches", "populations", "total_frames"], axis=1)
+    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop(["batches", "populations"], axis=1)
+    catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
     catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(
         [
@@ -29,17 +31,14 @@ def generate_catalog_layout():
                     id=DUMP_CATALOG,
                     columns=[
                         {"name": i, "id": i, "deletable": False, "selectable": True}
-                        for i in ["dump_name", "use_case", "user", "last_change"]
+                        for i in ["dump_name", "use_case", "user", "total_frames", "last_change"]
                     ],
                     data=catalog_data_dict,
                     filter_action="native",
                     sort_action="native",
                     sort_mode="multi",
-                    sort_by=[
-                        {"column_id": "user", "direction": "desc"},
-                        {"column_id": "last_change", "direction": "desc"},
-                    ],
-                    row_selectable="single",
+                    sort_by=[{"column_id": "last_change", "direction": "desc"}],
+                    row_selectable="multi",
                     selected_rows=[],
                     page_action="native",
                     page_current=0,
@@ -70,7 +69,7 @@ def generate_catalog_layout():
 
 
 @callback(
-    Output(POPULATION_TABLES, "data"),
+    Output(DUMPS, "data"),
     Output(MD_COLUMNS_TO_TYPE, "data"),
     Output(MD_COLUMNS_OPTION, "data"),
     Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data"),
@@ -84,19 +83,14 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
         return no_update, no_update, no_update, no_update, no_update
 
-    row = rows[derived_virtual_selected_rows[0]]
-    population_tables = {
-        get_population_name(table): row[table] for table in row.keys() if table.endswith("_table") and any(row[table])
-    }
-
-    population_tables["All"] = f"(SELECT * FROM {'UNION SELECT * FROM'.join(population_tables.values())})"
+    dumps = init_dumps(rows, derived_virtual_selected_rows)
     md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = generate_meta_data_dicts(
-        population_tables["All"]
+        dumps["all_tables"][0]
     )
 
     notification = dbc.Alert("Dump data loaded successfully!", color="success", dismissable=True)
     return (
-        population_tables,
+        dumps,
         md_columns_to_type,
         md_columns_options,
         md_columns_to_distinguish_values,
@@ -104,8 +98,13 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     )
 
 
-def get_population_name(table_name):
-    return "Test" if "test" in table_name else "Train"
+def init_dumps(rows, derived_virtual_selected_rows):
+    rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
+    dumps = Dumps(
+        rows["dump_name"],
+        **{table: rows[table].tolist() for table in rows.columns if table.endswith("_table") and any(rows[table])},
+    ).__dict__
+    return dumps
 
 
 def generate_meta_data_dicts(population_tables):

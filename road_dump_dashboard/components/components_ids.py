@@ -1,5 +1,5 @@
 # stores
-POPULATION_TABLES = "population_tables"
+DUMPS = "population_tables"
 MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"
 MD_COLUMNS_TO_DISTINCT_VALUES = "md_columns_to_distinct_values"
@@ -14,6 +14,7 @@ DUMP_CATALOG = "dump_catalog"
 UPDATE_RUNS_BTN = "update_runs_btn"
 LOAD_NETS_DATA_NOTIFICATION = "load_nets_data_notification"
 POPULATION_DROPDOWN = "population_dropdown"
+INTERSECTION_SWITCH = "intersection_switch"
 
 
 # counters
@@ -21,6 +22,7 @@ FRAME_COUNT = "frame_count"
 
 
 # data exploration page
+COUNTRIES_DROPDOWN = "countries_dropdown"
 COUNTRIES_HEAT_MAP = "countries_heat_map"
 
 TVGT_PIE_CHART = "tvgt_pie_chart"
