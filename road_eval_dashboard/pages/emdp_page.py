@@ -176,7 +176,7 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
                                 "sort_by_dist": sort_by_dist,
                             },
                                 min=0,
-                                max=10,
+                                max=5,
                                 step=0.5,
                                 value=1.5,
                             ),
@@ -418,7 +418,7 @@ def get_emdp_fig(
     filter_name,
 ):
     label = "is_matched" if is_precision else "Z_max_sec"
-    label = _get_emdp_col(label, is_world, filter_none_monotonic)
+    label = _get_emdp_col(label, not is_world, filter_none_monotonic)
     query = generate_emdp_query(
         nets["frame_tables"],
         nets["meta_data"],
