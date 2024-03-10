@@ -1,6 +1,5 @@
-import pandas as pd
 import dash_bootstrap_components as dbc
-from dash import html, register_page, dcc, callback, Output, Input, State, no_update
+from dash import html, register_page, dcc, callback, Output, Input, State, ALL, no_update
 
 from road_dump_dashboard.components import meta_data_filter, base_dataset_statistics
 from road_dump_dashboard.components.common_filters import (
@@ -163,11 +162,12 @@ def get_countries_heat_map(meta_data_filters, dumps, population, chosen_dump):
     query = generate_count_query(
         md_tables,
         False,
-        meta_data_filters=meta_data_filters,
+        meta_data_filters=meta_data_filters["filters_str"],
         extra_filters=f"dump_name = '{chosen_dump}'",
         group_by_column=group_by_column,
-        extra_columns=group_by_column,
+        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     data["normalized"] = normalize_countries_count_to_percentiles(data["overall"].to_numpy())
     data[group_by_column] = data[group_by_column].apply(normalize_countries_names)
@@ -195,9 +195,9 @@ def get_tvgt_pie_chart(meta_data_filters, dumps, population, intersection_on):
     query = generate_count_query(
         md_tables,
         intersection_on,
-        meta_data_filters=meta_data_filters,
+        meta_data_filters=meta_data_filters["filters_str"],
         group_by_column=group_by_column,
-        extra_columns=group_by_column,
+        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of TVGTs"
@@ -222,9 +222,9 @@ def get_gtem_pie_chart(meta_data_filters, dumps, population, intersection_on):
     query = generate_count_query(
         md_tables,
         intersection_on,
-        meta_data_filters=meta_data_filters,
+        meta_data_filters=meta_data_filters["filters_str"],
         group_by_column=group_by_column,
-        extra_columns=group_by_column,
+        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of GTEMs"
@@ -272,10 +272,12 @@ def get_dynamic_pie_chart(
     query = generate_count_query(
         md_tables,
         intersection_on,
-        meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignore_filter] if filter_str),
+        meta_data_filters=" AND ".join(
+            filter_str for filter_str in [meta_data_filters["filters_str"], ignore_filter] if filter_str
+        ),
         group_by_column=group_by_column,
         bins_factor=bins_factor,
-        extra_columns=group_by_column,
+        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {group_by_column.replace('mdbi_', '').replace('_', ' ').title()}"
@@ -304,9 +306,9 @@ def get_road_type_pie_chart(meta_data_filters, dumps, population, intersection_o
     query = generate_dynamic_count_query(
         md_tables,
         intersection_on,
-        meta_data_filters=meta_data_filters,
+        meta_data_filters=meta_data_filters["filters_str"],
         interesting_filters=interesting_filters["filters"],
-        extra_columns=interesting_filters["extra_columns"],
+        extra_columns=interesting_filters["extra_columns"] + meta_data_filters["md_columns"],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data = data.melt(id_vars=["dump_name"], var_name="filter", value_name="overall")
@@ -332,9 +334,9 @@ def get_lane_mark_color_pie_chart(meta_data_filters, dumps, population, intersec
     query = generate_dynamic_count_query(
         md_tables,
         intersection_on,
-        meta_data_filters=meta_data_filters,
+        meta_data_filters=meta_data_filters["filters_str"],
         interesting_filters=interesting_filters["filters"],
-        extra_columns=interesting_filters["extra_columns"],
+        extra_columns=interesting_filters["extra_columns"] + meta_data_filters["md_columns"],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data = data.melt(id_vars=["dump_name"], var_name="filter", value_name="overall")

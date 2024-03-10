@@ -47,7 +47,6 @@ def generate_catalog_layout():
                     sort_action="native",
                     sort_mode="multi",
                     sort_by=[
-                        {"column_id": "user", "direction": "asc"},
                         {"column_id": "last_change", "direction": "desc"},
                     ],
                     row_selectable="multi",

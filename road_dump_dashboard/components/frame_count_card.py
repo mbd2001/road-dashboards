@@ -15,7 +15,6 @@ from road_database_toolkit.athena.athena_utils import query_athena
 layout = card_wrapper([html.Div([html.H3("Num Frames"), loading_wrapper([html.H3(id=FRAME_COUNT)])])])
 
 
-# TODO: Support multiple nets
 @callback(
     Output(FRAME_COUNT, "children"),
     Input(MD_FILTERS, "data"),
@@ -29,7 +28,12 @@ def get_frame_count(meta_data_filters, dumps, population, intersection_on):
         return 0
 
     md_tables = dumps["tables"][population]
-    query = generate_count_query(md_tables, intersection_on, meta_data_filters=meta_data_filters)
+    query = generate_count_query(
+        md_tables,
+        intersection_on,
+        meta_data_filters=meta_data_filters["filters_str"],
+        extra_columns=meta_data_filters["md_columns"],
+    )
     data, _ = query_athena(database="run_eval_db", query=query)
     if intersection_on:
         frame_count_str = f"Intersection Count: {human_format_int(data.overall[0])}"

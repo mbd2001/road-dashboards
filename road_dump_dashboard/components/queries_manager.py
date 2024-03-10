@@ -95,8 +95,8 @@ def generate_base_query(
 
     base_data = generate_base_data(md_tables, extra_columns)
     intersect_filter = generate_intersect_filter(md_tables, intersection_on)
-    meta_data_filters = "AND " + meta_data_filters if meta_data_filters else ""
-    extra_filters = f"AND " + extra_filters if extra_filters else ""
+    meta_data_filters = f" AND ({meta_data_filters})" if meta_data_filters else ""
+    extra_filters = f" AND " + extra_filters if extra_filters else ""
     base_query = BASE_QUERY.format(
         base_data=base_data,
         intersect_filter=intersect_filter,
