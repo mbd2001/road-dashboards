@@ -27,7 +27,7 @@ def get_frame_count(meta_data_filters, dumps, population, intersection_on):
     if not population or not dumps:
         return 0
 
-    md_tables = dumps["tables"][population]
+    md_tables = dumps["tables"][population].values()
     query = generate_count_query(
         md_tables,
         intersection_on,

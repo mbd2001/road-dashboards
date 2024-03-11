@@ -34,3 +34,13 @@ DYNAMIC_PIE_CHART_SLIDER = "dynamic_pie_chart_slider"
 
 ROAD_TYPE_PIE_CHART = "road_type_pie_chart"
 LANE_MARK_COLOR_PIE_CHART = "lane_mark_color_pie_chart"
+
+
+# confusion matrices
+COMPARE_MATRICES = "compare_matrices"
+
+MAIN_NET_DROPDOWN = "main_net_dropdown"
+SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
+
+TVGT_CONF_MAT = "tvgt_conf_mat"
+GTEM_CONF_MAT = "gtem_conf_mat"

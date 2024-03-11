@@ -1,3 +1,12 @@
+JOIN_QUERY = """
+    SELECT main_val, secondary_val, COUNT(*) AS overall FROM
+    (SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val {extra_columns} 
+    FROM ({main_data}) A INNER JOIN ({secondary_data}) B
+    ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex))
+    WHERE TRUE {data_filters})
+    GROUP BY main_val, secondary_val
+    """
+
 BASE_QUERY = """
     SELECT * FROM
     (SELECT * FROM
@@ -27,6 +36,24 @@ COUNT_ALL_METRIC = """
     COUNT(*) 
     AS {count_name}
     """
+
+
+def generate_conf_mat_query(
+    main_table,
+    secondary_table,
+    column_to_compare,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=None,
+):
+    query = JOIN_QUERY.format(
+        main_data=main_table,
+        secondary_data=secondary_table,
+        column_to_compare=column_to_compare,
+        data_filters=generate_data_filters(meta_data_filters, extra_filters),
+        extra_columns=", " + ", ".join([f"A.{col} as {col}" for col in extra_columns]) if extra_columns else "",
+    )
+    return query
 
 
 def generate_count_query(
@@ -90,17 +117,18 @@ def generate_base_query(
     if extra_columns is None:
         extra_columns = []
 
-    if not isinstance(extra_columns, list):
+    if isinstance(extra_columns, str):
         extra_columns = [extra_columns]
+
+    if isinstance(md_tables, str):
+        md_tables = [md_tables]
 
     base_data = generate_base_data(md_tables, extra_columns)
     intersect_filter = generate_intersect_filter(md_tables, intersection_on)
-    meta_data_filters = f" AND ({meta_data_filters})" if meta_data_filters else ""
-    extra_filters = f" AND " + extra_filters if extra_filters else ""
     base_query = BASE_QUERY.format(
         base_data=base_data,
         intersect_filter=intersect_filter,
-        data_filters=meta_data_filters + extra_filters,
+        data_filters=generate_data_filters(meta_data_filters, extra_filters),
     )
     return base_query
 
@@ -120,3 +148,9 @@ def generate_intersect_filter(md_tables, intersection_on):
         md_table for md_table in md_tables if md_table
     )
     return f"WHERE (clip_name, grabIndex) IN ({intersect_select})"
+
+
+def generate_data_filters(meta_data_filters, extra_filters):
+    meta_data_filters = f" AND ({meta_data_filters})" if meta_data_filters else ""
+    extra_filters = f" AND " + extra_filters if extra_filters else ""
+    return meta_data_filters + extra_filters

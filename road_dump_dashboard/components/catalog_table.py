@@ -85,7 +85,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
 
     dumps = init_dumps(rows, derived_virtual_selected_rows)
     md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = generate_meta_data_dicts(
-        dumps["all_tables"][0]
+        list(dumps["all_tables"].values())[0]
     )
 
     notification = dbc.Alert("Dump data loaded successfully!", color="success", dismissable=True)
