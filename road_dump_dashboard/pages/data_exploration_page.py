@@ -174,8 +174,8 @@ def init_matrices_layout(dumps):
                 ),
                 dbc.Row(
                     [
-                        loading_wrapper([dcc.Graph(id=TVGT_CONF_MAT, config={"displayModeBar": False})]),
-                        loading_wrapper([dcc.Graph(id=GTEM_CONF_MAT, config={"displayModeBar": False})]),
+                        dbc.Col(loading_wrapper([dcc.Graph(id=TVGT_CONF_MAT, config={"displayModeBar": False})])),
+                        dbc.Col(loading_wrapper([dcc.Graph(id=GTEM_CONF_MAT, config={"displayModeBar": False})])),
                     ]
                 ),
             ]
