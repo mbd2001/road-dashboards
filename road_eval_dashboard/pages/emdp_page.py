@@ -429,13 +429,15 @@ def get_emdp_fig(
     sec_to_check,
     filter_name,
 ):
+    PRECISION_MATCHED = 1
     label = "is_matched" if is_precision else "Z_max_sec"
     label = _get_emdp_col(label, not is_world, filter_none_monotonic)
+    pred = PRECISION_MATCHED if is_precision else sec_to_check
     query = generate_emdp_query(
         nets["frame_tables"],
         nets["meta_data"],
         label,
-        sec_to_check,
+        pred,
         interesting_filters,
         meta_data_filters=meta_data_filters,
         extra_filters=f"{label} != -1",
