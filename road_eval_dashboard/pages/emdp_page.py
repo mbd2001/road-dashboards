@@ -446,6 +446,7 @@ def get_emdp_fig(
     world_str = "World" if is_world else "Image"
     precision_str = "Precision" if is_precision else "Availability"
     filter_name_to_display = filter_name.replace("_", " ").capitalize()
+    data = data.sort_values(by='net_id')
     fig = draw_meta_data_filters(
         data,
         list(interesting_filters.keys()),
