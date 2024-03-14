@@ -7,30 +7,21 @@ class Dumps:
     def __init__(self, dump_names, **kwargs):
         self.names = dump_names
 
-        test_tables = kwargs.get("test_table", [])
-        self.test_tables = dict(zip_longest(dump_names, test_tables))
+        meta_data_tables = kwargs.get("meta_data_table", [])
+        self.meta_data_tables = dict(zip_longest(dump_names, meta_data_tables))
 
-        train_tables = kwargs.get("train_table", [])
-        self.train_tables = dict(zip_longest(dump_names, train_tables))
+        lm_meta_data_tables = kwargs.get("lm_meta_data_table", [])
+        self.lm_meta_data_tables = dict(zip_longest(dump_names, lm_meta_data_tables))
 
-        given_all_tables = kwargs.get("all_table", [])
-        self.all_tables = self.compute_all_tables(test_tables, train_tables, given_all_tables, dump_names)
+        re_meta_data_tables = kwargs.get("re_meta_data_table", [])
+        self.re_meta_data_tables = dict(zip_longest(dump_names, re_meta_data_tables))
+
+        pw_meta_data_tables = kwargs.get("pw_meta_data_table", [])
+        self.pw_meta_data_tables = dict(zip_longest(dump_names, pw_meta_data_tables))
 
         self.tables = {
-            "all": self.all_tables,
-            "test": self.test_tables,
-            "train": self.train_tables,
+            "meta_data": self.meta_data_tables,
+            "lm_meta_data": self.lm_meta_data_tables,
+            "re_meta_data": self.re_meta_data_tables,
+            "pw_meta_data": self.pw_meta_data_tables,
         }
-
-    @staticmethod
-    def compute_all_tables(test_tables, train_tables, given_all_tables, dump_names):
-        nominated_all_tables = [
-            f"(SELECT * FROM {' UNION SELECT * FROM '.join([table for table in [test_table, train_table] if table])})"
-            for test_table, train_table in zip_longest(test_tables, train_tables)
-        ]
-
-        all_tables = [
-            given_all_table or nominated_all_table
-            for given_all_table, nominated_all_table in zip_longest(given_all_tables, nominated_all_tables)
-        ]
-        return dict(zip(dump_names, all_tables))

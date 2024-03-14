@@ -226,12 +226,13 @@ def get_tvgt_conf_mat(meta_data_filters, dumps, population, main_dump, secondary
     if not population or not dumps or not main_dump or not secondary_dump:
         return no_update
 
-    main_data = dumps["tables"][population][main_dump]
-    secondary_data = dumps["tables"][population][secondary_dump]
+    main_data = dumps["tables"]["meta_data"][main_dump]
+    secondary_data = dumps["tables"]["meta_data"][secondary_dump]
     column_to_compare = "is_tv_perfect"
     query = generate_conf_mat_query(
         main_data,
         secondary_data,
+        population,
         column_to_compare,
         meta_data_filters=meta_data_filters["filters_str"],
         extra_columns=meta_data_filters["md_columns"],
@@ -254,12 +255,13 @@ def get_gtem_conf_mat(meta_data_filters, dumps, population, main_dump, secondary
     if not population or not dumps or not main_dump or not secondary_dump:
         return no_update
 
-    main_data = dumps["tables"][population][main_dump]
-    secondary_data = dumps["tables"][population][secondary_dump]
+    main_data = dumps["tables"]["meta_data"][main_dump]
+    secondary_data = dumps["tables"]["meta_data"][secondary_dump]
     column_to_compare = "gtem_labels_exist"
     query = generate_conf_mat_query(
         main_data,
         secondary_data,
+        population,
         column_to_compare,
         meta_data_filters=meta_data_filters["filters_str"],
         extra_columns=meta_data_filters["md_columns"],
@@ -295,10 +297,11 @@ def get_countries_heat_map(meta_data_filters, dumps, population, chosen_dump):
     if not population or not dumps or not chosen_dump:
         return no_update
 
-    md_table = dumps["tables"][population][chosen_dump]
+    md_table = dumps["tables"]["meta_data"][chosen_dump]
     group_by_column = "mdbi_country"
     query = generate_count_query(
         md_table,
+        population,
         False,
         meta_data_filters=meta_data_filters["filters_str"],
         group_by_column=group_by_column,
@@ -326,10 +329,11 @@ def get_tvgt_pie_chart(meta_data_filters, dumps, population, intersection_on):
     if not population or not dumps:
         return no_update
 
-    md_tables = dumps["tables"][population].values()
+    md_tables = dumps["tables"]["meta_data"].values()
     group_by_column = "is_tv_perfect"
     query = generate_count_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=meta_data_filters["filters_str"],
         group_by_column=group_by_column,
@@ -353,10 +357,11 @@ def get_gtem_pie_chart(meta_data_filters, dumps, population, intersection_on):
     if not population or not dumps:
         return no_update
 
-    md_tables = dumps["tables"][population].values()
+    md_tables = dumps["tables"]["meta_data"].values()
     group_by_column = "gtem_labels_exist"
     query = generate_count_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=meta_data_filters["filters_str"],
         group_by_column=group_by_column,
@@ -396,7 +401,7 @@ def get_dynamic_pie_chart(
     if not population or not dumps or not group_by_column:
         return no_update
 
-    md_tables = dumps["tables"][population].values()
+    md_tables = dumps["tables"]["meta_data"].values()
     column_type = meta_data_dict[group_by_column]
     bins_factor = None
     ignore_filter = ""
@@ -407,6 +412,7 @@ def get_dynamic_pie_chart(
 
     query = generate_count_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=" AND ".join(
             filter_str for filter_str in [meta_data_filters["filters_str"], ignore_filter] if filter_str
@@ -437,10 +443,11 @@ def get_road_type_pie_chart(meta_data_filters, dumps, population, intersection_o
     if not population or not dumps:
         return no_update
 
-    md_tables = dumps["tables"][population].values()
+    md_tables = dumps["tables"]["meta_data"].values()
     interesting_filters = ROAD_TYPE_FILTERS
     query = generate_dynamic_count_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=meta_data_filters["filters_str"],
         interesting_filters=interesting_filters["filters"],
@@ -465,10 +472,11 @@ def get_lane_mark_color_pie_chart(meta_data_filters, dumps, population, intersec
     if not population or not dumps:
         return no_update
 
-    md_tables = dumps["tables"][population].values()
+    md_tables = dumps["tables"]["meta_data"].values()
     interesting_filters = LANE_MARK_COLOR_FILTERS
     query = generate_dynamic_count_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=meta_data_filters["filters_str"],
         interesting_filters=interesting_filters["filters"],

@@ -27,9 +27,10 @@ def get_frame_count(meta_data_filters, dumps, population, intersection_on):
     if not population or not dumps:
         return 0
 
-    md_tables = dumps["tables"][population].values()
+    md_tables = dumps["tables"]["meta_data"].values()
     query = generate_count_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=meta_data_filters["filters_str"],
         extra_columns=meta_data_filters["md_columns"],
@@ -37,6 +38,8 @@ def get_frame_count(meta_data_filters, dumps, population, intersection_on):
     data, _ = query_athena(database="run_eval_db", query=query)
     if intersection_on:
         frame_count_str = f"Intersection Count: {human_format_int(data.overall[0])}"
+    elif len(dumps["names"]) == 1:
+        frame_count_str = human_format_int(data.overall[0])
     else:
         frame_count_str = "\n".join(
             [

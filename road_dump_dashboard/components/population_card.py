@@ -32,5 +32,6 @@ def init_population_options(dumps):
     if not dumps:
         return no_update, no_update, no_update
 
-    options = [{"label": key.title(), "value": key} for key, value in dumps["tables"].items() if value]
-    return options, options[0]["label"], options[0]["value"]
+    populations = ["test", "train", "all"]
+    options = [{"label": population.title(), "value": population} for population in populations]
+    return options, "All", "all"

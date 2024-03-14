@@ -41,23 +41,27 @@ COUNT_ALL_METRIC = """
 def generate_conf_mat_query(
     main_table,
     secondary_table,
+    population,
     column_to_compare,
     meta_data_filters="",
     extra_filters="",
     extra_columns=None,
 ):
+    data_filters = (generate_data_filters(meta_data_filters, extra_filters, population),)
+    extra_columns = ", " + ", ".join([f"A.{col} as {col}" for col in extra_columns]) if extra_columns else ""
     query = JOIN_QUERY.format(
         main_data=main_table,
         secondary_data=secondary_table,
         column_to_compare=column_to_compare,
-        data_filters=generate_data_filters(meta_data_filters, extra_filters),
-        extra_columns=", " + ", ".join([f"A.{col} as {col}" for col in extra_columns]) if extra_columns else "",
+        data_filters=data_filters,
+        extra_columns=extra_columns,
     )
     return query
 
 
 def generate_count_query(
     md_tables,
+    population,
     intersection_on,
     group_by_column="",
     meta_data_filters="",
@@ -67,6 +71,7 @@ def generate_count_query(
 ):
     base_query = generate_base_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
@@ -86,6 +91,7 @@ def generate_count_query(
 
 def generate_dynamic_count_query(
     md_tables,
+    population,
     intersection_on,
     interesting_filters,
     meta_data_filters="",
@@ -98,6 +104,7 @@ def generate_dynamic_count_query(
     )
     base_query = generate_base_query(
         md_tables,
+        population,
         intersection_on,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
@@ -109,6 +116,7 @@ def generate_dynamic_count_query(
 
 def generate_base_query(
     md_tables,
+    population,
     intersection_on,
     meta_data_filters="",
     extra_filters="",
@@ -125,10 +133,11 @@ def generate_base_query(
 
     base_data = generate_base_data(md_tables, extra_columns)
     intersect_filter = generate_intersect_filter(md_tables, intersection_on)
+    data_filter = generate_data_filters(meta_data_filters, extra_filters, population)
     base_query = BASE_QUERY.format(
         base_data=base_data,
         intersect_filter=intersect_filter,
-        data_filters=generate_data_filters(meta_data_filters, extra_filters),
+        data_filters=data_filter,
     )
     return base_query
 
@@ -150,7 +159,8 @@ def generate_intersect_filter(md_tables, intersection_on):
     return f"WHERE (clip_name, grabIndex) IN ({intersect_select})"
 
 
-def generate_data_filters(meta_data_filters, extra_filters):
-    meta_data_filters = f" AND ({meta_data_filters})" if meta_data_filters else ""
-    extra_filters = f" AND " + extra_filters if extra_filters else ""
-    return meta_data_filters + extra_filters
+def generate_data_filters(meta_data_filters, extra_filters, population):
+    meta_data_filters = f" AND ({meta_data_filters}) " if meta_data_filters else ""
+    extra_filters = f" AND ({extra_filters}) " if extra_filters else ""
+    population_filter = f" AND (population = {population}) " if population != "all" else ""
+    return meta_data_filters + extra_filters + population_filter

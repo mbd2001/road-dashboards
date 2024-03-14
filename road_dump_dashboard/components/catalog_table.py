@@ -85,7 +85,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
 
     dumps = init_dumps(rows, derived_virtual_selected_rows)
     md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = generate_meta_data_dicts(
-        list(dumps["all_tables"].values())[0]
+        list(dumps["meta_data_tables"].values())[0]
     )
 
     notification = dbc.Alert("Dump data loaded successfully!", color="success", dismissable=True)
@@ -107,9 +107,9 @@ def init_dumps(rows, derived_virtual_selected_rows):
     return dumps
 
 
-def generate_meta_data_dicts(population_tables):
-    md_columns_to_type = get_meta_data_columns(population_tables)
-    distinct_dict = get_distinct_values_dict(population_tables, md_columns_to_type)
+def generate_meta_data_dicts(md_table):
+    md_columns_to_type = get_meta_data_columns(md_table)
+    distinct_dict = get_distinct_values_dict(md_table, md_columns_to_type)
 
     md_columns_options = [{"label": col.replace("_", " ").title(), "value": col} for col in md_columns_to_type.keys()]
     md_columns_to_distinguish_values = {
