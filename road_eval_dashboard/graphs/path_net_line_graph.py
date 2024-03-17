@@ -10,7 +10,7 @@ def draw_path_net_graph(
     role="non-host",
     hover=False,
     effective_samples={},
-    score_func=lambda row, filter: row[f"score_{filter}"],
+    score_func=lambda row, score_filter: row[f"score_{score_filter}"],
 ):
     fig = go.Figure()
     if effective_samples:

@@ -114,11 +114,11 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, Z_source, nets):
     background=True,
     prevent_initial_call=True,
 )
-def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, Z_source, nets, id, effective_samples):
+def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, Z_source, nets, graph_id, effective_samples):
     if not nets:
         return no_update
 
-    extra_filter = id["extra_filter"]
+    extra_filter = graph_id["extra_filter"]
     intresting_filter = LM_3D_FILTERS[extra_filter] if extra_filter else None
     if intresting_filter is None:
         effective_samples = {}
