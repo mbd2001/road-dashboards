@@ -24,7 +24,7 @@ def draw_confusion_matrix(conf_matrix, normalize_mat, x_label="", y_label="", ti
         data=[
             {
                 "customdata": conf_matrix,
-                "hovertemplate": "label: %{y}<br>pred: %{x}<br>percentage: %{z}<br>lane marks: %{customdata}",
+                "hovertemplate": "label: %{y}<br>pred: %{x}<br>percentage: %{z}<br>frames: %{customdata}",
             }
         ],
         layout_coloraxis_showscale=False,

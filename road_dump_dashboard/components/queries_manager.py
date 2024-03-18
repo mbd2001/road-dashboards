@@ -47,7 +47,7 @@ def generate_conf_mat_query(
     extra_filters="",
     extra_columns=None,
 ):
-    data_filters = (generate_data_filters(meta_data_filters, extra_filters, population),)
+    data_filters = generate_data_filters(meta_data_filters, extra_filters, population)
     extra_columns = ", " + ", ".join([f"A.{col} as {col}" for col in extra_columns]) if extra_columns else ""
     query = JOIN_QUERY.format(
         main_data=main_table,

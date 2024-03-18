@@ -44,3 +44,13 @@ SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
 
 TVGT_CONF_MAT = "tvgt_conf_mat"
 GTEM_CONF_MAT = "gtem_conf_mat"
+
+
+# lane mark page
+LM_ROLE_PIE_CHART = "lm_role_pie_chart"
+LM_COLOR_PIE_CHART = "lm_color_pie_chart"
+LM_TYPE_PIE_CHART = "lm_type_pie_chart"
+
+LM_DYNAMIC_PIE_CHART_DROPDOWN = "lm_dynamic_pie_chart_drop_down"
+LM_DYNAMIC_PIE_CHART = "lm_dynamic_pie_chart"
+LM_DYNAMIC_PIE_CHART_SLIDER = "lm_dynamic_pie_chart_slider"

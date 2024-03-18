@@ -121,7 +121,7 @@ def generate_meta_data_dicts(md_table):
 
 
 def get_meta_data_columns(md_table):
-    query = f"SELECT * FROM {md_table} LIMIT 1"
+    query = f"SELECT * FROM {md_table} LIMIT 1"  # TODO: use all table types in order to get all possible columns
     data, _ = query_athena(database="run_eval_db", query=query)
     md_columns_to_type = dict(data.dtypes.apply(lambda x: x.name))
     return md_columns_to_type

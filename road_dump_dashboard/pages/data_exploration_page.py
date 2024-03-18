@@ -266,6 +266,7 @@ def get_gtem_conf_mat(meta_data_filters, dumps, population, main_dump, secondary
         meta_data_filters=meta_data_filters["filters_str"],
         extra_columns=meta_data_filters["md_columns"],
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     fig = get_confusion_matrix(data, x_label=secondary_dump, y_label=main_dump, title="GTEM Confusion Matrix")
     return fig
