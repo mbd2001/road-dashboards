@@ -384,7 +384,7 @@ def generate_path_net_query(
     operator = "<" if state == "accuracy" else ">"
     distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
     query = get_dist_query(
-        "dist", data_tables, distances_dict, extra_filters, meta_data, meta_data_filters, operator, role
+        "dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role
     )
     return query
 
@@ -477,6 +477,7 @@ def generate_lm_3d_query(
         meta_data_filters,
         operator,
         role,
+        base_extra_filters="confidence > 0 AND match <> -1",
         is_add_filters_count=True,
         intresting_filters=intresting_filters,
     )
@@ -491,6 +492,7 @@ def get_dist_query(
     meta_data_filters,
     operator,
     role,
+    base_extra_filters="",
     is_add_filters_count=False,
     intresting_filters=None,
 ):
@@ -511,7 +513,7 @@ def get_dist_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
-        extra_filters="confidence > 0 AND match <> -1",
+        extra_filters=base_extra_filters,
         role=role,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
