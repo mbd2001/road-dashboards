@@ -1,6 +1,6 @@
 import dash_daq as daq
 import dash_bootstrap_components as dbc
-from dash import html, dcc, MATCH, no_update, State, Input, Output, callback_context, callback, Patch, ALL
+from dash import html, dcc, MATCH, no_update, State, Input, Output, callback_context, callback, Patch
 
 from road_dump_dashboard.components.components_ids import (
     MD_COLUMNS_TO_DISTINCT_VALUES,
@@ -320,16 +320,14 @@ def update_meta_data_values_options(operation, index, col, distinct_values_dict,
     Output(MD_FILTERS, "data"),
     Input("update_filters_btn", "n_clicks"),
     State("filters", "children"),
-    State({"type": "meta_data_columns", "index": ALL}, "value"),
 )
-def generate_meta_data_filters_string(n_clicks, filters, md_columns):
+def generate_meta_data_filters_string(n_clicks, filters):
     if not filters:
-        return {"md_columns": [], "filters_str": ""}
+        return ""
 
     first_group = filters[0]
     filters_str = recursive_build_meta_data_filters(first_group)
-    md_filters = {"md_columns": [col for col in md_columns if col], "filters_str": filters_str}
-    return md_filters
+    return filters_str
 
 
 def recursive_build_meta_data_filters(filters):

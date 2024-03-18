@@ -32,8 +32,7 @@ def get_frame_count(meta_data_filters, dumps, population, intersection_on):
         md_tables,
         population,
         intersection_on,
-        meta_data_filters=meta_data_filters["filters_str"],
-        extra_columns=meta_data_filters["md_columns"],
+        meta_data_filters=meta_data_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     if intersection_on:

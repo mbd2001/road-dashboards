@@ -5,14 +5,13 @@ JOIN_QUERY = """
     ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex))
     WHERE TRUE {data_filters})
     GROUP BY main_val, secondary_val
-    """
+    """  # TODO: fix according to new tables
 
 BASE_QUERY = """
     SELECT * FROM
     (SELECT * FROM
     ({base_data})
     {intersect_filter})
-    WHERE TRUE {data_filters}
     """
 
 COUNT_QUERY = """
@@ -131,21 +130,21 @@ def generate_base_query(
     if isinstance(md_tables, str):
         md_tables = [md_tables]
 
-    base_data = generate_base_data(md_tables, extra_columns)
-    intersect_filter = generate_intersect_filter(md_tables, intersection_on)
     data_filter = generate_data_filters(meta_data_filters, extra_filters, population)
+    base_data = generate_base_data(md_tables, extra_columns, data_filter)
+    intersect_filter = generate_intersect_filter(md_tables, intersection_on)
     base_query = BASE_QUERY.format(
         base_data=base_data,
         intersect_filter=intersect_filter,
-        data_filters=data_filter,
     )
     return base_query
 
 
-def generate_base_data(md_tables, extra_columns):
+def generate_base_data(md_tables, extra_columns, data_filter):
     base_columns = ["dump_name", "clip_name", "grabIndex"]
     data_columns = ", ".join(base_columns + extra_columns)
-    union_str = f" UNION ALL SELECT {data_columns} FROM ".join(md_table for md_table in md_tables if md_table)
+    data_tables = [f"({md_table} {data_filter})" for md_table in md_tables if md_table]
+    union_str = f" UNION ALL SELECT {data_columns} FROM ".join(data_tables)
     return f"SELECT {data_columns} FROM {union_str}"
 
 

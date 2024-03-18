@@ -110,9 +110,9 @@ def get_lm_role_pie_chart(meta_data_filters, dumps, population, intersection_on)
         md_tables,
         population,
         intersection_on,
-        meta_data_filters=meta_data_filters["filters_str"],
+        meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
+        extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ROLE_IGNORE' AND {group_by_column} != 'IRRELEVANT' ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -139,9 +139,9 @@ def get_lm_color_pie_chart(meta_data_filters, dumps, population, intersection_on
         md_tables,
         population,
         intersection_on,
-        meta_data_filters=meta_data_filters["filters_str"],
+        meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
+        extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ignore' ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -168,9 +168,9 @@ def get_lm_type_pie_chart(meta_data_filters, dumps, population, intersection_on)
         md_tables,
         population,
         intersection_on,
-        meta_data_filters=meta_data_filters["filters_str"],
+        meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
+        extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ignore' ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -220,12 +220,10 @@ def get_dynamic_pie_chart(
         md_tables,
         population,
         intersection_on,
-        meta_data_filters=" AND ".join(
-            filter_str for filter_str in [meta_data_filters["filters_str"], ignore_filter] if filter_str
-        ),
+        meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignore_filter] if filter_str),
         group_by_column=group_by_column,
         bins_factor=bins_factor,
-        extra_columns=[group_by_column] + meta_data_filters["md_columns"],
+        extra_columns=[group_by_column],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {group_by_column.replace('mdbi_', '').replace('_', ' ').title()}"
