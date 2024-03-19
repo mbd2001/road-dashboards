@@ -1,3 +1,4 @@
+import re
 import pandas as pd
 import dash_bootstrap_components as dbc
 from dash import dash_table, html, Output, Input, State, no_update, callback
@@ -109,11 +110,13 @@ def init_dumps(rows, derived_virtual_selected_rows):
 
 def generate_meta_data_dicts(md_table):
     md_columns_to_type = get_meta_data_columns(md_table)
+    md_columns_options = [{"label": col.replace("_", " ").title(), "value": col} for col in md_columns_to_type.keys()]
+
     distinct_dict = get_distinct_values_dict(md_table, md_columns_to_type)
 
-    md_columns_options = [{"label": col.replace("_", " ").title(), "value": col} for col in md_columns_to_type.keys()]
+    DISTINCT_LIMIT = 50
     md_columns_to_distinguish_values = {
-        col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")]
+        col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")[:DISTINCT_LIMIT]]
         for col, val_list in distinct_dict.items()
     }
 
@@ -121,13 +124,16 @@ def generate_meta_data_dicts(md_table):
 
 
 def get_meta_data_columns(md_table):
-    query = f"SELECT * FROM {md_table} LIMIT 1"  # TODO: use all table types in order to get all possible columns
+    query = f"SELECT * FROM ({md_table}) LIMIT 1"
     data, _ = query_athena(database="run_eval_db", query=query)
+    sub_columns = list(col for col in data.columns if re.search(r'_\d+$', col))
+    uninteresting_columns = ['s3_path', 'pred_name', 'dump_name', 'population']
+    data = data.drop(uninteresting_columns + sub_columns, axis=1, errors='ignore')
     md_columns_to_type = dict(data.dtypes.apply(lambda x: x.name))
     return md_columns_to_type
 
 
-def get_distinct_values_dict(population_tables, md_columns_to_type):
+def get_distinct_values_dict(md_table, md_columns_to_type):
     distinct_select = ",".join(
         [
             f' array_agg(DISTINCT "{col}") AS "{col}" '
@@ -135,7 +141,7 @@ def get_distinct_values_dict(population_tables, md_columns_to_type):
             if md_columns_to_type[col] == "object"
         ]
     )
-    query = f"SELECT {distinct_select} FROM {population_tables}"
+    query = f"SELECT {distinct_select} FROM ({md_table})"
     data, _ = query_athena(database="run_eval_db", query=query)
     distinct_dict = data.to_dict("list")
     return distinct_dict

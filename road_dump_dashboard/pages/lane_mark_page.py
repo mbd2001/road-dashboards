@@ -26,7 +26,7 @@ from road_database_toolkit.athena.athena_utils import query_athena
 from road_dump_dashboard.graphs.pie_or_line_wrapper import pie_or_line_wrapper
 
 extra_properties = PageProperties("search")
-register_page(__name__, path="/lane_mark", name="Lane Mark", order=1, **extra_properties.__dict__)
+register_page(__name__, path="/lane_mark", name="Lane Mark", order=2, **extra_properties.__dict__)
 
 
 def exponent_transform(value, base=10):

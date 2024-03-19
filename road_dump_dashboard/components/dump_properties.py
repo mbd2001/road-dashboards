@@ -20,6 +20,7 @@ class Dumps:
         self.pw_meta_data_tables = self.generate_data_tables(dump_names, pw_meta_data_tables, general_md_tables)
 
         self.meta_data_tables = self.parse_general_meta_data_table(general_md_tables)
+
         self.tables = {
             "meta_data": self.meta_data_tables,
             "lm_meta_data": self.lm_meta_data_tables,

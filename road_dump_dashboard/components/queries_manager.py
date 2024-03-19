@@ -53,7 +53,7 @@ def generate_conf_mat_query(
 
     data_filters = generate_data_filters(meta_data_filters, extra_filters, population)
     main_data = generate_base_data(main_table, data_filters, extra_columns)
-    secondary_data = generate_base_data(secondary_table, data_filters, extra_columns)
+    secondary_data = generate_base_data(secondary_table, data_filters, extra_columns)  # TODO: consider remove filters from secondary_data
     query = JOIN_QUERY.format(
         main_data=main_data,
         secondary_data=secondary_data,
