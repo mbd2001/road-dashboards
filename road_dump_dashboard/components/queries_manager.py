@@ -1,11 +1,10 @@
 JOIN_QUERY = """
     SELECT main_val, secondary_val, COUNT(*) AS overall FROM
-    (SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val {extra_columns} 
+    (SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val
     FROM ({main_data}) A INNER JOIN ({secondary_data}) B
-    ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex))
-    WHERE TRUE {data_filters})
+    ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex)))
     GROUP BY main_val, secondary_val
-    """  # TODO: fix according to new tables
+    """
 
 BASE_QUERY = """
     SELECT * FROM
@@ -46,14 +45,20 @@ def generate_conf_mat_query(
     extra_filters="",
     extra_columns=None,
 ):
+    if isinstance(main_table, str):
+        main_table = [main_table]
+
+    if isinstance(secondary_table, str):
+        secondary_table = [secondary_table]
+
     data_filters = generate_data_filters(meta_data_filters, extra_filters, population)
-    extra_columns = ", " + ", ".join([f"A.{col} as {col}" for col in extra_columns]) if extra_columns else ""
+    main_data = generate_base_data(main_table, data_filters, extra_columns)
+    secondary_data = generate_base_data(secondary_table, data_filters, extra_columns)
     query = JOIN_QUERY.format(
-        main_data=main_table,
-        secondary_data=secondary_table,
+        main_data=main_data,
+        secondary_data=secondary_data,
         column_to_compare=column_to_compare,
         data_filters=data_filters,
-        extra_columns=extra_columns,
     )
     return query
 
@@ -121,9 +126,6 @@ def generate_base_query(
     extra_filters="",
     extra_columns=None,
 ):
-    if extra_columns is None:
-        extra_columns = []
-
     if isinstance(extra_columns, str):
         extra_columns = [extra_columns]
 
@@ -131,7 +133,7 @@ def generate_base_query(
         md_tables = [md_tables]
 
     data_filter = generate_data_filters(meta_data_filters, extra_filters, population)
-    base_data = generate_base_data(md_tables, extra_columns, data_filter)
+    base_data = generate_base_data(md_tables, data_filter, extra_columns)
     intersect_filter = generate_intersect_filter(md_tables, intersection_on)
     base_query = BASE_QUERY.format(
         base_data=base_data,
@@ -140,7 +142,10 @@ def generate_base_query(
     return base_query
 
 
-def generate_base_data(md_tables, extra_columns, data_filter):
+def generate_base_data(md_tables, data_filter, extra_columns=None):
+    if extra_columns is None:
+        extra_columns = []
+
     base_columns = ["dump_name", "clip_name", "grabIndex"]
     data_columns = ", ".join(base_columns + extra_columns)
     data_tables = [f"({md_table} {data_filter})" for md_table in md_tables if md_table]

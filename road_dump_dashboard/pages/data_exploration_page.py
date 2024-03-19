@@ -235,6 +235,7 @@ def get_tvgt_conf_mat(meta_data_filters, dumps, population, main_dump, secondary
         population,
         column_to_compare,
         meta_data_filters=meta_data_filters,
+        extra_columns=[column_to_compare],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     fig = get_confusion_matrix(data, x_label=secondary_dump, y_label=main_dump, title="TVGT Confusion Matrix")
@@ -263,8 +264,8 @@ def get_gtem_conf_mat(meta_data_filters, dumps, population, main_dump, secondary
         population,
         column_to_compare,
         meta_data_filters=meta_data_filters,
+        extra_columns=[column_to_compare],
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     fig = get_confusion_matrix(data, x_label=secondary_dump, y_label=main_dump, title="GTEM Confusion Matrix")
     return fig
