@@ -115,6 +115,7 @@ def get_lm_role_pie_chart(meta_data_filters, dumps, population, intersection_on)
         extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ROLE_IGNORE' AND {group_by_column} != 'IRRELEVANT' ",
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of Lane Marks Roles"
     fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)

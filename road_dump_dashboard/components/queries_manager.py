@@ -158,7 +158,7 @@ def generate_intersect_filter(md_tables, intersection_on):
         return ""
 
     intersect_select = "SELECT clip_name, grabIndex FROM " + " INTERSECT SELECT clip_name, grabIndex FROM ".join(
-        md_table for md_table in md_tables if md_table
+        f"({md_table})" for md_table in md_tables if md_table
     )
     return f"WHERE (clip_name, grabIndex) IN ({intersect_select})"
 
