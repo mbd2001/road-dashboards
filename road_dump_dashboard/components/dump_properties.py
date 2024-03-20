@@ -32,7 +32,7 @@ class Dumps:
     def generate_data_tables(dump_names, specific_tables, general_md_tables):
         dump_to_original_table = dict(zip_longest(dump_names, specific_tables))
         final_data_tables_dict = {
-            name: f"SELECT A.* FROM {dump_to_original_table[name]} A LEFT JOIN {general_md_tables[name]} B ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex)) WHERE TRUE"
+            name: f"SELECT A.* FROM {dump_to_original_table[name]} A LEFT JOIN {general_md_tables[name]} B ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex))"
             for name in dump_names
         }
         return final_data_tables_dict
@@ -40,7 +40,6 @@ class Dumps:
     @staticmethod
     def parse_general_meta_data_table(general_md_tables):
         meta_data_tables = {
-            dump_name: f"SELECT * FROM {meta_data_table} WHERE TRUE"
-            for dump_name, meta_data_table in general_md_tables.items()
+            dump_name: f"SELECT * FROM {meta_data_table}" for dump_name, meta_data_table in general_md_tables.items()
         }
         return meta_data_tables

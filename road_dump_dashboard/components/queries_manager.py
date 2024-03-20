@@ -53,7 +53,9 @@ def generate_conf_mat_query(
 
     data_filters = generate_data_filters(meta_data_filters, extra_filters, population)
     main_data = generate_base_data(main_table, data_filters, extra_columns)
-    secondary_data = generate_base_data(secondary_table, data_filters, extra_columns)  # TODO: consider remove filters from secondary_data
+    secondary_data = generate_base_data(
+        secondary_table, data_filters, extra_columns
+    )  # TODO: consider remove filters from secondary_data
     query = JOIN_QUERY.format(
         main_data=main_data,
         secondary_data=secondary_data,
@@ -164,7 +166,9 @@ def generate_intersect_filter(md_tables, intersection_on):
 
 
 def generate_data_filters(meta_data_filters, extra_filters, population):
-    meta_data_filters = f" AND ({meta_data_filters}) " if meta_data_filters else ""
-    extra_filters = f" AND ({extra_filters}) " if extra_filters else ""
-    population_filter = f" AND (population = {population}) " if population != "all" else ""
-    return meta_data_filters + extra_filters + population_filter
+    meta_data_filters = f"({meta_data_filters}) " if meta_data_filters else ""
+    extra_filters = f"({extra_filters}) " if extra_filters else ""
+    population_filter = f"(population = {population}) " if population != "all" else ""
+    filters_str = " AND ".join(ftr for ftr in [meta_data_filters, extra_filters, population_filter] if ftr)
+    filters_str = f"WHERE {filters_str}" if filters_str else ""
+    return filters_str

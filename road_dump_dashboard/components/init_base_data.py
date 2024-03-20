@@ -30,7 +30,10 @@ def generate_meta_data_dicts(md_table):
 
     DISTINCT_LIMIT = 50
     md_columns_to_distinguish_values = {
-        col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")[:DISTINCT_LIMIT]]
+        col: [
+            {"label": val.strip(" "), "value": f"'{val.strip(' ')}'"}
+            for val in val_list[0].strip("[]").split(",")[:DISTINCT_LIMIT]
+        ]
         for col, val_list in distinct_dict.items()
     }
 
@@ -40,9 +43,9 @@ def generate_meta_data_dicts(md_table):
 def get_meta_data_columns(md_table):
     query = f"SELECT * FROM ({md_table}) LIMIT 1"
     data, _ = query_athena(database="run_eval_db", query=query)
-    sub_columns = list(col for col in data.columns if re.search(r'_\d+$', col))
-    uninteresting_columns = ['s3_path', 'pred_name', 'dump_name', 'population']
-    data = data.drop(uninteresting_columns + sub_columns, axis=1, errors='ignore')
+    sub_columns = list(col for col in data.columns if re.search(r"_\d+$", col))
+    uninteresting_columns = ["s3_path", "pred_name", "dump_name", "population"]
+    data = data.drop(uninteresting_columns + sub_columns, axis=1, errors="ignore")
     md_columns_to_type = dict(data.dtypes.apply(lambda x: x.name))
     return md_columns_to_type
 

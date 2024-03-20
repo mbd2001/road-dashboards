@@ -8,8 +8,13 @@ from uuid import uuid4
 
 from road_dump_dashboard.components import sidebar, page_content
 from road_dump_dashboard.components.dcc_stores import init_dcc_stores
-from road_dump_dashboard.components.components_ids import URL, DUMPS, MD_COLUMNS_TO_DISTINCT_VALUES, MD_COLUMNS_OPTION, \
-    MD_COLUMNS_TO_TYPE
+from road_dump_dashboard.components.components_ids import (
+    URL,
+    DUMPS,
+    MD_COLUMNS_TO_DISTINCT_VALUES,
+    MD_COLUMNS_OPTION,
+    MD_COLUMNS_TO_TYPE,
+)
 from road_dump_dashboard.components.init_base_data import run_eval_db_manager, init_dumps, generate_meta_data_dicts
 
 launch_uid = uuid4()
@@ -81,6 +86,7 @@ def init_run(dumps_list, existing_dumps):
         md_columns_options,
         md_columns_to_distinguish_values,
     )
+
 
 if __name__ == "__main__":
     app.run_server(host="0.0.0.0", port="6007", debug=True)

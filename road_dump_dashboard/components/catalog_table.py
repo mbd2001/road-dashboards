@@ -11,10 +11,15 @@ from road_dump_dashboard.components.components_ids import (
     UPDATE_RUNS_BTN,
     DUMP_CATALOG,
     MD_COLUMNS_OPTION,
-    LOAD_NETS_DATA_NOTIFICATION, URL,
+    LOAD_NETS_DATA_NOTIFICATION,
+    URL,
 )
-from road_dump_dashboard.components.init_base_data import parse_catalog_rows, init_dumps, generate_meta_data_dicts, \
-    run_eval_db_manager
+from road_dump_dashboard.components.init_base_data import (
+    parse_catalog_rows,
+    init_dumps,
+    generate_meta_data_dicts,
+    run_eval_db_manager,
+)
 from road_dump_dashboard.components.layout_wrapper import loading_wrapper
 
 
