@@ -13,14 +13,12 @@ from road_dump_dashboard.components.components_ids import (
     DYNAMIC_PIE_CHART_DROPDOWN,
     TVGT_PIE_CHART,
     COUNTRIES_HEAT_MAP,
-    MD_COLUMNS_OPTION,
-    MD_COLUMNS_TO_TYPE,
     ROAD_TYPE_PIE_CHART,
     LANE_MARK_COLOR_PIE_CHART,
     GTEM_PIE_CHART,
     DYNAMIC_PIE_CHART_SLIDER,
     INTERSECTION_SWITCH,
-    DUMPS,
+    TABLES,
     COUNTRIES_DROPDOWN,
     SECONDARY_NET_DROPDOWN,
     MAIN_NET_DROPDOWN,
@@ -56,8 +54,8 @@ def exponent_transform(value, base=10):
 
 layout = html.Div(
     [
+        html.Div(id="filter_table", children="meta_data", style={"display": "none"}),
         html.H1("Data Exploration", className="mb-5"),
-        meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
         card_wrapper(
             [
@@ -141,10 +139,10 @@ layout = html.Div(
 
 @callback(
     Output(COMPARE_MATRICES, "children"),
-    Input(DUMPS, "data"),
+    Input(TABLES, "data"),
 )
-def init_matrices_layout(dumps):
-    if not dumps:
+def init_matrices_layout(tables):
+    if not tables:
         return []
 
     matrices_layout = (
@@ -182,20 +180,20 @@ def init_matrices_layout(dumps):
         ),
     )
 
-    return matrices_layout if len(dumps["names"]) > 1 else []
+    return matrices_layout if len(tables["names"]) > 1 else []
 
 
 @callback(
     Output(MAIN_NET_DROPDOWN, "options"),
     Output(MAIN_NET_DROPDOWN, "label"),
     Output(MAIN_NET_DROPDOWN, "value"),
-    Input(DUMPS, "data"),
+    Input(TABLES, "data"),
 )
-def init_main_dump_dropdown(dumps):
-    if not dumps:
+def init_main_dump_dropdown(tables):
+    if not tables:
         return no_update, no_update, no_update
 
-    options = [{"label": name.title(), "value": name} for name in dumps["names"]]
+    options = [{"label": name.title(), "value": name} for name in tables["names"]]
     return options, options[0]["label"], options[0]["value"]
 
 
@@ -203,31 +201,31 @@ def init_main_dump_dropdown(dumps):
     Output(SECONDARY_NET_DROPDOWN, "options"),
     Output(SECONDARY_NET_DROPDOWN, "label"),
     Output(SECONDARY_NET_DROPDOWN, "value"),
-    Input(DUMPS, "data"),
+    Input(TABLES, "data"),
 )
-def init_secondary_dump_dropdown(dumps):
-    if not dumps:
+def init_secondary_dump_dropdown(tables):
+    if not tables:
         return no_update, no_update, no_update
 
-    options = [{"label": name.title(), "value": name} for name in dumps["names"]]
+    options = [{"label": name.title(), "value": name} for name in tables["names"]]
     return options, options[1]["label"], options[1]["value"]
 
 
 @callback(
     Output(TVGT_CONF_MAT, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
     background=True,
 )
-def get_tvgt_conf_mat(meta_data_filters, dumps, population, main_dump, secondary_dump):
-    if not population or not dumps or not main_dump or not secondary_dump:
+def get_tvgt_conf_mat(meta_data_filters, tables, population, main_dump, secondary_dump):
+    if not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
-    main_data = dumps["tables"]["meta_data"][main_dump]
-    secondary_data = dumps["tables"]["meta_data"][secondary_dump]
+    main_data = tables["meta_data"][main_dump]
+    secondary_data = tables["meta_data"][secondary_dump]
     column_to_compare = "is_tv_perfect"
     query = generate_conf_mat_query(
         main_data,
@@ -245,18 +243,18 @@ def get_tvgt_conf_mat(meta_data_filters, dumps, population, main_dump, secondary
 @callback(
     Output(GTEM_CONF_MAT, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
     background=True,
 )
-def get_gtem_conf_mat(meta_data_filters, dumps, population, main_dump, secondary_dump):
-    if not population or not dumps or not main_dump or not secondary_dump:
+def get_gtem_conf_mat(meta_data_filters, tables, population, main_dump, secondary_dump):
+    if not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
-    main_data = dumps["tables"]["meta_data"][main_dump]
-    secondary_data = dumps["tables"]["meta_data"][secondary_dump]
+    main_data = tables["meta_data"][main_dump]
+    secondary_data = tables["meta_data"][secondary_dump]
     column_to_compare = "gtem_labels_exist"
     query = generate_conf_mat_query(
         main_data,
@@ -275,29 +273,29 @@ def get_gtem_conf_mat(meta_data_filters, dumps, population, main_dump, secondary
     Output(COUNTRIES_DROPDOWN, "options"),
     Output(COUNTRIES_DROPDOWN, "label"),
     Output(COUNTRIES_DROPDOWN, "value"),
-    Input(DUMPS, "data"),
+    Input(TABLES, "data"),
 )
-def init_countries_dropdown(dumps):
-    if not dumps:
+def init_countries_dropdown(tables):
+    if not tables:
         return no_update, no_update, no_update
 
-    options = [{"label": name.title(), "value": name} for name in dumps["names"]]
+    options = [{"label": name.title(), "value": name} for name in tables["names"]]
     return options, options[0]["label"], options[0]["value"]
 
 
 @callback(
     Output(COUNTRIES_HEAT_MAP, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(COUNTRIES_DROPDOWN, "value"),
     background=True,
 )
-def get_countries_heat_map(meta_data_filters, dumps, population, chosen_dump):
-    if not population or not dumps or not chosen_dump:
+def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
+    if not population or not tables or not chosen_dump:
         return no_update
 
-    md_table = dumps["tables"]["meta_data"][chosen_dump]
+    md_table = tables["meta_data"]["tables_dict"][chosen_dump]
     group_by_column = "mdbi_country"
     query = generate_count_query(
         md_table,
@@ -320,25 +318,26 @@ def get_countries_heat_map(meta_data_filters, dumps, population, chosen_dump):
 @callback(
     Output(TVGT_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_tvgt_pie_chart(meta_data_filters, dumps, population, intersection_on):
-    if not population or not dumps:
+def get_tvgt_pie_chart(meta_data_filters, tables, population, intersection_on):
+    if not population or not tables:
         return no_update
 
-    md_tables = dumps["tables"]["meta_data"].values()
+    main_tables = tables["meta_data"]
     group_by_column = "is_tv_perfect"
     query = generate_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         extra_columns=[group_by_column],
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of TVGTs"
     fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)
@@ -348,19 +347,19 @@ def get_tvgt_pie_chart(meta_data_filters, dumps, population, intersection_on):
 @callback(
     Output(GTEM_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_gtem_pie_chart(meta_data_filters, dumps, population, intersection_on):
-    if not population or not dumps:
+def get_gtem_pie_chart(meta_data_filters, tables, population, intersection_on):
+    if not population or not tables:
         return no_update
 
-    md_tables = dumps["tables"]["meta_data"].values()
+    main_tables = tables["meta_data"]
     group_by_column = "gtem_labels_exist"
     query = generate_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,
@@ -375,13 +374,14 @@ def get_gtem_pie_chart(meta_data_filters, dumps, population, intersection_on):
 
 @callback(
     Output(DYNAMIC_PIE_CHART_DROPDOWN, "options"),
-    Input(MD_COLUMNS_OPTION, "data"),
+    Input(TABLES, "data"),
 )
-def init_pie_dropdown(md_columns_options):
-    if not md_columns_options:
+def init_pie_dropdown(tables):
+    if not tables:
         return no_update
 
-    return md_columns_options
+    columns_options = tables["meta_data"]["columns_options"]
+    return columns_options
 
 
 @callback(
@@ -389,20 +389,17 @@ def init_pie_dropdown(md_columns_options):
     Input(DYNAMIC_PIE_CHART_DROPDOWN, "value"),
     Input(DYNAMIC_PIE_CHART_SLIDER, "value"),
     Input(MD_FILTERS, "data"),
-    State(MD_COLUMNS_TO_TYPE, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_dynamic_pie_chart(
-    group_by_column, slider_value, meta_data_filters, meta_data_dict, dumps, population, intersection_on
-):
-    if not population or not dumps or not group_by_column:
+def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, tables, population, intersection_on):
+    if not population or not tables or not group_by_column:
         return no_update
 
-    md_tables = dumps["tables"]["meta_data"].values()
-    column_type = meta_data_dict[group_by_column]
+    main_tables = tables["meta_data"]
+    column_type = tables["meta_data"]["columns_to_type"][group_by_column]
     bins_factor = None
     ignore_filter = ""
     if column_type.startswith(("int", "float", "double")):
@@ -411,7 +408,7 @@ def get_dynamic_pie_chart(
         ignore_filter = f"{group_by_column} <> 999 AND {group_by_column} <> -999"
 
     query = generate_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
         meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignore_filter] if filter_str),
@@ -432,19 +429,19 @@ def get_dynamic_pie_chart(
 @callback(
     Output(ROAD_TYPE_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_road_type_pie_chart(meta_data_filters, dumps, population, intersection_on):
-    if not population or not dumps:
+def get_road_type_pie_chart(meta_data_filters, tables, population, intersection_on):
+    if not population or not tables:
         return no_update
 
-    md_tables = dumps["tables"]["meta_data"].values()
+    main_tables = tables["meta_data"]
     interesting_filters = ROAD_TYPE_FILTERS
     query = generate_dynamic_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,
@@ -461,19 +458,19 @@ def get_road_type_pie_chart(meta_data_filters, dumps, population, intersection_o
 @callback(
     Output(LANE_MARK_COLOR_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_lane_mark_color_pie_chart(meta_data_filters, dumps, population, intersection_on):
-    if not population or not dumps:
+def get_lane_mark_color_pie_chart(meta_data_filters, tables, population, intersection_on):
+    if not population or not tables:
         return no_update
 
-    md_tables = dumps["tables"]["meta_data"].values()
+    main_tables = tables["meta_data"]
     interesting_filters = LANE_MARK_COLOR_FILTERS
     query = generate_dynamic_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,

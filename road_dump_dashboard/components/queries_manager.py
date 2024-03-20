@@ -1,4 +1,11 @@
 JOIN_QUERY = """
+    (SELECT {columns_to_select} 
+    FROM {main_data} A INNER JOIN {secondary_data} B
+    ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex)) 
+    {data_filters})
+    """
+
+CONF_QUERY = """
     SELECT main_val, secondary_val, COUNT(*) AS overall FROM
     (SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val
     FROM ({main_data}) A INNER JOIN ({secondary_data}) B
@@ -8,9 +15,8 @@ JOIN_QUERY = """
 
 BASE_QUERY = """
     SELECT * FROM
-    (SELECT * FROM
     ({base_data})
-    {intersect_filter})
+    {intersect_filter}
     """
 
 COUNT_QUERY = """
@@ -56,7 +62,7 @@ def generate_conf_mat_query(
     secondary_data = generate_base_data(
         secondary_table, data_filters, extra_columns
     )  # TODO: consider remove filters from secondary_data
-    query = JOIN_QUERY.format(
+    query = CONF_QUERY.format(
         main_data=main_data,
         secondary_data=secondary_data,
         column_to_compare=column_to_compare,
@@ -66,9 +72,10 @@ def generate_conf_mat_query(
 
 
 def generate_count_query(
-    md_tables,
+    main_tables,
     population,
     intersection_on,
+    meta_data_tables=None,
     group_by_column="",
     meta_data_filters="",
     extra_filters="",
@@ -76,7 +83,8 @@ def generate_count_query(
     extra_columns=None,
 ):
     base_query = generate_base_query(
-        md_tables,
+        main_tables,
+        meta_data_tables,
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,
@@ -96,10 +104,11 @@ def generate_count_query(
 
 
 def generate_dynamic_count_query(
-    md_tables,
+    main_tables,
     population,
     intersection_on,
     interesting_filters,
+    meta_data_tables=None,
     meta_data_filters="",
     extra_filters="",
     extra_columns=None,
@@ -109,7 +118,8 @@ def generate_dynamic_count_query(
         for name, filter in interesting_filters.items()
     )
     base_query = generate_base_query(
-        md_tables,
+        main_tables,
+        meta_data_tables,
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,
@@ -121,7 +131,8 @@ def generate_dynamic_count_query(
 
 
 def generate_base_query(
-    md_tables,
+    main_tables,
+    meta_data_tables,
     population,
     intersection_on,
     meta_data_filters="",
@@ -131,12 +142,15 @@ def generate_base_query(
     if isinstance(extra_columns, str):
         extra_columns = [extra_columns]
 
-    if isinstance(md_tables, str):
-        md_tables = [md_tables]
+    if isinstance(main_tables, str):
+        main_tables = [main_tables]
+
+    if isinstance(meta_data_tables, str):
+        meta_data_tables = [meta_data_tables]
 
     data_filter = generate_data_filters(meta_data_filters, extra_filters, population)
-    base_data = generate_base_data(md_tables, data_filter, extra_columns)
-    intersect_filter = generate_intersect_filter(md_tables, intersection_on)
+    base_data = generate_base_data(main_tables, meta_data_tables, data_filter, extra_columns)
+    intersect_filter = generate_intersect_filter(main_tables, intersection_on)
     base_query = BASE_QUERY.format(
         base_data=base_data,
         intersect_filter=intersect_filter,
@@ -144,23 +158,52 @@ def generate_base_query(
     return base_query
 
 
-def generate_base_data(md_tables, data_filter, extra_columns=None):
+def generate_base_data(main_tables, meta_data_tables, data_filter, extra_columns=None):
     if extra_columns is None:
         extra_columns = []
 
     base_columns = ["dump_name", "clip_name", "grabIndex"]
-    data_columns = ", ".join(base_columns + extra_columns)
-    data_tables = [f"({md_table} {data_filter})" for md_table in md_tables if md_table]
-    union_str = f" UNION ALL SELECT {data_columns} FROM ".join(data_tables)
-    return f"SELECT {data_columns} FROM {union_str}"
+    data_columns = set(base_columns + extra_columns)
+    columns_in_table = main_tables["columns_to_type"].keys()
+    if meta_data_tables:
+        data_columns_str = ", ".join(
+            f"A.{col} as {col}" if is_column_in_primary_table(col, columns_in_table) else f"B.{col} as {col}"
+            for col in data_columns
+        )
+        join_strings = [
+            JOIN_QUERY.format(
+                columns_to_select=data_columns_str,
+                main_data=main_table,
+                secondary_data=md_table,
+                data_filters=data_filter,
+            )
+            for main_table, md_table in zip(
+                main_tables["tables_dict"].values(), meta_data_tables["tables_dict"].values()
+            )
+            if main_table
+        ]
+    else:
+        data_columns_str = ", ".join(data_columns)
+        join_strings = [
+            f"(SELECT {data_columns_str} FROM {main_table})"
+            for main_table in main_tables["tables_dict"].values()
+            if main_table
+        ]
+    union_str = f" UNION ALL SELECT * FROM ".join(join_strings)
+    return f"SELECT * FROM {union_str}"
 
 
-def generate_intersect_filter(md_tables, intersection_on):
+def is_column_in_primary_table(col, columns_in_table):
+    return col in columns_in_table
+
+
+def generate_intersect_filter(main_tables, intersection_on):
     if not intersection_on:
         return ""
 
+    main_tables = main_tables["tables_dict"].values()
     intersect_select = "SELECT clip_name, grabIndex FROM " + " INTERSECT SELECT clip_name, grabIndex FROM ".join(
-        f"({md_table})" for md_table in md_tables if md_table
+        md_table for md_table in main_tables if md_table
     )
     return f"WHERE (clip_name, grabIndex) IN ({intersect_select})"
 

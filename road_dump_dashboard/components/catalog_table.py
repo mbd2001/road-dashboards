@@ -5,19 +5,15 @@ import dash_bootstrap_components as dbc
 from dash import dash_table, html, Output, Input, State, no_update, callback
 
 from road_dump_dashboard.components.components_ids import (
-    DUMPS,
-    MD_COLUMNS_TO_TYPE,
-    MD_COLUMNS_TO_DISTINCT_VALUES,
+    TABLES,
     UPDATE_RUNS_BTN,
     DUMP_CATALOG,
-    MD_COLUMNS_OPTION,
     LOAD_NETS_DATA_NOTIFICATION,
     URL,
 )
 from road_dump_dashboard.components.init_base_data import (
     parse_catalog_rows,
-    init_dumps,
-    generate_meta_data_dicts,
+    init_tables,
     run_eval_db_manager,
 )
 from road_dump_dashboard.components.layout_wrapper import loading_wrapper
@@ -73,10 +69,7 @@ def generate_catalog_layout():
 
 
 @callback(
-    Output(DUMPS, "data"),
-    Output(MD_COLUMNS_TO_TYPE, "data"),
-    Output(MD_COLUMNS_OPTION, "data"),
-    Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data"),
+    Output(TABLES, "data"),
     Output(LOAD_NETS_DATA_NOTIFICATION, "children"),
     Output(URL, "hash"),
     Input(UPDATE_RUNS_BTN, "n_clicks"),
@@ -86,23 +79,12 @@ def generate_catalog_layout():
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
-        return no_update, no_update, no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update
 
     rows = parse_catalog_rows(rows, derived_virtual_selected_rows)
-    dumps = init_dumps(rows)
-    md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = generate_meta_data_dicts(
-        list(dumps["meta_data_tables"].values())[0]
-    )
-
+    dumps = init_tables(rows)
     notification = dbc.Alert("Dump data loaded successfully!", color="success", dismissable=True)
 
     dumps_list = list(rows["dump_name"])
     dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
-    return (
-        dumps,
-        md_columns_to_type,
-        md_columns_options,
-        md_columns_to_distinguish_values,
-        notification,
-        dump_list_hash,
-    )
+    return dumps, notification, dump_list_hash

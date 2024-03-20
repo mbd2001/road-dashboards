@@ -5,12 +5,10 @@ from road_dump_dashboard.components import meta_data_filter, base_dataset_statis
 from road_dump_dashboard.components.components_ids import (
     MD_FILTERS,
     POPULATION_DROPDOWN,
-    MD_COLUMNS_OPTION,
-    MD_COLUMNS_TO_TYPE,
     LM_COLOR_PIE_CHART,
     LM_ROLE_PIE_CHART,
     INTERSECTION_SWITCH,
-    DUMPS,
+    TABLES,
     LM_DYNAMIC_PIE_CHART_SLIDER,
     LM_DYNAMIC_PIE_CHART,
     LM_DYNAMIC_PIE_CHART_DROPDOWN,
@@ -36,7 +34,7 @@ def exponent_transform(value, base=10):
 layout = html.Div(
     [
         html.H1("Lane Mark", className="mb-5"),
-        meta_data_filter.layout,
+        meta_data_filter.layout("lm_meta_data"),
         base_dataset_statistics.frame_layout,
         card_wrapper(
             [
@@ -95,21 +93,23 @@ layout = html.Div(
 @callback(
     Output(LM_ROLE_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_lm_role_pie_chart(meta_data_filters, dumps, population, intersection_on):
-    if not population or not dumps:
+def get_lm_role_pie_chart(meta_data_filters, tables, population, intersection_on):
+    if not population or not tables:
         return no_update
 
-    md_tables = dumps["tables"]["lm_meta_data"].values()
+    main_tables = tables["lm_meta_data"]
+    meta_data_tables = tables["meta_data"]
     group_by_column = "vert_role"
     query = generate_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         extra_columns=[group_by_column],
@@ -125,21 +125,23 @@ def get_lm_role_pie_chart(meta_data_filters, dumps, population, intersection_on)
 @callback(
     Output(LM_COLOR_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_lm_color_pie_chart(meta_data_filters, dumps, population, intersection_on):
-    if not population or not dumps:
+def get_lm_color_pie_chart(meta_data_filters, tables, population, intersection_on):
+    if not population or not tables:
         return no_update
 
-    md_tables = dumps["tables"]["lm_meta_data"].values()
+    main_tables = tables["lm_meta_data"]
+    meta_data_tables = tables["meta_data"]
     group_by_column = "vert_color"
     query = generate_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         extra_columns=[group_by_column],
@@ -154,21 +156,23 @@ def get_lm_color_pie_chart(meta_data_filters, dumps, population, intersection_on
 @callback(
     Output(LM_TYPE_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_lm_type_pie_chart(meta_data_filters, dumps, population, intersection_on):
-    if not population or not dumps:
+def get_lm_type_pie_chart(meta_data_filters, tables, population, intersection_on):
+    if not population or not tables:
         return no_update
 
-    md_tables = dumps["tables"]["lm_meta_data"].values()
+    main_tables = tables["lm_meta_data"]
+    meta_data_tables = tables["meta_data"]
     group_by_column = "vert_type"
     query = generate_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         extra_columns=[group_by_column],
@@ -182,13 +186,14 @@ def get_lm_type_pie_chart(meta_data_filters, dumps, population, intersection_on)
 
 @callback(
     Output(LM_DYNAMIC_PIE_CHART_DROPDOWN, "options"),
-    Input(MD_COLUMNS_OPTION, "data"),
+    Input(TABLES, "data"),
 )
-def init_pie_dropdown(md_columns_options):
-    if not md_columns_options:
+def init_pie_dropdown(tables):
+    if not tables:
         return no_update
 
-    return md_columns_options
+    columns_options = tables["lm_meta_data"]["columns_options"]
+    return columns_options
 
 
 @callback(
@@ -196,20 +201,18 @@ def init_pie_dropdown(md_columns_options):
     Input(LM_DYNAMIC_PIE_CHART_DROPDOWN, "value"),
     Input(LM_DYNAMIC_PIE_CHART_SLIDER, "value"),
     Input(MD_FILTERS, "data"),
-    State(MD_COLUMNS_TO_TYPE, "data"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_dynamic_pie_chart(
-    group_by_column, slider_value, meta_data_filters, meta_data_dict, dumps, population, intersection_on
-):
-    if not population or not dumps or not group_by_column:
+def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, tables, population, intersection_on):
+    if not population or not tables or not group_by_column:
         return no_update
 
-    md_tables = dumps["tables"]["meta_data"].values()
-    column_type = meta_data_dict[group_by_column]
+    main_tables = tables["lm_meta_data"]
+    meta_data_tables = tables["meta_data"]
+    column_type = tables["lm_meta_data"]["columns_to_type"][group_by_column]
     bins_factor = None
     ignore_filter = ""
     if column_type.startswith(("int", "float", "double")):
@@ -218,14 +221,16 @@ def get_dynamic_pie_chart(
         ignore_filter = f"{group_by_column} <> 999 AND {group_by_column} <> -999"
 
     query = generate_count_query(
-        md_tables,
+        main_tables,
         population,
         intersection_on,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignore_filter] if filter_str),
         group_by_column=group_by_column,
         bins_factor=bins_factor,
         extra_columns=[group_by_column],
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {group_by_column.replace('mdbi_', '').replace('_', ' ').title()}"
 

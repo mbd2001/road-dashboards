@@ -1,8 +1,5 @@
 # stores
-DUMPS = "population_tables"
-MD_COLUMNS_TO_TYPE = "md_columns_to_type"
-MD_COLUMNS_OPTION = "md_columns_options"
-MD_COLUMNS_TO_DISTINCT_VALUES = "md_columns_to_distinct_values"
+TABLES = "Tables"
 MD_FILTERS = "md_filters"
 
 

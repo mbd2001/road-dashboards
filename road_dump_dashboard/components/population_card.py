@@ -1,6 +1,6 @@
 from dash import html, dcc, Input, Output, callback, no_update
 
-from road_dump_dashboard.components.components_ids import DUMPS, POPULATION_DROPDOWN
+from road_dump_dashboard.components.components_ids import TABLES, POPULATION_DROPDOWN
 from road_dump_dashboard.components.layout_wrapper import card_wrapper
 
 
@@ -26,10 +26,10 @@ layout = card_wrapper(
     Output(POPULATION_DROPDOWN, "options"),
     Output(POPULATION_DROPDOWN, "label"),
     Output(POPULATION_DROPDOWN, "value"),
-    Input(DUMPS, "data"),
+    Input(TABLES, "data"),
 )
-def init_population_options(dumps):
-    if not dumps:
+def init_population_options(tables):
+    if not tables:
         return no_update, no_update, no_update
 
     populations = ["test", "train", "all"]

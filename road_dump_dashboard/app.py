@@ -8,14 +8,8 @@ from uuid import uuid4
 
 from road_dump_dashboard.components import sidebar, page_content
 from road_dump_dashboard.components.dcc_stores import init_dcc_stores
-from road_dump_dashboard.components.components_ids import (
-    URL,
-    DUMPS,
-    MD_COLUMNS_TO_DISTINCT_VALUES,
-    MD_COLUMNS_OPTION,
-    MD_COLUMNS_TO_TYPE,
-)
-from road_dump_dashboard.components.init_base_data import run_eval_db_manager, init_dumps, generate_meta_data_dicts
+from road_dump_dashboard.components.components_ids import URL, TABLES
+from road_dump_dashboard.components.init_base_data import run_eval_db_manager, init_tables
 
 launch_uid = uuid4()
 if "REDIS_URL" in os.environ:
@@ -59,33 +53,21 @@ def redirect_to_home(pathname):
 
 
 @callback(
-    Output(DUMPS, "data", allow_duplicate=True),
-    Output(MD_COLUMNS_TO_TYPE, "data", allow_duplicate=True),
-    Output(MD_COLUMNS_OPTION, "data", allow_duplicate=True),
-    Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data", allow_duplicate=True),
+    Output(TABLES, "data", allow_duplicate=True),
     Input(URL, "hash"),
-    State(DUMPS, "data"),
+    State(TABLES, "data"),
     background=True,
     prevent_initial_call=True,
 )
-def init_run(dumps_list, existing_dumps):
-    if not dumps_list or existing_dumps:
-        return no_update, no_update, no_update, no_update
+def init_run(tables_list, existing_tables):
+    if not tables_list or existing_tables:
+        return no_update
 
-    dumps_list = json.loads(base64.b64decode(dumps_list))
-    rows = [run_eval_db_manager.get_item(dump_name) for dump_name in dumps_list]
+    tables_list = json.loads(base64.b64decode(tables_list))
+    rows = [run_eval_db_manager.get_item(table) for table in tables_list]
     rows = pd.DataFrame(rows)
-    dumps = init_dumps(rows)
-    md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = generate_meta_data_dicts(
-        list(dumps["meta_data_tables"].values())[0]
-    )
-
-    return (
-        dumps,
-        md_columns_to_type,
-        md_columns_options,
-        md_columns_to_distinguish_values,
-    )
+    tables = init_tables(rows)
+    return tables
 
 
 if __name__ == "__main__":
