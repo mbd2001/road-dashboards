@@ -53,7 +53,7 @@ def generate_conf_mat_query(
     extra_filters="",
     extra_columns=None,
 ):
-    main_identifier = f" dump_name = {main_dump} "
+    main_identifier = f" dump_name = '{main_dump}' "
     main_data = generate_base_query(
         main_tables,
         meta_data_tables,
@@ -64,7 +64,7 @@ def generate_conf_mat_query(
         extra_columns=extra_columns,
     )
 
-    secondary_identifier = f" dump_name = {secondary_dump} "
+    secondary_identifier = f" dump_name = '{secondary_dump}' "
     secondary_data = generate_base_query(
         main_tables,
         meta_data_tables,
@@ -193,9 +193,7 @@ def generate_base_data(main_paths, meta_data_paths, data_filter, main_columns, e
     else:
         data_columns_str = ", ".join(data_columns)
         join_strings = [
-            f"(SELECT {data_columns_str} FROM {main_table} WHERE {data_filter})"
-            for main_table in main_paths
-            if main_table
+            f"(SELECT {data_columns_str} FROM {main_table} {data_filter})" for main_table in main_paths if main_table
         ]
     union_str = f" UNION ALL SELECT * FROM ".join(join_strings)
     return f"SELECT * FROM {union_str}"
@@ -218,7 +216,7 @@ def generate_intersect_filter(main_names, intersection_on):
 def generate_data_filters(meta_data_filters, extra_filters, population):
     meta_data_filters = f"({meta_data_filters}) " if meta_data_filters else ""
     extra_filters = f"({extra_filters}) " if extra_filters else ""
-    population_filter = f"(population = {population}) " if population != "all" else ""
+    population_filter = f"(population = '{population}') " if population != "all" else ""
     filters_str = " AND ".join(ftr for ftr in [meta_data_filters, extra_filters, population_filter] if ftr)
     filters_str = f"WHERE {filters_str}" if filters_str else ""
     return filters_str

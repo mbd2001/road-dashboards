@@ -96,28 +96,26 @@ def get_group_layout(index, md_columns_options):
     return group_layout
 
 
-def layout(filter_table):
-    empty_layout = html.Div(
-        card_wrapper(
-            [
-                html.Div(id="filters"),
-                dbc.Stack(
-                    dbc.Button("Update Filters", id="update_filters_btn", color="success", style={"margin": "10px"}),
-                    direction="horizontal",
-                    gap=1,
-                ),
-            ]
-        )
+layout = html.Div(
+    card_wrapper(
+        [
+            html.Div(id="filters"),
+            dbc.Stack(
+                dbc.Button("Update Filters", id="update_filters_btn", color="success", style={"margin": "10px"}),
+                direction="horizontal",
+                gap=1,
+            ),
+        ]
     )
-    return empty_layout
+)
 
 
-@callback(Output("filters", "children"), Input(TABLES, "data"), State("filter_table", "children"))
-def init_layout(tables, filter_table):
+@callback(Output("filters", "children"), Input(TABLES, "data"))
+def init_layout(tables):
     if not tables:
         return no_update
 
-    columns_options = tables[filter_table]["columns_options"]
+    columns_options = tables["meta_data"]["columns_options"]
     return [get_group_layout(1, columns_options)]
 
 
@@ -127,9 +125,8 @@ def init_layout(tables, filter_table):
     Input({"type": "add_sub_group", "index": MATCH}, "n_clicks"),
     State({"type": "filters_list", "index": MATCH}, "children"),
     State(TABLES, "data"),
-    State("filter_table", "children"),
 )
-def add_filters(add_clicks, add_group, filters_list, tables, filter_table):
+def add_filters(add_clicks, add_group, filters_list, tables):
     if not any([add_clicks, add_group]) or not callback_context.triggered_id:
         return no_update
 
@@ -147,7 +144,7 @@ def add_filters(add_clicks, add_group, filters_list, tables, filter_table):
         empty_index = get_empty_index(base_ind, filters_list)
 
     button_type = callback_context.triggered_id["type"]
-    columns_options = tables[filter_table]["columns_options"]
+    columns_options = tables["meta_data"]["columns_options"]
     if button_type == "add_filter_btn" and empty_index:
         patched_children.append(get_filter_row_initial_layout(empty_index, columns_options))
     elif button_type == "add_sub_group" and empty_index:
@@ -198,16 +195,15 @@ def remove_sub_group(remove_clicks):
     Output({"type": "meta_data_operation", "index": MATCH}, "value"),
     Input({"type": "meta_data_columns", "index": MATCH}, "value"),
     State(TABLES, "data"),
-    State("filter_table", "children"),
 )
-def update_operation_dropdown_options(meta_data_col, tables, filter_table):
+def update_operation_dropdown_options(meta_data_col, tables):
     if not meta_data_col or not tables:
         return [], ""
 
     if not callback_context.triggered_id:
         return no_update, no_update
 
-    column_type = tables[filter_table]["columns_to_type"][meta_data_col]
+    column_type = tables["meta_data"]["columns_to_type"][meta_data_col]
     if column_type.startswith(("int", "float", "double")):
         options = [
             {"label": "Greater", "value": ">"},
@@ -248,9 +244,8 @@ def update_operation_dropdown_options(meta_data_col, tables, filter_table):
     State({"type": "meta_data_operation", "index": MATCH}, "id"),
     State({"type": "meta_data_columns", "index": MATCH}, "value"),
     State(TABLES, "data"),
-    State("filter_table", "children"),
 )
-def update_meta_data_values_options(operation, index, col, tables, filter_table):
+def update_meta_data_values_options(operation, index, col, tables):
     # TODO: refactor
     curr_index = index["index"]
     if not col or not operation:
@@ -265,8 +260,8 @@ def update_meta_data_values_options(operation, index, col, tables, filter_table)
     if not callback_context.triggered_id:
         return no_update
 
-    distinguish_values = tables[filter_table]["columns_distinguish_values"][col]
-    column_type = tables[filter_table]["columns_to_type"][col]
+    distinguish_values = tables["meta_data"]["columns_distinguish_values"][col]
+    column_type = tables["meta_data"]["columns_to_type"][col]
     if operation in ["IS NULL", "IS NOT NULL"]:
         return dcc.Input(
             id={"type": "meta_data_val", "index": curr_index},

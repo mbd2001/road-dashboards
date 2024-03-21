@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html, register_page, dcc, callback, Output, Input, State, ALL, no_update
 
-from road_dump_dashboard.components import meta_data_filter, base_dataset_statistics
+from road_dump_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_dump_dashboard.components.common_filters import (
     ROAD_TYPE_FILTERS,
     LANE_MARK_COLOR_FILTERS,
@@ -54,8 +54,8 @@ def exponent_transform(value, base=10):
 
 layout = html.Div(
     [
-        html.Div(id="filter_table", children="meta_data", style={"display": "none"}),
         html.H1("Data Exploration", className="mb-5"),
+        meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
         card_wrapper(
             [
@@ -305,7 +305,7 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         extra_columns=[group_by_column],
-        extra_filters=f" {group_by_column} = {chosen_dump} ",
+        extra_filters=f" dump_name = '{chosen_dump}' ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data["normalized"] = normalize_countries_count_to_percentiles(data["overall"].to_numpy())

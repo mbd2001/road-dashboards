@@ -34,7 +34,7 @@ def exponent_transform(value, base=10):
 layout = html.Div(
     [
         html.H1("Lane Mark", className="mb-5"),
-        meta_data_filter.layout("lm_meta_data"),
+        meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
         card_wrapper(
             [
