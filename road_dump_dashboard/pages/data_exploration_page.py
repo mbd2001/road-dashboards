@@ -224,12 +224,12 @@ def get_tvgt_conf_mat(meta_data_filters, tables, population, main_dump, secondar
     if not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
-    main_data = tables["meta_data"][main_dump]
-    secondary_data = tables["meta_data"][secondary_dump]
+    main_tables = tables["meta_data"]
     column_to_compare = "is_tv_perfect"
     query = generate_conf_mat_query(
-        main_data,
-        secondary_data,
+        main_dump,
+        secondary_dump,
+        main_tables,
         population,
         column_to_compare,
         meta_data_filters=meta_data_filters,
@@ -253,17 +253,18 @@ def get_gtem_conf_mat(meta_data_filters, tables, population, main_dump, secondar
     if not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
-    main_data = tables["meta_data"][main_dump]
-    secondary_data = tables["meta_data"][secondary_dump]
+    main_tables = tables["meta_data"]
     column_to_compare = "gtem_labels_exist"
     query = generate_conf_mat_query(
-        main_data,
-        secondary_data,
+        main_dump,
+        secondary_dump,
+        main_tables,
         population,
         column_to_compare,
         meta_data_filters=meta_data_filters,
         extra_columns=[column_to_compare],
     )
+
     data, _ = query_athena(database="run_eval_db", query=query)
     fig = get_confusion_matrix(data, x_label=secondary_dump, y_label=main_dump, title="GTEM Confusion Matrix")
     return fig
@@ -295,15 +296,16 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
     if not population or not tables or not chosen_dump:
         return no_update
 
-    md_table = tables["meta_data"]["tables_dict"][chosen_dump]
+    main_tables = tables["meta_data"]
     group_by_column = "mdbi_country"
     query = generate_count_query(
-        md_table,
+        main_tables,
         population,
         False,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         extra_columns=[group_by_column],
+        extra_filters=f" {group_by_column} = {chosen_dump} ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data["normalized"] = normalize_countries_count_to_percentiles(data["overall"].to_numpy())

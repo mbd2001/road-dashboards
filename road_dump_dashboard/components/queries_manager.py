@@ -43,30 +43,42 @@ COUNT_ALL_METRIC = """
 
 
 def generate_conf_mat_query(
-    main_table,
-    secondary_table,
+    main_dump,
+    secondary_dump,
+    main_tables,
     population,
     column_to_compare,
+    meta_data_tables=None,
     meta_data_filters="",
     extra_filters="",
     extra_columns=None,
 ):
-    if isinstance(main_table, str):
-        main_table = [main_table]
+    main_identifier = f" dump_name = {main_dump} "
+    main_data = generate_base_query(
+        main_tables,
+        meta_data_tables,
+        population,
+        False,
+        meta_data_filters=meta_data_filters,
+        extra_filters=f" ({extra_filters}) AND ({main_identifier}) " if extra_filters else main_identifier,
+        extra_columns=extra_columns,
+    )
 
-    if isinstance(secondary_table, str):
-        secondary_table = [secondary_table]
+    secondary_identifier = f" dump_name = {secondary_dump} "
+    secondary_data = generate_base_query(
+        main_tables,
+        meta_data_tables,
+        population,
+        False,
+        meta_data_filters=meta_data_filters,  # TODO: consider remove filters from secondary_data
+        extra_filters=f" ({extra_filters}) AND ({secondary_identifier}) " if extra_filters else secondary_identifier,
+        extra_columns=extra_columns,
+    )
 
-    data_filters = generate_data_filters(meta_data_filters, extra_filters, population)
-    main_data = generate_base_data(main_table, data_filters, extra_columns)
-    secondary_data = generate_base_data(
-        secondary_table, data_filters, extra_columns
-    )  # TODO: consider remove filters from secondary_data
     query = CONF_QUERY.format(
         main_data=main_data,
         secondary_data=secondary_data,
         column_to_compare=column_to_compare,
-        data_filters=data_filters,
     )
     return query
 
@@ -142,15 +154,14 @@ def generate_base_query(
     if isinstance(extra_columns, str):
         extra_columns = [extra_columns]
 
-    if isinstance(main_tables, str):
-        main_tables = [main_tables]
-
-    if isinstance(meta_data_tables, str):
-        meta_data_tables = [meta_data_tables]
-
     data_filter = generate_data_filters(meta_data_filters, extra_filters, population)
-    base_data = generate_base_data(main_tables, meta_data_tables, data_filter, extra_columns)
-    intersect_filter = generate_intersect_filter(main_tables, intersection_on)
+
+    main_columns = main_tables["columns_to_type"].keys()
+    main_paths = main_tables["tables_dict"].values()
+    meta_data_paths = meta_data_tables["tables_dict"].values() if meta_data_tables else None
+    base_data = generate_base_data(main_paths, meta_data_paths, data_filter, main_columns, extra_columns)
+
+    intersect_filter = generate_intersect_filter(main_paths, intersection_on)
     base_query = BASE_QUERY.format(
         base_data=base_data,
         intersect_filter=intersect_filter,
@@ -158,16 +169,15 @@ def generate_base_query(
     return base_query
 
 
-def generate_base_data(main_tables, meta_data_tables, data_filter, extra_columns=None):
+def generate_base_data(main_paths, meta_data_paths, data_filter, main_columns, extra_columns=None):
     if extra_columns is None:
         extra_columns = []
 
     base_columns = ["dump_name", "clip_name", "grabIndex"]
     data_columns = set(base_columns + extra_columns)
-    columns_in_table = main_tables["columns_to_type"].keys()
-    if meta_data_tables:
+    if meta_data_paths:
         data_columns_str = ", ".join(
-            f"A.{col} as {col}" if is_column_in_primary_table(col, columns_in_table) else f"B.{col} as {col}"
+            f"A.{col} as {col}" if is_column_in_primary_table(col, main_columns) else f"B.{col} as {col}"
             for col in data_columns
         )
         join_strings = [
@@ -177,16 +187,14 @@ def generate_base_data(main_tables, meta_data_tables, data_filter, extra_columns
                 secondary_data=md_table,
                 data_filters=data_filter,
             )
-            for main_table, md_table in zip(
-                main_tables["tables_dict"].values(), meta_data_tables["tables_dict"].values()
-            )
+            for main_table, md_table in zip(main_paths, meta_data_paths)
             if main_table
         ]
     else:
         data_columns_str = ", ".join(data_columns)
         join_strings = [
-            f"(SELECT {data_columns_str} FROM {main_table})"
-            for main_table in main_tables["tables_dict"].values()
+            f"(SELECT {data_columns_str} FROM {main_table} WHERE {data_filter})"
+            for main_table in main_paths
             if main_table
         ]
     union_str = f" UNION ALL SELECT * FROM ".join(join_strings)
@@ -197,13 +205,12 @@ def is_column_in_primary_table(col, columns_in_table):
     return col in columns_in_table
 
 
-def generate_intersect_filter(main_tables, intersection_on):
+def generate_intersect_filter(main_names, intersection_on):
     if not intersection_on:
         return ""
 
-    main_tables = main_tables["tables_dict"].values()
     intersect_select = "SELECT clip_name, grabIndex FROM " + " INTERSECT SELECT clip_name, grabIndex FROM ".join(
-        md_table for md_table in main_tables if md_table
+        md_table for md_table in main_names if md_table
     )
     return f"WHERE (clip_name, grabIndex) IN ({intersect_select})"
 
