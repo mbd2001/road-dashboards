@@ -76,7 +76,6 @@ def generate_conf_mat_query(
         meta_data_tables,
         population,
         False,
-        meta_data_filters=meta_data_filters,  # TODO: consider remove filters from secondary_data
         extra_filters=f" ({extra_filters}) AND ({secondary_identifier}) " if extra_filters else secondary_identifier,
         extra_columns=extra_columns,
     )
