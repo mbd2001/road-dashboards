@@ -115,7 +115,6 @@ def get_lm_role_pie_chart(meta_data_filters, tables, population, intersection_on
         extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ROLE_IGNORE' AND {group_by_column} != 'IRRELEVANT' ",
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of Lane Marks Roles"
     fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)
@@ -215,22 +214,27 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, tabl
     column_type = tables["lm_meta_data"]["columns_to_type"].get(group_by_column) or tables["meta_data"][
         "columns_to_type"
     ].get(group_by_column)
+
     bins_factor = None
-    ignore_filter = ""
     if column_type.startswith(("int", "float", "double")):
         bin_size = exponent_transform(slider_value)
         bins_factor = bin_size
         ignore_filter = f"{group_by_column} <> 999 AND {group_by_column} <> -999"
+    elif column_type.startswith("object"):
+        ignore_filter = f"{group_by_column} != 'ignore' AND {group_by_column} != 'Unknown'"
+    else:
+        ignore_filter = ""
 
     query = generate_count_query(
         main_tables,
         population,
         intersection_on,
         meta_data_tables=meta_data_tables,
-        meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignore_filter] if filter_str),
+        meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         bins_factor=bins_factor,
         extra_columns=[group_by_column],
+        extra_filters=ignore_filter,
     )
     print(query)
     data, _ = query_athena(database="run_eval_db", query=query)

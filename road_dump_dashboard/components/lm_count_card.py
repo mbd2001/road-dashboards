@@ -23,7 +23,7 @@ layout = card_wrapper([html.Div([html.H3("Num Lane Marks"), loading_wrapper([htm
     Input(INTERSECTION_SWITCH, "on"),
     background=True,
 )
-def get_frame_count(meta_data_filters, tables, population, intersection_on):
+def get_lm_count(meta_data_filters, tables, population, intersection_on):
     if not population or not tables:
         return 0
 

@@ -67,8 +67,19 @@ def generate_table_instance(name, tables, dump_names):
 
     columns_type = get_columns_data_types(table)
 
-    uninteresting_columns = ["s3_path", "pred_name", "dump_name", "population", "grabIndex"]
-    relevant_columns_type = {col: dtype for col, dtype in columns_type.items() if col not in uninteresting_columns and not re.search(r"(_|.)\d+$", col)}
+    uninteresting_columns = [
+        "s3_path",
+        "pred_name",
+        "dump_name",
+        "population",
+        "grabIndex",
+        "grabindex",
+    ]
+    relevant_columns_type = {
+        col: dtype
+        for col, dtype in columns_type.items()
+        if col not in uninteresting_columns and not re.search(r"(_|.)\d+$", col)
+    }
 
     columns_options = parse_columns_options(relevant_columns_type)
     columns_distinguish_values = generate_meta_data_dicts(table, relevant_columns_type)
@@ -98,6 +109,9 @@ def get_distinct_values_dict(table, columns_data_types_list):
             if dtype == "object"
         ]
     )
+    if not distinct_select:
+        return {}
+
     query = f"SELECT {distinct_select} FROM {table}"
     data, _ = query_athena(database="run_eval_db", query=query)
     distinct_dict = data.to_dict("list")

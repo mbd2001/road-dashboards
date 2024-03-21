@@ -339,7 +339,6 @@ def get_tvgt_pie_chart(meta_data_filters, tables, population, intersection_on):
         group_by_column=group_by_column,
         extra_columns=[group_by_column],
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of TVGTs"
     fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)

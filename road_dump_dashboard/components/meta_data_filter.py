@@ -357,6 +357,7 @@ def parse_one_filter(column, operation, value):
         parsed_val = f"({', '.join(val for val in value)})"
     else:
         parsed_val = str(value)
-    filter_components = [column, operation, parsed_val]
+
+    filter_components = [f"B.{column}", operation, parsed_val]
     single_filter = " ".join(component for component in filter_components if component)
     return single_filter
