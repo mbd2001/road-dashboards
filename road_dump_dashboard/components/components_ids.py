@@ -16,6 +16,7 @@ INTERSECTION_SWITCH = "intersection_switch"
 
 # counters
 FRAME_COUNT = "frame_count"
+LM_COUNT = "lm_count"
 
 
 # data exploration page

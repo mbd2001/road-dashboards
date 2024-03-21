@@ -66,8 +66,13 @@ def generate_table_instance(name, tables, dump_names):
         return Table(name, tables_dict)
 
     columns_type = get_columns_data_types(table)
-    columns_options = parse_columns_options(columns_type)
-    columns_distinguish_values = generate_meta_data_dicts(table, columns_type)
+
+    uninteresting_columns = ["s3_path", "pred_name", "dump_name", "population", "grabIndex"]
+    relevant_columns_type = {col: dtype for col, dtype in columns_type.items() if col not in uninteresting_columns and not re.search(r"(_|.)\d+$", col)}
+
+    columns_options = parse_columns_options(relevant_columns_type)
+    columns_distinguish_values = generate_meta_data_dicts(table, relevant_columns_type)
+
     table_data = Table(name, tables_dict, columns_type, columns_distinguish_values, columns_options)
     return table_data
 
@@ -86,12 +91,11 @@ def generate_meta_data_dicts(table, columns_data_types_list):
 
 
 def get_distinct_values_dict(table, columns_data_types_list):
-    uninteresting_columns = ["s3_path", "pred_name", "dump_name", "population"]
     distinct_select = ",".join(
         [
             f' array_agg(DISTINCT "{col}") AS "{col}" '
             for col, dtype in columns_data_types_list.items()
-            if dtype == "object" and col not in uninteresting_columns and not re.search(r"(_|.)\d+$", col)
+            if dtype == "object"
         ]
     )
     query = f"SELECT {distinct_select} FROM {table}"

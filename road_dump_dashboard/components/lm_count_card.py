@@ -1,7 +1,7 @@
 from dash import html, callback, Input, Output, State
 
 from road_dump_dashboard.components.components_ids import (
-    FRAME_COUNT,
+    LM_COUNT,
     MD_FILTERS,
     POPULATION_DROPDOWN,
     INTERSECTION_SWITCH,
@@ -12,11 +12,11 @@ from road_dump_dashboard.components.queries_manager import generate_count_query
 from road_dump_dashboard.graphs.big_number import human_format_int
 from road_database_toolkit.athena.athena_utils import query_athena
 
-layout = card_wrapper([html.Div([html.H3("Num Frames"), loading_wrapper([html.H4(id=FRAME_COUNT)])])])
+layout = card_wrapper([html.Div([html.H3("Num Lane Marks"), loading_wrapper([html.H4(id=LM_COUNT)])])])
 
 
 @callback(
-    Output(FRAME_COUNT, "children"),
+    Output(LM_COUNT, "children"),
     Input(MD_FILTERS, "data"),
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
@@ -27,7 +27,7 @@ def get_frame_count(meta_data_filters, tables, population, intersection_on):
     if not population or not tables:
         return 0
 
-    main_tables = tables["meta_data"]
+    main_tables = tables["lm_meta_data"]
     query = generate_count_query(
         main_tables,
         population,

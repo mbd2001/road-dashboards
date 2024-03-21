@@ -99,6 +99,7 @@ def get_group_layout(index, md_columns_options):
 layout = html.Div(
     card_wrapper(
         [
+            html.H4("Meta Data Filters"),
             html.Div(id="filters"),
             dbc.Stack(
                 dbc.Button("Update Filters", id="update_filters_btn", color="success", style={"margin": "10px"}),

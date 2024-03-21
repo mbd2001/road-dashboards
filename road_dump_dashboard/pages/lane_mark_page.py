@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import html, register_page, dcc, callback, Output, Input, State, ALL, no_update
+from dash import html, register_page, dcc, callback, Output, Input, State, no_update
 
 from road_dump_dashboard.components import meta_data_filter, base_dataset_statistics
 from road_dump_dashboard.components.components_ids import (
@@ -35,7 +35,7 @@ layout = html.Div(
     [
         html.H1("Lane Mark", className="mb-5"),
         meta_data_filter.layout,
-        base_dataset_statistics.frame_layout,
+        base_dataset_statistics.lm_layout,
         card_wrapper(
             [
                 dbc.Row(
@@ -192,7 +192,7 @@ def init_pie_dropdown(tables):
     if not tables:
         return no_update
 
-    columns_options = tables["lm_meta_data"]["columns_options"]
+    columns_options = tables["lm_meta_data"]["columns_options"] + tables["meta_data"]["columns_options"]
     return columns_options
 
 
@@ -212,7 +212,9 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, tabl
 
     main_tables = tables["lm_meta_data"]
     meta_data_tables = tables["meta_data"]
-    column_type = tables["lm_meta_data"]["columns_to_type"][group_by_column]
+    column_type = tables["lm_meta_data"]["columns_to_type"].get(group_by_column) or tables["meta_data"][
+        "columns_to_type"
+    ].get(group_by_column)
     bins_factor = None
     ignore_filter = ""
     if column_type.startswith(("int", "float", "double")):
