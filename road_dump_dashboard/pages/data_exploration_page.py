@@ -55,7 +55,7 @@ def exponent_transform(value, base=10):
 layout = html.Div(
     [
         html.H1("Data Exploration", className="mb-5"),
-        meta_data_filter.layout,
+        meta_data_filter.layout("meta_data"),
         base_dataset_statistics.frame_layout,
         card_wrapper(
             [
@@ -233,7 +233,6 @@ def get_tvgt_conf_mat(meta_data_filters, tables, population, main_dump, secondar
         population,
         column_to_compare,
         meta_data_filters=meta_data_filters,
-        extra_columns=[column_to_compare],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     fig = get_confusion_matrix(data, x_label=secondary_dump, y_label=main_dump, title="TVGT Confusion Matrix")
@@ -262,7 +261,6 @@ def get_gtem_conf_mat(meta_data_filters, tables, population, main_dump, secondar
         population,
         column_to_compare,
         meta_data_filters=meta_data_filters,
-        extra_columns=[column_to_compare],
     )
 
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -304,7 +302,6 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
         False,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column],
         extra_filters=f" dump_name = '{chosen_dump}' ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -337,7 +334,6 @@ def get_tvgt_pie_chart(meta_data_filters, tables, population, intersection_on):
         intersection_on,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of TVGTs"
@@ -365,7 +361,6 @@ def get_gtem_pie_chart(meta_data_filters, tables, population, intersection_on):
         intersection_on,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of GTEMs"
@@ -415,7 +410,6 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, tabl
         meta_data_filters=" AND ".join(filter_str for filter_str in [meta_data_filters, ignore_filter] if filter_str),
         group_by_column=group_by_column,
         bins_factor=bins_factor,
-        extra_columns=[group_by_column],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {group_by_column.replace('mdbi_', '').replace('_', ' ').title()}"
@@ -446,8 +440,7 @@ def get_road_type_pie_chart(meta_data_filters, tables, population, intersection_
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,
-        interesting_filters=interesting_filters["filters"],
-        extra_columns=interesting_filters["extra_columns"],
+        interesting_filters=interesting_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data = data.melt(id_vars=["dump_name"], var_name="filter", value_name="overall")
@@ -475,8 +468,7 @@ def get_lane_mark_color_pie_chart(meta_data_filters, tables, population, interse
         population,
         intersection_on,
         meta_data_filters=meta_data_filters,
-        interesting_filters=interesting_filters["filters"],
-        extra_columns=interesting_filters["extra_columns"],
+        interesting_filters=interesting_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data = data.melt(id_vars=["dump_name"], var_name="filter", value_name="overall")

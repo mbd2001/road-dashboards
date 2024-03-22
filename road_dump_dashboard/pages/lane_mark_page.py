@@ -24,7 +24,7 @@ from road_database_toolkit.athena.athena_utils import query_athena
 from road_dump_dashboard.graphs.pie_or_line_wrapper import pie_or_line_wrapper
 
 extra_properties = PageProperties("search")
-register_page(__name__, path="/lane_mark", name="Lane Mark", order=2, **extra_properties.__dict__)
+register_page(__name__, path="/lane_marks", name="Lane Marks", order=2, **extra_properties.__dict__)
 
 
 def exponent_transform(value, base=10):
@@ -33,8 +33,8 @@ def exponent_transform(value, base=10):
 
 layout = html.Div(
     [
-        html.H1("Lane Mark", className="mb-5"),
-        meta_data_filter.layout,
+        html.H1("Lane Marks", className="mb-5"),
+        meta_data_filter.layout("lm_meta_data"),
         base_dataset_statistics.lm_layout,
         card_wrapper(
             [
@@ -112,7 +112,6 @@ def get_lm_role_pie_chart(meta_data_filters, tables, population, intersection_on
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ROLE_IGNORE' AND {group_by_column} != 'IRRELEVANT' ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -143,7 +142,6 @@ def get_lm_color_pie_chart(meta_data_filters, tables, population, intersection_o
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ignore' ",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -174,9 +172,9 @@ def get_lm_type_pie_chart(meta_data_filters, tables, population, intersection_on
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_columns=[group_by_column],
         extra_filters=f" {group_by_column} != 'ignore' ",
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of Lane Marks Type"
     fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)
@@ -233,7 +231,6 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, tabl
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         bins_factor=bins_factor,
-        extra_columns=[group_by_column],
         extra_filters=ignore_filter,
     )
     print(query)

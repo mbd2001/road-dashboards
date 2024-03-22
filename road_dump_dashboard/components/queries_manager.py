@@ -1,6 +1,19 @@
+COMMON_COLUMNS = {
+    "population",
+    "batch_num",
+    "dump_name",
+    "clip_name",
+    "grabIndex",
+    "grabindex",
+    "pred_name",
+    "dump_name",
+}
+
+BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabIndex"]
+
 SELECT_QUERY = """
     (SELECT {columns_to_select} 
-    FROM {main_data} B
+    FROM {main_data} A
     {meta_data_filters})
     """
 
@@ -9,12 +22,6 @@ JOIN_QUERY = """
     FROM {main_data} A INNER JOIN {secondary_data} B
     ON ((A.clip_name = B.clip_name) AND (A.grabIndex = B.grabIndex)) 
     {meta_data_filters})
-    """
-
-BASE_QUERTY = """
-    SELECT * FROM
-    ({base_data})
-    {extra_filters} 
     """
 
 CONF_QUERY = """
@@ -57,8 +64,8 @@ def generate_conf_mat_query(
     meta_data_tables=None,
     meta_data_filters="",
     extra_filters="",
-    extra_columns=None,
 ):
+    extra_columns = [column_to_compare] if column_to_compare else None
     main_identifier = f" dump_name = '{main_dump}' "
     main_data = generate_base_query(
         main_tables,
@@ -97,7 +104,6 @@ def generate_count_query(
     meta_data_filters="",
     extra_filters="",
     bins_factor=None,
-    extra_columns=None,
 ):
     base_query = generate_base_query(
         main_tables,
@@ -106,17 +112,18 @@ def generate_count_query(
         intersection_on,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
+        extra_columns=[group_by_column] if group_by_column else None,
     )
-    if not group_by_column:
-        metrics = "COUNT(*) AS overall"
-        query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
-    else:
+    if group_by_column:
         metrics = COUNT_ALL_METRIC.format(count_name="overall")
         group_by = f"FLOOR({group_by_column} / {bins_factor}) * {bins_factor}" if bins_factor else group_by_column
         query = COUNT_QUERY.format(
             base_query=base_query, count_metric=metrics, group_by=group_by, group_name=group_by_column
         )
+    else:
+        metrics = "COUNT(*) AS overall"
+        query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
+
     return query
 
 
@@ -132,7 +139,7 @@ def generate_dynamic_count_query(
 ):
     metrics = ", ".join(
         COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name)
-        for name, filter in interesting_filters.items()
+        for name, filter in interesting_filters["filters"].items()
     )
     base_query = generate_base_query(
         main_tables,
@@ -141,7 +148,7 @@ def generate_dynamic_count_query(
         intersection_on,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
+        extra_columns=interesting_filters["extra_columns"],
     )
     query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
     return query
@@ -159,74 +166,78 @@ def generate_base_query(
     if isinstance(extra_columns, str):
         extra_columns = [extra_columns]
 
-    main_columns = main_tables["columns_to_type"].keys()
     main_paths = main_tables["tables_dict"].values()
     meta_data_paths = meta_data_tables["tables_dict"].values() if meta_data_tables else None
 
-    meta_data_filters = f"({meta_data_filters}) " if meta_data_filters else ""
-    base_data = generate_base_data(main_paths, meta_data_paths, meta_data_filters, main_columns, extra_columns)
-
     intersect_filter = generate_intersect_filter(main_paths, intersection_on)
-    extra_filters = generate_extra_filters(extra_filters, intersect_filter, population)
-
-    base_data = BASE_QUERTY.format(base_data=base_data, extra_filters=extra_filters)
+    filters = generate_extra_filters(extra_filters, intersect_filter, meta_data_filters, population)
+    base_data = generate_base_data(main_paths, meta_data_paths, filters, extra_columns)
     return base_data
 
 
-def generate_base_data(main_paths, meta_data_paths, meta_data_filters, main_columns, extra_columns=None):
+def generate_base_data(main_paths, meta_data_paths, filters, extra_columns=None):
     if extra_columns is None:
         extra_columns = []
 
-    base_columns = ["population", "dump_name", "clip_name", "grabIndex"]
-    data_columns = set(base_columns + extra_columns)
+    desired_columns = set(BASE_COLUMNS + extra_columns)
     if meta_data_paths:
-        data_columns_str = ", ".join(
-            f"A.{col} AS {col}" if is_column_in_primary_table(col, main_columns) else f"B.{col} AS {col}"
-            for col in data_columns
-        )
-        join_strings = [
-            JOIN_QUERY.format(
-                columns_to_select=data_columns_str,
-                main_data=main_table,
-                secondary_data=md_table,
-                meta_data_filters=meta_data_filters,
-            )
-            for main_table, md_table in zip(main_paths, meta_data_paths)
-            if main_table
-        ]
+        datasets_list = generate_joined_data(main_paths, meta_data_paths, desired_columns, filters)
     else:
-        data_columns_str = ", ".join(data_columns)
-        join_strings = [
-            SELECT_QUERY.format(
-                columns_to_select=data_columns_str, main_data=main_table, meta_data_filters=meta_data_filters
-            )
-            for main_table in main_paths
-            if main_table
-        ]
-    union_str = f" UNION ALL SELECT * FROM ".join(join_strings)
-    return f"SELECT * FROM {union_str}"
+        datasets_list = generate_single_data(main_paths, desired_columns, filters)
+
+    union_str = f" UNION ALL SELECT * FROM ".join(datasets_list)
+    union_str = f"SELECT * FROM {union_str}"
+    return union_str
 
 
-def is_column_in_primary_table(col, columns_in_table):
-    return col in columns_in_table or col.lower() in columns_in_table
+def generate_joined_data(main_paths, meta_data_paths, desired_columns, meta_data_filters):
+    data_columns_str = ", ".join(manipulate_column_to_avoid_ambiguities(col) for col in desired_columns)
+    join_strings = [
+        JOIN_QUERY.format(
+            columns_to_select=data_columns_str,
+            main_data=main_table,
+            secondary_data=md_table,
+            meta_data_filters=meta_data_filters,
+        )
+        for main_table, md_table in zip(main_paths, meta_data_paths)
+        if main_table
+    ]
+    return join_strings
 
 
-def generate_intersect_filter(main_names, intersection_on):
+def manipulate_column_to_avoid_ambiguities(col):
+    manipulated_column = f"A.{col} AS {col}" if col in COMMON_COLUMNS else col
+    return manipulated_column
+
+
+def generate_single_data(main_paths, desired_columns, meta_data_filters):
+    data_columns_str = ", ".join(desired_columns)
+    datasets_strings = [
+        SELECT_QUERY.format(
+            columns_to_select=data_columns_str, main_data=main_table, meta_data_filters=meta_data_filters
+        )
+        for main_table in main_paths
+        if main_table
+    ]
+    return datasets_strings
+
+
+def generate_intersect_filter(main_paths, intersection_on):
     if not intersection_on:
         return ""
 
-    intersect_select = " INTERSECT SELECT clip_name, grabIndex FROM ".join(
-        md_table for md_table in main_names if md_table
-    )
-    intersect_select = f"(clip_name, grabIndex) IN (SELECT clip_name, grabIndex FROM {intersect_select})"
+    intersect_select = " INTERSECT SELECT clip_name, grabIndex FROM ".join(table for table in main_paths if table)
+    intersect_select = f"(A.clip_name, A.grabIndex) IN (SELECT clip_name, grabIndex FROM {intersect_select})"
     return intersect_select
 
 
-def generate_extra_filters(extra_filters, intersect_filter, population):
+def generate_extra_filters(extra_filters, intersect_filter, meta_data_filters, population):
     extra_filters = f"({extra_filters}) " if extra_filters else ""
+    meta_data_filters = f"({meta_data_filters}) " if meta_data_filters else ""
+    population_filter = f"(A.population = '{population}') " if population != "all" else ""
 
-    population_filter = f"(population = '{population}') " if population != "all" else ""
-
-    filters_str = " AND ".join(ftr for ftr in [extra_filters, intersect_filter, population_filter] if ftr)
+    filters_str = " AND ".join(
+        ftr for ftr in [extra_filters, intersect_filter, meta_data_filters, population_filter] if ftr
+    )
     filters_str = f"WHERE {filters_str}" if filters_str else ""
     return filters_str

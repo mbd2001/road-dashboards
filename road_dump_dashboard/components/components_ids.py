@@ -3,6 +3,24 @@ TABLES = "Tables"
 MD_FILTERS = "md_filters"
 
 
+# meta data filters
+FILTERS = "filters"
+PAGE_FILTER_TABLE = "page_filter_table"
+
+FILTER_GROUP = "filter_group"
+ADD_FILTER_BTN = "add_filter_btn"
+ADD_SUB_GROUP = "add_sub_group"
+REMOVE_SUB_GROUP = "remove_sub_group"
+
+FILTER_LIST = "filters_list"
+FILTER_ROW = "filter_row"
+MD_OPERATION = "meta_data_operation"
+MD_VAL_COL = "meta_data_val_col"
+MD_VAL = "meta_data_val"
+
+UPDATE_FILTERS_BTN = "update_filters_btn"
+
+
 # logical components
 URL = "url"
 PAGE_CONTENT = "page_content"

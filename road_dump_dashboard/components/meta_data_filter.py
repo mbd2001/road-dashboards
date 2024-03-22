@@ -2,15 +2,31 @@ import dash_daq as daq
 import dash_bootstrap_components as dbc
 from dash import html, dcc, MATCH, no_update, State, Input, Output, callback_context, callback, Patch
 
-from road_dump_dashboard.components.components_ids import MD_FILTERS, TABLES
+from road_dump_dashboard.components.components_ids import (
+    MD_FILTERS,
+    TABLES,
+    UPDATE_FILTERS_BTN,
+    MD_VAL,
+    MD_VAL_COL,
+    MD_OPERATION,
+    FILTER_ROW,
+    REMOVE_SUB_GROUP,
+    FILTER_GROUP,
+    FILTER_LIST,
+    ADD_FILTER_BTN,
+    ADD_SUB_GROUP,
+    FILTERS,
+    PAGE_FILTER_TABLE,
+)
 from road_dump_dashboard.components.layout_wrapper import card_wrapper
+from road_dump_dashboard.components.queries_manager import manipulate_column_to_avoid_ambiguities
 
 NUM_FILTERS_PER_GROUP = 10
 
 
 def get_filter_row_initial_layout(index, md_columns_options):
     single_filter_initial_layout = dbc.Row(
-        id={"type": "filter_row", "index": index},
+        id={"type": FILTER_ROW, "index": index},
         children=[
             dbc.Col(
                 children=dcc.Dropdown(
@@ -25,7 +41,7 @@ def get_filter_row_initial_layout(index, md_columns_options):
             ),
             dbc.Col(
                 children=dcc.Dropdown(
-                    id={"type": "meta_data_operation", "index": index},
+                    id={"type": MD_OPERATION, "index": index},
                     style={"minWidth": "100%"},
                     multi=False,
                     clearable=True,
@@ -34,9 +50,9 @@ def get_filter_row_initial_layout(index, md_columns_options):
                 ),
             ),
             dbc.Col(
-                id={"type": "meta_data_val_col", "index": index},
+                id={"type": MD_VAL_COL, "index": index},
                 children=dcc.Input(
-                    id={"type": "meta_data_val", "index": index},
+                    id={"type": MD_VAL, "index": index},
                     style={"minWidth": "100%", "display": "block"},
                     placeholder="----",
                     value="",
@@ -55,7 +71,7 @@ def get_filter_row_initial_layout(index, md_columns_options):
 
 def get_group_layout(index, md_columns_options):
     group_layout = dbc.Row(
-        id={"type": "filter_group", "index": index},
+        id={"type": FILTER_GROUP, "index": index},
         children=[
             dbc.Stack(
                 children=[
@@ -66,19 +82,19 @@ def get_group_layout(index, md_columns_options):
                     ),
                     dbc.Button(
                         className=f"ms-auto fas fa-plus",
-                        id={"type": "add_filter_btn", "index": index},
+                        id={"type": ADD_FILTER_BTN, "index": index},
                         color="secondary",
                         style={"margin": "10px"},
                     ),
                     dbc.Button(
                         className=f"fas fa-link",
-                        id={"type": "add_sub_group", "index": index},
+                        id={"type": ADD_SUB_GROUP, "index": index},
                         color="secondary",
                         style={"margin": "10px"},
                     ),
                     dbc.Button(
                         className=f"fas fa-trash",
-                        id={"type": "remove_sub_group", "index": index},
+                        id={"type": REMOVE_SUB_GROUP, "index": index},
                         color="secondary",
                         style={"margin": "10px"},
                     ),
@@ -87,7 +103,7 @@ def get_group_layout(index, md_columns_options):
                 gap=1,
             ),
             html.Div(
-                id={"type": "filters_list", "index": index},
+                id={"type": FILTER_LIST, "index": index},
                 children=[get_filter_row_initial_layout(index * NUM_FILTERS_PER_GROUP, md_columns_options)],
             ),
         ],
@@ -96,38 +112,42 @@ def get_group_layout(index, md_columns_options):
     return group_layout
 
 
-layout = html.Div(
-    card_wrapper(
-        [
-            html.H4("Meta Data Filters"),
-            html.Div(id="filters"),
-            dbc.Stack(
-                dbc.Button("Update Filters", id="update_filters_btn", color="success", style={"margin": "10px"}),
-                direction="horizontal",
-                gap=1,
-            ),
-        ]
+def layout(page_filter_table):
+    empty_layout = html.Div(
+        card_wrapper(
+            [
+                html.Div(id=PAGE_FILTER_TABLE, children=page_filter_table, style={"display": "none"}),
+                html.H3("Filters"),
+                html.Div(id=FILTERS),
+                dbc.Stack(
+                    dbc.Button("Update Filters", id=UPDATE_FILTERS_BTN, color="success", style={"margin": "10px"}),
+                    direction="horizontal",
+                    gap=1,
+                ),
+            ]
+        )
     )
-)
+    return empty_layout
 
 
-@callback(Output("filters", "children"), Input(TABLES, "data"))
-def init_layout(tables):
+@callback(Output(FILTERS, "children"), Input(TABLES, "data"), State(PAGE_FILTER_TABLE, "children"))
+def init_layout(tables, md_table):
     if not tables:
         return no_update
 
-    columns_options = tables["meta_data"]["columns_options"]
+    columns_options = tables[md_table]["columns_options"] + tables["meta_data"]["columns_options"]
     return [get_group_layout(1, columns_options)]
 
 
 @callback(
-    Output({"type": "filters_list", "index": MATCH}, "children"),
-    Input({"type": "add_filter_btn", "index": MATCH}, "n_clicks"),
-    Input({"type": "add_sub_group", "index": MATCH}, "n_clicks"),
-    State({"type": "filters_list", "index": MATCH}, "children"),
+    Output({"type": FILTER_LIST, "index": MATCH}, "children"),
+    Input({"type": ADD_FILTER_BTN, "index": MATCH}, "n_clicks"),
+    Input({"type": ADD_SUB_GROUP, "index": MATCH}, "n_clicks"),
+    State({"type": FILTER_LIST, "index": MATCH}, "children"),
     State(TABLES, "data"),
+    State(PAGE_FILTER_TABLE, "children"),
 )
-def add_filters(add_clicks, add_group, filters_list, tables):
+def add_filters(add_clicks, add_group, filters_list, tables, md_table):
     if not any([add_clicks, add_group]) or not callback_context.triggered_id:
         return no_update
 
@@ -145,10 +165,10 @@ def add_filters(add_clicks, add_group, filters_list, tables):
         empty_index = get_empty_index(base_ind, filters_list)
 
     button_type = callback_context.triggered_id["type"]
-    columns_options = tables["meta_data"]["columns_options"]
-    if button_type == "add_filter_btn" and empty_index:
+    columns_options = tables[md_table]["columns_options"] + tables["meta_data"]["columns_options"]
+    if button_type == ADD_FILTER_BTN and empty_index:
         patched_children.append(get_filter_row_initial_layout(empty_index, columns_options))
-    elif button_type == "add_sub_group" and empty_index:
+    elif button_type == ADD_SUB_GROUP and empty_index:
         patched_children.append(get_group_layout(empty_index, columns_options))
 
     return patched_children
@@ -163,7 +183,7 @@ def get_empty_index(base_ind, filters_list):
 
 
 @callback(
-    Output({"type": "filter_row", "index": MATCH}, "style"),
+    Output({"type": FILTER_ROW, "index": MATCH}, "style"),
     Input({"type": "remove_filter_btn", "index": MATCH}, "n_clicks"),
 )
 def remove_filter(remove_clicks):
@@ -176,8 +196,8 @@ def remove_filter(remove_clicks):
 
 
 @callback(
-    Output({"type": "filter_group", "index": MATCH}, "style"),
-    Input({"type": "remove_sub_group", "index": MATCH}, "n_clicks"),
+    Output({"type": FILTER_GROUP, "index": MATCH}, "style"),
+    Input({"type": REMOVE_SUB_GROUP, "index": MATCH}, "n_clicks"),
 )
 def remove_sub_group(remove_clicks):
     if not remove_clicks or not callback_context.triggered_id:
@@ -192,19 +212,22 @@ def remove_sub_group(remove_clicks):
 
 
 @callback(
-    Output({"type": "meta_data_operation", "index": MATCH}, "options"),
-    Output({"type": "meta_data_operation", "index": MATCH}, "value"),
+    Output({"type": MD_OPERATION, "index": MATCH}, "options"),
+    Output({"type": MD_OPERATION, "index": MATCH}, "value"),
     Input({"type": "meta_data_columns", "index": MATCH}, "value"),
     State(TABLES, "data"),
+    State(PAGE_FILTER_TABLE, "children"),
 )
-def update_operation_dropdown_options(meta_data_col, tables):
+def update_operation_dropdown_options(meta_data_col, tables, md_table):
     if not meta_data_col or not tables:
         return [], ""
 
     if not callback_context.triggered_id:
         return no_update, no_update
 
-    column_type = tables["meta_data"]["columns_to_type"][meta_data_col]
+    column_type = tables[md_table]["columns_to_type"].get(meta_data_col) or tables["meta_data"]["columns_to_type"].get(
+        meta_data_col
+    )
     if column_type.startswith(("int", "float", "double")):
         options = [
             {"label": "Greater", "value": ">"},
@@ -240,18 +263,19 @@ def update_operation_dropdown_options(meta_data_col, tables):
 
 
 @callback(
-    Output({"type": "meta_data_val_col", "index": MATCH}, "children"),
-    Input({"type": "meta_data_operation", "index": MATCH}, "value"),
-    State({"type": "meta_data_operation", "index": MATCH}, "id"),
+    Output({"type": MD_VAL_COL, "index": MATCH}, "children"),
+    Input({"type": MD_OPERATION, "index": MATCH}, "value"),
+    State({"type": MD_OPERATION, "index": MATCH}, "id"),
     State({"type": "meta_data_columns", "index": MATCH}, "value"),
     State(TABLES, "data"),
+    State(PAGE_FILTER_TABLE, "children"),
 )
-def update_meta_data_values_options(operation, index, col, tables):
+def update_meta_data_values_options(operation, index, col, tables, md_table):
     # TODO: refactor
     curr_index = index["index"]
     if not col or not operation:
         return dcc.Input(
-            id={"type": "meta_data_val", "index": curr_index},
+            id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "display": "block"},
             placeholder="----",
             value="",
@@ -261,11 +285,13 @@ def update_meta_data_values_options(operation, index, col, tables):
     if not callback_context.triggered_id:
         return no_update
 
-    distinguish_values = tables["meta_data"]["columns_distinguish_values"][col]
-    column_type = tables["meta_data"]["columns_to_type"][col]
+    distinguish_values = tables[md_table]["columns_distinguish_values"].get(col) or tables["meta_data"][
+        "columns_distinguish_values"
+    ].get(col)
+    column_type = tables[md_table]["columns_to_type"].get(col) or tables["meta_data"]["columns_to_type"].get(col)
     if operation in ["IS NULL", "IS NOT NULL"]:
         return dcc.Input(
-            id={"type": "meta_data_val", "index": curr_index},
+            id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "display": "none"},
             placeholder="----",
             value="",
@@ -279,7 +305,7 @@ def update_meta_data_values_options(operation, index, col, tables):
                 else [{"label": "True", "value": "True"}, {"label": "False", "value": "False"}]
             )
             return dcc.Dropdown(
-                id={"type": "meta_data_val", "index": curr_index},
+                id={"type": MD_VAL, "index": curr_index},
                 style={"minWidth": "100%", "display": "block"},
                 multi=True,
                 clearable=True,
@@ -294,7 +320,7 @@ def update_meta_data_values_options(operation, index, col, tables):
             else [{"label": "True", "value": "TRUE"}, {"label": "False", "value": "FALSE"}]
         )
         return dcc.Dropdown(
-            id={"type": "meta_data_val", "index": curr_index},
+            id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "display": "block"},
             multi=False,
             clearable=True,
@@ -305,7 +331,7 @@ def update_meta_data_values_options(operation, index, col, tables):
     else:
         type = "text" if column_type in ["object", "bool"] else "number"
         return dcc.Input(
-            id={"type": "meta_data_val", "index": curr_index},
+            id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "marginBottom": "10px", "display": "block"},
             placeholder="----",
             value="",
@@ -315,8 +341,8 @@ def update_meta_data_values_options(operation, index, col, tables):
 
 @callback(
     Output(MD_FILTERS, "data"),
-    Input("update_filters_btn", "n_clicks"),
-    State("filters", "children"),
+    Input(UPDATE_FILTERS_BTN, "n_clicks"),
+    State(FILTERS, "children"),
 )
 def generate_meta_data_filters_string(n_clicks, filters):
     if not filters:
@@ -333,7 +359,7 @@ def recursive_build_meta_data_filters(filters):
         return ""
 
     # single filter case
-    if filters["props"]["id"]["type"] == "filter_row":
+    if filters["props"]["id"]["type"] == FILTER_ROW:
         row = filters["props"]
         column = row["children"][0]["props"]["children"]["props"]["value"]
         operation = row["children"][1]["props"]["children"]["props"]["value"]
@@ -358,6 +384,7 @@ def parse_one_filter(column, operation, value):
     else:
         parsed_val = str(value)
 
-    filter_components = [f"B.{column}", operation, parsed_val]
+    column = manipulate_column_to_avoid_ambiguities(column)
+    filter_components = [column, operation, parsed_val]
     single_filter = " ".join(component for component in filter_components if component)
     return single_filter
