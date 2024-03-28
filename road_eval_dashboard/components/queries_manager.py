@@ -1,3 +1,4 @@
+import enum
 import re
 import numpy as np
 import pandas as pd
@@ -107,14 +108,22 @@ FB_OVERALL_METRIC = """
 
 MD_FILTER_COUNT = """
     COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END)
-    AS count_{ind}
+    AS "count_{ind}"
     """
 
 DIST_METRIC = """
-    CAST(COUNT(CASE WHEN ("dist_{dist}" {thresh_filter}) THEN 1 ELSE NULL END) AS DOUBLE) / 
-    COUNT(CASE WHEN "dist_{dist}" IS NOT NULL THEN 1 ELSE NULL END)
-    AS "score_{dist}"
+    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
+    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) AND ("{base_dist_column_name}_{dist}" < 999) {extra_filters} THEN 1 ELSE NULL END)
+    AS "score_{ind}"
     """
+
+VIEW_RANGE_SUCCESS_RATE_QUERY = """
+    SUM(CAST({max_Z_col}_pred >= {Z_sample} AND {max_Z_col}_label >= {Z_sample} AS DOUBLE)) / 
+    SUM(CAST({max_Z_col}_label >= {Z_sample} AS DOUBLE))
+    AS "vr_score_{Z_sample}"
+    """
+
+VIEW_RANGE_COUNT_GT_QUERY = """ SUM(CAST({max_Z_col}_label >= {Z_sample} AS DOUBLE)) AS "vr_num_gt_{Z_sample}" """
 
 TP_METRIC = """
     CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} > {thresh} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE)
@@ -145,7 +154,7 @@ COUNT_FILTER_METRIC = """
 
 LOG_COUNT_METRIC = """
     LOG(2, COUNT(CASE WHEN {extra_filters} THEN 1 ELSE NULL END) + 1)
-    AS overall_{ind}
+    AS "overall_{ind}"
     """
 
 COUNT_ALL_METRIC = """
@@ -154,13 +163,13 @@ COUNT_ALL_METRIC = """
     """
 
 SUM_METRIC = """
-    SUM({col})
-    AS sum_{ind}
+    SUM("{col}")
+    AS "sum_{ind}"
     """
 
 CORRELATION_SUM_METRIC = """
-    SUM({col}) - (POWER(SUM({col}) - 1, 2)) / (SUM({col}) + ((MAX(CASE WHEN {col} > 0 THEN grabIndex ELSE NULL END) - MIN(CASE WHEN {col} > 0 THEN grabIndex ELSE NULL END)) / 20))
-    AS sum_{ind}
+    SUM("{col}") - (POWER(SUM("{col}") - 1, 2)) / (SUM("{col}") + ((MAX(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END) - MIN(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END)) / 20))
+    AS "sum_{ind}"
     """
 
 THRESHOLDS = np.concatenate(
@@ -176,6 +185,19 @@ ROC_THRESHOLDS = np.concatenate(
         np.array([1000]),
     )
 )
+
+lm_3D_sec_to_Z_dist_acc = {0.5: 0.1, 1.0: 0.25, 1.3: 0.75, 1.5: 0.75, 2.0: 0.75, 2.5: 1.2, 3.0: 1.5}
+
+lm_3D_sec_to_X_dist_acc = {0.5: 0.08, 1.0: 0.12, 1.3: 0.2, 1.5: 0.2, 2.0: 0.3, 2.5: 0.4, 3.0: 0.5}
+
+lm_3d_distances = list(lm_3D_sec_to_X_dist_acc.keys())
+
+
+class ZSources(str, enum.Enum):
+    FUSION = "fusion"
+    dZ = "dZ"
+    dY = "dY"
+
 
 sec_to_dist_acc = {
     0.5: 0.2,
@@ -204,6 +226,7 @@ sec_to_dist_falses = {
 }
 
 distances = list(sec_to_dist_acc.keys())
+INTERSTING_FILTERS_DIST_TO_CHECK = 1.3
 
 
 def generate_grab_index_hist_query(
@@ -310,7 +333,7 @@ def generate_emdp_query(
     interesting_filters,
     meta_data_filters="",
     extra_filters="",
-    compare_operator="=",
+    compare_operator=">=",
 ):
     base_query = generate_base_query(
         data_tables,
@@ -356,25 +379,163 @@ def generate_path_net_query(
     state,
     meta_data_filters="",
     extra_filters="",
-    extra_columns=[],
     role="",
 ):
     operator = "<" if state == "accuracy" else ">"
     distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
+    query = get_dist_query("dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role)
+    return query
+
+
+def generate_view_range_success_rate_query(
+    data_tables,
+    meta_data,
+    Z_samples,
+    meta_data_filters="",
+    role="",
+    naive_Z=False,
+    use_err_est=True,
+):
+    max_Z_col = "view_range_max_Z"
+    if not naive_Z:
+        max_Z_col += "_3d"
+    if use_err_est:
+        max_Z_col += "_err_est"
+    metrics_lst = []
+    for Z in Z_samples:
+        metrics_lst.append(VIEW_RANGE_SUCCESS_RATE_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z))
+        metrics_lst.append(VIEW_RANGE_COUNT_GT_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z))
+    metrics = ", ".join(metrics_lst)
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters="confidence > 0 AND match <> -1",
+        role=role,
+        extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
+    )
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+
+    return query
+
+
+def generate_view_range_histogram_query(
+    data_tables,
+    meta_data,
+    bin_size,
+    meta_data_filters="",
+    role="",
+    naive_Z=False,
+    use_err_est=True,
+):
+    max_Z_col = "view_range_max_Z"
+    if not naive_Z:
+        max_Z_col += "_3d"
+    if use_err_est:
+        max_Z_col += "_err_est"
+    query = generate_count_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        bins_factor=bin_size,
+        extra_filters="confidence > 0 AND match <> -1",
+        role=role,
+        extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
+        group_by_column=f"{max_Z_col}_pred",
+        group_by_net_id=True,
+        include_all=False,
+    )
+
+    query = f"{query} ORDER BY net_id, {max_Z_col}_pred"
+
+    return query
+
+
+def generate_lm_3d_query(
+    data_tables,
+    meta_data,
+    state,
+    meta_data_filters="",
+    role="",
+    is_Z=False,
+    intresting_filters=None,
+    Z_source=ZSources.FUSION,
+):
+    operator = "<" if state == "accuracy" else ">"
+    distances = lm_3D_sec_to_Z_dist_acc if is_Z else lm_3D_sec_to_X_dist_acc
+    if intresting_filters is not None:
+        distances = {INTERSTING_FILTERS_DIST_TO_CHECK: distances[INTERSTING_FILTERS_DIST_TO_CHECK]}
+    axis = "Z" if is_Z else "X"
+    base_column_name = f"pos_dZ_{Z_source}_{axis}_dists"
+    query = get_dist_query(
+        base_column_name,
+        data_tables,
+        distances,
+        meta_data,
+        meta_data_filters,
+        operator,
+        role,
+        base_extra_filters="confidence > 0 AND match <> -1",
+        is_add_filters_count=True,
+        intresting_filters=intresting_filters,
+    )
+    return query
+
+
+def get_dist_query(
+    base_dist_column_name,
+    data_tables,
+    distances_dict,
+    meta_data,
+    meta_data_filters,
+    operator,
+    role,
+    base_extra_filters="",
+    is_add_filters_count=False,
+    intresting_filters=None,
+):
+    if intresting_filters is None:
+        intresting_filters = {"": ""}
     metrics = ", ".join(
-        DIST_METRIC.format(thresh_filter=f"{operator} {thresh}", dist=sec, extra_filters="")
+        DIST_METRIC.format(
+            thresh_filter=f"{operator} {thresh}",
+            dist=sec,
+            extra_filters=f"AND {extra_filter}" if extra_filter_name else "",
+            base_dist_column_name=base_dist_column_name,
+            ind=f"{sec}_{extra_filter_name}" if extra_filter_name else sec,
+        )
         for sec, thresh in distances_dict.items()
+        for extra_filter_name, extra_filter in intresting_filters.items()
     )
     base_query = generate_base_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
-        extra_columns=extra_columns,
+        extra_filters=base_extra_filters,
         role=role,
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+
+    if is_add_filters_count:
+        count_metrics = get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
+        metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
+        group_by = "net_id"
+        md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+        query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
+
     return query
+
+
+def get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator):
+    count_metrics = {}
+    for sec, thresh in distances_dict.items():
+        for extra_filter_name, extra_filter in intresting_filters.items():
+            filter_name = f"{sec}_{extra_filter_name}" if extra_filter_name else f"{sec}"
+            extra_filter_str = f"AND {extra_filter}" if extra_filter_name else ""
+            count_metrics[filter_name] = (
+                f'"{base_dist_column_name}_{sec}" IS NOT NULL AND "{base_dist_column_name}_{sec}" {operator} {thresh} {extra_filter_str}'
+            )
+    return count_metrics
 
 
 def generate_emdp_view_range_Z_histogram_query(
