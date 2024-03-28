@@ -383,9 +383,7 @@ def generate_path_net_query(
 ):
     operator = "<" if state == "accuracy" else ">"
     distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
-    query = get_dist_query(
-        "dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role
-    )
+    query = get_dist_query("dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role)
     return query
 
 
