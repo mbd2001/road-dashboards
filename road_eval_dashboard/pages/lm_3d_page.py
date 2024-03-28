@@ -146,5 +146,5 @@ def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, Z_source, nets, gr
 def get_cols_names(intresting_filter):
     if intresting_filter:
         intresting_filter_names = list(intresting_filter.keys())
-        return [f"{INTERSTING_FILTERS_DIST_TO_CHECK}_{col}" for col in intresting_filter_names]
+        return [col for col in intresting_filter_names]
     return lm_3d_distances
