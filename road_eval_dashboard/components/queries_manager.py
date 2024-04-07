@@ -395,7 +395,7 @@ def generate_view_range_success_rate_query(
     role="",
     naive_Z=False,
     use_err_est=True,
-    err_est_threshold=0.2
+    err_est_threshold=0.2,
 ):
     max_Z_col = get_view_range_col_name("view_range_max_Z", naive_Z, use_err_est, err_est_threshold)
     metrics_lst = []
@@ -420,7 +420,7 @@ def get_view_range_col_name(max_Z_col, naive_Z, use_err_est, threshold):
     if not naive_Z:
         max_Z_col += "_3d"
     if use_err_est:
-        max_Z_col += f'_err_est_{threshold}'
+        max_Z_col += f"_err_est_{threshold}"
     return max_Z_col
 
 
@@ -432,7 +432,7 @@ def generate_view_range_histogram_query(
     role="",
     naive_Z=False,
     use_err_est=True,
-    err_est_threshold=0.2
+    err_est_threshold=0.2,
 ):
     max_Z_col = get_view_range_col_name("view_range_max_Z", naive_Z, use_err_est, err_est_threshold)
     query = generate_count_query(

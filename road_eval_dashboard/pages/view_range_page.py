@@ -21,14 +21,17 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_HISTOGRAM_CUMULATIVE,
     VIEW_RANGE_SUCCESS_RATE_ERR_EST,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST,
-    VIEW_RANGE_HISTOGRAM_ERR_EST, VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
-    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD, VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
+    VIEW_RANGE_HISTOGRAM_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD,
+    VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     generate_view_range_histogram_query,
     generate_view_range_success_rate_query,
-    run_query_with_nets_names_processing, get_view_range_col_name,
+    run_query_with_nets_names_processing,
+    get_view_range_col_name,
 )
 from road_eval_dashboard.pages.card_generators import (
     view_range_histogram_card,
@@ -75,7 +78,9 @@ layout = html.Div(
     Input(NETS, "data"),
     background=True,
 )
-def get_view_range_success_rate_plot(meta_data_filters, naive_Z, filter_err_est, Z_range, Z_step, err_est_threshold, nets):
+def get_view_range_success_rate_plot(
+    meta_data_filters, naive_Z, filter_err_est, Z_range, Z_step, err_est_threshold, nets
+):
     if not nets:
         return no_update
     Z_samples = list(range(Z_range[0], Z_range[1] + 1, Z_step))
@@ -86,7 +91,7 @@ def get_view_range_success_rate_plot(meta_data_filters, naive_Z, filter_err_est,
         meta_data_filters=meta_data_filters,
         naive_Z=naive_Z,
         use_err_est=filter_err_est,
-        err_est_threshold=err_est_threshold
+        err_est_threshold=err_est_threshold,
     )
     df, _ = run_query_with_nets_names_processing(query)
     df_melted_score = melt_df_by_metric(df, "vr_score")
@@ -146,7 +151,7 @@ def get_view_range_success_rate_interesting_plots(
             role=role,
             naive_Z=naive_Z,
             use_err_est=filter_err_est,
-            err_est_threshold=err_est_threshold
+            err_est_threshold=err_est_threshold,
         )
 
         df, _ = run_query_with_nets_names_processing(query)
@@ -195,7 +200,9 @@ def get_view_range_success_rate_interesting_plots(
     background=True,
     prevent_initial_call=True,
 )
-def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_err_est, cumulative_graph, err_est_threshold, nets):
+def get_view_range_histogram_plot(
+    meta_data_filters, bin_size, naive_Z, filter_err_est, cumulative_graph, err_est_threshold, nets
+):
     if not nets:
         return no_update
     xaxis_direction = None
@@ -206,7 +213,7 @@ def get_view_range_histogram_plot(meta_data_filters, bin_size, naive_Z, filter_e
         meta_data_filters=meta_data_filters,
         naive_Z=naive_Z,
         use_err_est=filter_err_est,
-        err_est_threshold=err_est_threshold
+        err_est_threshold=err_est_threshold,
     )
     df, _ = run_query_with_nets_names_processing(query)
     max_Z_col = get_view_range_col_name("view_range_max_Z", naive_Z, filter_err_est, err_est_threshold)
