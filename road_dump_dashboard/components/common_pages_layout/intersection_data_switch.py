@@ -10,5 +10,5 @@ layout = card_wrapper(
         on=False,
         label="Intersection",
         labelPosition="top",
-    )
+    ),
 )

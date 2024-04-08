@@ -6,19 +6,14 @@ from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card
 
 layout = card_wrapper(
     [
-        html.Div(
-            [
-                html.H3("Population"),
-                dcc.Dropdown(
-                    id=POPULATION_DROPDOWN,
-                    style={"minWidth": "100%"},
-                    multi=False,
-                    placeholder="----",
-                    value="",
-                ),
-            ]
-        )
-    ]
+        html.H3("Population"),
+        dcc.Dropdown(
+            id=POPULATION_DROPDOWN,
+            multi=False,
+            placeholder="----",
+            value="",
+        ),
+    ],
 )
 
 

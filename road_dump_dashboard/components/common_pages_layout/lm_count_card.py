@@ -12,7 +12,7 @@ from road_dump_dashboard.components.logical_components.queries_manager import ge
 from road_dump_dashboard.graphs.big_number import human_format_int
 from road_database_toolkit.athena.athena_utils import query_athena
 
-layout = card_wrapper([html.Div([html.H3("Num Lane Marks"), loading_wrapper([html.H4(id=LM_COUNT)])])])
+layout = card_wrapper([html.Div([html.H3("Num Lane Marks"), loading_wrapper(html.H4(id=LM_COUNT))])])
 
 
 @callback(

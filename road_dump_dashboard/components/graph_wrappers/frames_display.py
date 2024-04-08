@@ -4,21 +4,23 @@ import json
 import numpy as np
 import dash_bootstrap_components as dbc
 from dash_canvas.utils import array_to_data_url
-from dash import callback, Output, Input, State, no_update
+from dash import callback, Output, Input, State, no_update, ALL, callback_context, html
 from natsort import natsorted
 
 # from maffe_bins.road4.data.frame_data import FrameData
 # from maffe_bins.road4.display.frame_drawer import FrameDrawer
 from road_database_toolkit.athena.athena_utils import query_athena
 from road_dump_dashboard.components.constants.components_ids import (
-    DRAW_TVGT_DIFF_BTN,
+    GENERIC_SHOW_DIFF_BTN,
     MD_FILTERS,
     TABLES,
     POPULATION_DROPDOWN,
     MAIN_NET_DROPDOWN,
     SECONDARY_NET_DROPDOWN,
+    DYNAMIC_SHOW_DIFF_IDX,
+    DYNAMIC_CONF_DROPDOWN,
 )
-from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.logical_components.queries_manager import generate_diff_query
 from maffe_bins.road_db.drone_view_images.drone_view_db_manager import DroneViewDBManager
 from maffe_bins.road4.road4_consts import CASide, LMColor, LMType, LM_ROLES, CAType
@@ -29,42 +31,50 @@ with s3fs.S3FileSystem().open(json_path, "r") as f:
     json_info = json.load(f)
 
 
-layout = dbc.Row(
-    card_wrapper(
-        [
-            dbc.Carousel(
-                id="carousel1",
-                items=[],
-                controls=True,
-                indicators=False,
-            ),
-        ]
-    )
+layout = html.Div(
+    dbc.Row(
+        loading_wrapper(
+            [
+                dbc.Carousel(
+                    id="frames_carousel",
+                    items=[],
+                    controls=True,
+                    indicators=False,
+                ),
+            ]
+        )
+    ),
 )
 
 
 @callback(
-    Output("carousel1", "items"),
-    Input(DRAW_TVGT_DIFF_BTN, "n_clicks"),
-    Input(MD_FILTERS, "data"),
+    Output("frames_carousel", "items"),
+    Input({"type": GENERIC_SHOW_DIFF_BTN, "index": ALL}, "n_clicks"),
+    State(MD_FILTERS, "data"),
     State(TABLES, "data"),
-    Input(POPULATION_DROPDOWN, "value"),
-    Input(MAIN_NET_DROPDOWN, "value"),
-    Input(SECONDARY_NET_DROPDOWN, "value"),
+    State(POPULATION_DROPDOWN, "value"),
+    State(MAIN_NET_DROPDOWN, "value"),
+    State(SECONDARY_NET_DROPDOWN, "value"),
+    State(DYNAMIC_CONF_DROPDOWN, "value"),
     background=True,
 )
-def draw_diffs(n_clicks, meta_data_filters, tables, population, main_dump, secondary_dump):
+def draw_diffs(n_clicks, meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_column):
+    if not callback_context.triggered_id:
+        return no_update
+
+    n_clicks = callback_context.triggered[0]["value"]
     if not n_clicks or not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
     main_tables = tables["meta_data"]
-    column_to_compare = "is_tv_perfect"
+    triggered_id = callback_context.triggered_id["index"]
+    col_to_compare = triggered_id if triggered_id != DYNAMIC_SHOW_DIFF_IDX else dynamic_column
     query = generate_diff_query(
         main_dump,
         secondary_dump,
         main_tables,
         population,
-        column_to_compare,
+        col_to_compare,
         meta_data_filters=meta_data_filters,
         labels_tables=tables["lm_meta_data"],
     )
@@ -118,6 +128,7 @@ def parse_labels_df(labels_df):
         return {}
 
     labels_df = labels_df.rename(columns=lambda x: re.sub(r"\.\d+$", "", x))
+    labels_df = normalize_columns(labels_df)
     labels_dict = {x: y.to_dict("list") for x, y in labels_df.groupby(["clip_name", "grabindex"])}
     labels_dict = {
         frame_id: parse_frame_labels_dict(frame_labels_dict) for frame_id, frame_labels_dict in labels_dict.items()
@@ -184,7 +195,7 @@ def normalize_columns(df):
 def safe_get_from_enum(enum_class, x):
     try:
         return enum_class[x].value
-    except ValueError:
+    except KeyError:
         return -1
 
 
