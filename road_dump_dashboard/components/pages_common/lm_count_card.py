@@ -36,7 +36,6 @@ def get_lm_count(meta_data_filters, tables, population, intersection_on):
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     if intersection_on or len(tables["names"]) == 1:
         frame_count_str = human_format_int(data.overall[0])

@@ -6,10 +6,10 @@ import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html, DiskcacheManager, CeleryManager, Output, Input, State, callback, no_update
 from uuid import uuid4
 
-from road_dump_dashboard.components import sidebar, page_content
+from road_dump_dashboard.components.pages_common import sidebar, page_content
 from road_dump_dashboard.components.dcc_stores import init_dcc_stores
 from road_dump_dashboard.components.components_ids import URL, TABLES
-from road_dump_dashboard.components.init_base_data import run_eval_db_manager, init_tables
+from road_dump_dashboard.components.data_initialization.init_base_data import run_eval_db_manager, init_tables
 
 launch_uid = uuid4()
 if "REDIS_URL" in os.environ:

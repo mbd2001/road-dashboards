@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html, register_page, dcc, callback, Output, Input, State, no_update
 
-from road_dump_dashboard.components import meta_data_filter, base_dataset_statistics
+from road_dump_dashboard.components.pages_common import meta_data_filter, base_dataset_statistics
 from road_dump_dashboard.components.components_ids import (
     MD_FILTERS,
     POPULATION_DROPDOWN,
@@ -15,7 +15,7 @@ from road_dump_dashboard.components.components_ids import (
     LM_TYPE_PIE_CHART,
 )
 from road_dump_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_dump_dashboard.components.page_properties import PageProperties
+from road_dump_dashboard.components.pages_common.page_properties import PageProperties
 from road_dump_dashboard.components.queries_manager import (
     generate_count_query,
 )
@@ -174,7 +174,6 @@ def get_lm_type_pie_chart(meta_data_filters, tables, population, intersection_on
         group_by_column=group_by_column,
         extra_filters=f" {group_by_column} != 'ignore' ",
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of Lane Marks Type"
     fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)
@@ -233,7 +232,6 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, tabl
         bins_factor=bins_factor,
         extra_filters=ignore_filter,
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {group_by_column.replace('mdbi_', '').replace('_', ' ').title()}"
 

@@ -1,7 +1,8 @@
 import dash_bootstrap_components as dbc
-from dash import html, register_page, dcc, callback, Output, Input, State, ALL, no_update
+from dash import html, register_page, dcc, callback, Output, Input, State, no_update
 
-from road_dump_dashboard.components import base_dataset_statistics, meta_data_filter
+from road_dump_dashboard.components import display_frames
+from road_dump_dashboard.components.pages_common import meta_data_filter, base_dataset_statistics
 from road_dump_dashboard.components.common_filters import (
     ROAD_TYPE_FILTERS,
     LANE_MARK_COLOR_FILTERS,
@@ -25,9 +26,12 @@ from road_dump_dashboard.components.components_ids import (
     COMPARE_MATRICES,
     TVGT_CONF_MAT,
     GTEM_CONF_MAT,
+    DYNAMIC_CONF_DROPDOWN,
+    DYNAMIC_CONF_MAT,
+    DRAW_TVGT_DIFF_BTN,
 )
 from road_dump_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_dump_dashboard.components.page_properties import PageProperties
+from road_dump_dashboard.components.pages_common.page_properties import PageProperties
 from road_dump_dashboard.components.queries_manager import (
     generate_count_query,
     generate_dynamic_count_query,
@@ -41,8 +45,8 @@ from road_dump_dashboard.graphs.countries_map import (
     normalize_countries_count_to_percentiles,
 )
 from road_dump_dashboard.graphs.histogram_plot import basic_histogram_plot
-from road_database_toolkit.athena.athena_utils import query_athena
 from road_dump_dashboard.graphs.pie_or_line_wrapper import pie_or_line_wrapper
+from road_database_toolkit.athena.athena_utils import query_athena
 
 extra_properties = PageProperties("search")
 register_page(__name__, path="/data_exploration", name="Data Exploration", order=1, **extra_properties.__dict__)
@@ -57,6 +61,34 @@ layout = html.Div(
         html.H1("Data Exploration", className="mb-5"),
         meta_data_filter.layout("meta_data"),
         base_dataset_statistics.frame_layout,
+        dbc.Row(
+            [
+                dbc.Col(
+                    card_wrapper([loading_wrapper([dcc.Graph(id=TVGT_PIE_CHART, config={"displayModeBar": False})])]),
+                    width=6,
+                ),
+                dbc.Col(
+                    card_wrapper([loading_wrapper([dcc.Graph(id=GTEM_PIE_CHART, config={"displayModeBar": False})])]),
+                    width=6,
+                ),
+            ],
+        ),
+        dbc.Row(
+            [
+                dbc.Col(
+                    card_wrapper(
+                        [loading_wrapper([dcc.Graph(id=ROAD_TYPE_PIE_CHART, config={"displayModeBar": False})])]
+                    ),
+                    width=6,
+                ),
+                dbc.Col(
+                    card_wrapper(
+                        [loading_wrapper([dcc.Graph(id=LANE_MARK_COLOR_PIE_CHART, config={"displayModeBar": False})])]
+                    ),
+                    width=6,
+                ),
+            ],
+        ),
         card_wrapper(
             [
                 dbc.Row(
@@ -89,34 +121,6 @@ layout = html.Div(
                     ]
                 ),
             ]
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    card_wrapper([loading_wrapper([dcc.Graph(id=TVGT_PIE_CHART, config={"displayModeBar": False})])]),
-                    width=6,
-                ),
-                dbc.Col(
-                    card_wrapper([loading_wrapper([dcc.Graph(id=GTEM_PIE_CHART, config={"displayModeBar": False})])]),
-                    width=6,
-                ),
-            ],
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    card_wrapper(
-                        [loading_wrapper([dcc.Graph(id=ROAD_TYPE_PIE_CHART, config={"displayModeBar": False})])]
-                    ),
-                    width=6,
-                ),
-                dbc.Col(
-                    card_wrapper(
-                        [loading_wrapper([dcc.Graph(id=LANE_MARK_COLOR_PIE_CHART, config={"displayModeBar": False})])]
-                    ),
-                    width=6,
-                ),
-            ],
         ),
         html.Div(id=COMPARE_MATRICES),
         card_wrapper(
@@ -172,12 +176,30 @@ def init_matrices_layout(tables):
                 ),
                 dbc.Row(
                     [
-                        dbc.Col(loading_wrapper([dcc.Graph(id=TVGT_CONF_MAT, config={"displayModeBar": False})])),
+                        dbc.Col(
+                            [
+                                loading_wrapper(dcc.Graph(id=TVGT_CONF_MAT, config={"displayModeBar": False})),
+                                dbc.Button("Draw Diff Frames", id=DRAW_TVGT_DIFF_BTN, className="bg-primary mt-5"),
+                            ]
+                        ),
                         dbc.Col(loading_wrapper([dcc.Graph(id=GTEM_CONF_MAT, config={"displayModeBar": False})])),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        dcc.Dropdown(
+                            id=DYNAMIC_CONF_DROPDOWN,
+                            style={"minWidth": "100%"},
+                            multi=False,
+                            placeholder="----",
+                            value="",
+                        ),
+                        loading_wrapper([dcc.Graph(id=DYNAMIC_CONF_MAT, config={"displayModeBar": False})]),
                     ]
                 ),
             ]
         ),
+        display_frames.layout,
     )
 
     return matrices_layout if len(tables["names"]) > 1 else []
@@ -269,6 +291,50 @@ def get_gtem_conf_mat(meta_data_filters, tables, population, main_dump, secondar
 
 
 @callback(
+    Output(DYNAMIC_CONF_DROPDOWN, "options"),
+    Input(TABLES, "data"),
+)
+def init_pie_dropdown(tables):
+    if not tables:
+        return no_update
+
+    columns_options = tables["meta_data"]["columns_options"]
+    return columns_options
+
+
+@callback(
+    Output(DYNAMIC_CONF_MAT, "figure"),
+    Input(MD_FILTERS, "data"),
+    State(TABLES, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
+    Input(MAIN_NET_DROPDOWN, "value"),
+    Input(SECONDARY_NET_DROPDOWN, "value"),
+    Input(DYNAMIC_CONF_DROPDOWN, "value"),
+    background=True,
+)
+def get_dynamic_conf_mat(meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_col):
+    if not population or not tables or not main_dump or not secondary_dump or not dynamic_col:
+        return no_update
+
+    main_tables = tables["meta_data"]
+    column_to_compare = dynamic_col
+    query = generate_conf_mat_query(
+        main_dump,
+        secondary_dump,
+        main_tables,
+        population,
+        column_to_compare,
+        meta_data_filters=meta_data_filters,
+    )
+
+    data, _ = query_athena(database="run_eval_db", query=query)
+    fig = get_confusion_matrix(
+        data, x_label=secondary_dump, y_label=main_dump, title=f"{dynamic_col.title()} Confusion Matrix"
+    )
+    return fig
+
+
+@callback(
     Output(COUNTRIES_DROPDOWN, "options"),
     Output(COUNTRIES_DROPDOWN, "label"),
     Output(COUNTRIES_DROPDOWN, "value"),
@@ -302,7 +368,7 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
         False,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
-        extra_filters=f" dump_name = '{chosen_dump}' ",
+        dumps_to_include=chosen_dump,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data["normalized"] = normalize_countries_count_to_percentiles(data["overall"].to_numpy())

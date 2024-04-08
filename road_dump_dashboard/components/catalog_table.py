@@ -11,7 +11,7 @@ from road_dump_dashboard.components.components_ids import (
     LOAD_NETS_DATA_NOTIFICATION,
     URL,
 )
-from road_dump_dashboard.components.init_base_data import (
+from road_dump_dashboard.components.data_initialization.init_base_data import (
     parse_catalog_rows,
     init_tables,
     run_eval_db_manager,

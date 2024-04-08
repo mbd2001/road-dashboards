@@ -1,13 +1,12 @@
 import dash_bootstrap_components as dbc
 from dash import html
 
-from road_dump_dashboard.components import (
+from road_dump_dashboard.components.pages_common import (
     frame_count_card,
-    population_card,
-    intersection_data_switch,
     lm_count_card,
+    intersection_data_switch,
+    population_card,
 )
-
 
 frame_layout = html.Div(
     dbc.Row(

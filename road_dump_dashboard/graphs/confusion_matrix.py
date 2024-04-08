@@ -14,7 +14,7 @@ def draw_confusion_matrix(conf_matrix, normalize_mat, x_label="", y_label="", ti
     fig = px.imshow(
         normalize_mat,
         text_auto=".2f",
-        title=title,
+        title=title.title(),
         x=conf_matrix.index,
         y=conf_matrix.columns,
         color_continuous_scale="blues",

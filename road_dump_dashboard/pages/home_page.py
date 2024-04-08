@@ -2,7 +2,7 @@ from dash import html, register_page
 
 from road_dump_dashboard.components.catalog_table import generate_catalog_layout
 from road_dump_dashboard.components.layout_wrapper import card_wrapper
-from road_dump_dashboard.components.page_properties import PageProperties
+from road_dump_dashboard.components.pages_common.page_properties import PageProperties
 
 
 extra_properties = PageProperties("home")

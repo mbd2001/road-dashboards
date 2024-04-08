@@ -72,7 +72,6 @@ def generate_table_instance(name, tables, dump_names):
         "pred_name",
         "dump_name",
         "population",
-        "grabIndex",
         "grabindex",
     ]
     relevant_columns_type = {
@@ -91,7 +90,7 @@ def generate_table_instance(name, tables, dump_names):
 def get_columns_data_types(table):
     query = f"SELECT * FROM ({table}) LIMIT 1"
     data, _ = query_athena(database="run_eval_db", query=query)
-    columns_type = dict(data.dtypes.apply(lambda x: x.name))
+    columns_type = {k.lower(): v for k, v in data.dtypes.apply(lambda x: x.name).to_dict().items()}
     return columns_type
 
 

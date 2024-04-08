@@ -59,7 +59,14 @@ MAIN_NET_DROPDOWN = "main_net_dropdown"
 SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
 
 TVGT_CONF_MAT = "tvgt_conf_mat"
+DRAW_TVGT_DIFF_BTN = "draw_tvgt_diff_btn"
+
 GTEM_CONF_MAT = "gtem_conf_mat"
+DRAW_GTEM_DIFF_BTN = "draw_gtem_diff_btn"
+
+DYNAMIC_CONF_MAT = "dynamic_conf_mat"
+DYNAMIC_CONF_DROPDOWN = "dynamic_conf_dropdown"
+DRAW_DYNAMIC_DIFF_BTN = "draw_dynamic_diff_btn"
 
 
 # lane mark page

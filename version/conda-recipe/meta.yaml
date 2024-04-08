@@ -67,6 +67,7 @@ requirements:
     - s3fs
     - fsspec
     - road-database-toolkit
+    - natsort
 
   mx_build_deps:
     - boa
