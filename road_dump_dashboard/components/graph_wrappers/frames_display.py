@@ -69,6 +69,9 @@ def draw_diffs(n_clicks, meta_data_filters, tables, population, main_dump, secon
     main_tables = tables["meta_data"]
     triggered_id = callback_context.triggered_id["index"]
     col_to_compare = triggered_id if triggered_id != DYNAMIC_SHOW_DIFF_IDX else dynamic_column
+    if not col_to_compare:
+        return no_update
+
     query = generate_diff_query(
         main_dump,
         secondary_dump,
