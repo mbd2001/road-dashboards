@@ -4,19 +4,19 @@ import pandas as pd
 import dash_bootstrap_components as dbc
 from dash import dash_table, html, Output, Input, State, no_update, callback
 
-from road_dump_dashboard.components.components_ids import (
+from road_dump_dashboard.components.constants.components_ids import (
     TABLES,
     UPDATE_RUNS_BTN,
     DUMP_CATALOG,
     LOAD_NETS_DATA_NOTIFICATION,
     URL,
 )
-from road_dump_dashboard.components.data_initialization.init_base_data import (
+from road_dump_dashboard.components.logical_components.init_base_data import (
     parse_catalog_rows,
     init_tables,
     run_eval_db_manager,
 )
-from road_dump_dashboard.components.layout_wrapper import loading_wrapper
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper
 
 
 def generate_catalog_layout():

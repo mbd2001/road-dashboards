@@ -1,14 +1,14 @@
 from dash import html, callback, Input, Output, State
 
-from road_dump_dashboard.components.components_ids import (
+from road_dump_dashboard.components.constants.components_ids import (
     LM_COUNT,
     MD_FILTERS,
     POPULATION_DROPDOWN,
     INTERSECTION_SWITCH,
     TABLES,
 )
-from road_dump_dashboard.components.layout_wrapper import loading_wrapper, card_wrapper
-from road_dump_dashboard.components.queries_manager import generate_count_query
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper, card_wrapper
+from road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
 from road_dump_dashboard.graphs.big_number import human_format_int
 from road_database_toolkit.athena.athena_utils import query_athena
 

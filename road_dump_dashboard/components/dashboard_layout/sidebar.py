@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html, page_registry, Input, Output, callback
 
-from road_dump_dashboard.components.components_ids import SIDEBAR, URL
+from road_dump_dashboard.components.constants.components_ids import SIDEBAR, URL
 
 
 def sidebar():

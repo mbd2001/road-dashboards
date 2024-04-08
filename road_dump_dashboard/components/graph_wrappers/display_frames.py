@@ -4,13 +4,13 @@ import json
 import numpy as np
 import dash_bootstrap_components as dbc
 from dash_canvas.utils import array_to_data_url
-from dash import html, callback, Output, Input, State, no_update
+from dash import callback, Output, Input, State, no_update
 from natsort import natsorted
 
 # from maffe_bins.road4.data.frame_data import FrameData
 # from maffe_bins.road4.display.frame_drawer import FrameDrawer
 from road_database_toolkit.athena.athena_utils import query_athena
-from road_dump_dashboard.components.components_ids import (
+from road_dump_dashboard.components.constants.components_ids import (
     DRAW_TVGT_DIFF_BTN,
     MD_FILTERS,
     TABLES,
@@ -18,8 +18,8 @@ from road_dump_dashboard.components.components_ids import (
     MAIN_NET_DROPDOWN,
     SECONDARY_NET_DROPDOWN,
 )
-from road_dump_dashboard.components.layout_wrapper import card_wrapper
-from road_dump_dashboard.components.queries_manager import generate_diff_query
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
+from road_dump_dashboard.components.logical_components.queries_manager import generate_diff_query
 from maffe_bins.road_db.drone_view_images.drone_view_db_manager import DroneViewDBManager
 from maffe_bins.road4.road4_consts import CASide, LMColor, LMType, LM_ROLES, CAType
 

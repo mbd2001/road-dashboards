@@ -1,7 +1,7 @@
 import dash_daq as daq
 
-from road_dump_dashboard.components.components_ids import INTERSECTION_SWITCH
-from road_dump_dashboard.components.layout_wrapper import card_wrapper
+from road_dump_dashboard.components.constants.components_ids import INTERSECTION_SWITCH
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
 
 
 layout = card_wrapper(

@@ -1,13 +1,13 @@
 import dash_bootstrap_components as dbc
 from dash import html, register_page, dcc, callback, Output, Input, State, no_update
 
-from road_dump_dashboard.components import display_frames
-from road_dump_dashboard.components.pages_common import meta_data_filter, base_dataset_statistics
-from road_dump_dashboard.components.common_filters import (
+from road_dump_dashboard.components.graph_wrappers import display_frames
+from road_dump_dashboard.components.common_pages_layout import meta_data_filter, base_dataset_statistics
+from road_dump_dashboard.components.constants.common_filters import (
     ROAD_TYPE_FILTERS,
     LANE_MARK_COLOR_FILTERS,
 )
-from road_dump_dashboard.components.components_ids import (
+from road_dump_dashboard.components.constants.components_ids import (
     MD_FILTERS,
     POPULATION_DROPDOWN,
     DYNAMIC_PIE_CHART,
@@ -30,9 +30,9 @@ from road_dump_dashboard.components.components_ids import (
     DYNAMIC_CONF_MAT,
     DRAW_TVGT_DIFF_BTN,
 )
-from road_dump_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_dump_dashboard.components.pages_common.page_properties import PageProperties
-from road_dump_dashboard.components.queries_manager import (
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
+from road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
+from road_dump_dashboard.components.logical_components.queries_manager import (
     generate_count_query,
     generate_dynamic_count_query,
     generate_conf_mat_query,

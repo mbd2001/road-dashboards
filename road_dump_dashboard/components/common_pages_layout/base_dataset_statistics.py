@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html
 
-from road_dump_dashboard.components.pages_common import (
+from road_dump_dashboard.components.common_pages_layout import (
     frame_count_card,
     lm_count_card,
     intersection_data_switch,

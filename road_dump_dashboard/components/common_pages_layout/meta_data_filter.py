@@ -2,7 +2,7 @@ import dash_daq as daq
 import dash_bootstrap_components as dbc
 from dash import html, dcc, MATCH, no_update, State, Input, Output, callback_context, callback, Patch
 
-from road_dump_dashboard.components.components_ids import (
+from road_dump_dashboard.components.constants.components_ids import (
     MD_FILTERS,
     TABLES,
     UPDATE_FILTERS_BTN,
@@ -18,8 +18,8 @@ from road_dump_dashboard.components.components_ids import (
     FILTERS,
     PAGE_FILTER_TABLE,
 )
-from road_dump_dashboard.components.layout_wrapper import card_wrapper
-from road_dump_dashboard.components.queries_manager import manipulate_column_to_avoid_ambiguities
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
+from road_dump_dashboard.components.logical_components.queries_manager import manipulate_column_to_avoid_ambiguities
 
 NUM_FILTERS_PER_GROUP = 10
 
