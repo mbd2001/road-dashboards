@@ -41,7 +41,16 @@ def generate_catalog_layout():
                     id=RUN_EVAL_CATALOG,
                     columns=[
                         {"name": i, "id": i, "deletable": False, "selectable": True}
-                        for i in ["net", "checkpoint", "dataset", "population", "total_frames", "user", "last_change"]
+                        for i in [
+                            "net",
+                            "checkpoint",
+                            "dataset",
+                            "population",
+                            "use_case",
+                            "total_frames",
+                            "user",
+                            "last_change",
+                        ]
                     ],
                     filter_action="native",
                     sort_action="native",
