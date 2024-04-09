@@ -5,8 +5,8 @@ from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card
 from road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
 
 
-extra_properties = PageProperties("home")
-register_page(__name__, path="/home", name="Home", order=0, **extra_properties.__dict__)
+page_properties = PageProperties(icon="home", path="/home", name="Home")
+register_page(__name__, order=0, **page_properties.__dict__)
 
 
 def layout():

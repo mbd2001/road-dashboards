@@ -19,16 +19,18 @@ from road_dump_dashboard.components.constants.components_ids import (
     SECONDARY_NET_DROPDOWN,
     DYNAMIC_SHOW_DIFF_IDX,
     DYNAMIC_CONF_DROPDOWN,
+    CONF_MATS_MAIN_TABLE,
+    CONF_MATS_MD_TABLE,
 )
-from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper
 from road_dump_dashboard.components.logical_components.queries_manager import generate_diff_query
 from maffe_bins.road_db.drone_view_images.drone_view_db_manager import DroneViewDBManager
 from maffe_bins.road4.road4_consts import CASide, LMColor, LMType, LM_ROLES, CAType
 
 DV_DB_MANAGER = DroneViewDBManager()
-json_path = "s3://mobileye-team-road/roade2e_database/artifacts/amosa20240311_ool_dist_per_point/bins.json"
-with s3fs.S3FileSystem().open(json_path, "r") as f:
-    json_info = json.load(f)
+# json_path = "s3://mobileye-team-road/roade2e_database/artifacts/amosa20240311_ool_dist_per_point/bins.json"
+# with s3fs.S3FileSystem().open(json_path, "r") as f:
+#     json_info = json.load(f)
 
 
 layout = html.Div(
@@ -56,9 +58,21 @@ layout = html.Div(
     State(MAIN_NET_DROPDOWN, "value"),
     State(SECONDARY_NET_DROPDOWN, "value"),
     State(DYNAMIC_CONF_DROPDOWN, "value"),
+    State(CONF_MATS_MAIN_TABLE, "children"),
+    State(CONF_MATS_MD_TABLE, "children"),
     background=True,
 )
-def draw_diffs(n_clicks, meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_column):
+def draw_diffs(
+    n_clicks,
+    meta_data_filters,
+    tables,
+    population,
+    main_dump,
+    secondary_dump,
+    dynamic_column,
+    main_table,
+    meta_data_table,
+):
     if not callback_context.triggered_id:
         return no_update
 
@@ -66,7 +80,8 @@ def draw_diffs(n_clicks, meta_data_filters, tables, population, main_dump, secon
     if not n_clicks or not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
-    main_tables = tables["meta_data"]
+    main_tables = tables[main_table]
+    meta_data_tables = tables.get(meta_data_table)
     triggered_id = callback_context.triggered_id["index"]
     col_to_compare = triggered_id if triggered_id != DYNAMIC_SHOW_DIFF_IDX else dynamic_column
     if not col_to_compare:
@@ -78,8 +93,9 @@ def draw_diffs(n_clicks, meta_data_filters, tables, population, main_dump, secon
         main_tables,
         population,
         col_to_compare,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
-        labels_tables=tables["lm_meta_data"],
+        labels_tables=tables["lm_meta_data"],  # TODO: add dynamic 'choose labels to display'
     )
     data, _ = query_athena(database="run_eval_db", query=query)
 

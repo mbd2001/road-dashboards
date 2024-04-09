@@ -5,7 +5,8 @@ MD_FILTERS = "md_filters"
 
 # meta data filters
 FILTERS = "filters"
-PAGE_FILTER_TABLE = "page_filter_table"
+FILTERS_MAIN_TABLE = "filters_main_table"
+FILTERS_MD_TABLE = "filters_md_table"
 
 FILTER_GROUP = "filter_group"
 ADD_FILTER_BTN = "add_filter_btn"
@@ -14,6 +15,7 @@ REMOVE_SUB_GROUP = "remove_sub_group"
 
 FILTER_LIST = "filters_list"
 FILTER_ROW = "filter_row"
+MD_COLUMNS = "meta_data_columns"
 MD_OPERATION = "meta_data_operation"
 MD_VAL_COL = "meta_data_val_col"
 MD_VAL = "meta_data_val"
@@ -33,11 +35,15 @@ INTERSECTION_SWITCH = "intersection_switch"
 
 
 # counters
-FRAME_COUNT = "frame_count"
-LM_COUNT = "lm_count"
+OBJS_COUNT = "objs_count"
+OBJS_MAIN_TABLE = "objs_main_table"
+OBJS_MD_TABLE = "objs_md_table"
 
 
 # confusion matrices
+CONF_MATS_MAIN_TABLE = "conf_mats_main_table"
+CONF_MATS_MD_TABLE = "conf_mats_md_table"
+
 MAIN_NET_DROPDOWN = "main_net_dropdown"
 SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
 
@@ -50,6 +56,9 @@ DYNAMIC_SHOW_DIFF_IDX = "dynamic_show_diff_idx"
 
 
 # bar pie charts
+CHARTS_MAIN_TABLE = "charts_main_table"
+CHARTS_MD_TABLE = "charts_md_table"
+
 GENERIC_COLUMNS_CHART = "generic_columns_chart"
 GENERIC_FILTERS_CHART = "generic_filters_chart"
 

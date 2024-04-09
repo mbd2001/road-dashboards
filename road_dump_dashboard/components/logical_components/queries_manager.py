@@ -6,6 +6,7 @@ COMMON_COLUMNS = {
     "grabindex",
     "pred_name",
     "dump_name",
+    "obj_id",
 }
 
 BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id"]

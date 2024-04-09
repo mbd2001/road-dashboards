@@ -12,6 +12,8 @@ from road_dump_dashboard.components.constants.components_ids import (
     DYNAMIC_CHART_SLIDER,
     GENERIC_FILTERS_CHART,
     GENERIC_COLUMNS_CHART,
+    CHARTS_MAIN_TABLE,
+    CHARTS_MD_TABLE,
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper, card_wrapper
 from road_dump_dashboard.components.logical_components.queries_manager import (
@@ -27,7 +29,7 @@ def exponent_transform(value, base=10):
     return base**value
 
 
-def layout(columns=None, filters=None):
+def layout(main_table, meta_data_table=None, columns=None, filters=None):
     if columns == None:
         columns = []
 
@@ -35,7 +37,13 @@ def layout(columns=None, filters=None):
         filters = []
 
     graphs_layout = html.Div(
-        [dynamic_chart_layout(), *generic_columns_charts_layout(columns), *generic_filters_charts_layout(filters)]
+        [
+            html.Div(id=CHARTS_MAIN_TABLE, children=main_table, style={"display": "none"}),
+            html.Div(id=CHARTS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
+            dynamic_chart_layout(),
+            *generic_charts_layout(GENERIC_COLUMNS_CHART, columns),
+            *generic_charts_layout(GENERIC_FILTERS_CHART, filters),
+        ]
     )
     return graphs_layout
 
@@ -78,12 +86,11 @@ def dynamic_chart_layout():
     return dynamic_chart
 
 
-def generic_columns_charts_layout(columns):
-    if not columns:
+def generic_charts_layout(obj_type, obj_ids):
+    if not obj_ids:
         return [None]
 
-    columns_iterator = iter(columns)
-    list_columns_tuple = zip(columns_iterator, columns_iterator)
+    list_ids_tuples = [tuple(obj_ids[i : i + 2]) for i in range(0, len(obj_ids), 2)]
     generic_filters_charts = [
         dbc.Row(
             [
@@ -93,7 +100,7 @@ def generic_columns_charts_layout(columns):
                             loading_wrapper(
                                 [
                                     dcc.Graph(
-                                        id={"type": GENERIC_COLUMNS_CHART, "index": column},
+                                        id={"type": obj_type, "index": id},
                                         config={"displayModeBar": False},
                                     )
                                 ]
@@ -101,42 +108,10 @@ def generic_columns_charts_layout(columns):
                         ]
                     )
                 )
-                for column in columns_tuple
+                for id in ids_tuple
             ]
         )
-        for columns_tuple in list_columns_tuple
-    ]
-
-    return generic_filters_charts
-
-
-def generic_filters_charts_layout(filters):
-    if not filters:
-        return [None]
-
-    filters_iterator = iter(filters)
-    list_filters_tuple = zip(filters_iterator, filters_iterator)
-    generic_filters_charts = [
-        dbc.Row(
-            [
-                dbc.Col(
-                    card_wrapper(
-                        [
-                            loading_wrapper(
-                                [
-                                    dcc.Graph(
-                                        id={"type": GENERIC_FILTERS_CHART, "index": filter},
-                                        config={"displayModeBar": False},
-                                    )
-                                ]
-                            )
-                        ]
-                    )
-                )
-                for filter in filters_tuple
-            ]
-        )
-        for filters_tuple in list_filters_tuple
+        for ids_tuple in list_ids_tuples
     ]
 
     return generic_filters_charts
@@ -145,12 +120,16 @@ def generic_filters_charts_layout(filters):
 @callback(
     Output(DYNAMIC_CHART_DROPDOWN, "options"),
     Input(TABLES, "data"),
+    State(CHARTS_MAIN_TABLE, "children"),
+    State(CHARTS_MD_TABLE, "children"),
 )
-def init_dynamic_chart_dropdown(tables):
+def init_dynamic_chart_dropdown(tables, main_table, meta_data_table):
     if not tables:
         return no_update
 
-    columns_options = tables["meta_data"]["columns_options"]
+    columns_options = tables[main_table]["columns_options"] + (
+        tables[meta_data_table]["columns_options"] if meta_data_table else []
+    )
     return columns_options
 
 
@@ -162,16 +141,23 @@ def init_dynamic_chart_dropdown(tables):
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
+    State(CHARTS_MAIN_TABLE, "children"),
+    State(CHARTS_MD_TABLE, "children"),
     background=True,
 )
-def get_dynamic_chart(group_by_column, slider_value, meta_data_filters, tables, population, intersection_on):
+def get_dynamic_chart(
+    group_by_column, slider_value, meta_data_filters, tables, population, intersection_on, main_table, meta_data_table
+):
     if not population or not tables or not group_by_column:
         return no_update
 
-    main_tables = tables["meta_data"]
+    main_tables = tables[main_table]
+    meta_data_tables = tables.get(meta_data_table)
 
-    column_type = tables["meta_data"]["columns_to_type"].get(group_by_column)
-    ignore_str = get_ignore_str_from_column_type(column_type)
+    column_type = main_tables["columns_to_type"].get(group_by_column) or meta_data_tables["columns_to_type"].get(
+        group_by_column
+    )
+    ignore_str = get_ignore_str_from_column_type(group_by_column, column_type)
     bins_factor = (
         exponent_transform(slider_value) if column_type.startswith(("int", "float", "double")) else slider_value
     )
@@ -179,6 +165,7 @@ def get_dynamic_chart(group_by_column, slider_value, meta_data_filters, tables, 
         main_tables,
         population,
         intersection_on,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         bins_factor=bins_factor,
@@ -200,22 +187,30 @@ def get_dynamic_chart(group_by_column, slider_value, meta_data_filters, tables, 
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
-    Input({"type": GENERIC_COLUMNS_CHART, "index": MATCH}, "id"),
+    State({"type": GENERIC_COLUMNS_CHART, "index": MATCH}, "id"),
+    State(CHARTS_MAIN_TABLE, "children"),
+    State(CHARTS_MD_TABLE, "children"),
     background=True,
 )
-def get_generic_column_chart(meta_data_filters, tables, population, intersection_on, col_to_compare):
+def get_generic_column_chart(
+    meta_data_filters, tables, population, intersection_on, col_to_compare, main_table, meta_data_table
+):
     if not population or not tables:
         return no_update
 
-    main_tables = tables["meta_data"]
+    main_tables = tables[main_table]
+    meta_data_tables = tables.get(meta_data_table)
     col_to_compare = col_to_compare["index"]
 
-    column_type = tables["meta_data"]["columns_to_type"].get(col_to_compare)
-    ignore_str = get_ignore_str_from_column_type(column_type)
+    column_type = main_tables["columns_to_type"].get(col_to_compare) or meta_data_tables["columns_to_type"].get(
+        col_to_compare
+    )
+    ignore_str = get_ignore_str_from_column_type(col_to_compare, column_type)
     query = generate_count_query(
         main_tables,
         population,
         intersection_on,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=col_to_compare,
         extra_filters=ignore_str,
@@ -232,20 +227,26 @@ def get_generic_column_chart(meta_data_filters, tables, population, intersection
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
-    Input({"type": GENERIC_FILTERS_CHART, "index": MATCH}, "id"),
+    State({"type": GENERIC_FILTERS_CHART, "index": MATCH}, "id"),
+    State(CHARTS_MAIN_TABLE, "children"),
+    State(CHARTS_MD_TABLE, "children"),
     background=True,
 )
-def get_generic_filter_chart(meta_data_filters, tables, population, intersection_on, filters):
+def get_generic_filter_chart(
+    meta_data_filters, tables, population, intersection_on, filters, main_table, meta_data_table
+):
     if not population or not tables:
         return no_update
 
-    main_tables = tables["meta_data"]
+    main_tables = tables[main_table]
+    meta_data_tables = tables.get(meta_data_table)
     filters_name = filters["index"]
     filters = FILTERS[filters_name]
     query = generate_dynamic_count_query(
         main_tables,
         population,
         intersection_on,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         interesting_filters=filters,
     )
@@ -256,11 +257,11 @@ def get_generic_filter_chart(meta_data_filters, tables, population, intersection
     return fig
 
 
-def get_ignore_str_from_column_type(column_type):
+def get_ignore_str_from_column_type(column, column_type):
     if column_type.startswith(("int", "float", "double")):
-        ignore_filter = f"{column_type} <> 999 AND {column_type} <> -999"
+        ignore_filter = f"{column} <> 999 AND {column} <> -999"
     elif column_type.startswith("object"):
-        ignore_filter = f"{column_type} != 'ignore' AND {column_type} != 'Unknown'"
+        ignore_filter = f"{column} != 'ignore' AND {column} != 'Unknown'"
     else:
         ignore_filter = ""
 

@@ -13,6 +13,8 @@ from road_dump_dashboard.components.constants.components_ids import (
     POPULATION_DROPDOWN,
     GENERIC_SHOW_DIFF_BTN,
     DYNAMIC_SHOW_DIFF_IDX,
+    CONF_MATS_MAIN_TABLE,
+    CONF_MATS_MD_TABLE,
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.graph_wrappers import frames_display
@@ -20,12 +22,14 @@ from road_dump_dashboard.components.logical_components.queries_manager import ge
 from road_dump_dashboard.graphs.confusion_matrix import get_confusion_matrix
 
 
-def layout(columns_to_compare=None):
+def layout(main_table, meta_data_table=None, columns_to_compare=None):
     if columns_to_compare is None:
         columns_to_compare = []
 
     matrices_layout = html.Div(
         [
+            html.Div(id=CONF_MATS_MAIN_TABLE, children=main_table, style={"display": "none"}),
+            html.Div(id=CONF_MATS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
             card_wrapper(
                 [
                     nets_selection_layout(),
@@ -92,8 +96,7 @@ def generic_rows_layout(columns_to_compare):
     if not columns_to_compare:
         return [None]
 
-    columns_iterator = iter(columns_to_compare)
-    list_columns_tuples = zip(columns_iterator, columns_iterator)
+    list_columns_tuples = [tuple(columns_to_compare[i : i + 2]) for i in range(0, len(columns_to_compare), 2)]
     generic_rows = [
         dbc.Row(
             [
@@ -156,14 +159,19 @@ def init_secondary_dump_dropdown(tables):
     Input(POPULATION_DROPDOWN, "value"),
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
-    Input({"type": GENERIC_CONF_MAT, "index": MATCH}, "id"),
+    State({"type": GENERIC_CONF_MAT, "index": MATCH}, "id"),
+    State(CONF_MATS_MAIN_TABLE, "children"),
+    State(CONF_MATS_MD_TABLE, "children"),
     background=True,
 )
-def get_generic_conf_mat(meta_data_filters, tables, population, main_dump, secondary_dump, col_to_compare):
+def get_generic_conf_mat(
+    meta_data_filters, tables, population, main_dump, secondary_dump, col_to_compare, main_table, meta_data_table
+):
     if not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
-    main_tables = tables["meta_data"]
+    main_tables = tables[main_table]
+    meta_data_tables = tables.get(meta_data_table)
     col_to_compare = col_to_compare["index"]
     query = generate_conf_mat_query(
         main_dump,
@@ -171,6 +179,7 @@ def get_generic_conf_mat(meta_data_filters, tables, population, main_dump, secon
         main_tables,
         population,
         col_to_compare,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
@@ -200,13 +209,18 @@ def init_dynamic_conf_dropdown(tables):
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
     Input(DYNAMIC_CONF_DROPDOWN, "value"),
+    State(CONF_MATS_MAIN_TABLE, "children"),
+    State(CONF_MATS_MD_TABLE, "children"),
     background=True,
 )
-def get_dynamic_conf_mat(meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_col):
+def get_dynamic_conf_mat(
+    meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_col, main_table, meta_data_table
+):
     if not population or not tables or not main_dump or not secondary_dump or not dynamic_col:
         return no_update
 
-    main_tables = tables["meta_data"]
+    main_tables = tables[main_table]
+    meta_data_tables = tables.get(meta_data_table)
     column_to_compare = dynamic_col
     query = generate_conf_mat_query(
         main_dump,
@@ -214,6 +228,7 @@ def get_dynamic_conf_mat(meta_data_filters, tables, population, main_dump, secon
         main_tables,
         population,
         column_to_compare,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )
 
