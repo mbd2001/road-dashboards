@@ -158,9 +158,7 @@ def get_dynamic_chart(
         group_by_column
     )
     ignore_str = get_ignore_str_from_column_type(group_by_column, column_type)
-    bins_factor = (
-        exponent_transform(slider_value) if column_type.startswith(("int", "float", "double")) else slider_value
-    )
+    bins_factor = exponent_transform(slider_value) if column_type.startswith(("int", "float", "double")) else None
     query = generate_count_query(
         main_tables,
         population,
@@ -259,7 +257,7 @@ def get_generic_filter_chart(
 
 def get_ignore_str_from_column_type(column, column_type):
     if column_type.startswith(("int", "float", "double")):
-        ignore_filter = f"{column} <> 999 AND {column} <> -999"
+        ignore_filter = f"{column} <> 999 AND {column} <> -999 AND {column} <> -1"
     elif column_type.startswith("object"):
         ignore_filter = f"{column} != 'ignore' AND {column} != 'Unknown'"
     else:
