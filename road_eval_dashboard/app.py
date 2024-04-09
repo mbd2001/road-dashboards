@@ -16,7 +16,7 @@ from road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
     SCENE_SIGNALS_LIST,
     STATE_NOTIFICATION,
-    MD_FILTERS,
+    MD_FILTERS, GRAPH_TO_COPY,
 )
 from road_eval_dashboard.components.dcc_stores import init_dcc_stores
 from road_eval_dashboard.components.meta_data_filter import recursive_build_meta_data_filters
@@ -61,6 +61,30 @@ app.layout = html.Div(
     className="wrapper",
 )
 
+app.clientside_callback(
+"""function(stored_image_data) {
+    if (stored_image_data) {
+        const img = new Image();
+        img.src = 'data:image/png;base64,' + stored_image_data;
+
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = this.naturalWidth;
+            canvas.height = this.naturalHeight;
+            canvas.getContext('2d').drawImage(this, 0, 0);
+
+            canvas.toBlob(function(blob) {
+                const item = new ClipboardItem({'image/png': blob});
+                navigator.clipboard.write([item]);
+            });
+        };
+    }
+    return window.dash_clientside.no_update, false
+}
+""",
+Output('saved_alert','is_open'),
+Input(GRAPH_TO_COPY,'data')
+)
 
 @app.callback(Output(URL, "pathname"), Input(URL, "pathname"))
 def redirect_to_home(pathname):

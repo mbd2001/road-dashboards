@@ -9,7 +9,7 @@ from road_eval_dashboard.components.components_ids import (
     PATHNET_FILTERS,
     EFFECTIVE_SAMPLES_PER_BATCH,
     NET_ID_TO_FB_BEST_THRESH,
-    SCENE_SIGNALS_LIST,
+    SCENE_SIGNALS_LIST, GRAPH_TO_COPY,
 )
 
 
@@ -17,6 +17,7 @@ def init_dcc_stores():
     return html.Div(
         [
             dcc.Store(id=NETS, storage_type="session"),
+            dcc.Store(id=GRAPH_TO_COPY, storage_type="session"),
             dcc.Store(id=MD_COLUMNS_TO_TYPE, storage_type="session"),
             dcc.Store(id=MD_COLUMNS_OPTION, storage_type="session"),
             dcc.Store(id=MD_COLUMNS_TO_DISTINCT_VALUES, storage_type="session"),

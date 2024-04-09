@@ -5,6 +5,7 @@ PATHNET_PRED = "pathnet_pred_tables"
 
 # stores
 NETS = "nets"
+GRAPH_TO_COPY = "graph_to_copy"
 CATALOG = "catalog"
 MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"

@@ -18,7 +18,7 @@ from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     LM_3D_SOURCE_DROPDOWN,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
@@ -52,7 +52,7 @@ layout = html.Div(
         get_3d_source_layout(),
         card_wrapper(
             [
-                dbc.Row(loading_wrapper([dcc.Graph(id=LM_3D_ACC_OVERALL, config={"displayModeBar": False})])),
+                dbc.Row([graph_wrapper(LM_3D_ACC_OVERALL)]),
                 daq.BooleanSwitch(
                     id=LM_3D_ACC_OVERALL_Z_X,
                     on=False,
