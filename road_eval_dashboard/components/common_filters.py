@@ -1,3 +1,5 @@
+from road_eval_dashboard.components.queries_manager import INTERSTING_FILTERS_DIST_TO_CHECK
+
 ROAD_TYPE_FILTERS = {
     "highway": "mdbi_road_highway = TRUE OR mdbi_road_freeway = TRUE",
     "country": "mdbi_road_country = TRUE",
@@ -113,6 +115,28 @@ WEATHER_FILTERS = {
 
 MAX_SPEED_FILTERS = {"hwe": "dist_to_hwe BETWEEN 0 AND 30", **ROAD_TYPE_FILTERS}
 
+INTERSTING_CAM_HEIGHTS = [0, 1.3, 1.8] + [999]
+CAM_HEIGHT_FILTERS = {
+    f"{s}_{INTERSTING_CAM_HEIGHTS[i+1]}": f"camh BETWEEN {s} AND {INTERSTING_CAM_HEIGHTS[i+1]}"
+    for i, s in enumerate(INTERSTING_CAM_HEIGHTS[:-1])
+}
+
+LM_3D_FILTERS = {
+    "road_type": ROAD_TYPE_FILTERS,
+    "lane_mark_type": LANE_MARK_TYPE_FILTERS,
+    "lane_mark_color": LANE_MARK_COLOR_FILTERS,
+    "curve_by_dist": CURVE_BY_DIST_FILTERS,
+    "event": EVENT_FILTERS,
+    "weather": WEATHER_FILTERS,
+    "camh": CAM_HEIGHT_FILTERS,
+}
+
+LM_3D_INTRESTING_FILTERS = {
+    extra_filter_name: f"({extra_filter})"
+    for filters_names, filters in LM_3D_FILTERS.items()
+    for extra_filter_name, extra_filter in filters.items()
+}
+
 ALL_FILTERS = {
     **LANE_MARK_TYPE_FILTERS,
     **LANE_MARK_COLOR_FILTERS,
@@ -124,4 +148,5 @@ ALL_FILTERS = {
     **DIST_FROM_CURVE_VMAX_35_FILTERS,
     **DIST_FROM_CURVE_VMAX_25_FILTERS,
     **DIST_FROM_CURVE_VMAX_15_FILTERS,
+    **LM_3D_INTRESTING_FILTERS,
 }

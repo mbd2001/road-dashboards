@@ -16,14 +16,14 @@ from road_eval_dashboard.components.components_ids import (
 def init_dcc_stores():
     return html.Div(
         [
-            dcc.Store(id=NETS),
-            dcc.Store(id=MD_COLUMNS_TO_TYPE),
-            dcc.Store(id=MD_COLUMNS_OPTION),
-            dcc.Store(id=MD_COLUMNS_TO_DISTINCT_VALUES),
-            dcc.Store(id=MD_FILTERS),
-            dcc.Store(id=PATHNET_FILTERS),
-            dcc.Store(id=EFFECTIVE_SAMPLES_PER_BATCH),
-            dcc.Store(id=NET_ID_TO_FB_BEST_THRESH),
-            dcc.Store(id=SCENE_SIGNALS_LIST),
+            dcc.Store(id=NETS, storage_type="session"),
+            dcc.Store(id=MD_COLUMNS_TO_TYPE, storage_type="session"),
+            dcc.Store(id=MD_COLUMNS_OPTION, storage_type="session"),
+            dcc.Store(id=MD_COLUMNS_TO_DISTINCT_VALUES, storage_type="session"),
+            dcc.Store(id=MD_FILTERS, storage_type="session"),
+            dcc.Store(id=PATHNET_FILTERS, storage_type="session"),
+            dcc.Store(id=EFFECTIVE_SAMPLES_PER_BATCH, storage_type="session"),
+            dcc.Store(id=NET_ID_TO_FB_BEST_THRESH, storage_type="session"),
+            dcc.Store(id=SCENE_SIGNALS_LIST, storage_type="session"),
         ]
     )

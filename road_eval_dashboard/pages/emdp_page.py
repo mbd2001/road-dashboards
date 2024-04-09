@@ -166,7 +166,37 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
                     ]
                     if sort_by_dist
                     else []
-                ),
+                )
+                + [
+                    html.Div(
+                        [
+                            dcc.Slider(
+                                id={
+                                    "out": "sec_slider",
+                                    "filter": filter_name,
+                                    "emdp_type": EMDP_TYPE,
+                                    "sort_by_dist": sort_by_dist,
+                                },
+                                min=0,
+                                max=5,
+                                step=0.5,
+                                value=1.5,
+                            ),
+                            html.Label("Sec", style={"text-align": "center"}),
+                            dbc.Tooltip(
+                                "only relevant to availability mode",
+                                target={
+                                    "out": "sec_slider",
+                                    "filter": filter_name,
+                                    "emdp_type": EMDP_TYPE,
+                                    "sort_by_dist": sort_by_dist,
+                                },
+                                placement="bottom",
+                            ),
+                        ],
+                        style={"width": "80%", "text-align": "center"},
+                    ),
+                ],
                 direction="horizontal",
                 gap=3,
             ),
@@ -222,20 +252,22 @@ layout = html.Div(
 @callback(
     Output({"out": "graph", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "figure"),
     Output({"out": "monotonic", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "disabled"),
+    Output({"out": "sec_slider", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "disabled"),
     Input(MD_FILTERS, "data"),
     Input({"out": "image_world", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "on"),
     Input({"out": "avail_precision", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "on"),
     Input({"out": "monotonic", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "on"),
+    Input({"out": "sec_slider", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "value"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "id"),
     background=True,
 )
 def get_none_dist_graph(
-    meta_data_filters, is_world, is_precision, filter_none_monotonic, nets, effective_samples, graph_id
+    meta_data_filters, is_world, is_precision, filter_none_monotonic, sec_to_check, nets, effective_samples, graph_id
 ):
     if not nets:
-        return no_update, no_update
+        return no_update, no_update, no_update
     filter_name = graph_id["filter"]
     filters = EMDP_FILTERS[filter_name]
     interesting_filters = filters["filters"]
@@ -248,17 +280,20 @@ def get_none_dist_graph(
         is_precision=is_precision,
         filter_name=filter_name,
         filter_none_monotonic=filter_none_monotonic and not is_precision,
+        sec_to_check=sec_to_check,
     )
-    return fig, is_precision
+    return fig, is_precision, is_precision
 
 
 @callback(
     Output({"out": "graph", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "figure"),
     Output({"out": "monotonic", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "disabled"),
+    Output({"out": "sec_slider", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "disabled"),
     Input(MD_FILTERS, "data"),
     Input({"out": "image_world", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "on"),
     Input({"out": "avail_precision", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "on"),
     Input({"out": "monotonic", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "on"),
+    Input({"out": "sec_slider", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "value"),
     Input({"out": "sort_by_dist", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "on"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
@@ -266,10 +301,18 @@ def get_none_dist_graph(
     background=True,
 )
 def get_dist_graph(
-    meta_data_filters, is_world, is_precision, filter_none_monotonic, by_dist, nets, effective_samples, graph_id
+    meta_data_filters,
+    is_world,
+    is_precision,
+    filter_none_monotonic,
+    sec_to_check,
+    by_dist,
+    nets,
+    effective_samples,
+    graph_id,
 ):
     if not nets:
-        return no_update, no_update
+        return no_update, no_update, no_update
     filter_name = graph_id["filter"]
     filters = EMDP_FILTERS[filter_name]
     interesting_filters = filters["dist_filters"] if by_dist else filters["filters"]
@@ -282,8 +325,9 @@ def get_dist_graph(
         is_precision=is_precision,
         filter_name=filter_name,
         filter_none_monotonic=filter_none_monotonic and not is_precision,
+        sec_to_check=sec_to_check,
     )
-    return fig, is_precision
+    return fig, is_precision, is_precision
 
 
 @callback(
@@ -382,15 +426,18 @@ def get_emdp_fig(
     is_world,
     is_precision,
     filter_none_monotonic,
+    sec_to_check,
     filter_name,
 ):
-    label = "is_matched" if is_precision else "is_avail"
-    label = _get_emdp_col(label, is_world, filter_none_monotonic)
+    PRECISION_MATCHED = 1
+    label = "is_matched" if is_precision else "Z_max_sec"
+    label = _get_emdp_col(label, not is_world, filter_none_monotonic)
+    pred = PRECISION_MATCHED if is_precision else sec_to_check
     query = generate_emdp_query(
         nets["frame_tables"],
         nets["meta_data"],
         label,
-        1,
+        pred,
         interesting_filters,
         meta_data_filters=meta_data_filters,
         extra_filters=f"{label} != -1",
@@ -399,6 +446,7 @@ def get_emdp_fig(
     world_str = "World" if is_world else "Image"
     precision_str = "Precision" if is_precision else "Availability"
     filter_name_to_display = filter_name.replace("_", " ").capitalize()
+    data = data.sort_values(by="net_id")
     fig = draw_meta_data_filters(
         data,
         list(interesting_filters.keys()),
