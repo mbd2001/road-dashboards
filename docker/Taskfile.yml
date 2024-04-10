@@ -16,6 +16,7 @@ vars:
   docker_tag: "{{.image_name}}_{{.BUILD_TIME}}"
   full_ecr_name: "{{.aws_repo}}:{{.docker_tag}}"
   full_ecr_name_latest: "{{.aws_repo}}:{{.image_name}}_latest"
+  ARTIFACTORY: artifactory.sddc.mobileye.com
 
 
 tasks:
@@ -57,6 +58,7 @@ tasks:
     desc: pulls the ecr docker that is the father of the target docker
     cmds:
       - task: login_ecr
+      - task: login-artifactory
       - echo `grep "^FROM " {{.dockerfile_name}} | sed -e "s/FROM //g"`
       - |
         docker_name=`grep "^FROM " {{.dockerfile_name}} | sed -e "s/FROM //g"` && \
@@ -116,3 +118,13 @@ tasks:
           echo **WARNING** Trying to create ~/.aws/credentials outside of CI container
         fi
     silent: true
+
+  login-artifactory:
+    desc: login to artifactory.
+    cmds:
+      - |-
+        if [ "${CI}" != "" ]; then
+          docker login {{.ARTIFACTORY}} -u $FACELESS_ONPREM_USER -p $FACELESS_PASS
+        else
+          docker login {{.ARTIFACTORY}}
+        fi
