@@ -1,7 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
 
-from road_eval_dashboard.components.queries_manager import process_net_name, ROC_THRESHOLDS
+from road_eval_dashboard.components.queries_manager import ROC_THRESHOLDS, process_net_name
 from road_eval_dashboard.graphs.precision_recall_curve import calc_fb
 
 

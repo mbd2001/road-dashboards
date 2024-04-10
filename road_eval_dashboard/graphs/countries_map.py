@@ -1,9 +1,10 @@
+import json
 import os
 import re
-import json
-import pycountry
+
 import numpy as np
 import plotly.express as px
+import pycountry
 
 main_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 with open(f"{main_dir}/assets/custom.geo.json") as f:

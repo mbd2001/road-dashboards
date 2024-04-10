@@ -1,7 +1,7 @@
 from dataclasses import dataclass
-from typing import Optional, List
+from typing import List, Optional
 
-from road_eval_dashboard.components.queries_manager import lm_3d_distances, ZSources
+from road_eval_dashboard.components.queries_manager import ZSources, lm_3d_distances
 
 
 @dataclass
