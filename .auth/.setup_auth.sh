@@ -1,10 +1,27 @@
 #!/bin/bash
 
 if ! command -v "vault" &> /dev/null; then
-  echo "vault does not exist, skipping credentials setup..."
+  echo "vault does not exist, installing..."
+  wget -q https://releases.hashicorp.com/vault/1.10.5/vault_1.10.5_linux_amd64.zip && unzip vault_1.10.5_linux_amd64.zip && mv vault /usr/local/bin/ && chmod +x /usr/local/bin/vault && rm vault_1.10.5_linux_amd64.zip
   return 0
 else
-  echo "Setting up credentials."
+  echo "Setting up vault."
+fi
+
+if ! command -v "yq4" &> /dev/null; then
+  echo "yq4 does not exist, installing..."
+  wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq4 && chmod +x /usr/bin/yq4
+  return 0
+else
+  echo "Setting up yq4."
+fi
+
+if ! command -v "task" &> /dev/null; then
+  echo "tasker does not exist, installing..."
+  wget https://taskfile.dev/install.sh && chmod +x ./install.sh && ./install.sh -b /usr/local/bin
+  return 0
+else
+  echo "Setting up tasker."
 fi
 
 # setup Vault credentials

@@ -161,6 +161,8 @@ deploy:pages:
 deploy:docker:
   image: docker:cli
   stage: deploy
+  before_script:
+    - source .auth/.setup_auth.sh
   script:
     - cd docker
     - task build_and_push
