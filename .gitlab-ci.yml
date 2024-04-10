@@ -164,5 +164,6 @@ deploy:docker:
   before_script:
     - source .auth/.setup_auth.sh
   script:
+    - apk add git rclone python3 aws-cli
     - cd docker
     - task build_and_push
