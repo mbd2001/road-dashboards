@@ -78,11 +78,7 @@ build:pypi:
 test:pypi:
   stage: test
   script:
-    - hatch env create # Creating the hatch env before moving the source files
-    - mv "${PACKAGE_FOLDER}" "${PACKAGE_FOLDER}_" # Making source file inaccessible from python. Test check the package
-    - echo "Installing wheel:" && unzip -l $HATCH_BUILD_OUTPUT_FOLDER/*.whl
-    - hatch --verbose run pip install $HATCH_BUILD_OUTPUT_FOLDER/*.whl
-    - hatch --verbose run cov
+    - task pypi:test
   # Gitlab ci pattern for coverage message on merge requests:
   coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
   artifacts:

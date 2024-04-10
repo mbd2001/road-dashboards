@@ -3,6 +3,7 @@ version: '3'
 vars:
   PYVERSION: 3.10
   PACKAGE_NAME: road-eval-dashboard
+  PACKAGE_FOLDER: road_eval_dashboard
   TEST_ENV_NAME: "{{.PACKAGE_NAME}}-env"
   CONDA_RELEASE_CHANNEL: me-conda-dev-local
   PROJECT_VERSION:
@@ -44,6 +45,16 @@ tasks:
     cmds:
       - mamba run -n {{.TEST_ENV_NAME}} pytest -v -s tests/units
 
+  pypi:test:
+    desc: "Run tests with the built pypi test env"
+    cmds:
+      - hatch env create # Creating the hatch env before moving the source files
+      - mv "${PACKAGE_FOLDER}" "${PACKAGE_FOLDER}_" # Making source file inaccessible from python. Test check the package
+      - echo "Installing wheel:" && unzip -l $HATCH_BUILD_OUTPUT_FOLDER/*.whl
+      - hatch --verbose run pip install $HATCH_BUILD_OUTPUT_FOLDER/*.whl
+      - hatch --verbose run cov
+      - mv "${PACKAGE_FOLDER}_" "${PACKAGE_FOLDER}"
+
   py:check:
     desc: "Run static code analysis with format check."
     cmds:
@@ -83,4 +94,4 @@ tasks:
         REPO_DIR_GUEST=/repos/$(basename ${REPO_DIR_HOST})
         WORKDIR_GUEST=${REPO_DIR_GUEST}/${WORKDIR_REL_PATH}
         echo -e "[mx-tools:denv] REPO_NAME=${REPO_NAME} REPO_DIR_GUEST=${REPO_DIR_GUEST} WORKDIR_GUEST=${WORKDIR_GUEST}"
-        docker run --rm -it --privileged -p 3030:8000 --workdir ${REPO_DIR_GUEST} -v ${REPO_DIR_HOST}:${REPO_DIR_GUEST} -v ${HOME}/.de:/home/me.docker/.de -v /dev/fuse:/dev/fuse -v ${HOME}/tmp/.aws/:/home/me.docker/.aws/ ${DIMAGE} 
+        docker run --rm -it --privileged -p 4000:8000 --workdir ${REPO_DIR_GUEST} -v ${REPO_DIR_HOST}:${REPO_DIR_GUEST} -v ${HOME}/.de:/home/me.docker/.de -v /dev/fuse:/dev/fuse -v ${HOME}/tmp/.aws/:/home/me.docker/.aws/ ${DIMAGE} 
