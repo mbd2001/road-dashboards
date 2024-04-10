@@ -1,10 +1,9 @@
 import base64
 
 import dash_bootstrap_components as dbc
-from dash import dcc, html, callback, Output, Input, State, no_update
+from dash import dcc, html, callback, Output, Input, State, no_update, MATCH
 import plotly.graph_objects as go
 from road_eval_dashboard.components.components_ids import GRAPH_TO_COPY
-
 
 def card_wrapper(object_list):
     return dbc.Card([dbc.CardBody(object_list)], className="mt-5", style={"borderRadius": "15px"})
@@ -17,9 +16,10 @@ def loading_wrapper(object_list, is_full_screen=False):
     return dcc.Loading(id="loading", type="circle", children=object_list, fullscreen=is_full_screen)
 
 def graph_wrapper(graph_id):
-    layout = html.Div([loading_wrapper(dcc.Graph(id=graph_id, config={"displayModeBar": False})),
+    graph_wrapper_id = get_wrapper_id(graph_id)
+    layout = html.Div([loading_wrapper(dcc.Graph(id=graph_wrapper_id, config={"displayModeBar": False})),
                        dcc.Clipboard(
-                           id=f"icon_{graph_id}",
+                           id={**graph_wrapper_id, **{'type': "copy-button"}},
                            title="copy",
                            style={
                                "position": "absolute",
@@ -29,7 +29,7 @@ def graph_wrapper(graph_id):
                            },
                        ),
                        dbc.Button(
-                           id=f"download_{graph_id}",
+                           id={**graph_wrapper_id, **{'type': "download-button"}},
                            title="download",
                            style={
                                "position": "absolute",
@@ -39,34 +39,37 @@ def graph_wrapper(graph_id):
                            },
                            className="fa-solid fa-download"
                        ),
-                       dcc.Download(id=f"download-image_{graph_id}"),
+                       dcc.Download(id={**graph_wrapper_id, **{'type': "download"}}),
                        dbc.Alert(
             "Copied!",
-            id=f"alert_{graph_id}",
+            id={**graph_wrapper_id, **{'type': "copied-alert"}},
             is_open=False,
             fade=True,
             duration=4000,
         ),])
 
-    callback(Output(GRAPH_TO_COPY, "data"),
-             Output(f"alert_{graph_id}", "is_open"),
-    Input(f"icon_{graph_id}", "n_clicks"),
-    State(graph_id, "figure"), prevent_initial_call=True)(set_copy_store)
-
-    callback(Output(f"download-image_{graph_id}", "data"),
-             Input(f"download_{graph_id}", "n_clicks"),
-             State(graph_id, "figure"), prevent_initial_call=True)(download_plot)
-
     return layout
 
+@callback(Output(GRAPH_TO_COPY, "data"),
+             Output({'graph_wrapper': MATCH, 'type': "copied-alert"}, "is_open", allow_duplicate=True),
+    Input({'graph_wrapper': MATCH, 'type': "copy-button"}, "n_clicks"),
+    State({'graph_wrapper': MATCH}, "figure"), prevent_initial_call=True)
 def set_copy_store(n_clicks, fig_to_copy):
     fig_to_copy = go.Figure(fig_to_copy)
     image_bytes_io = fig_to_copy.to_image(format="png", engine="kaleido")
     encoded_image = base64.b64encode(image_bytes_io).decode('utf-8')
     return encoded_image, True
 
+@callback(Output({'graph_wrapper': MATCH, 'type': "download"}, "data", allow_duplicate=True),
+             Input({'graph_wrapper': MATCH, 'type': "download-button"}, "n_clicks"),
+             State({'graph_wrapper': MATCH}, "figure"), prevent_initial_call=True)
 def download_plot(n_clicks, fig_to_download):
     fig_to_download = go.Figure(fig_to_download)
     image_bytes_io = fig_to_download.to_image(format="png", engine="kaleido")
     fig_title = fig_to_download.layout.title.text.strip('<b>').replace(' ','_').lower()
     return dcc.send_bytes(image_bytes_io, filename=f"{fig_title}.png")
+
+def get_wrapper_id(graph_id):
+    if graph_id is not isinstance(graph_id, dict):
+        graph_id = {'id': graph_id}
+    return {**graph_id, **{'graph_wrapper': graph_id}}
