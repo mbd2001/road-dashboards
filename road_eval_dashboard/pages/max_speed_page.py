@@ -20,7 +20,7 @@ from road_eval_dashboard.components.components_ids import (
     NETS,
     EFFECTIVE_SAMPLES_PER_BATCH,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
@@ -66,19 +66,14 @@ def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
     layout = card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id={
+                        graph_wrapper(
+                            {
                                 "out": "graph",
                                 "filter": filter_name,
                                 "type": max_speed_type,
                                 "is_sort_by_dist": is_sort_by_dist,
                             },
-                            config={"displayModeBar": False},
                         )
-                    ]
-                )
             ),
             dbc.Stack(
                 [

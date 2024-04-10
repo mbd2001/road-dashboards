@@ -18,7 +18,7 @@ from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
 )
 from road_eval_dashboard.graphs.precision_recall_curve import draw_precision_recall_curve
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/accuracy", name="Accuracy", order=3, **extra_properties.__dict__)
@@ -33,11 +33,11 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=FB_TRADEOFF_OVERALL, config={"displayModeBar": False})]),
+                            graph_wrapper(FB_TRADEOFF_OVERALL),
                             width=6,
                         ),
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=FB_TRADEOFF_HOST, config={"displayModeBar": False})]), width=6
+                            graph_wrapper(FB_TRADEOFF_HOST), width=6
                         ),
                     ]
                 )

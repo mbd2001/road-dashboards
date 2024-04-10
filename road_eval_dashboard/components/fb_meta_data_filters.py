@@ -30,7 +30,7 @@ from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     NET_ID_TO_FB_BEST_THRESH,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.queries_manager import (
     generate_fb_query,
     run_query_with_nets_names_processing,
@@ -44,7 +44,7 @@ from road_eval_dashboard.graphs.meta_data_filters_graph import (
 def get_base_graph_layout(graph_id, host_button_id, sort_by_dist_id=None):
     layout = card_wrapper(
         [
-            dbc.Row(loading_wrapper([dcc.Graph(id=graph_id, config={"displayModeBar": False})])),
+            dbc.Row(graph_wrapper(graph_id)),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(

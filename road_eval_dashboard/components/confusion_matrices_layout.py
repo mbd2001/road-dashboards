@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html, dcc
 
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.queries_manager import (
     generate_conf_mat_query,
     run_query_with_nets_names_processing,
@@ -26,7 +26,7 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
                     [
                         dbc.Row(
                             [
-                                dcc.Graph(id=upper_diag_id, config={"displayModeBar": False}),
+                                graph_wrapper(upper_diag_id),
                             ]
                         )
                     ]
@@ -39,7 +39,7 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
                     [
                         dbc.Row(
                             [
-                                dcc.Graph(id=lower_diag_id, config={"displayModeBar": False}),
+                                graph_wrapper(lower_diag_id),
                             ]
                         )
                     ]
@@ -61,13 +61,12 @@ def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf
                 [
                     dbc.Col(
                         loading_wrapper(
-                            [dcc.Graph(id={"type": left_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
+                            [graph_wrapper({"type": left_conf_mat_id, "index": ind})]
                         ),
                         width=6,
                     ),
                     dbc.Col(
-                        loading_wrapper(
-                            [dcc.Graph(id={"type": right_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
+                        graph_wrapper({"type": right_conf_mat_id, "index": ind}
                         ),
                         width=6,
                     ),

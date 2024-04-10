@@ -28,6 +28,18 @@ def graph_wrapper(graph_id):
                                "fontSize": 15,
                            },
                        ),
+                       dbc.Button(
+                           id=f"download_{graph_id}",
+                           title="download",
+                           style={
+                               "position": "absolute",
+                               "top": 5,
+                               "right": 50,
+                               "fontSize": 15,
+                           },
+                           className="fa-solid fa-download"
+                       ),
+                       dcc.Download(id=f"download-image_{graph_id}"),
                        dbc.Alert(
             "Copied!",
             id=f"alert_{graph_id}",
@@ -39,15 +51,22 @@ def graph_wrapper(graph_id):
     callback(Output(GRAPH_TO_COPY, "data"),
              Output(f"alert_{graph_id}", "is_open"),
     Input(f"icon_{graph_id}", "n_clicks"),
-    State(graph_id, "figure"),
-    background=True)(set_copy_store)
+    State(graph_id, "figure"), prevent_initial_call=True)(set_copy_store)
+
+    callback(Output(f"download-image_{graph_id}", "data"),
+             Input(f"download_{graph_id}", "n_clicks"),
+             State(graph_id, "figure"), prevent_initial_call=True)(download_plot)
 
     return layout
 
 def set_copy_store(n_clicks, fig_to_copy):
-    if not n_clicks:
-        return no_update, no_update
     fig_to_copy = go.Figure(fig_to_copy)
     image_bytes_io = fig_to_copy.to_image(format="png", engine="kaleido")
     encoded_image = base64.b64encode(image_bytes_io).decode('utf-8')
     return encoded_image, True
+
+def download_plot(n_clicks, fig_to_download):
+    fig_to_download = go.Figure(fig_to_download)
+    image_bytes_io = fig_to_download.to_image(format="png", engine="kaleido")
+    fig_title = fig_to_download.layout.title.text.strip('<b>').replace(' ','_').lower()
+    return dcc.send_bytes(image_bytes_io, filename=f"{fig_title}.png")

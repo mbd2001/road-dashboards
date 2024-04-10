@@ -6,7 +6,7 @@ from road_eval_dashboard.components.confusion_matrices_layout import (
     generate_matrices_graphs,
     generate_matrices_layout,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components import (
     meta_data_filter,
     base_dataset_statistics,
@@ -44,10 +44,10 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=TYPE_OVERALL, config={"displayModeBar": False})])], width=6
+                            [graph_wrapper(TYPE_OVERALL)], width=6
                         ),
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=TYPE_HOST, config={"displayModeBar": False})])], width=6
+                            [graph_wrapper(TYPE_HOST)], width=6
                         ),
                     ]
                 )

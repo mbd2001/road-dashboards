@@ -12,7 +12,7 @@ from road_eval_dashboard.components.common_filters import (
     WEATHER_FILTERS,
     CURVE_BY_RAD_FILTERS,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 
 from road_eval_dashboard.components import (
     meta_data_filter,
@@ -83,20 +83,11 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
     layout = card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id={
+                graph_wrapper({
                                 "out": "graph",
                                 "filter": filter_name,
                                 "emdp_type": EMDP_TYPE,
-                                "sort_by_dist": sort_by_dist,
-                            },
-                            config={"displayModeBar": False},
-                        )
-                    ]
-                )
-            ),
+                                "sort_by_dist": sort_by_dist})),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
@@ -211,7 +202,7 @@ def get_view_range_histogram_layout():
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=EMDP_VIEW_RANGE_HISTOGRAM, config={"displayModeBar": False})]),
+                        graph_wrapper(EMDP_VIEW_RANGE_HISTOGRAM),
                         width=11,
                     )
                 ]

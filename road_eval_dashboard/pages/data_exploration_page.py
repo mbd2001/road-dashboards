@@ -21,7 +21,7 @@ from road_eval_dashboard.components.components_ids import (
     GTEM_PIE_CHART,
     DYNAMIC_PIE_CHART_SLIDER,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     generate_count_query,
@@ -64,7 +64,7 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=DYNAMIC_PIE_CHART, config={"displayModeBar": False})]),
+                            graph_wrapper(DYNAMIC_PIE_CHART),
                             width=11,
                         ),
                         dbc.Col(
@@ -86,11 +86,11 @@ layout = html.Div(
         dbc.Row(
             [
                 dbc.Col(
-                    card_wrapper([loading_wrapper([dcc.Graph(id=TVGT_PIE_CHART, config={"displayModeBar": False})])]),
+                    card_wrapper([graph_wrapper(TVGT_PIE_CHART)]),
                     width=6,
                 ),
                 dbc.Col(
-                    card_wrapper([loading_wrapper([dcc.Graph(id=GTEM_PIE_CHART, config={"displayModeBar": False})])]),
+                    card_wrapper([graph_wrapper(GTEM_PIE_CHART)]),
                     width=6,
                 ),
             ],
@@ -99,19 +99,19 @@ layout = html.Div(
             [
                 dbc.Col(
                     card_wrapper(
-                        [loading_wrapper([dcc.Graph(id=ROAD_TYPE_PIE_CHART, config={"displayModeBar": False})])]
+                        [graph_wrapper(ROAD_TYPE_PIE_CHART)]
                     ),
                     width=6,
                 ),
                 dbc.Col(
                     card_wrapper(
-                        [loading_wrapper([dcc.Graph(id=LANE_MARK_COLOR_PIE_CHART, config={"displayModeBar": False})])]
+                        [graph_wrapper(LANE_MARK_COLOR_PIE_CHART)]
                     ),
                     width=6,
                 ),
             ],
         ),
-        card_wrapper([dbc.Row(loading_wrapper([dcc.Graph(id=COUNTRIES_HEAT_MAP, config={"displayModeBar": False})]))]),
+        card_wrapper([dbc.Row(graph_wrapper(COUNTRIES_HEAT_MAP))]),
     ]
 )
 

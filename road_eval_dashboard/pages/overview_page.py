@@ -13,7 +13,7 @@ from road_eval_dashboard.components.components_ids import (
     LM_3D_ACC_NEXT,
     LM_3D_ACC_HOST_Z_X,
 )
-from road_eval_dashboard.components.layout_wrapper import loading_wrapper, card_wrapper
+from road_eval_dashboard.components.layout_wrapper import loading_wrapper, card_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.pages.card_generators import view_range_histogram_card, get_host_next_graph
 
@@ -31,10 +31,10 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=COLOR_OVERALL, config={"displayModeBar": False})])], width=6
+                            [graph_wrapper(COLOR_OVERALL)], width=6
                         ),
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=TYPE_OVERALL, config={"displayModeBar": False})])], width=6
+                            [graph_wrapper(TYPE_OVERALL)], width=6
                         ),
                     ]
                 ),

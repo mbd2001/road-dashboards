@@ -23,7 +23,7 @@ from road_eval_dashboard.components.confusion_matrices_layout import (
     generate_matrices_graphs,
     generate_matrices_layout,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph
 from road_eval_dashboard.components.queries_manager import (
@@ -50,10 +50,10 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=COLOR_OVERALL, config={"displayModeBar": False})])], width=6
+                            [graph_wrapper(COLOR_OVERALL)], width=6
                         ),
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=COLOR_HOST, config={"displayModeBar": False})])], width=6
+                            [graph_wrapper(COLOR_HOST)], width=6
                         ),
                     ],
                 )
@@ -64,11 +64,11 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=COLOR_OVERALL_DAY, config={"displayModeBar": False})])],
+                            [graph_wrapper(COLOR_OVERALL_DAY)],
                             width=6,
                         ),
                         dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=COLOR_OVERALL_NIGHT, config={"displayModeBar": False})])],
+                            [graph_wrapper(COLOR_OVERALL_NIGHT)],
                             width=6,
                         ),
                     ],

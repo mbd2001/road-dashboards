@@ -19,13 +19,13 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_HISTOGRAM_ERR_EST,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 
 
 def view_range_success_rate_card():
     return card_wrapper(
         [
-            dbc.Row(loading_wrapper([dcc.Graph(id=VIEW_RANGE_SUCCESS_RATE, config={"displayModeBar": False})])),
+            dbc.Row(graph_wrapper(VIEW_RANGE_SUCCESS_RATE)),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
@@ -69,7 +69,7 @@ def view_range_success_rate_card():
                 ],
                 direction="horizontal",
                 gap=3,
-            ),
+            )
         ]
     )
 
@@ -80,7 +80,7 @@ def view_range_histogram_card():
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=VIEW_RANGE_HISTOGRAM, config={"displayModeBar": False})]),
+                        graph_wrapper(VIEW_RANGE_HISTOGRAM),
                         width=11,
                     ),
                     dbc.Col(
@@ -129,13 +129,9 @@ def view_range_host_next_success_rate_card():
     return card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": ""},
-                            config={"displayModeBar": False},
-                        )
-                    ]
+                graph_wrapper(
+
+                        {"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": ""}
                 )
             ),
             dbc.Stack(
@@ -192,11 +188,11 @@ def get_host_next_graph(host_id, next_id, is_Z_id):
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=host_id, config={"displayModeBar": False})]),
+                        graph_wrapper(host_id),
                         width=6,
                     ),
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=next_id, config={"displayModeBar": False})]),
+                        graph_wrapper(next_id),
                         width=6,
                     ),
                 ]
