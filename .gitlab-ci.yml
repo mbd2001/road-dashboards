@@ -157,3 +157,10 @@ deploy:pages:
     paths:
       - public
   extends: .only-master-pushes
+
+deploy:docker:
+  image: docker:cli
+  stage: deploy
+  script:
+    - cd docker
+    - task build_and_push
