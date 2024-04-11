@@ -1,0 +1,60 @@
+# @desc: "a conventional conda package recipe meta data [ meta.yaml ] enriched with extra meta data for dev-x boost"
+# @desc: "sections that are added on top of conda meta.yaml are prefixed with `mx-`"
+
+package:
+  name: road-eval-dashboard
+  version: '{{ environ["PROJECT_VERSION"] }}'
+
+source:
+  path: ..
+
+build:
+  script: '{{ PYTHON }} -m pip install --no-deps --ignore-installed -vv .'
+  noarch: python
+
+requirements:
+  host:
+    - python
+    - pip
+    - hatch
+
+  run:
+    - python
+    - pydantic
+    - fire
+    - pyyaml
+    - loguru
+    - orjson
+    - typing_extensions >=3.7.4
+    - pycountry
+    - dash-bootstrap-components
+    - dash-daq
+    - numpy
+    - pandas
+    - boto3
+    - tqdm
+    - s3fs
+    - fsspec
+    - road-database-toolkit
+
+test:
+  requires:
+    - pytest
+    - pytest-xdist
+    - pytest-cov
+    - pytest-html
+    - coverage
+    - loguru
+
+about:
+  author: "Nadav Shemesh"
+  home: http://gitlab.mobileye.com/road_algo/road_eval_dashboard
+  home_dir: road_eval_dashboard
+  summary: "Cloud based road evaluation dashboard"
+  license: "Mobileye, LTD"
+  author_email: "nadav.shemesh@mobileye.com"
+  author_emails:
+    - "nadav.shemesh@mobileye.com"
+    - "dor.eagelberg@mobileye.com"
+    - "yair.shemer@mobileye.com"
+

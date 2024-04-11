@@ -2,8 +2,10 @@
 Can be used for testing pytest configuration
 """
 
-from loguru import logger
 import sys
+
+from loguru import logger
+
 from road_eval_dashboard import dummy_main_module
 
 

@@ -1,9 +1,9 @@
 import enum
 import re
+
 import numpy as np
 import pandas as pd
-
-from road_database_toolkit.athena.athena_utils import query_athena, athena_run_multiple_queries
+from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
 BASE_QUERY = """
     SELECT * FROM

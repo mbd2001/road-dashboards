@@ -1,0 +1,179 @@
+variables:
+  PACKAGE_FOLDER: "road_eval_dashboard"
+  HATCH_BUILD_OUTPUT_FOLDER: "./__localbuild__/pypi" # Also configured in task.yaml
+  CONDA_BUILD_OUTPUT_FOLDER: "./__localbuild__/conda" # Also configured in task.yaml
+  PYPI_REPO: "https://artifactory.sddc.mobileye.com/artifactory/api/pypi/me-pypi-dev"
+
+default:
+  image: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda-py310
+  tags:
+    - road-algo-lg
+  before_script:
+    - | # install hatch if not installed:
+      if ! command -v hatch >/dev/null 2>&1; then
+        echo "Installing Hatch." && pip install hatch
+      else
+        echo "Hatch is already installed."
+      fi
+    # For master commits: determine hatch version before each job.
+    # This makes sure the version is updated before builds and git operations.
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "master" ]; then
+        if [ "$CI_COMMIT_BEFORE_SHA" == "0000000000000000000000000000000000000000" ]; then
+          VERSION_CHANGES=$(git --no-pager diff --name-only $CI_COMMIT_SHA | grep $PACKAGE_FOLDER/__about__.py || true)
+        else
+          VERSION_CHANGES=$(git --no-pager diff --name-only $CI_COMMIT_BEFORE_SHA...$CI_COMMIT_SHA | grep $PACKAGE_FOLDER/__about__.py || true)
+        fi
+        if [ ! -z "$VERSION_CHANGES" ]; then
+          echo "Version changes detected. Skipping version bump. Version is $(hatch version)."
+        else
+          hatch version patch && echo "Bumped $CI_PROJECT_NAME to version $(hatch version)"
+        fi
+      fi
+    - hatch --version
+    - echo "Package version is $(hatch version)"
+
+    # setting up credentials
+    - source .auth/.setup_auth.sh
+
+stages:
+  - code-check
+  - build
+  - test
+  - deploy
+
+workflow:
+  rules:
+    - if: $CI_COMMIT_TAG && $CI_COMMIT_TAG =~ /^Version bump to [0-9]+\.[0-9]+\.[0-9]+$/
+      when: never
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: always
+    - if: $CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+
+.only-master-pushes:
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
+
+build:conda:
+  stage: build
+  script:
+    - task conda:build
+  artifacts:
+    name: "build-conda-artifacts"
+    paths:
+      - $CONDA_BUILD_OUTPUT_FOLDER
+
+build:pypi:
+  stage: build
+  script:
+    - task pypi:build
+  artifacts:
+    name: "build-pypi-artifacts"
+    paths:
+      - $HATCH_BUILD_OUTPUT_FOLDER
+
+test:pypi:
+  stage: test
+  script:
+    - task pypi:test
+  # Gitlab ci pattern for coverage message on merge requests:
+  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
+  artifacts:
+    name: "test-pypi-coverage"
+    paths:
+      - __localbuild__/coverage/
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: ./__localbuild__/coverage/coverage.xml
+      junit:
+        - ./__localbuild__/pytest/pytest.*.junit.xml
+  needs:
+    - build:pypi
+
+test:conda:
+  stage: test
+  script:
+    - task conda:create:dev
+    - task conda:install-local-build
+    - task conda:test
+  needs:
+    - build:conda
+
+code-check:pycheck:
+  tags:
+    - road-algo-sm
+  stage: code-check
+  script:
+    - hatch --verbose run lint:check
+  rules:
+    # Avoiding pycheck when the pipeline is triggered from another repo's pipeline
+    - if: $CI_PIPELINE_SOURCE  == "pipeline"
+      when: never
+    # After a push to master (Finished MR), skip python check stage.
+    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"'
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+deploy:package:
+  tags:
+    - road-algo-sm
+  stage: deploy
+  # faceless user is configured in the group masked CI variables
+  script:
+    - pip install pookam
+    - hatch publish --publisher me-conda -o username="$FACELESS_ONPREM_USER" -o password="$FACELESS_PASS"
+    - hatch publish $HATCH_BUILD_OUTPUT_FOLDER/*.whl -r $PYPI_REPO -u $FACELESS_ONPREM_USER --auth $FACELESS_PASS
+  extends: .only-master-pushes
+
+deploy:bump_version:
+  tags:
+    - road-algo-sm
+  needs: [deploy:package]
+  stage: deploy
+  # faceless user is configured in the group masked CI variables
+  script:
+    - git config --global user.name $FACELESS_ONPREM_USER
+    - git config --global user.email $FACELESS_ONPREM_USER@mobileye.com
+    - git checkout $CI_COMMIT_BRANCH
+    - git branch -vv
+    - git add $PACKAGE_FOLDER/__about__.py
+    - git commit -m"Version bump to $(hatch version)" || echo No version changes to commit.
+    - TAG=$CI_PROJECT_NAME-$(hatch version)
+    - git tag $TAG
+    - git remote set-url origin https://oauth2:${GITLAB_TOKEN}@${CI_REPOSITORY_URL#*@}
+    - git push --atomic origin $CI_COMMIT_BRANCH $TAG -o ci.skip
+  extends: .only-master-pushes
+
+deploy:pages:
+  tags:
+    - pages
+  stage: deploy
+  script:
+    - task mkdocs:build
+  artifacts:
+    paths:
+      - public
+  extends: .only-master-pushes
+
+deploy:docker:
+  image: docker:cli
+  stage: deploy
+  variables:
+    DOCKER_BUILDKIT: "0"
+  before_script:
+    - |
+      apk add git rclone python3 aws-cli py3-pip
+      python3 -m venv /path/to/venv
+      . /path/to/venv/bin/activate
+      if ! command -v hatch >/dev/null 2>&1; then
+        echo "Installing Hatch." && pip install hatch
+      else
+        echo "Hatch is already installed."
+      fi
+    - source .auth/.setup_auth.sh
+  script:
+    - task docker:build_and_push
+  extends: .only-master-pushes
