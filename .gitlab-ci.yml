@@ -165,7 +165,7 @@ deploy:docker:
     DOCKER_BUILDKIT: "0"
   before_script:
     - |
-      apk add git rclone python3 aws-cli
+      apk add git rclone python3 aws-cli pip
       if ! command -v hatch >/dev/null 2>&1; then
         echo "Installing Hatch." && pip install hatch
       else
