@@ -176,3 +176,4 @@ deploy:docker:
     - source .auth/.setup_auth.sh
   script:
     - task docker:build_and_push
+  extends: .only-master-pushes

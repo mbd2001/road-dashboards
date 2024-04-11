@@ -86,7 +86,7 @@ tasks:
     desc: "tags the docker with current date and time and pushes to ecr"
     cmds:
       - docker tag {{.image_name}} {{.full_ecr_name_latest}}
-      - echo docker push {{.full_ecr_name_latest}}
+      - docker push {{.full_ecr_name_latest}}
 
   #######
   # ECR #
