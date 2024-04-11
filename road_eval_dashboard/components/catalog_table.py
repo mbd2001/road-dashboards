@@ -41,7 +41,16 @@ def generate_catalog_layout():
                     id=RUN_EVAL_CATALOG,
                     columns=[
                         {"name": i, "id": i, "deletable": False, "selectable": True}
-                        for i in ["net", "checkpoint", "dataset", "population", "total_frames", "user", "last_change"]
+                        for i in [
+                            "net",
+                            "checkpoint",
+                            "dataset",
+                            "population",
+                            "use_case",
+                            "total_frames",
+                            "user",
+                            "last_change",
+                        ]
                     ],
                     filter_action="native",
                     sort_action="native",
@@ -155,6 +164,7 @@ def init_nets(rows, derived_virtual_selected_rows):
     nets = Nets(
         rows["net"],
         rows["checkpoint"],
+        rows["use_case"],
         rows["population"],
         **{table: rows[table].tolist() for table in rows.columns if table.endswith("table") and any(rows[table])},
     ).__dict__
