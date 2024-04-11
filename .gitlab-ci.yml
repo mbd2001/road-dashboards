@@ -161,8 +161,11 @@ deploy:pages:
 deploy:docker:
   image: docker:cli
   stage: deploy
+  variables:
+    DOCKER_BUILDKIT: "0"
   before_script:
     - source .auth/.setup_auth.sh
   script:
     - apk add git rclone python3 aws-cli
-    - docker ps
+    - cd docker
+    - task build_and_push
