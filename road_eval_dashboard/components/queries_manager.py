@@ -989,4 +989,4 @@ def process_net_names_list(net_names):
 def process_net_name(net_name):
     if pd.isnull(net_name):
         return net_name
-    return re.sub(r"(^\d{18}-)|(_default$)", "", net_name)
+    return re.sub(r"(^\d{18}-)|(_default$)|(_$)", "", net_name)
