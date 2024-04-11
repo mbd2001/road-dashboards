@@ -165,7 +165,7 @@ deploy:docker:
     DOCKER_BUILDKIT: "0"
   before_script:
     - |
-      apk add git rclone python3 aws-cli pip
+      apk add git rclone python3 aws-cli py3-pip
       python3 -m venv /path/to/venv
       . /path/to/venv/bin/activate
       if ! command -v hatch >/dev/null 2>&1; then
