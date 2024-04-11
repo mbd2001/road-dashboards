@@ -51,6 +51,8 @@ def redirect_to_home(pathname):
     if pathname == "/":
         return "/home"
 
+    return no_update
+
 
 @callback(
     Output(TABLES, "data", allow_duplicate=True),

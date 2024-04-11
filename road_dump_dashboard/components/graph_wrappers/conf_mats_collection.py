@@ -149,6 +149,9 @@ def init_secondary_dump_dropdown(tables):
         return no_update, no_update, no_update
 
     options = [{"label": name.title(), "value": name} for name in tables["names"]]
+    if len(options) < 2:
+        return no_update, no_update, no_update
+
     return options, options[1]["label"], options[1]["value"]
 
 

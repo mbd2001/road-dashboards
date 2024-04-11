@@ -67,6 +67,8 @@ def redirect_to_home(pathname):
     if pathname == "/":
         return "/home"
 
+    return no_update
+
 
 @app.callback(
     Output(NETS, "data", allow_duplicate=True),
