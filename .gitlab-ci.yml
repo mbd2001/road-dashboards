@@ -164,8 +164,13 @@ deploy:docker:
   variables:
     DOCKER_BUILDKIT: "0"
   before_script:
+    - |
+      apk add git rclone python3 aws-cli
+      if ! command -v hatch >/dev/null 2>&1; then
+        echo "Installing Hatch." && pip install hatch
+      else
+        echo "Hatch is already installed."
+      fi
     - source .auth/.setup_auth.sh
   script:
-    - apk add git rclone python3 aws-cli
-    - cd docker
-    - task build_and_push
+    - task docker:build_and_push
