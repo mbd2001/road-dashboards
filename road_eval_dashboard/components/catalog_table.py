@@ -164,6 +164,7 @@ def init_nets(rows, derived_virtual_selected_rows):
     nets = Nets(
         rows["net"],
         rows["checkpoint"],
+        rows["use_case"],
         rows["population"],
         **{table: rows[table].tolist() for table in rows.columns if table.endswith("table") and any(rows[table])},
     ).__dict__

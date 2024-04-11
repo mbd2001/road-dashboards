@@ -17,8 +17,11 @@ class Table:
 
 @dataclass
 class Nets:
-    def __init__(self, net_names, checkpoints, populations, **kwargs):
-        self.names = [f"{net_name}_{checkpoint}" for net_name, checkpoint in zip(net_names, checkpoints)]
+    def __init__(self, net_names, checkpoints, use_cases, populations, **kwargs):
+        self.names = [
+            f"{net_name}_{checkpoint}_{use_case}"
+            for net_name, checkpoint, use_case in zip(net_names, checkpoints, use_cases)
+        ]
         self.population = (
             "Test"
             if all("test" in population for population in populations)
