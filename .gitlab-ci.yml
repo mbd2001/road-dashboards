@@ -166,6 +166,8 @@ deploy:docker:
   before_script:
     - |
       apk add git rclone python3 aws-cli pip
+      python3 -m venv /path/to/venv
+      . /path/to/venv/bin/activate
       if ! command -v hatch >/dev/null 2>&1; then
         echo "Installing Hatch." && pip install hatch
       else
