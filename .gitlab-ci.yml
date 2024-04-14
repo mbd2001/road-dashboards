@@ -147,7 +147,7 @@ deploy:bump_version:
     - git push --atomic origin $CI_COMMIT_BRANCH $TAG -o ci.skip
   extends: .only-master-pushes
 
-deploy:pages:
+deploy:docs:
   tags:
     - pages
   stage: deploy
