@@ -29,7 +29,7 @@ def graph_wrapper(graph_id):
                            title="copy",
                            style={
                                "position": "absolute",
-                               "top": 5,
+                               "top": 8,
                                "right": 20,
                                "fontSize": 15,
                            },
@@ -45,29 +45,59 @@ def graph_wrapper(graph_id):
                            },
                            className="fa-solid fa-download"
                        ),
-                      html.Div([
-                          dbc.Input(
-                              type="text",
-                              id={"type": "jira-search", "id": graph_id_str},
-                              placeholder="Enter JIRA",
-                              persistence=False,
-                              autocomplete="off",
-                              list=f'{{"id":"{graph_id_str}","type":"jira-search-suggestions"}}',
-                              style={
-                                "line-height": 1.0,
-                                "width": "80%",
-                              }
-                          ),
-                          html.Datalist(
-                              id={"type": "jira-search-suggestions", "id": graph_id_str},
-                              children=[html.Option(
-                                  value='empty')])
-                      ],
+                      dbc.Button(
+                          id={"type": "jira-modal-button",
+                              "id": graph_id_str},
+                          title="export to JIRA",
                           style={
                               "position": "absolute",
                               "top": 5,
-                              "right": 45,
+                              "right": 100,
+                              "fontSize": 15,
                           },
+                          className="fa-solid fa-share"
+                      ),
+                      dbc.Modal(
+                          [
+                              dbc.ModalHeader(
+                                  "Share To Jira"),
+                              dbc.ModalBody(
+                                  [
+                                      dbc.Label(
+                                          "Jira Issue:"),
+                                      dbc.Input(
+                                          type="text",
+                                          id={"type": "jira-search", "id": graph_id_str},
+                                          placeholder="Enter JIRA",
+                                          persistence=False,
+                                          autocomplete="off",
+                                          list=f'{{"id":"{graph_id_str}","type":"jira-search-suggestions"}}',
+                                      ),
+                                      html.Datalist(
+                                          id={"type": "jira-search-suggestions", "id": graph_id_str},
+                                          children=[html.Option(
+                                              value='empty')]),
+                                      dbc.Label("Jira Comment:", style={"margin-top": 10}),
+                                      dcc.Textarea(
+                                          id={"type": "jira-comment", "id": graph_id_str},
+                                          placeholder='Enter Jira Comment',
+                                          style={'width': '100%', 'height': 200},
+                                      ),
+                                  ]
+                              ),
+                              dbc.ModalFooter(
+                                  [
+                                      dbc.Button("Share",
+                                                 color="primary",
+                                                 id={"type": "jira-share-button", "id": graph_id_str}),
+                                      dbc.Button(
+                                          "Close",
+                                          color="secondary",
+                                          id={"type": "jira-close-button", "id": graph_id_str}),
+                                  ]
+                              ),
+                          ],
+                          id={"type": "jira-share-modal", "id": graph_id_str},
                       ),
                        dcc.Download(id={"type": "download", "id": graph_id_str}),
                        dbc.Alert(
@@ -131,19 +161,37 @@ def suggest_jira_tickets(value):
 
 @callback(
     Output({"type": "jira_alert", "id": MATCH}, 'is_open'),
-    Input({"type": "jira-search", "id": MATCH}, "n_submit"),
+    Output({"type": "jira-share-modal", "id": MATCH}, 'is_open', allow_duplicate=True),
+    Input({"type": "jira-share-button", "id": MATCH}, "n_clicks"),
     State({"type": "jira-search", "id": MATCH}, "value"),
+    State({"type": "jira-comment", "id": MATCH}, "value"),
     State({"type": "graph_wrapper", "id": MATCH}, "children"),
     prevent_initial_call=True
 )
-def add_jira_attachment_in_comment(n_submit, value, graph_wrapper_children):
+def add_jira_attachment_in_comment(n_clicks, jira_issue, jira_comment, graph_wrapper_children):
     fig_to_export = graph_wrapper_children[0]['props']['children']['props']['figure']
     fig_to_export = go.Figure(fig_to_export)
     image_bytes_io = fig_to_export.to_image(format="png", engine="kaleido")
     attachment = BytesIO()
     attachment.write(image_bytes_io)
     fig_title = fig_to_export.layout.title.text.strip('<b>').replace(' ', '_').lower()
-    value_split = value.split('-')
-    issue_key = f"{value_split[0]}-{value_split[1]}" if len(value_split) > 2 else value
-    add_image_in_comment(issue_key, image_path=attachment, name=f"{fig_title}.png", comment="Generated By Run Eval Dashboard :)")
+    value_split = jira_issue.split('-')
+    issue_key = f"{value_split[0]}-{value_split[1]}" if len(value_split) > 2 else jira_issue
+    add_image_in_comment(issue_key, image_path=attachment, name=f"{fig_title}.png", comment=jira_comment)
+    return True, False
+
+@callback(
+    Output({"type": "jira-share-modal", "id": MATCH}, 'is_open', allow_duplicate=True),
+    Input({"type": "jira-modal-button", "id": MATCH}, "n_clicks"),
+    prevent_initial_call=True
+)
+def open_jira_share_modal(n_clicks):
     return True
+
+@callback(
+    Output({"type": "jira-share-modal", "id": MATCH}, 'is_open', allow_duplicate=True),
+    Input({"type": "jira-close-button", "id": MATCH}, "n_clicks"),
+    prevent_initial_call=True
+)
+def close_jira_share_modal(n_clicks):
+    return False
