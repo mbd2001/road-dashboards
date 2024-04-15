@@ -28,14 +28,17 @@ tasks:
       - hatch build --clean $HATCH_BUILD_OUTPUT_FOLDER
 
   conda:build:
-    desc: "build conda package with boa"
+    desc: "build conda package with rattler"
     cmds:
-      - boa build boa.recipe/ --output-folder {{.CONDA_BUILD_OUTPUT_FOLDER}} --no-test
+      - mamba install -y rattler-build
+      - mkdir -p {{.CONDA_BUILD_OUTPUT_FOLDER}}
+      - rattler-build build --package-format tar-bz2 -r rattler.recipe/ --output-dir {{.CONDA_BUILD_OUTPUT_FOLDER}} --no-test
+      - mamba index {{.CONDA_BUILD_OUTPUT_FOLDER}}
 
   conda:create:dev:
     desc: "create full testing environment"
     cmds:
-      - python ./boa.recipe/create_env_yaml_from_recipe.py --env_type test --proj_name {{.PACKAGE_NAME}}
+      - python ./rattler.recipe/create_env_yaml_from_recipe.py --env_type test --proj_name {{.PACKAGE_NAME}}
       - mamba env create -n {{.TEST_ENV_NAME}} -f /tmp/{{.PACKAGE_NAME}}.test.yml
 
   conda:install-local-build:

@@ -1,0 +1,60 @@
+context: {}
+
+package:
+  name: road-eval-dashboard
+
+  version: ${{ env.get("PROJECT_VERSION") }}
+
+
+source:
+  path: ../
+
+build:
+  script: "python -m pip install --no-deps --ignore-installed -vv ."
+  noarch: python
+
+
+
+requirements:
+  host:
+    - python
+    - pip
+    - hatch
+
+  run:
+    - python
+    - pydantic
+    - fire
+    - pyyaml
+    - loguru
+    - orjson
+    - typing_extensions >=3.7.4
+    - pycountry
+    - dash-bootstrap-components
+    - dash-daq
+    - numpy
+    - pandas
+    - boto3
+    - tqdm
+    - s3fs
+    - fsspec
+    - road-database-toolkit
+
+
+tests:
+  - script:
+      - echo "hello world"
+    requirements:
+      run:
+      - pytest
+      - pytest-xdist
+      - pytest-cov
+      - pytest-html
+      - coverage
+
+
+
+about:
+  homepage: http://gitlab.mobileye.com/road_algo/road_eval_dashboard
+  summary: "Road evaluation dashboard repository"
+

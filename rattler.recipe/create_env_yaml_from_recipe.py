@@ -1,4 +1,5 @@
 import argparse
+import subprocess
 
 import yaml
 
@@ -9,13 +10,19 @@ def parse_args(args=None):
     parser.add_argument("--proj_name", help="Project Name", required=True)
     parser.add_argument(
         "--recipe_path",
-        help="boa recipe file path - containing the project dependencies.",
+        help="rattler recipe file path - containing the project dependencies.",
         required=False,
-        default="boa.recipe/recipe.yaml",
+        default="rattler.recipe/recipe.yaml",
     )
     parser.add_argument("--out_env_yaml", help="file path for output yaml file", required=False, default=None)
     args = parser.parse_args()
     return args
+
+
+def get_current_configured_channels():
+    result = subprocess.run(["conda", "config", "--show", "channels"], capture_output=True, text=True, check=True)
+    parsed_result = yaml.safe_load(result.stdout)
+    return parsed_result["channels"]
 
 
 def create_env_yaml(proj_name, recipe_path, out_env_yaml, env_type):
@@ -27,10 +34,10 @@ def create_env_yaml(proj_name, recipe_path, out_env_yaml, env_type):
 
     env_yaml_dict = {}
     env_yaml_dict["name"] = proj_name
+    env_yaml_dict["channels"] = get_current_configured_channels()
     env_yaml_dict["dependencies"] = recipe_yaml["requirements"]["run"]
     if env_type == "test":
-        env_yaml_dict["channels"] = ["conda-forge", "me-conda-dev-local", "comet_ml"]
-        env_yaml_dict["dependencies"] += recipe_yaml["test"]["requires"]
+        env_yaml_dict["dependencies"] += recipe_yaml["tests"][0]["requirements"]["run"]
 
     out_env_yaml = out_env_yaml or f"/tmp/{proj_name}.{env_type}.yml"
     with open(out_env_yaml, "w") as f:
