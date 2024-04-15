@@ -65,9 +65,11 @@ def add_image_in_comment(issue_key: str, image_path: str, name: str = None, comm
 
 def get_jira_issues_from_prefix(prefix):
     MAX_ISSUE_KEY_DIGITS = 5
+    if not prefix:
+        return []
     jira = get_jira_client()
     split_prefix = prefix.split('-')
-    if len(split_prefix) > 1 and split_prefix[0] == 'ROAD' and split_prefix[1] != "":
+    if len(split_prefix) > 1 and split_prefix[0] == 'ROAD' and split_prefix[1].isdigit():
         prefix_num = int(split_prefix[1])
         num_to_multiply = len(split_prefix[1])
         or_condition = ""
