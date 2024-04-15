@@ -36,6 +36,8 @@ requirements:
     - s3fs
     - fsspec
     - road-database-toolkit
+    - kaleido
+    - jira
 
 test:
   requires:
