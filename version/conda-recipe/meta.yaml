@@ -67,6 +67,8 @@ requirements:
     - s3fs
     - fsspec
     - road-database-toolkit
+    - jira
+    - kaleido
 
   mx_build_deps:
     - boa
