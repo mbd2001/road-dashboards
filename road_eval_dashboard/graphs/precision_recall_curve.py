@@ -1,7 +1,7 @@
 import numpy as np
 import plotly.graph_objects as go
 
-from road_eval_dashboard.components.queries_manager import process_net_name, THRESHOLDS
+from road_eval_dashboard.components.queries_manager import THRESHOLDS, process_net_name
 
 f_beta = 1
 B2 = f_beta**2

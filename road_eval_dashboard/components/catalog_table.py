@@ -1,27 +1,28 @@
-import pandas as pd
-import dash_bootstrap_components as dbc
-from dash import dash_table, html, Output, Input, State, no_update, callback, ALL, ctx
-from threading import Thread
 from queue import Queue
+from threading import Thread
 
+import dash_bootstrap_components as dbc
+import pandas as pd
+from dash import ALL, Input, Output, State, callback, ctx, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
+
 from road_eval_dashboard.components.components_ids import (
-    NETS,
-    MD_COLUMNS_TO_TYPE,
-    MD_COLUMNS_TO_DISTINCT_VALUES,
-    UPDATE_RUNS_BTN,
-    RUN_EVAL_CATALOG,
-    MD_COLUMNS_OPTION,
-    LOAD_NETS_DATA_NOTIFICATION,
-    EFFECTIVE_SAMPLES_PER_BATCH,
-    NET_ID_TO_FB_BEST_THRESH,
-    SCENE_SIGNALS_LIST,
-    URL,
     CATALOG,
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    LOAD_NETS_DATA_NOTIFICATION,
+    MD_COLUMNS_OPTION,
+    MD_COLUMNS_TO_DISTINCT_VALUES,
+    MD_COLUMNS_TO_TYPE,
+    NET_ID_TO_FB_BEST_THRESH,
+    NETS,
+    RUN_EVAL_CATALOG,
+    SCENE_SIGNALS_LIST,
+    UPDATE_RUNS_BTN,
+    URL,
 )
 from road_eval_dashboard.components.init_threads import (
-    generate_meta_data_dicts,
     generate_effective_samples_per_batch,
+    generate_meta_data_dicts,
     get_best_fb_per_net,
     get_list_of_scene_signals,
 )
@@ -41,7 +42,16 @@ def generate_catalog_layout():
                     id=RUN_EVAL_CATALOG,
                     columns=[
                         {"name": i, "id": i, "deletable": False, "selectable": True}
-                        for i in ["net", "checkpoint", "dataset", "population", "total_frames", "user", "last_change"]
+                        for i in [
+                            "net",
+                            "checkpoint",
+                            "dataset",
+                            "population",
+                            "use_case",
+                            "total_frames",
+                            "user",
+                            "last_change",
+                        ]
                     ],
                     filter_action="native",
                     sort_action="native",
@@ -155,6 +165,7 @@ def init_nets(rows, derived_virtual_selected_rows):
     nets = Nets(
         rows["net"],
         rows["checkpoint"],
+        rows["use_case"],
         rows["population"],
         **{table: rows[table].tolist() for table in rows.columns if table.endswith("table") and any(rows[table])},
     ).__dict__

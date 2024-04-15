@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import html, page_registry, callback, Output, Input
+from dash import Input, Output, callback, html, page_registry
 
 from road_eval_dashboard.components.components_ids import SIDEBAR, URL
 

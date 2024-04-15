@@ -1,17 +1,14 @@
 import dash_bootstrap_components as dbc
-from dash import html, dcc
+from dash import dcc, html
 
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.queries_manager import (
     generate_conf_mat_query,
-    run_query_with_nets_names_processing,
-    process_net_names_list,
     process_net_name,
+    process_net_names_list,
+    run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.graphs.confusion_matrix import (
-    compute_confusion_matrix,
-    draw_multiple_nets_confusion_matrix,
-)
+from road_eval_dashboard.graphs.confusion_matrix import compute_confusion_matrix, draw_multiple_nets_confusion_matrix
 from road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
 
 

@@ -1,44 +1,39 @@
 import dash_bootstrap_components as dbc
 import numpy as np
-from dash import html, dcc, register_page, Input, Output, callback, State, no_update, ALL
+from dash import ALL, Input, Output, State, callback, dcc, html, no_update, register_page
 
-from road_eval_dashboard.components import (
-    meta_data_filter,
-    base_dataset_statistics,
-    pathnet_data_filter,
-)
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter, pathnet_data_filter
 from road_eval_dashboard.components.components_ids import (
-    PATH_NET_ACC_HOST,
-    PATH_NET_ACC_NEXT,
-    PATH_NET_FALSES_HOST,
-    PATH_NET_FALSES_NEXT,
-    PATHNET_FILTERS,
+    BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
     NETS,
-    PATH_NET_MISSES_NEXT,
-    PATH_NET_MISSES_HOST,
-    PATH_NET_ALL_CONF_MATS,
-    PATH_NET_HOST_CONF_MAT,
-    PATH_NET_OVERALL_CONF_MAT,
+    PATH_NET_ACC_HOST,
+    PATH_NET_ACC_NEXT,
     PATH_NET_ALL_CONF_DIAGONAL,
+    PATH_NET_ALL_CONF_MATS,
+    PATH_NET_FALSES_HOST,
+    PATH_NET_FALSES_NEXT,
     PATH_NET_HOST_CONF_DIAGONAL,
-    BIN_POPULATION_DROPDOWN,
-    PATHNET_PRED,
+    PATH_NET_HOST_CONF_MAT,
+    PATH_NET_MISSES_HOST,
+    PATH_NET_MISSES_NEXT,
+    PATH_NET_OVERALL_CONF_MAT,
+    PATHNET_FILTERS,
     PATHNET_GT,
-    SPLIT_ROLE_POPULATION_DROPDOWN,
+    PATHNET_PRED,
     ROLE_POPULATION_VALUE,
+    SPLIT_ROLE_POPULATION_DROPDOWN,
 )
+from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
-    generate_path_net_query,
     distances,
-    run_query_with_nets_names_processing,
     generate_avail_query,
+    generate_path_net_query,
+    run_query_with_nets_names_processing,
 )
 from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
-
-from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout, generate_matrices_graphs
 
 basic_operations = [
     {"label": "Greater", "value": ">"},

@@ -1,34 +1,24 @@
 import dash_bootstrap_components as dbc
-from dash import html, dcc, register_page, Input, Output, callback, State, no_update, ALL
+from dash import ALL, Input, Output, State, callback, dcc, html, no_update, register_page
 
 from road_eval_dashboard.assets.data_enums import LMType
-from road_eval_dashboard.components.confusion_matrices_layout import (
-    generate_matrices_graphs,
-    generate_matrices_layout,
-)
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
-from road_eval_dashboard.components import (
-    meta_data_filter,
-    base_dataset_statistics,
-)
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_eval_dashboard.components.components_ids import (
-    TYPE_OVERALL,
-    TYPE_HOST,
+    ALL_TYPE_CONF_MATS,
+    HOST_TYPE_CONF_DIAGONAL,
+    HOST_TYPE_CONF_MAT,
     MD_FILTERS,
     NETS,
     OVERALL_TYPE_CONF_DIAGONAL,
-    HOST_TYPE_CONF_DIAGONAL,
     OVERALL_TYPE_CONF_MAT,
-    HOST_TYPE_CONF_MAT,
-    ALL_TYPE_CONF_MATS,
+    TYPE_HOST,
+    TYPE_OVERALL,
 )
-from road_eval_dashboard.components.queries_manager import (
-    generate_compare_query,
-    run_query_with_nets_names_processing,
-)
+from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.components.queries_manager import generate_compare_query, run_query_with_nets_names_processing
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph
-
 
 type_class_names = [enum.name for enum in LMType if enum.value != -1]
 extra_properties = PageProperties("line-chart")

@@ -1,12 +1,13 @@
+from road_database_toolkit.athena.athena_utils import query_athena
+
 from road_eval_dashboard.components.common_filters import ALL_FILTERS
 from road_eval_dashboard.components.queries_manager import (
     generate_base_query,
-    generate_grab_index_hist_query,
-    generate_fb_query,
     generate_cols_query,
+    generate_fb_query,
+    generate_grab_index_hist_query,
 )
 from road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
-from road_database_toolkit.athena.athena_utils import query_athena
 
 
 def generate_meta_data_dicts(nets):

@@ -1,47 +1,43 @@
 from functools import reduce
 from operator import iconcat
-import numpy as np
-import dash_bootstrap_components as dbc
-from dash import html, dcc, register_page, Input, Output, State, callback, no_update, ALL, MATCH
 
-from road_eval_dashboard.components.confusion_matrices_layout import (
-    generate_conf_matrices,
-)
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
-from road_eval_dashboard.components import (
-    meta_data_filter,
-    base_dataset_statistics,
-)
+import dash_bootstrap_components as dbc
+import numpy as np
+from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
+
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_eval_dashboard.components.components_ids import (
+    ALL_SCENE_CONF_DIAGONALS,
+    ALL_SCENE_CONF_DIAGONALS_MEST,
+    ALL_SCENE_CONF_MATS,
+    ALL_SCENE_CONF_MATS_MEST,
+    ALL_SCENE_ROC_CURVES,
+    ALL_SCENE_SCORES,
     MD_FILTERS,
     NETS,
-    SCENE_SIGNALS_LIST,
-    ALL_SCENE_SCORES,
-    SCENE_SCORE,
-    ALL_SCENE_CONF_MATS,
-    SCENE_CONF_MAT,
-    ALL_SCENE_CONF_DIAGONALS,
     SCENE_CONF_DIAGONALS,
-    ALL_SCENE_CONF_MATS_MEST,
-    SCENE_CONF_MAT_MEST,
-    ALL_SCENE_CONF_DIAGONALS_MEST,
     SCENE_CONF_DIAGONALS_MEST,
-    ALL_SCENE_ROC_CURVES,
+    SCENE_CONF_MAT,
+    SCENE_CONF_MAT_MEST,
     SCENE_ROC_CURVE,
+    SCENE_SCORE,
     SCENE_SIGNALS_CONF_MATS_DATA,
     SCENE_SIGNALS_DATA_READY,
+    SCENE_SIGNALS_LIST,
 )
-from road_eval_dashboard.components.queries_manager import (
-    generate_roc_query,
-    generate_compare_query,
-    run_query_with_nets_names_processing,
-    process_net_names_list,
-    ROC_THRESHOLDS,
-)
+from road_eval_dashboard.components.confusion_matrices_layout import generate_conf_matrices
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.components.queries_manager import (
+    ROC_THRESHOLDS,
+    generate_compare_query,
+    generate_roc_query,
+    process_net_names_list,
+    run_query_with_nets_names_processing,
+)
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph
-from road_eval_dashboard.graphs.roc_curve import draw_roc_curve
 from road_eval_dashboard.graphs.confusion_matrix import draw_confusion_matrix
+from road_eval_dashboard.graphs.roc_curve import draw_roc_curve
 from road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
 
 scene_class_names = ["False", "True"]

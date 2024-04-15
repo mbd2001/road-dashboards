@@ -1,44 +1,38 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import html, callback, Input, Output, dcc, State, no_update
+from dash import Input, Output, State, callback, dcc, html, no_update
 
 from road_eval_dashboard.components.common_filters import (
-    LANE_MARK_TYPE_FILTERS,
-    LANE_MARK_COLOR_FILTERS,
     CURVE_BY_DIST_FILTERS,
-    EVENT_FILTERS,
-    WEATHER_FILTERS,
-    ROAD_TYPE_FILTERS,
     CURVE_BY_RAD_FILTERS,
+    EVENT_FILTERS,
+    LANE_MARK_COLOR_FILTERS,
+    LANE_MARK_TYPE_FILTERS,
+    ROAD_TYPE_FILTERS,
+    WEATHER_FILTERS,
 )
 from road_eval_dashboard.components.components_ids import (
-    MD_FILTERS,
-    NETS,
-    FB_PER_LANE_MARK_TYPE_GRAPH,
-    FB_PER_LANE_MARK_COLOR_GRAPH,
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    FB_PER_CURVE_BY_DIST,
     FB_PER_CURVE_GRAPH,
+    FB_PER_CURVE_HOST,
     FB_PER_EVENT_GRAPH,
-    FB_PER_WEATHER_GRAPH,
+    FB_PER_EVENT_HOST,
+    FB_PER_LANE_MARK_COLOR_GRAPH,
+    FB_PER_LANE_MARK_COLOR_HOST,
+    FB_PER_LANE_MARK_TYPE_GRAPH,
     FB_PER_LANE_MARK_TYPE_HOST,
     FB_PER_ROAD_TYPE_GRAPH,
     FB_PER_ROAD_TYPE_HOST,
-    FB_PER_LANE_MARK_COLOR_HOST,
-    FB_PER_CURVE_HOST,
-    FB_PER_EVENT_HOST,
+    FB_PER_WEATHER_GRAPH,
     FB_PER_WEATHER_HOST,
-    FB_PER_CURVE_BY_DIST,
-    EFFECTIVE_SAMPLES_PER_BATCH,
+    MD_FILTERS,
     NET_ID_TO_FB_BEST_THRESH,
+    NETS,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
-from road_eval_dashboard.components.queries_manager import (
-    generate_fb_query,
-    run_query_with_nets_names_processing,
-)
-from road_eval_dashboard.graphs.meta_data_filters_graph import (
-    draw_meta_data_filters,
-    calc_fb_per_row,
-)
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper
+from road_eval_dashboard.components.queries_manager import generate_fb_query, run_query_with_nets_names_processing
+from road_eval_dashboard.graphs.meta_data_filters_graph import calc_fb_per_row, draw_meta_data_filters
 
 
 def get_base_graph_layout(graph_id, host_button_id, sort_by_dist_id=None):

@@ -1,41 +1,35 @@
-import pandas as pd
 import dash_bootstrap_components as dbc
-from dash import html, register_page, dcc, callback, Output, Input, State, no_update
+import pandas as pd
+from dash import Input, Output, State, callback, dcc, html, no_update, register_page
+from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components import meta_data_filter, base_dataset_statistics
-from road_eval_dashboard.components.common_filters import (
-    ROAD_TYPE_FILTERS,
-    LANE_MARK_COLOR_FILTERS,
-)
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
+from road_eval_dashboard.components.common_filters import LANE_MARK_COLOR_FILTERS, ROAD_TYPE_FILTERS
 from road_eval_dashboard.components.components_ids import (
-    MD_FILTERS,
-    NETS,
+    COUNTRIES_HEAT_MAP,
     DYNAMIC_PIE_CHART,
     DYNAMIC_PIE_CHART_DROPDOWN,
-    TVGT_PIE_CHART,
-    COUNTRIES_HEAT_MAP,
+    DYNAMIC_PIE_CHART_SLIDER,
+    GTEM_PIE_CHART,
+    LANE_MARK_COLOR_PIE_CHART,
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_TYPE,
+    MD_FILTERS,
+    NETS,
     ROAD_TYPE_PIE_CHART,
-    LANE_MARK_COLOR_PIE_CHART,
-    GTEM_PIE_CHART,
-    DYNAMIC_PIE_CHART_SLIDER,
+    TVGT_PIE_CHART,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import (
-    generate_count_query,
-    generate_dynamic_count_query,
-)
+from road_eval_dashboard.components.queries_manager import generate_count_query, generate_dynamic_count_query
 from road_eval_dashboard.graphs.countries_map import (
     generate_world_map,
-    normalize_countries_names,
     iso_alpha_from_name,
     normalize_countries_count_to_percentiles,
+    normalize_countries_names,
 )
 from road_eval_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_eval_dashboard.graphs.pie_chart import basic_pie_chart
-from road_database_toolkit.athena.athena_utils import query_athena
 
 extra_properties = PageProperties("search")
 register_page(__name__, path="/data_exploration", name="Data Exploration", order=1, **extra_properties.__dict__)

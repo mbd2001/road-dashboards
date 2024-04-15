@@ -2,25 +2,25 @@ import os
 from uuid import uuid4
 
 import dash_bootstrap_components as dbc
-from dash import Dash, dcc, html, DiskcacheManager, CeleryManager, Output, Input, State, no_update
+from dash import CeleryManager, Dash, DiskcacheManager, Input, Output, State, dcc, html, no_update
 
-from road_eval_dashboard.components import sidebar, page_content
+from road_eval_dashboard.components import page_content, sidebar
 from road_eval_dashboard.components.catalog_table import update_state_by_nets
 from road_eval_dashboard.components.components_ids import (
-    URL,
-    NETS,
-    MD_COLUMNS_TO_TYPE,
+    EFFECTIVE_SAMPLES_PER_BATCH,
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
-    EFFECTIVE_SAMPLES_PER_BATCH,
+    MD_COLUMNS_TO_TYPE,
+    MD_FILTERS,
     NET_ID_TO_FB_BEST_THRESH,
+    NETS,
     SCENE_SIGNALS_LIST,
     STATE_NOTIFICATION,
-    MD_FILTERS, GRAPH_TO_COPY,
+    URL, GRAPH_TO_COPY
 )
 from road_eval_dashboard.components.dcc_stores import init_dcc_stores
 from road_eval_dashboard.components.meta_data_filter import recursive_build_meta_data_filters
-from road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, get_state, META_DATA_STATE_KEY
+from road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, NETS_STATE_KEY, get_state
 
 launch_uid = uuid4()
 if "REDIS_URL" in os.environ:
