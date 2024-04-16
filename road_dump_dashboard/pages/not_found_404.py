@@ -1,6 +1,5 @@
 from dash import html, register_page
 
-
 register_page(__name__, name="Not Found 404")
 
 layout = html.Div(

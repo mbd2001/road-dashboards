@@ -1,31 +1,33 @@
-import re
-import s3fs
 import json
-import numpy as np
+import re
+
 import dash_bootstrap_components as dbc
+import numpy as np
+import s3fs
+from dash import ALL, Input, Output, State, callback, callback_context, html, no_update
 from dash_canvas.utils import array_to_data_url
-from dash import callback, Output, Input, State, no_update, ALL, callback_context, html
+from maffe_bins.road4.road4_consts import LM_ROLES, CASide, CAType, LMColor, LMType
+from maffe_bins.road_db.drone_view_images.drone_view_db_manager import DroneViewDBManager
 from natsort import natsorted
 
 # from maffe_bins.road4.data.frame_data import FrameData
 # from maffe_bins.road4.display.frame_drawer import FrameDrawer
 from road_database_toolkit.athena.athena_utils import query_athena
+
 from road_dump_dashboard.components.constants.components_ids import (
-    GENERIC_SHOW_DIFF_BTN,
-    MD_FILTERS,
-    TABLES,
-    POPULATION_DROPDOWN,
-    MAIN_NET_DROPDOWN,
-    SECONDARY_NET_DROPDOWN,
-    DYNAMIC_SHOW_DIFF_IDX,
-    DYNAMIC_CONF_DROPDOWN,
     CONF_MATS_MAIN_TABLE,
     CONF_MATS_MD_TABLE,
+    DYNAMIC_CONF_DROPDOWN,
+    DYNAMIC_SHOW_DIFF_IDX,
+    GENERIC_SHOW_DIFF_BTN,
+    MAIN_NET_DROPDOWN,
+    MD_FILTERS,
+    POPULATION_DROPDOWN,
+    SECONDARY_NET_DROPDOWN,
+    TABLES,
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper
 from road_dump_dashboard.components.logical_components.queries_manager import generate_diff_query
-from maffe_bins.road_db.drone_view_images.drone_view_db_manager import DroneViewDBManager
-from maffe_bins.road4.road4_consts import CASide, LMColor, LMType, LM_ROLES, CAType
 
 DV_DB_MANAGER = DroneViewDBManager()
 # json_path = "s3://mobileye-team-road/roade2e_database/artifacts/amosa20240311_ool_dist_per_point/bins.json"

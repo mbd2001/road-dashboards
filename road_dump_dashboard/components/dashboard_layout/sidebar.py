@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import html, page_registry, Input, Output, callback
+from dash import Input, Output, callback, html, page_registry
 
 from road_dump_dashboard.components.constants.components_ids import SIDEBAR, URL
 

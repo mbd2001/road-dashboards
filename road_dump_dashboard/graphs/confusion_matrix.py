@@ -1,5 +1,5 @@
-import plotly.express as px
 import numpy as np
+import plotly.express as px
 
 
 def compute_confusion_matrix(data, main_val, secondary_val):

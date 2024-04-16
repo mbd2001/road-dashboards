@@ -1,24 +1,24 @@
-import dash_daq as daq
 import dash_bootstrap_components as dbc
-from dash import html, dcc, MATCH, no_update, State, Input, Output, callback_context, callback, Patch
+import dash_daq as daq
+from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
 
 from road_dump_dashboard.components.constants.components_ids import (
-    MD_FILTERS,
-    TABLES,
-    UPDATE_FILTERS_BTN,
-    MD_VAL,
-    MD_VAL_COL,
-    MD_OPERATION,
-    FILTER_ROW,
-    REMOVE_SUB_GROUP,
-    FILTER_GROUP,
-    FILTER_LIST,
     ADD_FILTER_BTN,
     ADD_SUB_GROUP,
+    FILTER_GROUP,
+    FILTER_LIST,
+    FILTER_ROW,
     FILTERS,
     FILTERS_MAIN_TABLE,
     FILTERS_MD_TABLE,
     MD_COLUMNS,
+    MD_FILTERS,
+    MD_OPERATION,
+    MD_VAL,
+    MD_VAL_COL,
+    REMOVE_SUB_GROUP,
+    TABLES,
+    UPDATE_FILTERS_BTN,
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
 from road_dump_dashboard.components.logical_components.queries_manager import manipulate_column_to_avoid_ambiguities

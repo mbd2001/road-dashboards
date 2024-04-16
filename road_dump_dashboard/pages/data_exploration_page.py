@@ -1,10 +1,12 @@
 from dash import html, register_page
 
-from road_dump_dashboard.components.common_pages_layout import data_filters, base_dataset_statistics
-from road_dump_dashboard.components.graph_wrappers import countries_heatmap
-from road_dump_dashboard.components.graph_wrappers import conf_mats_collection
-from road_dump_dashboard.components.graph_wrappers import bar_pie_graphs_collection
+from road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
 from road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
+from road_dump_dashboard.components.graph_wrappers import (
+    bar_pie_graphs_collection,
+    conf_mats_collection,
+    countries_heatmap,
+)
 
 page_properties = PageProperties(icon="search", path="/data_exploration", name="Data Exploration")
 register_page(__name__, order=1, **page_properties.__dict__)

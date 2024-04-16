@@ -1,8 +1,8 @@
 import re
 from dataclasses import dataclass, field
 from itertools import zip_longest
-from threading import Thread
 from queue import Queue
+from threading import Thread
 
 from road_database_toolkit.athena.athena_utils import query_athena
 

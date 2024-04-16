@@ -1,28 +1,28 @@
 import dash_bootstrap_components as dbc
-from dash import html, register_page, dcc, callback, Output, Input, State, no_update, MATCH
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
+from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dump_dashboard.components.constants.common_filters import FILTERS
 from road_dump_dashboard.components.constants.components_ids import (
-    MD_FILTERS,
-    POPULATION_DROPDOWN,
-    INTERSECTION_SWITCH,
-    TABLES,
-    DYNAMIC_CHART_DROPDOWN,
-    DYNAMIC_CHART,
-    DYNAMIC_CHART_SLIDER,
-    GENERIC_FILTERS_CHART,
-    GENERIC_COLUMNS_CHART,
     CHARTS_MAIN_TABLE,
     CHARTS_MD_TABLE,
+    DYNAMIC_CHART,
+    DYNAMIC_CHART_DROPDOWN,
+    DYNAMIC_CHART_SLIDER,
+    GENERIC_COLUMNS_CHART,
+    GENERIC_FILTERS_CHART,
+    INTERSECTION_SWITCH,
+    MD_FILTERS,
+    POPULATION_DROPDOWN,
+    TABLES,
 )
-from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper, card_wrapper
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.logical_components.queries_manager import (
     generate_count_query,
     generate_dynamic_count_query,
 )
 from road_dump_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_dump_dashboard.graphs.pie_or_line_wrapper import pie_or_line_wrapper
-from road_database_toolkit.athena.athena_utils import query_athena
 
 
 def exponent_transform(value, base=10):

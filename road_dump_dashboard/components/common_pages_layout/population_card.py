@@ -1,8 +1,7 @@
-from dash import html, dcc, Input, Output, callback, no_update
+from dash import Input, Output, callback, dcc, html, no_update
 
-from road_dump_dashboard.components.constants.components_ids import TABLES, POPULATION_DROPDOWN
+from road_dump_dashboard.components.constants.components_ids import POPULATION_DROPDOWN, TABLES
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
-
 
 layout = card_wrapper(
     [

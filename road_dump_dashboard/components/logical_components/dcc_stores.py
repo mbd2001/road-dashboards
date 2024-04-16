@@ -1,6 +1,6 @@
 from dash import dcc, html
 
-from road_dump_dashboard.components.constants.components_ids import TABLES, MD_FILTERS
+from road_dump_dashboard.components.constants.components_ids import MD_FILTERS, TABLES
 
 
 def init_dcc_stores():

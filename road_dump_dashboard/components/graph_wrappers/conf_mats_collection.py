@@ -1,20 +1,20 @@
 import dash_bootstrap_components as dbc
-from dash import html, register_page, dcc, callback, Output, Input, State, no_update, MATCH, callback_context
+from dash import MATCH, Input, Output, State, callback, callback_context, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dump_dashboard.components.constants.components_ids import (
-    SECONDARY_NET_DROPDOWN,
-    MAIN_NET_DROPDOWN,
-    GENERIC_CONF_MAT,
-    DYNAMIC_CONF_DROPDOWN,
-    DYNAMIC_CONF_MAT,
-    TABLES,
-    MD_FILTERS,
-    POPULATION_DROPDOWN,
-    GENERIC_SHOW_DIFF_BTN,
-    DYNAMIC_SHOW_DIFF_IDX,
     CONF_MATS_MAIN_TABLE,
     CONF_MATS_MD_TABLE,
+    DYNAMIC_CONF_DROPDOWN,
+    DYNAMIC_CONF_MAT,
+    DYNAMIC_SHOW_DIFF_IDX,
+    GENERIC_CONF_MAT,
+    GENERIC_SHOW_DIFF_BTN,
+    MAIN_NET_DROPDOWN,
+    MD_FILTERS,
+    POPULATION_DROPDOWN,
+    SECONDARY_NET_DROPDOWN,
+    TABLES,
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.graph_wrappers import frames_display

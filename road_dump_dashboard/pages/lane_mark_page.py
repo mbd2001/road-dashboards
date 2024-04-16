@@ -1,9 +1,8 @@
 from dash import html, register_page
 
-from road_dump_dashboard.components.common_pages_layout import data_filters, base_dataset_statistics
+from road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
 from road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
 from road_dump_dashboard.components.graph_wrappers import bar_pie_graphs_collection
-
 
 page_properties = PageProperties("search", path="/lane_marks", name="Lane Marks")
 register_page(__name__, order=2, **page_properties.__dict__)

@@ -3,7 +3,6 @@ from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dump_dashboard.components.logical_components.tables_properties import Tables
 
-
 run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
 

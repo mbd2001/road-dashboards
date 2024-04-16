@@ -1,15 +1,16 @@
 import base64
 import json
 import os
-import pandas as pd
-import dash_bootstrap_components as dbc
-from dash import Dash, dcc, html, DiskcacheManager, CeleryManager, Output, Input, State, callback, no_update
 from uuid import uuid4
 
-from road_dump_dashboard.components.dashboard_layout import sidebar, page_content
+import dash_bootstrap_components as dbc
+import pandas as pd
+from dash import CeleryManager, Dash, DiskcacheManager, Input, Output, State, callback, dcc, html, no_update
+
+from road_dump_dashboard.components.constants.components_ids import TABLES, URL
+from road_dump_dashboard.components.dashboard_layout import page_content, sidebar
 from road_dump_dashboard.components.logical_components.dcc_stores import init_dcc_stores
-from road_dump_dashboard.components.constants.components_ids import URL, TABLES
-from road_dump_dashboard.components.logical_components.init_base_data import run_eval_db_manager, init_tables
+from road_dump_dashboard.components.logical_components.init_base_data import init_tables, run_eval_db_manager
 
 launch_uid = uuid4()
 if "REDIS_URL" in os.environ:

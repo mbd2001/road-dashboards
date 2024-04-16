@@ -2,8 +2,8 @@ import dash_bootstrap_components as dbc
 from dash import html
 
 from road_dump_dashboard.components.common_pages_layout import (
-    objs_count_card,
     intersection_data_switch,
+    objs_count_card,
     population_card,
 )
 

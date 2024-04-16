@@ -1,23 +1,22 @@
 import dash_bootstrap_components as dbc
-from dash import html, register_page, dcc, callback, Output, Input, State, no_update
-
-from road_dump_dashboard.components.constants.components_ids import (
-    TABLES,
-    COUNTRIES_DROPDOWN,
-    COUNTRIES_HEAT_MAP,
-    POPULATION_DROPDOWN,
-    MD_FILTERS,
-)
-from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
-from road_dump_dashboard.graphs.countries_map import (
-    generate_world_map,
-    normalize_countries_names,
-    iso_alpha_from_name,
-    normalize_countries_count_to_percentiles,
-)
-from road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
+from dash import Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
+from road_dump_dashboard.components.constants.components_ids import (
+    COUNTRIES_DROPDOWN,
+    COUNTRIES_HEAT_MAP,
+    MD_FILTERS,
+    POPULATION_DROPDOWN,
+    TABLES,
+)
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
+from road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
+from road_dump_dashboard.graphs.countries_map import (
+    generate_world_map,
+    iso_alpha_from_name,
+    normalize_countries_count_to_percentiles,
+    normalize_countries_names,
+)
 
 layout = html.Div(
     card_wrapper(
