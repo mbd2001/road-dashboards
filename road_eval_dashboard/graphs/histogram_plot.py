@@ -9,4 +9,5 @@ def basic_histogram_plot(data, x, y, title="", color=None):
         xaxis_title=x.replace("_", " ").title(),
         yaxis_title=y.replace("_", " ").title(),
     )
+    fig.update_layout(barmode="group")
     return fig
