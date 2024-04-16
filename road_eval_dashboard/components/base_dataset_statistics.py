@@ -2,13 +2,12 @@ import dash_bootstrap_components as dbc
 from dash import html
 
 from road_eval_dashboard.components import (
-    frame_count_card,
-    gt_count_card,
     dp_count_card,
     emdp_count_card,
+    frame_count_card,
+    gt_count_card,
     population_card,
 )
-
 
 gt_layout = html.Div(
     dbc.Row(

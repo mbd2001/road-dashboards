@@ -1,180 +1,103 @@
-# https://taskfile.dev
-
-version: "3"
-output: prefixed
+version: '3'
 
 includes:
-  ### -- infra task groups new --
-  mkdocs: _infra/mxp-docs-lib/backstage.yml
-
-  ### -- project task groups --
-  ci: "tasks/ci.tasks.yml"
-  tests: "tests/tests.tasks.yml"
-  test-cli: "tests/test-cli.tasks.yml"
-  dev: "tasks/dev.tasks.yml"
-
-  ### -- infra task groups --
-  # - python common tasks
-  py: "_infra/mxpack_lib/tasks/py.tasks.yml"
-  # - conda package management
-  conda: "_infra/mxpack_lib/tasks/conda.tasks.yml"
-  pypi: "_infra/mxpack_lib/tasks/pypi.tasks.yml"
-  # - cleanups
-  mxp-clean: "_infra/mxpack_lib/tasks/mxp-clean.tasks.yml"
-  # - version management
-  version: "_infra/mxpack_lib/tasks/version.tasks.yml"
-  # - docker environment management
-  denv: "_infra/mxpack_lib/tasks/denv.tasks.yml"
-  docker: "_infra/mxpack_lib/tasks/docker.tasks.yml"
-  # - project reporting
-  report: "_infra/mxpack_lib/tasks/report.tasks.yml"
+  docker: docker/docker.tasks.yml
 
 vars:
-  WDIR: { sh: realpath . }
-  MXP__VERSION__PROJECT_NAME: "$( cat ./version/project_name.txt )"
-  MXP__VERSION__VERSION_PREFIX: "$( cat ./version/version_prefix.txt )"
-
-  GREETING: road-eval-dashboard project
-
-  # ---- read real config file paths from layout ----
-  CONDA_LIB_CONFIG_YML:
-    sh: "yq4 .conda_lib_config version/mxp-recipe/project_layout.yml"
-  INFOS_CONFIG_YML:
-    sh: "yq4 .infos_config_yaml version/mxp-recipe/project_layout.yml"
-  BUILD_INFO_ROOT:
-    sh: "yq4 .build_info_root version/mxp-recipe/project_layout.yml"
-  # ---- read real config file paths from layout ----
-
-  DIMAGE:
-    sh: "yq4 .DIMAGE {{.CONDA_LIB_CONFIG_YML}}"
-  DOCKER_ARGS:
-    sh: "yq4 .DOCKER_ARGS {{.CONDA_LIB_CONFIG_YML}}"
-
-  LOCAL_CONDA_ENVS_DIR:
-    sh: "yq4 .LOCAL_CONDA_ENVS_DIR {{.CONDA_LIB_CONFIG_YML}}"
-  LB_COVERAGE:
-    sh: "yq4 .LB_COVERAGE {{.CONDA_LIB_CONFIG_YML}}"
-  PACKAGE_IMPORT_NAME:
-    sh: "yq4 .PACKAGE_IMPORT_NAME {{.CONDA_LIB_CONFIG_YML}}"
-  PROJECT_NAME:
-    sh: "yq4 .PACKAGE_NAME {{.CONDA_LIB_CONFIG_YML}}"
-
-  # configure from env
-  DENV_EXE_DEF:
-    sh: "yq4 .DENV_EXE {{.CONDA_LIB_CONFIG_YML}}"
-  VENV_EXE:
-    sh: "yq4 .VENV_EXE {{.CONDA_LIB_CONFIG_YML}}"
-  MXPACK_EXE:
-    sh: "yq4 .MXPACK_EXE {{.CONDA_LIB_CONFIG_YML}}"
-  DENV_EXE: "{{ if .DENV_OFF }}{{ else }}{{.DENV_EXE_DEF}}{{ end }}"
+  PYVERSION: 3.10
+  PACKAGE_NAME: road-eval-dashboard
+  PACKAGE_FOLDER: road_eval_dashboard
+  TEST_ENV_NAME: "{{.PACKAGE_NAME}}-env"
+  CONDA_RELEASE_CHANNEL: me-conda-dev-local
+  PROJECT_VERSION:
+      sh: hatch version
+  HATCH_BUILD_OUTPUT_FOLDER: ./__localbuild__/pypi
+  CONDA_BUILD_OUTPUT_FOLDER: ./__localbuild__/conda
 
 env:
-  DIMAGE: "{{.DIMAGE}}"
-  LOCAL_CONDA_ENVS_DIR: "{{.LOCAL_CONDA_ENVS_DIR}}"
-  DOCKER_ARGS: "{{.DOCKER_ARGS}}"
-  MXP_CONDA_BUILD_ARGS: "--no-test"
-  PIP_BASED_RELEASE: ""
+  DIMAGE: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda-py310
+  PROJECT_VERSION: "{{.PROJECT_VERSION}}"
 
 tasks:
-  default:
-    cmds:
-      - echo "{{.GREETING}}"
-      - task -l
-    prefix: "."
-    silent: true
+  _show_variables:
+    cmds: [env]
 
-  info:
-    desc: _
+  pypi:build:
+    desc: "Build the package"
     cmds:
-      - echo "Project=$(cat version/project_name.txt)"
-      - echo "VersionMain=$(cat version/version_prefix.txt)"
-      - echo 'task test'  '###'  'run project tests'
-      - echo 'task build' '###' 'run build pipeline'
-      - echo 'task ci-build' '###' 'run build pipeline like on jenkins'
-    silent: yes
+      - hatch build --clean $HATCH_BUILD_OUTPUT_FOLDER
 
-  coverage:clean:
-    desc: clean coverage files
+  conda:build:
+    desc: "build conda package with rattler"
     cmds:
-      - rm -rf .coverage*
-      - rm -rf {{.LB_COVERAGE}}
+      - mamba install -y rattler-build
+      - mkdir -p {{.CONDA_BUILD_OUTPUT_FOLDER}}
+      - rattler-build build --package-format tar-bz2 -r rattler.recipe/ --output-dir {{.CONDA_BUILD_OUTPUT_FOLDER}} --no-test
+      - mamba index {{.CONDA_BUILD_OUTPUT_FOLDER}}
 
-  test-full:
-    desc: _
+  conda:create:dev:
+    desc: "create full testing environment"
     cmds:
-      - task coverage:clean
-      - task test
-      - task tests:acceptance
-      - task coverage:report
-      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+      - python ./rattler.recipe/create_env_yaml_from_recipe.py --env_type test --proj_name {{.PACKAGE_NAME}}
+      - mamba env create -n {{.TEST_ENV_NAME}} -f /tmp/{{.PACKAGE_NAME}}.test.yml
 
-  prepare:build:
-    desc: custom actions before build
+  conda:install-local-build:
+    desc: "Install the built conda package in the test env. Should be called after build:conda."
     cmds:
-      - echo custom prepare
+      - mamba install -y -n {{.TEST_ENV_NAME}} -c ./__localbuild__/conda --override-channels {{.PACKAGE_NAME}}
 
-  build:
-    desc: developer build
+  conda:test:
+    desc: "Run tests with the built conda test env"
     cmds:
-      - task ci:init-clean-flow
-      - task ci:build-flow
+      - mamba run -n {{.TEST_ENV_NAME}} pytest -v -s tests/units
 
-  pre:build:
-    desc: post build tasks, before tests run
+  pypi:test:
+    desc: "Run tests with the built pypi test env"
     cmds:
-      - echo "@@info@@ this is a post build place holder"
+      - hatch env create # Creating the hatch env before moving the source files
+      - mv "${PACKAGE_FOLDER}" "${PACKAGE_FOLDER}_" # Making source file inaccessible from python. Test check the package
+      - echo "Installing wheel:" && unzip -l $HATCH_BUILD_OUTPUT_FOLDER/*.whl
+      - hatch --verbose run pip install $HATCH_BUILD_OUTPUT_FOLDER/*.whl
+      - hatch --verbose run cov
+      - mv "${PACKAGE_FOLDER}_" "${PACKAGE_FOLDER}"
 
-  post:build:
-    desc: post build tasks, before tests run
+  py:check:
+    desc: "Run static code analysis with format check."
     cmds:
-      - echo "@@info@@ this is a post build place holder"
+      - hatch run lint:check
 
-  test:
-    desc: _
+  py:fix:
+    desc: "Format code and try to fix code issues."
     cmds:
-      - task coverage:clean
-      - task test-parallel
-      # --@@ actor=mxpack.replacer sid=PYSAMPLE_TMPL action=remove-line @@--
-      - task coverage:report
-      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+      - hatch run lint:fix
 
-  clean:
-    desc: _
+  mkdocs:serve:
+    desc: "Serve the mkdocs documentation"
     cmds:
-      - rm -rf __localbuild__ __build_info
+      - hatch run docs:serve
 
-  test-parallel:
-    desc: Run Test Flows from test tasks
-    deps:
-      - tests:units
-      - tests:components
+  mkdocs:build:
+    desc: "Build the mkdocs documentation"
     cmds:
-      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
-      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+      - hatch run docs:build
 
-  test-final:
-    desc: Run Test Flows from test tasks
-    deps:
-      - tests:acceptance
-      - test-cli:test:all
+  denv:dev:
+    desc: "Run the docker environment"
     cmds:
-      - echo "@log.test=test-list status=test-list.pass name={{.TASK}}"
+      - |
+        abs_path_to_repo_root=$(realpath $(git rev-parse --show-toplevel))
+        abs_path_to_subpath_dir=$(realpath .)
+        rel_path_to_subpath_dir=$(realpath --relative-to="${abs_path_to_repo_root}" "${abs_path_to_subpath_dir}")
+        rel_path_to_repo_root=$(realpath --relative-to="${abs_path_to_subpath_dir}" "${abs_path_to_repo_root}")
 
-  coverage:report:
-    desc: full coverage report as artifact
-    cmds:
-      - coverage combine .coverage.*
-      - rm -rf {{.LB_COVERAGE}}
-      - mkdir -p {{.LB_COVERAGE}}
-      - coverage report | tee {{.LB_COVERAGE}}/coverage.report.txt
-      - coverage html -d {{.LB_COVERAGE}}/coverage_html
-      - coverage xml -o {{.LB_COVERAGE}}/coverage.xml
-      - coverage json -o {{.LB_COVERAGE}}/coverage.json
-      - mv .coverage* {{.LB_COVERAGE}}
-    ignore_error: true
+        REPO_DIR_HOST=${abs_path_to_repo_root}
+        WORKDIR_REL_PATH=${rel_path_to_subpath_dir}
+        WORKDIR_HOST=$(realpath ${REPO_DIR_HOST}/${WORKDIR_REL_PATH})
+        echo -e "[mx-tools:denv] @@SCRIPT_DIR=${SCRIPT_DIR} REPO_DIR_HOST=${REPO_DIR_HOST}"
+        echo -e "[mx-tools:denv] @@WORKDIR_REL_PATH=${WORKDIR_REL_PATH} WORKDIR_HOST=${WORKDIR_HOST}"
 
-  ci-flow:
-    desc: Define
-    cmds:
-      - task ci:ci-flow
-
+        REPO_NAME=$(basename $(readlink -f $REPO_DIR_HOST))
+        REPO_DIR_GUEST=/repos/$(basename ${REPO_DIR_HOST})
+        WORKDIR_GUEST=${REPO_DIR_GUEST}/${WORKDIR_REL_PATH}
+        echo -e "[mx-tools:denv] REPO_NAME=${REPO_NAME} REPO_DIR_GUEST=${REPO_DIR_GUEST} WORKDIR_GUEST=${WORKDIR_GUEST}"
+        docker run --rm -it --privileged -p 4000:8000 --workdir ${REPO_DIR_GUEST} -v ${REPO_DIR_HOST}:${REPO_DIR_GUEST} -v ${HOME}/.de:/home/me.docker/.de -v /dev/fuse:/dev/fuse -v ${HOME}/tmp/.aws/:/home/me.docker/.aws/ ${DIMAGE} 

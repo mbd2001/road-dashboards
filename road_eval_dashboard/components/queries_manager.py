@@ -1,9 +1,9 @@
 import enum
 import re
+
 import numpy as np
 import pandas as pd
-
-from road_database_toolkit.athena.athena_utils import query_athena, athena_run_multiple_queries
+from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
 BASE_QUERY = """
     SELECT * FROM
@@ -989,4 +989,4 @@ def process_net_names_list(net_names):
 def process_net_name(net_name):
     if pd.isnull(net_name):
         return net_name
-    return re.sub(r"^\d{18}-", "", net_name)
+    return re.sub(r"(^\d{18}-)|(_default$)|(_$)", "", net_name)

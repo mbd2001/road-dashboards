@@ -1,0 +1,84 @@
+[version]
+path = "road_eval_dashboard/__about__.py"
+
+[build]
+include = ["road_eval_dashboard"]
+
+[publish.me-conda]
+artifacts = "./__localbuild__/conda/"
+artifactory_url = "https://artifactory.sddc.mobileye.com:/artifactory"
+mapping = [
+    { channel = "me-conda-dev-local", branch = "master" },
+]
+
+[envs.default]
+dependencies = [
+  "coverage[toml]>=6.5",
+  "pytest",
+  "ruamel.yaml",
+  "psutil",
+]
+
+[envs.default.scripts]
+test = "pytest {args:tests}"
+test-cov = "coverage run -m pytest -v -s --junitxml=__localbuild__/pytest/pytest.{env:PYVERSION:missing}.junit.xml"
+cov-report = [
+  "- coverage combine .coverage.*",
+  "coverage html -d __localbuild__/coverage/coverage_html",
+  "coverage xml -o __localbuild__/coverage/coverage.xml",
+  "coverage json -o __localbuild__/coverage/coverage.json",
+  "coverage report --show-missing",
+]
+cov = ["test-cov", "cov-report"]
+
+[[envs.all.matrix]]
+python = ["3.10"]
+
+
+[envs.lint]
+detached = true
+dependencies = [
+  "black",
+  "ruff>=0.2.2",
+  "isort"
+]
+
+[envs.lint.scripts]
+check = [
+  "black --check --diff {args:.}",
+  "isort --check --diff {args:.}",
+]
+fix = [
+  "black {args:.}",
+  "isort {args:.}",
+]
+
+
+[envs.mypy]
+detached = false # Mypy needs installed packages to check integrations
+dependencies = [
+  "mypy>=1.0.0",
+]
+[envs.mypy.scripts]
+check = "mypy --install-types --non-interactive {args:.}"
+
+[envs.docs]
+detached = true
+dependencies = [
+  "mkdocs-techdocs-core",
+  "markdown==3.3.7",
+  "mkdocs-awesome-pages-plugin",
+  "pymdown-extensions",
+  "mkdocstrings[python]",
+  "mkdocs-jupyter",
+  "ipython_genutils",
+  "python-markdown-math",
+  "mkdocs-mermaid2-plugin",
+  "mdx_truly_sane_lists",
+  "mkdocs-autorefs",
+  "mkdocs-monorepo-plugin",
+  "slugify",
+]
+[envs.docs.scripts]
+serve = "mkdocs serve -a 0.0.0.0:8000"
+build = "mkdocs build"

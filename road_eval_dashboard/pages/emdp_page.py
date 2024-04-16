@@ -1,42 +1,38 @@
-import dash_daq as daq
-import plotly.express as px
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 import pandas as pd
-from dash import html, dcc, register_page, Input, Output, callback, State, no_update, MATCH
+import plotly.express as px
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_eval_dashboard.components.common_filters import (
-    ROAD_TYPE_FILTERS,
-    LANE_MARK_TYPE_FILTERS,
     CURVE_BY_DIST_FILTERS,
-    EVENT_FILTERS,
-    WEATHER_FILTERS,
     CURVE_BY_RAD_FILTERS,
-)
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-
-from road_eval_dashboard.components import (
-    meta_data_filter,
-    base_dataset_statistics,
+    EVENT_FILTERS,
+    LANE_MARK_TYPE_FILTERS,
+    ROAD_TYPE_FILTERS,
+    WEATHER_FILTERS,
 )
 from road_eval_dashboard.components.components_ids import (
-    MD_FILTERS,
     EFFECTIVE_SAMPLES_PER_BATCH,
-    NETS,
     EMDP_VIEW_RANGE_HISTOGRAM,
-    EMDP_VIEW_RANGE_HISTOGRAM_NAIVE_Z,
+    EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC,
     EMDP_VIEW_RANGE_HISTOGRAM_CUMULATIVE,
     EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC,
+    EMDP_VIEW_RANGE_HISTOGRAM_NAIVE_Z,
     EMDP_VIEW_RANGE_HISTOGRAM_NORM,
-    EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC,
+    MD_FILTERS,
+    NETS,
 )
-from road_eval_dashboard.components.queries_manager import (
-    run_query_with_nets_names_processing,
-    generate_emdp_query,
-    generate_emdp_view_range_Z_histogram_query,
-    generate_emdp_view_range_sec_histogram_query,
-    _get_emdp_col,
-)
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.components.queries_manager import (
+    _get_emdp_col,
+    generate_emdp_query,
+    generate_emdp_view_range_sec_histogram_query,
+    generate_emdp_view_range_Z_histogram_query,
+    run_query_with_nets_names_processing,
+)
 from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
 extra_properties = PageProperties("line-chart")
