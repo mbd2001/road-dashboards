@@ -183,12 +183,7 @@ deploy:reload_app:
     - road-algo-sm
   stage: deploy
   script:
-    - aws ssm send-command\
-      --document-name "Pull_Latest_Image_Restart_Docker_Container"\
-      --document-version "3"\
-      --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]'\
-      --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007"]}'\
-      --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 > /dev/null
+    - aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "3" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 > /dev/null
   extends: .only-master-pushes
   needs:
     - deploy:docker

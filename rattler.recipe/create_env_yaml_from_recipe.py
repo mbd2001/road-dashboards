@@ -34,7 +34,7 @@ def create_env_yaml(proj_name, recipe_path, out_env_yaml, env_type):
 
     env_yaml_dict = {}
     env_yaml_dict["name"] = proj_name
-    env_yaml_dict["channels"] = get_current_configured_channels()
+    env_yaml_dict["channels"] = ["conda-forge", "me-conda-dev-local", "comet_ml"]
     env_yaml_dict["dependencies"] = recipe_yaml["requirements"]["run"]
     if env_type == "test":
         env_yaml_dict["dependencies"] += recipe_yaml["tests"][0]["requirements"]["run"]
