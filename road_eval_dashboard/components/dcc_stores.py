@@ -2,6 +2,7 @@ from dash import dcc, html
 
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
+    GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
@@ -9,7 +10,7 @@ from road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
     PATHNET_FILTERS,
-    SCENE_SIGNALS_LIST, GRAPH_TO_COPY
+    SCENE_SIGNALS_LIST,
 )
 
 

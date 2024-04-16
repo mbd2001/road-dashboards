@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
     generate_conf_mat_query,
     process_net_name,
@@ -57,14 +57,11 @@ def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper(
-                            [graph_wrapper({"type": left_conf_mat_id, "index": ind})]
-                        ),
+                        loading_wrapper([graph_wrapper({"type": left_conf_mat_id, "index": ind})]),
                         width=6,
                     ),
                     dbc.Col(
-                        graph_wrapper({"type": right_conf_mat_id, "index": ind}
-                        ),
+                        graph_wrapper({"type": right_conf_mat_id, "index": ind}),
                         width=6,
                     ),
                 ],

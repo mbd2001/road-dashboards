@@ -19,7 +19,7 @@ from road_eval_dashboard.components.components_ids import (
     ROAD_TYPE_PIE_CHART,
     TVGT_PIE_CHART,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_count_query, generate_dynamic_count_query
 from road_eval_dashboard.graphs.countries_map import (
@@ -92,15 +92,11 @@ layout = html.Div(
         dbc.Row(
             [
                 dbc.Col(
-                    card_wrapper(
-                        [graph_wrapper(ROAD_TYPE_PIE_CHART)]
-                    ),
+                    card_wrapper([graph_wrapper(ROAD_TYPE_PIE_CHART)]),
                     width=6,
                 ),
                 dbc.Col(
-                    card_wrapper(
-                        [graph_wrapper(LANE_MARK_COLOR_PIE_CHART)]
-                    ),
+                    card_wrapper([graph_wrapper(LANE_MARK_COLOR_PIE_CHART)]),
                     width=6,
                 ),
             ],

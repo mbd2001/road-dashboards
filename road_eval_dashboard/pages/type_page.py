@@ -33,12 +33,8 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(
-                            [graph_wrapper(TYPE_OVERALL)], width=6
-                        ),
-                        dbc.Col(
-                            [graph_wrapper(TYPE_HOST)], width=6
-                        ),
+                        dbc.Col([graph_wrapper(TYPE_OVERALL)], width=6),
+                        dbc.Col([graph_wrapper(TYPE_HOST)], width=6),
                     ]
                 )
             ]

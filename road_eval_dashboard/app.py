@@ -8,6 +8,7 @@ from road_eval_dashboard.components import page_content, sidebar
 from road_eval_dashboard.components.catalog_table import update_state_by_nets
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
+    GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
@@ -16,7 +17,7 @@ from road_eval_dashboard.components.components_ids import (
     NETS,
     SCENE_SIGNALS_LIST,
     STATE_NOTIFICATION,
-    URL, GRAPH_TO_COPY
+    URL,
 )
 from road_eval_dashboard.components.dcc_stores import init_dcc_stores
 from road_eval_dashboard.components.meta_data_filter import recursive_build_meta_data_filters
@@ -62,7 +63,7 @@ app.layout = html.Div(
 )
 
 app.clientside_callback(
-"""function(stored_image_data) {
+    """function(stored_image_data) {
     if (stored_image_data) {
         const img = new Image();
         img.src = 'data:image/png;base64,' + stored_image_data;
@@ -82,9 +83,10 @@ app.clientside_callback(
     return window.dash_clientside.no_update, false
 }
 """,
-Output('saved_alert','is_open'),
-Input(GRAPH_TO_COPY,'data')
+    Output("saved_alert", "is_open"),
+    Input(GRAPH_TO_COPY, "data"),
 )
+
 
 @app.callback(Output(URL, "pathname"), Input(URL, "pathname"))
 def redirect_to_home(pathname):
@@ -143,5 +145,5 @@ def init_run(state, nets, query):
 
 
 if __name__ == "__main__":
-    context = ('local.crt', 'local.key')
+    context = ("local.crt", "local.key")
     app.run_server(host="0.0.0.0", port="6007", debug=True, ssl_context=context)

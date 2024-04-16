@@ -24,7 +24,7 @@ from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     _get_emdp_col,
@@ -79,11 +79,10 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
     layout = card_wrapper(
         [
             dbc.Row(
-                graph_wrapper({
-                                "out": "graph",
-                                "filter": filter_name,
-                                "emdp_type": EMDP_TYPE,
-                                "sort_by_dist": sort_by_dist})),
+                graph_wrapper(
+                    {"out": "graph", "filter": filter_name, "emdp_type": EMDP_TYPE, "sort_by_dist": sort_by_dist}
+                )
+            ),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(

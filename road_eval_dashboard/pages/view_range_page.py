@@ -11,27 +11,27 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER,
     VIEW_RANGE_HISTOGRAM_CUMULATIVE,
     VIEW_RANGE_HISTOGRAM_ERR_EST,
+    VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
     VIEW_RANGE_HISTOGRAM_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE,
     VIEW_RANGE_SUCCESS_RATE_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
     VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_Z_STEP,
-VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
-    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD,
-    VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
 )
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     generate_view_range_histogram_query,
     generate_view_range_success_rate_query,
-    run_query_with_nets_names_processing,
     get_view_range_col_name,
+    run_query_with_nets_names_processing,
 )
 from road_eval_dashboard.pages.card_generators import (
     view_range_histogram_card,

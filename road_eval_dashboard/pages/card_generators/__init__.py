@@ -7,47 +7,51 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER,
     VIEW_RANGE_HISTOGRAM_CUMULATIVE,
     VIEW_RANGE_HISTOGRAM_ERR_EST,
+    VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
     VIEW_RANGE_HISTOGRAM_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE,
     VIEW_RANGE_SUCCESS_RATE_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
     VIEW_RANGE_SUCCESS_RATE_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_Z_STEP,
-    VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
-    VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
-    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
 
 
 def view_range_success_rate_card():
     return card_wrapper(
         [
             dbc.Row(
-                [dbc.Col(graph_wrapper(VIEW_RANGE_SUCCESS_RATE), width=11,),
-                 dbc.Col(
-                     html.Div(
-                         [
-                             dcc.Slider(
-                                 id=VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
-                                 min=0.2,
-                                 max=0.3,
-                                 step=0.05,
-                                 value=0.2,
-                                 vertical=True,
-                             ),
-                             html.Label("Error Estimation Threshold", style={"text-align": "center"}),
-                         ],
-                         style={"width": "80%"},
-                     ),
-                     width=1,
-                 ),
-                 ]
+                [
+                    dbc.Col(
+                        graph_wrapper(VIEW_RANGE_SUCCESS_RATE),
+                        width=11,
+                    ),
+                    dbc.Col(
+                        html.Div(
+                            [
+                                dcc.Slider(
+                                    id=VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
+                                    min=0.2,
+                                    max=0.3,
+                                    step=0.05,
+                                    value=0.2,
+                                    vertical=True,
+                                ),
+                                html.Label("Error Estimation Threshold", style={"text-align": "center"}),
+                            ],
+                            style={"width": "80%"},
+                        ),
+                        width=1,
+                    ),
+                ]
             ),
             dbc.Stack(
                 [
@@ -92,7 +96,7 @@ def view_range_success_rate_card():
                 ],
                 direction="horizontal",
                 gap=3,
-            )
+            ),
         ]
     )
 
@@ -165,10 +169,9 @@ def view_range_host_next_success_rate_card():
     return card_wrapper(
         [
             dbc.Row(
-                [dbc.Col(graph_wrapper(
-
-                        {"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": ""}
-                ), width=11), dbc.Col(
+                [
+                    dbc.Col(graph_wrapper({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": ""}), width=11),
+                    dbc.Col(
                         html.Div(
                             [
                                 dcc.Slider(
@@ -187,7 +190,8 @@ def view_range_host_next_success_rate_card():
                             style={"width": "80%"},
                         ),
                         width=1,
-                    ),]
+                    ),
+                ]
             ),
             dbc.Stack(
                 [

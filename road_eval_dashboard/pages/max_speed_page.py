@@ -56,14 +56,14 @@ def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
     layout = card_wrapper(
         [
             dbc.Row(
-                        graph_wrapper(
-                            {
-                                "out": "graph",
-                                "filter": filter_name,
-                                "type": max_speed_type,
-                                "is_sort_by_dist": is_sort_by_dist,
-                            },
-                        )
+                graph_wrapper(
+                    {
+                        "out": "graph",
+                        "filter": filter_name,
+                        "type": max_speed_type,
+                        "is_sort_by_dist": is_sort_by_dist,
+                    },
+                )
             ),
             dbc.Stack(
                 [

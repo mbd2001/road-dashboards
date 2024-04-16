@@ -106,17 +106,11 @@ def _generate_charts_per_net(base_id, scene_signals):
             dbc.Row(
                 [
                     dbc.Col(
-                        [
-                            graph_wrapper(
-                                {**base_id, **{"signal": signal_pair[0]}}
-                            )
-                        ],
+                        [graph_wrapper({**base_id, **{"signal": signal_pair[0]}})],
                         width=6,
                     ),
-                    dbc.Col([
-                            graph_wrapper(
-                                {**base_id, **{"signal": signal_pair[1]}})
-                        ],
+                    dbc.Col(
+                        [graph_wrapper({**base_id, **{"signal": signal_pair[1]}})],
                         width=6,
                     ),
                 ]
@@ -127,22 +121,11 @@ def _generate_charts_per_net(base_id, scene_signals):
             dbc.Row(
                 [
                     dbc.Col(
-                    [
-                            graph_wrapper(
-
-                                    {**base_id, **{"signal": other_signals[ind]}}
-
-
-                            )
-                        ],
+                        [graph_wrapper({**base_id, **{"signal": other_signals[ind]}})],
                         width=6,
                     ),
                     dbc.Col(
-                        [
-                            graph_wrapper(
-                                {**base_id, **{"signal": other_signals[ind + 1]}}
-                                    )
-                        ],
+                        [graph_wrapper({**base_id, **{"signal": other_signals[ind + 1]}})],
                         width=6,
                     ),
                 ]
@@ -153,11 +136,7 @@ def _generate_charts_per_net(base_id, scene_signals):
             dbc.Row(
                 [
                     dbc.Col(
-                        [
-                            graph_wrapper(
-                                {**base_id, **{"signal": other_signals[-1]}}
-                            )
-                        ],
+                        [graph_wrapper({**base_id, **{"signal": other_signals[-1]}})],
                         width=6,
                     ),
                     dbc.Col([], width=6),

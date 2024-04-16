@@ -3,7 +3,7 @@ from dash import Input, Output, State, callback, dcc, html, no_update, register_
 
 from road_eval_dashboard.components import base_dataset_statistics, fb_meta_data_filters, meta_data_filter
 from road_eval_dashboard.components.components_ids import FB_TRADEOFF_HOST, FB_TRADEOFF_OVERALL, MD_FILTERS, NETS
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper, graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_fb_query, run_query_with_nets_names_processing
 from road_eval_dashboard.graphs.precision_recall_curve import draw_precision_recall_curve
@@ -24,9 +24,7 @@ layout = html.Div(
                             graph_wrapper(FB_TRADEOFF_OVERALL),
                             width=6,
                         ),
-                        dbc.Col(
-                            graph_wrapper(FB_TRADEOFF_HOST), width=6
-                        ),
+                        dbc.Col(graph_wrapper(FB_TRADEOFF_HOST), width=6),
                     ]
                 )
             ]
