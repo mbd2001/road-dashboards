@@ -395,12 +395,12 @@ def generate_overall_matrices(nets, meta_data_filters):
 
     diagonal_compare, mats_figs = generate_matrices_graphs(
         label_col="split_role",
-        pred_col="split_role",
+        pred_col="matched_split_role",
         nets_tables=nets[PATHNET_PRED],
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
+        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT"],
     )
     return diagonal_compare, mats_figs
 
@@ -422,7 +422,7 @@ def generate_host_matrices(nets, meta_data_filters):
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
+        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT"],
     )
 
     return diagonal_compare, mats_figs

@@ -378,12 +378,12 @@ def generate_path_net_query(
     meta_data,
     state,
     meta_data_filters="",
-    extra_filters="",
+    extra_columns=["split_role", "matched_split_role"],
     role="",
 ):
     operator = "<" if state == "accuracy" else ">"
     distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
-    query = get_dist_query("dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role)
+    query = get_dist_query("dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role, extra_columns=extra_columns)
     return query
 
 
@@ -493,6 +493,7 @@ def get_dist_query(
     base_extra_filters="",
     is_add_filters_count=False,
     intresting_filters=None,
+    extra_columns=None
 ):
     if intresting_filters is None:
         intresting_filters = {"": ""}
@@ -513,6 +514,7 @@ def get_dist_query(
         meta_data_filters=meta_data_filters,
         extra_filters=base_extra_filters,
         role=role,
+        extra_columns=extra_columns
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
