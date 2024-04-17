@@ -145,5 +145,6 @@ def init_run(state, nets, query):
 
 
 if __name__ == "__main__":
-    context = ("local.crt", "local.key")
+    certificates_folder = os.path.dirname(__file__)
+    context = (f"{certificates_folder}/local.crt", f"{certificates_folder}/local.key")
     app.run_server(host="0.0.0.0", port="6007", debug=True, ssl_context=context)
