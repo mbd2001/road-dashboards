@@ -1,6 +1,6 @@
 import plotly.graph_objects as go
 
-from road_eval_dashboard.graphs.meta_data_filters_graph import get_greens_reds, choose_symbol
+from road_eval_dashboard.graphs.meta_data_filters_graph import choose_symbol, get_greens_reds
 
 
 def draw_path_net_graph(

@@ -1,7 +1,67 @@
 [build-system]
-requires = [
-    "setuptools>=39.2",
-    "wheel",
-    "PyYAML",
-    "mxpcli>=0.24,<0.25"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "road-eval-dashboard"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.10"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Nadav Shemesh", email = "nadav.shemesh@mobileye.com" },
 ]
+classifiers = [
+  "Programming Language :: Python :: 3.10",
+]
+dependencies = [
+  "fire",
+  "pyyaml",
+  "loguru",
+  "orjson",
+  "typing_extensions >=3.7.4",
+  "numpy",
+  "pandas",
+  "pyyaml"
+]
+
+[tool.black]
+target-version = ["py310"]
+line-length = 120
+
+[tool.isort]
+py_version = 310
+profile = "black"
+line_length = 120
+
+[tool.coverage.run]
+source_pkgs = ["road_eval_dashboard"]
+branch = true
+parallel = true
+omit = [
+  "road_eval_dashboard/__about__.py",
+]
+
+[tool.coverage.paths]
+road-database-toolkit = ["road_eval_dashboard", "*/road-eval-dashboard/road_eval_dashboard"]
+tests = ["tests", "*/road-eval-dashboard/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
+
+[[tool.mypy.overrides]]
+# Fill here modules you want to ignore while type checking:
+module = [
+    'tensorflow',
+    'boto3',
+    'fire',
+    'altair',
+    'ruamel.yaml',
+]
+ignore_missing_imports = true

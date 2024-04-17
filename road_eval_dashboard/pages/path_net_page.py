@@ -1,44 +1,46 @@
 import dash_bootstrap_components as dbc
 import numpy as np
-from dash import html, dcc, register_page, Input, Output, callback, State, no_update, ALL
+from dash import ALL, Input, Output, State, callback, dcc, html, no_update, register_page
+from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components import (
-    meta_data_filter,
-    base_dataset_statistics,
-    pathnet_data_filter,
-)
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter, pathnet_data_filter
 from road_eval_dashboard.components.components_ids import (
-    PATH_NET_ACC_HOST,
-    PATH_NET_ACC_NEXT,
-    PATH_NET_FALSES_HOST,
-    PATH_NET_FALSES_NEXT,
-    PATHNET_FILTERS,
+    BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
     NETS,
-    PATH_NET_MISSES_NEXT,
-    PATH_NET_MISSES_HOST,
-    PATH_NET_ALL_CONF_MATS,
-    PATH_NET_HOST_CONF_MAT,
-    PATH_NET_OVERALL_CONF_MAT,
+    PATH_NET_ACC_HOST,
+    PATH_NET_ACC_NEXT,
     PATH_NET_ALL_CONF_DIAGONAL,
+    PATH_NET_ALL_CONF_MATS,
+    PATH_NET_BIASES_HOST,
+    PATH_NET_BIASES_NEXT,
+    PATH_NET_FALSES_HOST,
+    PATH_NET_FALSES_NEXT,
     PATH_NET_HOST_CONF_DIAGONAL,
-    BIN_POPULATION_DROPDOWN,
-    PATHNET_PRED,
+    PATH_NET_HOST_CONF_MAT,
+    PATH_NET_MISSES_HOST,
+    PATH_NET_MISSES_NEXT,
+    PATH_NET_OVERALL_CONF_MAT,
+    PATH_NET_VIEW_RANGES_HOST,
+    PATH_NET_VIEW_RANGES_NEXT,
+    PATHNET_FILTERS,
     PATHNET_GT,
-    SPLIT_ROLE_POPULATION_DROPDOWN,
+    PATHNET_PRED,
     ROLE_POPULATION_VALUE,
+    SPLIT_ROLE_POPULATION_DROPDOWN,
 )
+from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
-    generate_path_net_query,
     distances,
-    run_query_with_nets_names_processing,
     generate_avail_query,
+    generate_count_query,
+    generate_path_net_query,
+    run_query_with_nets_names_processing,
 )
+from road_eval_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-
-from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout, generate_matrices_graphs
 
 basic_operations = [
     {"label": "Greater", "value": ">"},
@@ -117,6 +119,34 @@ layout = html.Div(
                         dbc.Col(
                             loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_NEXT, config={"displayModeBar": False})]),
                             width=6,
+                        ),
+                    ]
+                )
+            ]
+        ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_HOST, config={"displayModeBar": False})]),
+                            width=3,
+                        ),
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_NEXT, config={"displayModeBar": False})]),
+                            width=3,
+                        ),
+                        dbc.Col(
+                            loading_wrapper(
+                                [dcc.Graph(id=PATH_NET_VIEW_RANGES_HOST, config={"displayModeBar": False})]
+                            ),
+                            width=3,
+                        ),
+                        dbc.Col(
+                            loading_wrapper(
+                                [dcc.Graph(id=PATH_NET_VIEW_RANGES_NEXT, config={"displayModeBar": False})]
+                            ),
+                            width=3,
                         ),
                     ]
                 )
@@ -396,3 +426,100 @@ def generate_host_matrices(nets, meta_data_filters):
     )
 
     return diagonal_compare, mats_figs
+
+
+def get_column_histogram(meta_data_filters, pathnet_filters, nets, role, column, min_val, max_val, bins_factor):
+    if not nets:
+        return no_update
+
+    query = generate_count_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters=pathnet_filters,
+        group_by_column=column,
+        role=[f"'{role}'"],
+        bins_factor=bins_factor,
+        group_by_net_id=True,
+        extra_columns=["bias", "view_range"],
+    )
+    data, _ = query_athena(database="run_eval_db", query=query)
+    data[column] = data[column].clip(min_val, max_val)
+
+    units = "(m)" if column == "bias" else "(s)"
+    title = f"Distribution of {role} {column} {units}"
+
+    return basic_histogram_plot(data, column, "overall", title=title, color="net_id")
+
+
+@callback(
+    Output(PATH_NET_BIASES_HOST, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_path_net_biases_host(meta_data_filters, pathnet_filters, nets):
+    return get_column_histogram(
+        meta_data_filters, pathnet_filters, nets, role="host", column="bias", min_val=-2, max_val=2, bins_factor=0.05
+    )
+
+
+@callback(
+    Output(PATH_NET_BIASES_NEXT, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_path_net_biases_next(meta_data_filters, pathnet_filters, nets):
+    return get_column_histogram(
+        meta_data_filters,
+        pathnet_filters,
+        nets,
+        role="non-host",
+        column="bias",
+        min_val=-2,
+        max_val=2,
+        bins_factor=0.05,
+    )
+
+
+@callback(
+    Output(PATH_NET_VIEW_RANGES_HOST, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_path_net_view_ranges_host(meta_data_filters, pathnet_filters, nets):
+    return get_column_histogram(
+        meta_data_filters,
+        pathnet_filters,
+        nets,
+        role="host",
+        column="view_range",
+        min_val=0,
+        max_val=10,
+        bins_factor=0.1,
+    )
+
+
+@callback(
+    Output(PATH_NET_VIEW_RANGES_NEXT, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    State(NETS, "data"),
+    background=True,
+)
+def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
+    return get_column_histogram(
+        meta_data_filters,
+        pathnet_filters,
+        nets,
+        role="non-host",
+        column="view_range",
+        min_val=0,
+        max_val=10,
+        bins_factor=0.1,
+    )
