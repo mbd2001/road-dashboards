@@ -80,6 +80,17 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
+                        dcc.RangeSlider(
+                            id='my-range-slider',
+                            min=0,
+                            max=2,
+                            step=0.1,
+                            value=[0.2, 0.5]
+                        ),
+                    ]
+                ),
+                dbc.Row(
+                    [
                         dbc.Col(
                             loading_wrapper([dcc.Graph(id=PATH_NET_ACC_HOST, config={"displayModeBar": False})]),
                             width=6,
