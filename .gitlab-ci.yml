@@ -97,7 +97,7 @@ test:pypi:
 test:conda:
   stage: test
   script:
-    - task conda:create:dev
+    - task conda:install:dev
     - task conda:install:local-build
     - task conda:test
   needs:

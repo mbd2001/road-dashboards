@@ -6,7 +6,7 @@ import yaml
 
 def parse_args(args=None):
     parser = argparse.ArgumentParser(description="create envs from recipe.yaml")
-    parser.add_argument("--env_type", help="User for Artifactory", required=True, choices=["run", "test"])
+    parser.add_argument("--env_type", help="User for Artifactory", required=True, choices=["run", "dev"])
     parser.add_argument("--proj_name", help="Project Name", required=True)
     parser.add_argument(
         "--recipe_path",
@@ -32,7 +32,7 @@ def create_env_yaml(proj_name, recipe_path, out_env_yaml, env_type):
     with open(recipe_path) as f:
         recipe_yaml = yaml.safe_load(f)
 
-    with open("rattler.recipe/environment.yml") as f:
+    with open("rattler.recipe/dev.env.yml") as f:
         dev_yaml = yaml.safe_load(f)
 
     env_yaml_dict = {}
