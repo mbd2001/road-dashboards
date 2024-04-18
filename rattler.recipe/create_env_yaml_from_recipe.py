@@ -32,13 +32,15 @@ def create_env_yaml(proj_name, recipe_path, out_env_yaml, env_type):
     with open(recipe_path) as f:
         recipe_yaml = yaml.safe_load(f)
 
+    with open("rattler.recipe/environment.yml") as f:
+        dev_yaml = yaml.safe_load(f)
+
     env_yaml_dict = {}
     env_yaml_dict["name"] = proj_name
     env_yaml_dict["channels"] = ["conda-forge", "me-conda-dev-local", "comet_ml"]
     env_yaml_dict["dependencies"] = recipe_yaml["requirements"]["run"]
-    if env_type == "test":
-        env_yaml_dict["dependencies"] += recipe_yaml["tests"][0]["requirements"]["run"]
-
+    if env_type in ["dev"]:
+        env_yaml_dict["dependencies"] += dev_yaml["dependencies"]
     out_env_yaml = out_env_yaml or f"/tmp/{proj_name}.{env_type}.yml"
     with open(out_env_yaml, "w") as f:
         yaml.dump(env_yaml_dict, f, indent=2)
