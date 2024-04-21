@@ -89,6 +89,8 @@ EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC = "emdp_view_range_histogram_by_sec"
 # rem page
 REM_ACCURACY_3D_SOURCE_DROPDOWN = "rem-accuracy-3d-source-dropdown"
 REM_ACCURACY_ERROR_THRESHOLD_SLIDER = "rem-accuracy-error-threshold-slider"
+REM_TABS_CONTENT = "rem-tabs-content"
+REM_TABS = "rem-tabs"
 
 
 # counters
