@@ -19,7 +19,8 @@ from road_eval_dashboard.components.components_ids import (
     ROAD_TYPE_PIE_CHART,
     TVGT_PIE_CHART,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_count_query, generate_dynamic_count_query
 from road_eval_dashboard.graphs.countries_map import (

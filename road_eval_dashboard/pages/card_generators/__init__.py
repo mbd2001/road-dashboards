@@ -22,7 +22,8 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_Z_STEP,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
 
 def view_range_success_rate_card():

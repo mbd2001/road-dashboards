@@ -1,7 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
     generate_conf_mat_query,
     process_net_name,

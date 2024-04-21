@@ -2,6 +2,7 @@ from datetime import datetime
 
 from jira import JIRA
 
+MAX_ISSUE_KEY_DIGITS = 5
 ME_JIRA_SERVER = "https://jira.mobileye.com"
 USER = "alonw"
 TOKEN = "LTSjaeoUn7EVBe6UlmWyxU0UM63lJh7MujBDtm"
@@ -69,35 +70,49 @@ def add_image_in_comment(issue_key: str, image_path: str, name: str = None, comm
 
 
 def get_jira_issues_from_prefix(prefix):
-    MAX_ISSUE_KEY_DIGITS = 5
     if not prefix:
         return []
     jira = get_jira_client()
     split_prefix = prefix.split("-")
     if len(split_prefix) > 1 and split_prefix[0] == "ROAD" and split_prefix[1].isdigit():
-        prefix_num = int(split_prefix[1])
-        num_to_multiply = len(split_prefix[1])
-        or_condition = ""
-        multiplier = 1
-        for _ in range(num_to_multiply + 1, MAX_ISSUE_KEY_DIGITS):
-            multiplier *= 10
-            if or_condition != "":
-                or_condition += " OR "
-            or_condition += (
-                f'(issuekey >= "ROAD-{prefix_num*multiplier}" AND issuekey < "ROAD-{(prefix_num + 1)*multiplier}")'
-            )
-        if or_condition == "":
-            return []
-        tickets = jira.search_issues(f"({or_condition}) AND project=ROAD ORDER BY issuekey", fields=["summary"])
+        tickets = search_issues_by_prefix(jira, split_prefix)
     else:
-        tickets = jira.search_issues(
-            f'summary ~ "{prefix}" AND project=ROAD ORDER BY resolution, status, updated DESC', fields=["summary"]
-        )
+        tickets = search_issues_by_summary(jira, prefix)
     return tickets
 
 
-if __name__ == "__main__":
-    issue_key = "ROAD-5656"
-    image_path = "/homes/dore/Pictures/road3_dml_issue.jpg"
-    add_image_in_comment(issue_key, image_path=image_path, comment="updating my task")
-    print("Done")
+def search_issues_by_summary(jira, prefix):
+    tickets = jira.search_issues(
+        f'summary ~ "{prefix}" AND project=ROAD ORDER BY resolution, status, updated DESC', fields=["summary"]
+    )
+    return tickets
+
+
+def search_issues_by_prefix(jira, split_prefix):
+    or_condition = get_prefix_conditions(split_prefix)
+    if or_condition == "":
+        return []
+    tickets = jira.search_issues(f"({or_condition}) AND project=ROAD ORDER BY issuekey", fields=["summary"])
+    return tickets
+
+def get_prefix_conditions(split_prefix, max_issue_key_digits=MAX_ISSUE_KEY_DIGITS):
+    """
+    issuekey is not a text field so we cannot perform contain operation on it, so in this function we create conditions
+    to search all issues with issuekey between prefix * 10 and (prefix + 1) * 10, prefix * 100 and (prefix + 1) * 100
+    and etc... for example for prefix ROAD-56 we will search all issues with issuekey beyween 560 to 570 and 5600 to 5700
+    :param split_prefix:
+    :param max_issue_key_digits:
+    :return:
+    """
+    prefix_num = int(split_prefix[1])
+    num_to_multiply = len(split_prefix[1])
+    or_condition = ""
+    multiplier = 1
+    for _ in range(num_to_multiply + 1, max_issue_key_digits):
+        multiplier *= 10
+        if or_condition != "":
+            or_condition += " OR "
+        or_condition += (
+            f'(issuekey >= "ROAD-{prefix_num * multiplier}" AND issuekey < "ROAD-{(prefix_num + 1) * multiplier}")'
+        )
+    return or_condition

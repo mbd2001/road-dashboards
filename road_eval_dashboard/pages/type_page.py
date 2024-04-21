@@ -15,7 +15,8 @@ from road_eval_dashboard.components.components_ids import (
     TYPE_OVERALL,
 )
 from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, graph_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_compare_query, run_query_with_nets_names_processing
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph

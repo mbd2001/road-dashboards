@@ -8,7 +8,6 @@ layout = html.Div(
     [
         loading_wrapper(
             [
-                dbc.Alert("copied!", id="saved_alert", color="success", is_open=False, duration=4000, fade=True),
                 html.Div(id=STATE_NOTIFICATION),
             ],
             True,
