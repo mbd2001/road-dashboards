@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-import numpy as np
+import plotly.express as px
 from dash import ALL, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
@@ -445,11 +445,14 @@ def get_column_histogram(meta_data_filters, pathnet_filters, nets, role, column,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data[column] = data[column].clip(min_val, max_val)
+    data = data.sort_values(by=column)
 
     units = "(m)" if column == "bias" else "(s)"
-    title = f"Distribution of {role} {column} {units}"
+    title = f"<b>Distribution of {role} {column} {units}<b>"
 
-    return basic_histogram_plot(data, column, "overall", title=title, color="net_id")
+    fig = px.line(data, x=column, y="overall", color="net_id", title=title, markers=True)
+    fig.update_layout(showlegend=False)
+    return fig
 
 
 @callback(
