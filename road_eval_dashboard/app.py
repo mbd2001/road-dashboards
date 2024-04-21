@@ -119,4 +119,4 @@ def init_run(state, nets, query):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6011", debug=True)
+    app.run_server(host="0.0.0.0", port="6012", debug=True)

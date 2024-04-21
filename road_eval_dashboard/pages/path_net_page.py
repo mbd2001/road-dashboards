@@ -1,6 +1,5 @@
 import dash_bootstrap_components as dbc
-import numpy as np
-from dash import ALL, Input, Output, State, callback, dcc, html, no_update, register_page
+from dash import ALL, Input, Output, State, callback, dcc, html, no_update, register_page, MATCH
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter, pathnet_data_filter
@@ -81,7 +80,7 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dcc.RangeSlider(
-                            id='my-range-slider',
+                            id='acc-threshold-slider',
                             min=0,
                             max=2,
                             step=0.1,
@@ -177,6 +176,7 @@ layout = html.Div(
     State(ROLE_POPULATION_VALUE, "value"),
     State("roles_operation", "value"),
     Input("pathnet_update_filters_btn", "n_clicks"),
+    background=True
 )
 def update_pathnet_filters(bin_population, column, value, roles_operation, n_clicks):
     if (not bin_population and not column and not value) or not n_clicks:
@@ -229,6 +229,7 @@ def create_dp_split_role_dropdown(nets):
     Input(SPLIT_ROLE_POPULATION_DROPDOWN, "value"),
     State(MD_FILTERS, "data"),
     State(NETS, "data"),
+    background=True
 )
 def create_dp_split_role_dropdown(split_role_population_values, meta_data_filters, nets):
     if not split_role_population_values or not nets:
@@ -238,6 +239,7 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
         nets["meta_data"],
         meta_data_filters,
         column_name=split_role_population_values,
+        extra_columns=[split_role_population_values]
     )
     df, _ = run_query_with_nets_names_processing(query)
     options = [{"label": population, "value": population} for population in df[split_role_population_values]]
@@ -379,6 +381,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets):
 @callback(
     Output(PATH_NET_ALL_CONF_MATS, "children"),
     Input(NETS, "data"),
+    background=True
 )
 def generate_matrices_components(nets):
     if not nets:
@@ -399,6 +402,7 @@ def generate_matrices_components(nets):
     Output({"type": PATH_NET_OVERALL_CONF_MAT, "index": ALL}, "figure"),
     Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
+    background=True
 )
 def generate_overall_matrices(nets, meta_data_filters):
     if not nets:
@@ -411,7 +415,7 @@ def generate_overall_matrices(nets, meta_data_filters):
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT"],
+        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
     )
     return diagonal_compare, mats_figs
 
@@ -421,6 +425,7 @@ def generate_overall_matrices(nets, meta_data_filters):
     Output({"type": PATH_NET_HOST_CONF_MAT, "index": ALL}, "figure"),
     Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
+    background=True
 )
 def generate_host_matrices(nets, meta_data_filters):
     if not nets:
@@ -433,7 +438,7 @@ def generate_host_matrices(nets, meta_data_filters):
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT"],
+        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
     )
 
     return diagonal_compare, mats_figs

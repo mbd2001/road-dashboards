@@ -380,10 +380,11 @@ def generate_path_net_query(
     meta_data_filters="",
     extra_columns=["split_role", "matched_split_role"],
     role="",
+    extra_filters="",
 ):
     operator = "<" if state == "accuracy" else ">"
     distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
-    query = get_dist_query("dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role, extra_columns=extra_columns)
+    query = get_dist_query("dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role, extra_columns=extra_columns, base_extra_filters=extra_filters)
     return query
 
 
