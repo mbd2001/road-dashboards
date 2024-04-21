@@ -197,6 +197,7 @@ class ZSources(str, enum.Enum):
     FUSION = "fusion"
     dZ = "dZ"
     dY = "dY"
+    Z_COORDS = "Z_coords"
 
 
 sec_to_dist_acc = {
@@ -325,7 +326,7 @@ def generate_vmax_fb_query(
     return query
 
 
-def generate_emdp_query(
+def generate_compare_metric_query(
     data_tables,
     meta_data,
     label_col,
@@ -334,6 +335,7 @@ def generate_emdp_query(
     meta_data_filters="",
     extra_filters="",
     compare_operator=">=",
+    is_add_filters_count=False
 ):
     base_query = generate_base_query(
         data_tables,
@@ -349,8 +351,23 @@ def generate_emdp_query(
         for name, filter in interesting_filters.items()
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+
+    if is_add_filters_count:
+        count_metrics = get_compare_count_metrics(label_col, pred_col, interesting_filters, compare_operator)
+        metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
+        group_by = "net_id"
+        md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+        query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
     return query
 
+def get_compare_count_metrics(label_col, pred_col, intresting_filters, operator):
+    count_metrics = {}
+    for extra_filter_name, extra_filter in intresting_filters.items():
+        extra_filter_str = f"AND {extra_filter}" if extra_filter_name else ""
+        count_metrics[extra_filter_name] = (
+            f'"{label_col}" IS NOT NULL AND "{label_col}" {operator} {pred_col} {extra_filter_str}'
+        )
+    return count_metrics
 
 def generate_avail_query(
     data_tables,

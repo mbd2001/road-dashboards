@@ -86,6 +86,10 @@ EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC = "emdp_view_range_histogram_monotonic"
 EMDP_VIEW_RANGE_HISTOGRAM_NORM = "emdp_view_range_histogram_norm"
 EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC = "emdp_view_range_histogram_by_sec"
 
+# rem page
+REM_ACCURACY_3D_SOURCE_DROPDOWN = "rem-accuracy-3d-source-dropdown"
+REM_ACCURACY_ERROR_THRESHOLD_SLIDER = "rem-accuracy-error-threshold-slider"
+
 
 # counters
 POPULATION_STATE = "population_state"
