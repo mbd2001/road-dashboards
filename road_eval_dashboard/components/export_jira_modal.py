@@ -3,51 +3,49 @@ from io import BytesIO
 
 import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
-from dash import html, dcc, MATCH, Output, Input, callback, no_update, State
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from jira import JIRAError
 
-from road_eval_dashboard.utils.jira_handler import get_jira_issues_from_prefix, add_image_in_comment
+from road_eval_dashboard.utils.jira_handler import add_image_in_comment, get_jira_issues_from_prefix
 
 
 def get_jira_modal_layout(graph_id_str):
     return dbc.Modal(
+        [
+            dbc.ModalHeader("Share To Jira"),
+            dbc.ModalBody(
                 [
-                    dbc.ModalHeader("Share To Jira"),
-                    dbc.ModalBody(
-                        [
-                            dbc.Label("Jira Issue:"),
-                            dbc.Input(
-                                type="text",
-                                id={"type": "jira-search", "id": graph_id_str},
-                                placeholder="Enter JIRA",
-                                persistence=False,
-                                autocomplete="off",
-                                list=f'{{"id":"{graph_id_str}","type":"jira-search-suggestions"}}',
-                            ),
-                            html.Datalist(
-                                id={"type": "jira-search-suggestions", "id": graph_id_str},
-                                children=[html.Option(value="empty")],
-                            ),
-                            dbc.Label("Jira Comment:", style={"margin-top": 10}),
-                            dcc.Textarea(
-                                id={"type": "jira-comment", "id": graph_id_str},
-                                placeholder="Enter Jira Comment",
-                                style={"width": "100%", "height": 200},
-                            ),
-                            html.Div(id={"type": "jira-modal-error", "id": graph_id_str}, children=[]),
-                        ]
+                    dbc.Label("Jira Issue:"),
+                    dbc.Input(
+                        type="text",
+                        id={"type": "jira-search", "id": graph_id_str},
+                        placeholder="Enter JIRA",
+                        persistence=False,
+                        autocomplete="off",
+                        list=f'{{"id":"{graph_id_str}","type":"jira-search-suggestions"}}',
                     ),
-                    dbc.ModalFooter(
-                        [
-                            dbc.Button("Share", color="primary", id={"type": "jira-share-button", "id": graph_id_str}),
-                            dbc.Button(
-                                "Close", color="secondary", id={"type": "jira-close-button", "id": graph_id_str}
-                            ),
-                        ]
+                    html.Datalist(
+                        id={"type": "jira-search-suggestions", "id": graph_id_str},
+                        children=[html.Option(value="empty")],
                     ),
-                ],
-                id={"type": "jira-share-modal", "id": graph_id_str},
-            )
+                    dbc.Label("Jira Comment:", style={"margin-top": 10}),
+                    dcc.Textarea(
+                        id={"type": "jira-comment", "id": graph_id_str},
+                        placeholder="Enter Jira Comment",
+                        style={"width": "100%", "height": 200},
+                    ),
+                    html.Div(id={"type": "jira-modal-error", "id": graph_id_str}, children=[]),
+                ]
+            ),
+            dbc.ModalFooter(
+                [
+                    dbc.Button("Share", color="primary", id={"type": "jira-share-button", "id": graph_id_str}),
+                    dbc.Button("Close", color="secondary", id={"type": "jira-close-button", "id": graph_id_str}),
+                ]
+            ),
+        ],
+        id={"type": "jira-share-modal", "id": graph_id_str},
+    )
 
 
 @callback(

@@ -47,8 +47,7 @@ def graph_wrapper(graph_id):
                 },
                 className="fa-solid fa-share",
             ),
-            get_jira_modal_layout(graph_id_str)
-            ,
+            get_jira_modal_layout(graph_id_str),
             dcc.Download(id={"type": "download", "id": graph_id_str}),
             dbc.Alert(
                 "Copied!",
@@ -56,7 +55,7 @@ def graph_wrapper(graph_id):
                 is_open=False,
                 fade=True,
                 duration=4000,
-            )
+            ),
         ],
         style={"position": "relative"},
     )

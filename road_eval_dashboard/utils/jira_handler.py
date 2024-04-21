@@ -95,6 +95,7 @@ def search_issues_by_prefix(jira, split_prefix):
     tickets = jira.search_issues(f"({or_condition}) AND project=ROAD ORDER BY issuekey", fields=["summary"])
     return tickets
 
+
 def get_prefix_conditions(split_prefix, max_issue_key_digits=MAX_ISSUE_KEY_DIGITS):
     """
     issuekey is not a text field so we cannot perform contain operation on it, so in this function we create conditions
