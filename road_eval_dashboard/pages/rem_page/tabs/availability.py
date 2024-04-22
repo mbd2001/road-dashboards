@@ -1,8 +1,7 @@
+from dash import MATCH, Input, Output, State, callback, html, no_update
 
-from dash import html, no_update, State, Input, Output, MATCH, callback
-
-from road_eval_dashboard.components.components_ids import NETS, EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS
-from road_eval_dashboard.pages.rem_page.utils import get_base_graph_layout, REM_FILTERS, REM_TYPE, get_rem_fig
+from road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS
+from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
 
 TAB = "availability"
 
@@ -12,6 +11,7 @@ layout = html.Div(
         for filter_name, filter_props in REM_FILTERS.items()
     ]
 )
+
 
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "figure"),
@@ -61,6 +61,7 @@ def get_dist_graph(meta_data_filters, sort_by_dist, nets, effective_samples, gra
     )
     return fig
 
+
 def get_availability_fig(
     meta_data_filters,
     nets,
@@ -71,9 +72,15 @@ def get_availability_fig(
     label = f"rem_availability"
     pred = 1
     title = f"Availability"
-    fig = get_rem_fig(meta_data_filters,
-    nets,
-    interesting_filters,
-    effective_samples,
-    filter_name, title, label, pred, compare_operator="=")
+    fig = get_rem_fig(
+        meta_data_filters,
+        nets,
+        interesting_filters,
+        effective_samples,
+        filter_name,
+        title,
+        label,
+        pred,
+        compare_operator="=",
+    )
     return fig

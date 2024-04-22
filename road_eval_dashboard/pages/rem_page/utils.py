@@ -11,8 +11,10 @@ from road_eval_dashboard.components.common_filters import (
     WEATHER_FILTERS,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_eval_dashboard.components.queries_manager import generate_compare_metric_query, \
-    run_query_with_nets_names_processing
+from road_eval_dashboard.components.queries_manager import (
+    generate_compare_metric_query,
+    run_query_with_nets_names_processing,
+)
 from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
 REM_TYPE = ""
@@ -37,7 +39,7 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
                                 "filter": filter_name,
                                 "rem_type": REM_TYPE,
                                 "sort_by_dist": sort_by_dist,
-                                "tab": tab
+                                "tab": tab,
                             },
                             config={"displayModeBar": False},
                         )
@@ -45,6 +47,7 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
                 )
             ),
             dbc.Stack(
+                (
                     [
                         daq.BooleanSwitch(
                             id={
@@ -52,7 +55,7 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
                                 "filter": filter_name,
                                 "rem_type": REM_TYPE,
                                 "sort_by_dist": sort_by_dist,
-                                "tab": tab
+                                "tab": tab,
                             },
                             on=False,
                             label="Sort By Dist",
@@ -62,13 +65,15 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
                         )
                     ]
                     if sort_by_dist
-                    else [],
+                    else []
+                ),
                 direction="horizontal",
                 gap=3,
             ),
         ]
     )
     return layout
+
 
 def get_rem_fig(
     meta_data_filters,
@@ -79,7 +84,7 @@ def get_rem_fig(
     title,
     label,
     pred,
-    compare_operator="<="
+    compare_operator="<=",
 ):
     query = generate_compare_metric_query(
         nets["gt_tables"],
@@ -90,7 +95,7 @@ def get_rem_fig(
         meta_data_filters=meta_data_filters,
         extra_filters=f"{label} != -1 AND {label} < 999",
         compare_operator=compare_operator,
-        is_add_filters_count=True
+        is_add_filters_count=True,
     )
     data, _ = run_query_with_nets_names_processing(query)
     filter_name_to_display = filter_name.replace("_", " ").capitalize()
@@ -102,7 +107,7 @@ def get_rem_fig(
         effective_samples=effective_samples,
         title=f"{title} Per {filter_name_to_display}",
         yaxis="Score",
-        hover=True
+        hover=True,
     )
     return fig
 

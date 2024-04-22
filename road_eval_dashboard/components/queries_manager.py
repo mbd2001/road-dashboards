@@ -335,7 +335,7 @@ def generate_compare_metric_query(
     meta_data_filters="",
     extra_filters="",
     compare_operator=">=",
-    is_add_filters_count=False
+    is_add_filters_count=False,
 ):
     base_query = generate_base_query(
         data_tables,
@@ -360,6 +360,7 @@ def generate_compare_metric_query(
         query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
     return query
 
+
 def get_compare_count_metrics(label_col, pred_col, intresting_filters, operator):
     count_metrics = {}
     for extra_filter_name, extra_filter in intresting_filters.items():
@@ -368,6 +369,7 @@ def get_compare_count_metrics(label_col, pred_col, intresting_filters, operator)
             f'"{label_col}" IS NOT NULL AND "{label_col}" {operator} {pred_col} {extra_filter_str}'
         )
     return count_metrics
+
 
 def generate_avail_query(
     data_tables,

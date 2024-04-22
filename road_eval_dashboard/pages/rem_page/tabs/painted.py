@@ -1,15 +1,17 @@
+from dash import MATCH, Input, Output, State, callback, html, no_update
 
-from dash import html, callback, Output, Input, State, MATCH, no_update
-
-from road_eval_dashboard.components.components_ids import MD_FILTERS, NETS, EFFECTIVE_SAMPLES_PER_BATCH
-from road_eval_dashboard.pages.rem_page.utils import get_base_graph_layout, REM_FILTERS, REM_TYPE, get_rem_fig
+from road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS
+from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
 
 TAB = "painted"
 
-layout = html.Div([
+layout = html.Div(
+    [
         get_base_graph_layout(filter_name, TAB, sort_by_dist=filter_props.get("sort_by_dist", False))
-        for filter_name, filter_props in REM_FILTERS.items()]
+        for filter_name, filter_props in REM_FILTERS.items()
+    ]
 )
+
 
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "figure"),
@@ -59,6 +61,7 @@ def get_dist_graph(meta_data_filters, sort_by_dist, nets, effective_samples, gra
     )
     return fig
 
+
 def get_painted_fig(
     meta_data_filters,
     nets,
@@ -69,9 +72,15 @@ def get_painted_fig(
     label = "rem_point_index"
     pred = "rem_painted_pred_point"
     title = f"Painted"
-    fig = get_rem_fig(meta_data_filters,
-    nets,
-    interesting_filters,
-    effective_samples,
-    filter_name, title, label, pred, compare_operator="=")
+    fig = get_rem_fig(
+        meta_data_filters,
+        nets,
+        interesting_filters,
+        effective_samples,
+        filter_name,
+        title,
+        label,
+        pred,
+        compare_operator="=",
+    )
     return fig
