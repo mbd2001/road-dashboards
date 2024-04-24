@@ -1,15 +1,20 @@
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
+import dash_bootstrap_components as dbc
+import dash_daq as daq
 
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
     NETS,
     REM_ACCURACY_3D_SOURCE_DROPDOWN,
-    REM_ACCURACY_ERROR_THRESHOLD_SLIDER,
+    REM_ACCURACY_ERROR_THRESHOLD_SLIDER, REM_ERROR_HISTOGRAM, REM_ERROR_HISTOGRAM_Z_OR_SEC,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.queries_manager import ZSources
-from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
+from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.queries_manager import ZSources, run_query_with_nets_names_processing, \
+    generate_sum_bins_metric_query
+from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
+from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig, \
+    SEC_FILTERS, Z_FILTERS, get_rem_score
 
 TAB = "accuracy"
 
@@ -36,10 +41,38 @@ def get_settings_layout():
         ]
     )
 
+def get_error_histogram_layout():
+    return card_wrapper([
+        dbc.Row(
+            loading_wrapper(
+                [
+                    dcc.Graph(
+                        id=REM_ERROR_HISTOGRAM,
+                        config={"displayModeBar": False},
+                    )
+                ]
+            )
+        ),
+        dbc.Stack([
+                    daq.BooleanSwitch(
+                        id=REM_ERROR_HISTOGRAM_Z_OR_SEC,
+                        on=False,
+                        label="Sec/Z",
+                        labelPosition="top",
+                        persistence=True,
+                        persistence_type="session",
+                    )
+            ],
+            direction="horizontal",
+            gap=3,
+        ),
+    ])
+
 
 layout = html.Div(
     [
         get_settings_layout(),
+        get_error_histogram_layout()
     ]
     + [
         get_base_graph_layout(filter_name, TAB, sort_by_dist=filter_props.get("sort_by_dist", False))
@@ -47,6 +80,39 @@ layout = html.Div(
     ]
 )
 
+
+@callback(
+Output(REM_ERROR_HISTOGRAM, "figure"),
+    Input(REM_ACCURACY_3D_SOURCE_DROPDOWN, "value"),
+    Input(REM_ERROR_HISTOGRAM_Z_OR_SEC, "on"),
+    Input(MD_FILTERS, "data"),
+    Input(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+)
+def get_error_histogram_graph(source, z_or_sec, meta_data_filters, nets, effective_samples):
+    sum_col = f"rem_accuracy_{source}"
+    interesting_filters = Z_FILTERS if z_or_sec else SEC_FILTERS
+    query = generate_sum_bins_metric_query(
+        nets["gt_tables"],
+        nets["meta_data"],
+        sum_col=sum_col,
+        interesting_filters=interesting_filters,
+        meta_data_filters=meta_data_filters,
+        extra_filters=f"{sum_col} != -1 AND {sum_col} < 999",
+        extra_columns=["rem_point_sec", "rem_point_Z"]
+    )
+    data, _ = run_query_with_nets_names_processing(query)
+    data = data.sort_values(by="net_id")
+    fig = draw_meta_data_filters(
+        data,
+        list(interesting_filters.keys()),
+        get_rem_score,
+        effective_samples=effective_samples,
+        title=f"Error Histogram By {source}",
+        yaxis="Score",
+        hover=True,
+    )
+    return fig
 
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "figure"),

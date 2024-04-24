@@ -91,6 +91,8 @@ REM_ACCURACY_3D_SOURCE_DROPDOWN = "rem-accuracy-3d-source-dropdown"
 REM_ACCURACY_ERROR_THRESHOLD_SLIDER = "rem-accuracy-error-threshold-slider"
 REM_TABS_CONTENT = "rem-tabs-content"
 REM_TABS = "rem-tabs"
+REM_ERROR_HISTOGRAM = "rem_error_histogram"
+REM_ERROR_HISTOGRAM_Z_OR_SEC = "rem_error_histogram_z_or_sec"
 
 
 # counters

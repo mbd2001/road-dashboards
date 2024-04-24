@@ -17,8 +17,14 @@ from road_eval_dashboard.components.queries_manager import (
 )
 from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
-REM_TYPE = ""
+Z_BINS = list(range(0, 300, 50)) + [999]
+Z_FILTERS = {f"{z}": f"rem_point_Z BETWEEN {z} AND {Z_BINS[i+1]}" for i, z in enumerate(Z_BINS[:-1])}
+SEC_BINS = [r*0.5 for r in range(0, 11)] + [999]
+SEC_FILTERS = {f'{sec}': f'rem_point_sec BETWEEN {sec} AND {SEC_BINS[i+1]}' for i, sec in enumerate(SEC_BINS[:-1])}
+REM_TYPE = "rem"
 REM_FILTERS = {
+    "Z": {"filters": Z_FILTERS},
+    "sec": {"filters": SEC_FILTERS},
     "road_type": {"filters": ROAD_TYPE_FILTERS},
     "lane_mark_type": {"filters": LANE_MARK_TYPE_FILTERS},
     "event": {"filters": EVENT_FILTERS},
@@ -95,7 +101,7 @@ def get_rem_fig(
         meta_data_filters=meta_data_filters,
         extra_filters=f"{label} != -1 AND {label} < 999",
         compare_operator=compare_operator,
-        is_add_filters_count=True,
+        extra_columns=["rem_point_sec", "rem_point_Z"]
     )
     data, _ = run_query_with_nets_names_processing(query)
     filter_name_to_display = filter_name.replace("_", " ").capitalize()
