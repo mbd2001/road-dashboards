@@ -1,20 +1,32 @@
-from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 import dash_bootstrap_components as dbc
 import dash_daq as daq
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
     NETS,
     REM_ACCURACY_3D_SOURCE_DROPDOWN,
-    REM_ACCURACY_ERROR_THRESHOLD_SLIDER, REM_ERROR_HISTOGRAM, REM_ERROR_HISTOGRAM_Z_OR_SEC,
+    REM_ACCURACY_ERROR_THRESHOLD_SLIDER,
+    REM_ERROR_HISTOGRAM,
+    REM_ERROR_HISTOGRAM_Z_OR_SEC,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_eval_dashboard.components.queries_manager import ZSources, run_query_with_nets_names_processing, \
-    generate_sum_bins_metric_query
+from road_eval_dashboard.components.queries_manager import (
+    ZSources,
+    generate_sum_bins_metric_query,
+    run_query_with_nets_names_processing,
+)
 from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
-from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig, \
-    SEC_FILTERS, Z_FILTERS, get_rem_score
+from road_eval_dashboard.pages.rem_page.utils import (
+    REM_FILTERS,
+    REM_TYPE,
+    SEC_FILTERS,
+    Z_FILTERS,
+    get_base_graph_layout,
+    get_rem_fig,
+    get_rem_score,
+)
 
 TAB = "accuracy"
 
@@ -41,19 +53,22 @@ def get_settings_layout():
         ]
     )
 
+
 def get_error_histogram_layout():
-    return card_wrapper([
-        dbc.Row(
-            loading_wrapper(
+    return card_wrapper(
+        [
+            dbc.Row(
+                loading_wrapper(
+                    [
+                        dcc.Graph(
+                            id=REM_ERROR_HISTOGRAM,
+                            config={"displayModeBar": False},
+                        )
+                    ]
+                )
+            ),
+            dbc.Stack(
                 [
-                    dcc.Graph(
-                        id=REM_ERROR_HISTOGRAM,
-                        config={"displayModeBar": False},
-                    )
-                ]
-            )
-        ),
-        dbc.Stack([
                     daq.BooleanSwitch(
                         id=REM_ERROR_HISTOGRAM_Z_OR_SEC,
                         on=False,
@@ -62,18 +77,16 @@ def get_error_histogram_layout():
                         persistence=True,
                         persistence_type="session",
                     )
-            ],
-            direction="horizontal",
-            gap=3,
-        ),
-    ])
+                ],
+                direction="horizontal",
+                gap=3,
+            ),
+        ]
+    )
 
 
 layout = html.Div(
-    [
-        get_settings_layout(),
-        get_error_histogram_layout()
-    ]
+    [get_settings_layout(), get_error_histogram_layout()]
     + [
         get_base_graph_layout(filter_name, TAB, sort_by_dist=filter_props.get("sort_by_dist", False))
         for filter_name, filter_props in REM_FILTERS.items()
@@ -82,7 +95,7 @@ layout = html.Div(
 
 
 @callback(
-Output(REM_ERROR_HISTOGRAM, "figure"),
+    Output(REM_ERROR_HISTOGRAM, "figure"),
     Input(REM_ACCURACY_3D_SOURCE_DROPDOWN, "value"),
     Input(REM_ERROR_HISTOGRAM_Z_OR_SEC, "on"),
     Input(MD_FILTERS, "data"),
@@ -99,7 +112,7 @@ def get_error_histogram_graph(source, z_or_sec, meta_data_filters, nets, effecti
         interesting_filters=interesting_filters,
         meta_data_filters=meta_data_filters,
         extra_filters=f"{sum_col} != -1 AND {sum_col} < 999",
-        extra_columns=["rem_point_sec", "rem_point_Z"]
+        extra_columns=["rem_point_sec", "rem_point_Z"],
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data.sort_values(by="net_id")
@@ -113,6 +126,7 @@ def get_error_histogram_graph(source, z_or_sec, meta_data_filters, nets, effecti
         hover=True,
     )
     return fig
+
 
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "figure"),

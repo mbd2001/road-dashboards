@@ -60,7 +60,8 @@ def draw_meta_data_filters(
                 marker=(
                     dict(
                         symbol=[
-                            choose_symbol(col, reds.get(row.net_id, []), greens.get(row.net_id, [])) for col in interesting_columns
+                            choose_symbol(col, reds.get(row.net_id, []), greens.get(row.net_id, []))
+                            for col in interesting_columns
                         ],
                         size=10,
                     )
