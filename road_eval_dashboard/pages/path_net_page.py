@@ -9,17 +9,13 @@ from road_eval_dashboard.components.components_ids import (
     NETS,
     PATH_NET_ACC_HOST,
     PATH_NET_ACC_NEXT,
-    PATH_NET_ALL_CONF_DIAGONAL,
-    PATH_NET_ALL_CONF_MATS,
+    PATHNET_CONF_MAT_ID_DICT,
     PATH_NET_BIASES_HOST,
     PATH_NET_BIASES_NEXT,
     PATH_NET_FALSES_HOST,
     PATH_NET_FALSES_NEXT,
-    PATH_NET_HOST_CONF_DIAGONAL,
-    PATH_NET_HOST_CONF_MAT,
     PATH_NET_MISSES_HOST,
     PATH_NET_MISSES_NEXT,
-    PATH_NET_OVERALL_CONF_MAT,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_FILTERS,
@@ -27,6 +23,10 @@ from road_eval_dashboard.components.components_ids import (
     PATHNET_PRED,
     ROLE_POPULATION_VALUE,
     SPLIT_ROLE_POPULATION_DROPDOWN,
+    PATH_NET_ALL_TPR,
+    PATH_NET_HOST_TPR,
+    PATH_NET_HOST_CONF_MAT,
+    PATH_NET_ALL_CONF_MATS,
 )
 from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
@@ -106,6 +106,17 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
+                        dcc.RangeSlider(
+                            id='falses-threshold-slider',
+                            min=0,
+                            max=2,
+                            step=0.1,
+                            value=[0.5, 1]
+                        ),
+                    ]
+                ),
+                dbc.Row(
+                    [
                         dbc.Col(
                             loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_HOST, config={"displayModeBar": False})]),
                             width=6,
@@ -120,6 +131,17 @@ layout = html.Div(
         ),
         card_wrapper(
             [
+                dbc.Row(
+                    [
+                        dcc.RangeSlider(
+                            id='misses-threshold-slider',
+                            min=0,
+                            max=2,
+                            step=0.1,
+                            value=[0.5, 1]
+                        ),
+                    ]
+                ),
                 dbc.Row(
                     [
                         dbc.Col(
@@ -162,12 +184,13 @@ layout = html.Div(
                 )
             ]
         ),
-        html.Div(
-            id=PATH_NET_ALL_CONF_MATS,
-        ),
-    ]
+    ] +
+    [html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]]
 )
-
+ROLE_CLASSES_NAMES = {"split": ["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
+                      "merge": ["NONE", "MERGE_LEFT", "MERGE_RIGHT", "IGNORE"],
+                      "primary": ["NONE", "PRIMARY", "SECONDARY", "IGNORE", "UNDEFINED"]
+                      }
 
 @callback(
     Output(PATHNET_FILTERS, "data"),
@@ -176,7 +199,7 @@ layout = html.Div(
     State(ROLE_POPULATION_VALUE, "value"),
     State("roles_operation", "value"),
     Input("pathnet_update_filters_btn", "n_clicks"),
-    background=True
+    background=False
 )
 def update_pathnet_filters(bin_population, column, value, roles_operation, n_clicks):
     if (not bin_population and not column and not value) or not n_clicks:
@@ -194,7 +217,7 @@ def update_pathnet_filters(bin_population, column, value, roles_operation, n_cli
     Output(BIN_POPULATION_DROPDOWN, "options"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
+    background=False,
 )
 def create_population_dropdown(meta_data_filters, nets):
     if not nets:
@@ -212,7 +235,7 @@ def create_population_dropdown(meta_data_filters, nets):
 @callback(
     Output(SPLIT_ROLE_POPULATION_DROPDOWN, "options"),
     Input(NETS, "data"),
-    background=True,
+    background=False,
 )
 def create_dp_split_role_dropdown(nets):
     if not nets:
@@ -229,7 +252,7 @@ def create_dp_split_role_dropdown(nets):
     Input(SPLIT_ROLE_POPULATION_DROPDOWN, "value"),
     State(MD_FILTERS, "data"),
     State(NETS, "data"),
-    background=True
+    background=False
 )
 def create_dp_split_role_dropdown(split_role_population_values, meta_data_filters, nets):
     if not split_role_population_values or not nets:
@@ -251,9 +274,10 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
+    Input('acc-threshold-slider', 'value'),
+    background=False,
 )
-def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets):
+def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
     query = generate_path_net_query(
@@ -263,6 +287,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="host",
+        base_dists=slider_values
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy", role="host")
@@ -273,9 +298,10 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
+    Input('acc-threshold-slider', 'value'),
+    background=False,
 )
-def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets):
+def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
     query = generate_path_net_query(
@@ -285,6 +311,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="non-host",
+        base_dists=slider_values
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy")
@@ -295,9 +322,10 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
+    Input('falses-threshold-slider', 'value'),
+    background=False,
 )
-def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets):
+def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
     query = generate_path_net_query(
@@ -307,6 +335,7 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'host'", "'unmatched-host'"],
+        base_dists=slider_values
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses", role="host")
@@ -317,9 +346,10 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
+    Input('falses-threshold-slider', 'value'),
+    background=False,
 )
-def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets):
+def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
     query = generate_path_net_query(
@@ -329,6 +359,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'non-host'", "'unmatched-non-host'"],
+        base_dists=slider_values
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses")
@@ -339,9 +370,10 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
+    Input('misses-threshold-slider', 'value'),
+    background=False,
 )
-def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
+def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
     query = generate_path_net_query(
@@ -351,6 +383,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'host'", "'unmatched-host'"],
+        base_dists=slider_values
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="host")
@@ -361,9 +394,10 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
+    Input('misses-threshold-slider', 'value'),
+    background=False,
 )
-def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets):
+def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
     query = generate_path_net_query(
@@ -373,72 +407,77 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets):
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'non-host'", "'unmatched-non-host'"],
+        base_dists=slider_values
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="non-host")
 
 
 @callback(
-    Output(PATH_NET_ALL_CONF_MATS, "children"),
+    Output({"out": "graph", "role": MATCH}, "children"),
     Input(NETS, "data"),
-    background=True
+    State({"out": "graph", "role": MATCH}, "id"),
+    background=False
 )
-def generate_matrices_components(nets):
+def generate_conf_matrices_components(nets, id):
     if not nets:
         return []
-
     children = generate_matrices_layout(
         nets=nets,
-        upper_diag_id=PATH_NET_ALL_CONF_DIAGONAL,
-        lower_diag_id=PATH_NET_HOST_CONF_DIAGONAL,
-        left_conf_mat_id=PATH_NET_OVERALL_CONF_MAT,
-        right_conf_mat_id=PATH_NET_HOST_CONF_MAT,
+        upper_diag_id={"type": PATH_NET_ALL_TPR, "role": id["role"]},
+        lower_diag_id={"type": PATH_NET_HOST_TPR, "role": id["role"]},
+        left_conf_mat_id={"type": PATH_NET_ALL_CONF_MATS, "role": id["role"]},
+        right_conf_mat_id={"type": PATH_NET_HOST_CONF_MAT, "role": id["role"]}
     )
     return children
 
 
 @callback(
-    Output(PATH_NET_ALL_CONF_DIAGONAL, "figure"),
-    Output({"type": PATH_NET_OVERALL_CONF_MAT, "index": ALL}, "figure"),
+    Output({"type": PATH_NET_ALL_TPR, "role": MATCH}, "figure"),
+    Output({"type": PATH_NET_ALL_CONF_MATS, "role": MATCH, "index": ALL}, "figure"),
     Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
-    background=True
+    State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
+    background=False,
 )
-def generate_overall_matrices(nets, meta_data_filters):
+def generate_overall_conf_matrices(nets, meta_data_filters, id):
     if not nets:
         return no_update
-
+    role = id["role"]
     diagonal_compare, mats_figs = generate_matrices_graphs(
-        label_col="split_role",
-        pred_col="matched_split_role",
+        label_col=f"{role}_role",
+        pred_col=f"matched_{role}_role",
         nets_tables=nets[PATHNET_PRED],
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
+        class_names=ROLE_CLASSES_NAMES[role],
+        mat_name=f"{role} TPR for all dps"
     )
     return diagonal_compare, mats_figs
 
 
 @callback(
-    Output(PATH_NET_HOST_CONF_DIAGONAL, "figure"),
-    Output({"type": PATH_NET_HOST_CONF_MAT, "index": ALL}, "figure"),
+    Output({"type": PATH_NET_HOST_TPR, "role": MATCH}, "figure"),
+    Output({"type": PATH_NET_HOST_CONF_MAT, "index": ALL, "role": MATCH}, "figure"),
     Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
-    background=True
+    State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
+    background=False
 )
-def generate_host_matrices(nets, meta_data_filters):
+def generate_host_conf_matrices(nets, meta_data_filters, id):
     if not nets:
         return no_update
-
+    role = id["role"]
     diagonal_compare, mats_figs = generate_matrices_graphs(
-        label_col="split_role",
-        pred_col="matched_split_role",
+        label_col=f"{role}_role",
+        pred_col=f"matched_{role}_role",
         nets_tables=nets[PATHNET_PRED],
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
-        class_names=["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
+        class_names=ROLE_CLASSES_NAMES[role],
+        mat_name=f"{role} TPR for host dp"
     )
 
     return diagonal_compare, mats_figs
@@ -473,7 +512,7 @@ def get_column_histogram(meta_data_filters, pathnet_filters, nets, role, column,
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
+    background=False,
 )
 def get_path_net_biases_host(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -486,7 +525,7 @@ def get_path_net_biases_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
+    background=False,
 )
 def get_path_net_biases_next(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -506,7 +545,7 @@ def get_path_net_biases_next(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
+    background=False,
 )
 def get_path_net_view_ranges_host(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -526,7 +565,7 @@ def get_path_net_view_ranges_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
+    background=False,
 )
 def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(

@@ -381,9 +381,13 @@ def generate_path_net_query(
     extra_columns=["split_role", "matched_split_role"],
     role="",
     extra_filters="",
+    base_dists=[0.2, 0.5]
 ):
+    base_dists.sort()
     operator = "<" if state == "accuracy" else ">"
-    distances_dict = sec_to_dist_acc if state == "accuracy" else sec_to_dist_falses
+    coef = np.polyfit([1.3, 3], base_dists, deg=1)
+    threshold_polynomial = np.poly1d(coef)
+    distances_dict = {i / 2: max(threshold_polynomial(i / 2), 0.2) for i in range(1, 11)}
     query = get_dist_query("dist", data_tables, distances_dict, meta_data, meta_data_filters, operator, role, extra_columns=extra_columns, base_extra_filters=extra_filters)
     return query
 

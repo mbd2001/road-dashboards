@@ -51,6 +51,13 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
 
 
 def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf_mat_id):
+    if type(left_conf_mat_id) == str:
+        left_conf_mat_id = {"type": left_conf_mat_id}
+    if type(right_conf_mat_id) == str:
+        right_conf_mat_id = {"type": right_conf_mat_id}
+    left_conf_mat_id.update({"index": ind})
+    right_conf_mat_id.update({"index": ind})
+    print(left_conf_mat_id,"\n", right_conf_mat_id)
     layout = card_wrapper(
         [
             dbc.Row([html.H4(children=net, style={"textAlign": "center"})]),
@@ -58,13 +65,13 @@ def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf
                 [
                     dbc.Col(
                         loading_wrapper(
-                            [dcc.Graph(id={"type": left_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
+                            [dcc.Graph(id=left_conf_mat_id, config={"displayModeBar": False})]
                         ),
                         width=6,
                     ),
                     dbc.Col(
                         loading_wrapper(
-                            [dcc.Graph(id={"type": right_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
+                            [dcc.Graph(id=right_conf_mat_id, config={"displayModeBar": False})]
                         ),
                         width=6,
                     ),
