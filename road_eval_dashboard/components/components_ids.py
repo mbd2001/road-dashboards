@@ -104,7 +104,6 @@ PATH_NET_ACC_NEXT = "path_net_accuracy_next"
 PATH_NET_MISSES_HOST = "path_net_misses_host"
 PATH_NET_MISSES_NEXT = "path_net_misses_next"
 
-roles = ["split_role", "merge_role", " primary_role"]
 
 PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"
 PATHNET_TPR_CARD = "all_dp_tpr_card_id"
@@ -112,16 +111,7 @@ PATH_NET_ALL_TPR = "all_dp_tpr_id"
 PATH_NET_HOST_TPR = "host_dp_tpr_id"
 PATH_NET_HOST_CONF_MAT = "host_dp_conf_mat_id"
 PATH_NET_ALL_CONF_MATS = "all_dps_conf_mat_id"
-PATHNET_CONF_MAT_ID_DICT = {role:
-    {
-        "dp_tpr_card_id": f"path_net_{role}_dp_tpr_card_id",
-        "all_conf_mat_id": f"path_net_{role}_all_conf_mat_id",
-        "all_dps_conf_mat_id": f"path_net_{role}_all_dps_conf_mat_id",
-        "host_dp_conf_mat_id": f"path_net_{role}_host_dp_conf_mat_id",
-        "all_dp_tpr_id": f"path_net_{role}_all_dp_tpr_id",
-        "host_dp_tpr_id": f"path_net_{role}_host_dp_tpr_id",
-    }
-                    for role in roles}
+
 
 PATH_NET_BIASES_HOST = "path_net_biases_host"
 PATH_NET_BIASES_NEXT = "path_net_biases_next"

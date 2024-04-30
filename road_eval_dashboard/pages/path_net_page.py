@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 import numpy as np
 import plotly.express as px
-from dash import ALL, Input, Output, State, callback, dcc, html, no_update, register_page
+from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter, pathnet_data_filter
@@ -11,11 +11,14 @@ from road_eval_dashboard.components.components_ids import (
     NETS,
     PATH_NET_ACC_HOST,
     PATH_NET_ACC_NEXT,
-    PATHNET_CONF_MAT_ID_DICT,
+    PATH_NET_ALL_CONF_MATS,
+    PATH_NET_ALL_TPR,
     PATH_NET_BIASES_HOST,
     PATH_NET_BIASES_NEXT,
     PATH_NET_FALSES_HOST,
     PATH_NET_FALSES_NEXT,
+    PATH_NET_HOST_CONF_MAT,
+    PATH_NET_HOST_TPR,
     PATH_NET_MISSES_HOST,
     PATH_NET_MISSES_NEXT,
     PATH_NET_VIEW_RANGES_HOST,
@@ -25,10 +28,6 @@ from road_eval_dashboard.components.components_ids import (
     PATHNET_PRED,
     ROLE_POPULATION_VALUE,
     SPLIT_ROLE_POPULATION_DROPDOWN,
-    PATH_NET_ALL_TPR,
-    PATH_NET_HOST_TPR,
-    PATH_NET_HOST_CONF_MAT,
-    PATH_NET_ALL_CONF_MATS,
 )
 from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
@@ -40,7 +39,6 @@ from road_eval_dashboard.components.queries_manager import (
     generate_path_net_query,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 
 basic_operations = [
@@ -57,116 +55,110 @@ extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_properties.__dict__)
 
 role_layout = html.Div([html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]])
-pos_layout = html.Div([
-    card_wrapper(
-        [
-            dbc.Row(
-                [
-                    dcc.RangeSlider(
-                        id='acc-threshold-slider',
-                        min=0,
-                        max=2,
-                        step=0.1,
-                        value=[0.2, 0.5]
-                    ),
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_ACC_HOST, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_ACC_NEXT, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                ]
-            )
-        ]
-    ),
-    card_wrapper(
-        [
-            dbc.Row(
-                [
-                    dcc.RangeSlider(
-                        id='falses-threshold-slider',
-                        min=0,
-                        max=2,
-                        step=0.1,
-                        value=[0.5, 1]
-                    ),
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_HOST, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_NEXT, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                ]
-            )
-        ]
-    ),
-    card_wrapper(
-        [
-            dbc.Row(
-                [
-                    dcc.RangeSlider(
-                        id='misses-threshold-slider',
-                        min=0,
-                        max=2,
-                        step=0.1,
-                        value=[0.5, 1]
-                    ),
-                ]
-            ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_HOST, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_NEXT, config={"displayModeBar": False})]),
-                        width=6,
-                    ),
-                ]
-            )
-        ]
-    ),
-    card_wrapper(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_HOST, config={"displayModeBar": False})]),
-                        width=3,
-                    ),
-                    dbc.Col(
-                        loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_NEXT, config={"displayModeBar": False})]),
-                        width=3,
-                    ),
-                    dbc.Col(
-                        loading_wrapper(
-                            [dcc.Graph(id=PATH_NET_VIEW_RANGES_HOST, config={"displayModeBar": False})]
+pos_layout = html.Div(
+    [
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_ACC_HOST, config={"displayModeBar": False})]),
+                            width=6,
                         ),
-                        width=3,
-                    ),
-                    dbc.Col(
-                        loading_wrapper(
-                            [dcc.Graph(id=PATH_NET_VIEW_RANGES_NEXT, config={"displayModeBar": False})]
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_ACC_NEXT, config={"displayModeBar": False})]),
+                            width=6,
                         ),
-                        width=3,
-                    ),
-                ]
-            )
-        ]
-    )])
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label("acc-threshold", style={"text-align": "center", "fontSize": "20px"}),
+                        dcc.RangeSlider(
+                            id="acc-threshold-slider", min=0, max=2, step=0.1, value=[0.2, 0.5], allowCross=False
+                        ),
+                    ]
+                ),
+            ]
+        ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_HOST, config={"displayModeBar": False})]),
+                            width=6,
+                        ),
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_NEXT, config={"displayModeBar": False})]),
+                            width=6,
+                        ),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label("false-threshold", style={"text-align": "center", "fontSize": "20px"}),
+                        dcc.RangeSlider(
+                            id="falses-threshold-slider", min=0, max=2, step=0.1, value=[0.5, 1], allowCross=False
+                        ),
+                    ]
+                ),
+            ]
+        ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_HOST, config={"displayModeBar": False})]),
+                            width=6,
+                        ),
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_NEXT, config={"displayModeBar": False})]),
+                            width=6,
+                        ),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label("miss-threshold", style={"text-align": "center", "fontSize": "20px"}),
+                        dcc.RangeSlider(
+                            id="misses-threshold-slider", min=0, max=2, step=0.1, value=[0.5, 1], allowCross=False
+                        ),
+                    ]
+                ),
+            ]
+        ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_HOST, config={"displayModeBar": False})]),
+                            width=3,
+                        ),
+                        dbc.Col(
+                            loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_NEXT, config={"displayModeBar": False})]),
+                            width=3,
+                        ),
+                        dbc.Col(
+                            loading_wrapper(
+                                [dcc.Graph(id=PATH_NET_VIEW_RANGES_HOST, config={"displayModeBar": False})]
+                            ),
+                            width=3,
+                        ),
+                        dbc.Col(
+                            loading_wrapper(
+                                [dcc.Graph(id=PATH_NET_VIEW_RANGES_NEXT, config={"displayModeBar": False})]
+                            ),
+                            width=3,
+                        ),
+                    ]
+                )
+            ]
+        ),
+    ]
+)
 TABS_LAYOUTS = {"positional": pos_layout, "roles": role_layout}
 
 layout = html.Div(
@@ -174,10 +166,14 @@ layout = html.Div(
         html.H1("Path Net Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.dp_layout,
-        dcc.Tabs(id="pathnet-metrics-graphs", value='pathnet-metrics-positional', children=[
-            dcc.Tab(label='pathnet-metrics-positional', value='positional'),
-            dcc.Tab(label='pathnet-metrics-roles', value='roles'),
-        ]),
+        dcc.Tabs(
+            id="pathnet-metrics-graphs",
+            value="positional",
+            children=[
+                dcc.Tab(label="pathnet-metrics-positional", value="positional"),
+                dcc.Tab(label="pathnet-metrics-roles", value="roles"),
+            ],
+        ),
         card_wrapper(
             [
                 dbc.Row([dbc.Col(loading_wrapper(dcc.Dropdown(id=BIN_POPULATION_DROPDOWN, value="")), width=4)]),
@@ -194,16 +190,20 @@ layout = html.Div(
                 dbc.Row([dbc.Col(dbc.Button("Update Filters", id="pathnet_update_filters_btn", color="success"))]),
             ]
         ),
-        html.Div(id='pathnet-metrics-content'),
+        html.Div(id="pathnet-metrics-content"),
     ]
 )
-ROLE_CLASSES_NAMES = {"split": ["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
-                      "merge": ["NONE", "MERGE_LEFT", "MERGE_RIGHT", "IGNORE"],
-                      "primary": ["NONE", "PRIMARY", "SECONDARY", "IGNORE", "UNDEFINED"]
-                      }
+ROLE_CLASSES_NAMES = {
+    "split": ["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
+    "merge": ["NONE", "MERGE_LEFT", "MERGE_RIGHT", "IGNORE"],
+    "primary": ["NONE", "PRIMARY", "SECONDARY", "IGNORE", "UNDEFINED"],
+}
+
+
 @callback(Output("pathnet-metrics-content", "children"), Input("pathnet-metrics-graphs", "value"))
 def render_content(tab):
     return TABS_LAYOUTS[tab]
+
 
 @callback(
     Output(PATHNET_FILTERS, "data"),
@@ -212,7 +212,7 @@ def render_content(tab):
     State(ROLE_POPULATION_VALUE, "value"),
     State("roles_operation", "value"),
     Input("pathnet_update_filters_btn", "n_clicks"),
-    background=False
+    background=True,
 )
 def update_pathnet_filters(bin_population, column, value, roles_operation, n_clicks):
     if (not bin_population and not column and not value) or not n_clicks:
@@ -230,7 +230,7 @@ def update_pathnet_filters(bin_population, column, value, roles_operation, n_cli
     Output(BIN_POPULATION_DROPDOWN, "options"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=False,
+    background=True,
 )
 def create_population_dropdown(meta_data_filters, nets):
     if not nets:
@@ -248,7 +248,7 @@ def create_population_dropdown(meta_data_filters, nets):
 @callback(
     Output(SPLIT_ROLE_POPULATION_DROPDOWN, "options"),
     Input(NETS, "data"),
-    background=False,
+    background=True,
 )
 def create_dp_split_role_dropdown(nets):
     if not nets:
@@ -265,7 +265,7 @@ def create_dp_split_role_dropdown(nets):
     Input(SPLIT_ROLE_POPULATION_DROPDOWN, "value"),
     State(MD_FILTERS, "data"),
     State(NETS, "data"),
-    background=False
+    background=True,
 )
 def create_dp_split_role_dropdown(split_role_population_values, meta_data_filters, nets):
     if not split_role_population_values or not nets:
@@ -275,7 +275,7 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
         nets["meta_data"],
         meta_data_filters,
         column_name=split_role_population_values,
-        extra_columns=[split_role_population_values]
+        extra_columns=[split_role_population_values],
     )
     df, _ = run_query_with_nets_names_processing(query)
     options = [{"label": population, "value": population} for population in df[split_role_population_values]]
@@ -287,8 +287,8 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input('acc-threshold-slider', 'value'),
-    background=False,
+    Input("acc-threshold-slider", "value"),
+    background=True,
 )
 def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -300,7 +300,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_value
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="host",
-        base_dists=slider_values
+        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy", role="host")
@@ -311,8 +311,8 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_value
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input('acc-threshold-slider', 'value'),
-    background=False,
+    Input("acc-threshold-slider", "value"),
+    background=True,
 )
 def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -324,7 +324,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_value
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="non-host",
-        base_dists=slider_values
+        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy")
@@ -335,8 +335,8 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_value
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input('falses-threshold-slider', 'value'),
-    background=False,
+    Input("falses-threshold-slider", "value"),
+    background=True,
 )
 def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -348,7 +348,7 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets, slider_va
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'host'", "'unmatched-host'"],
-        base_dists=slider_values
+        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses", role="host")
@@ -359,8 +359,8 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets, slider_va
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input('falses-threshold-slider', 'value'),
-    background=False,
+    Input("falses-threshold-slider", "value"),
+    background=True,
 )
 def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -372,7 +372,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, slider_va
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'non-host'", "'unmatched-non-host'"],
-        base_dists=slider_values
+        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "falses")
@@ -383,8 +383,8 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, slider_va
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input('misses-threshold-slider', 'value'),
-    background=False,
+    Input("misses-threshold-slider", "value"),
+    background=True,
 )
 def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -396,7 +396,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, slider_va
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'host'", "'unmatched-host'"],
-        base_dists=slider_values
+        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="host")
@@ -407,8 +407,8 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, slider_va
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input('misses-threshold-slider', 'value'),
-    background=False,
+    Input("misses-threshold-slider", "value"),
+    background=True,
 )
 def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -420,7 +420,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, slider_va
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role=["'non-host'", "'unmatched-non-host'"],
-        base_dists=slider_values
+        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "misses", role="non-host")
@@ -430,17 +430,17 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, slider_va
     Output({"out": "graph", "role": MATCH}, "children"),
     Input(NETS, "data"),
     State({"out": "graph", "role": MATCH}, "id"),
-    background=False
+    background=True,
 )
-def generate_conf_matrices_components(nets, id):
+def generate_conf_matrices_components(nets, graph_id):
     if not nets:
         return []
     children = generate_matrices_layout(
         nets=nets,
-        upper_diag_id={"type": PATH_NET_ALL_TPR, "role": id["role"]},
-        lower_diag_id={"type": PATH_NET_HOST_TPR, "role": id["role"]},
-        left_conf_mat_id={"type": PATH_NET_ALL_CONF_MATS, "role": id["role"]},
-        right_conf_mat_id={"type": PATH_NET_HOST_CONF_MAT, "role": id["role"]}
+        upper_diag_id={"type": PATH_NET_ALL_TPR, "role": graph_id["role"]},
+        lower_diag_id={"type": PATH_NET_HOST_TPR, "role": graph_id["role"]},
+        left_conf_mat_id={"type": PATH_NET_ALL_CONF_MATS, "role": graph_id["role"]},
+        right_conf_mat_id={"type": PATH_NET_HOST_CONF_MAT, "role": graph_id["role"]},
     )
     return children
 
@@ -452,12 +452,12 @@ def generate_conf_matrices_components(nets, id):
     Input(MD_FILTERS, "data"),
     State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
     Input(PATHNET_FILTERS, "data"),
-    background=False,
+    background=True,
 )
-def generate_overall_conf_matrices(nets, meta_data_filters, id, pathnet_filters):
+def generate_overall_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filters):
     if not nets:
         return no_update
-    role = id["role"]
+    role = graph_id["role"]
     diagonal_compare, mats_figs = generate_matrices_graphs(
         pred_col=f"{role}_role",
         label_col=f"matched_{role}_role",
@@ -467,7 +467,7 @@ def generate_overall_conf_matrices(nets, meta_data_filters, id, pathnet_filters)
         meta_data_filters=meta_data_filters,
         class_names=ROLE_CLASSES_NAMES[role],
         mat_name=f"{role} TPR for all dps",
-        extra_filters=pathnet_filters
+        extra_filters=pathnet_filters,
     )
     return diagonal_compare, mats_figs
 
@@ -479,16 +479,16 @@ def generate_overall_conf_matrices(nets, meta_data_filters, id, pathnet_filters)
     Input(MD_FILTERS, "data"),
     State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
     Input(PATHNET_FILTERS, "data"),
-    background=False
+    background=True,
 )
-def generate_host_conf_matrices(nets, meta_data_filters, id, pathnet_filters):
+def generate_host_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filters):
     if not nets:
         return no_update
     if pathnet_filters:
         pathnet_filters = f"{pathnet_filters} AND role = 'host'"
     else:
         pathnet_filters = "role = 'host'"
-    role = id["role"]
+    role = graph_id["role"]
     diagonal_compare, mats_figs = generate_matrices_graphs(
         pred_col=f"{role}_role",
         label_col=f"matched_{role}_role",
@@ -498,7 +498,7 @@ def generate_host_conf_matrices(nets, meta_data_filters, id, pathnet_filters):
         meta_data_filters=meta_data_filters,
         class_names=ROLE_CLASSES_NAMES[role],
         mat_name=f"{role} TPR for host dp",
-        extra_filters=pathnet_filters
+        extra_filters=pathnet_filters,
     )
 
     return diagonal_compare, mats_figs
@@ -536,7 +536,7 @@ def get_column_histogram(meta_data_filters, pathnet_filters, nets, role, column,
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=False,
+    background=True,
 )
 def get_path_net_biases_host(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -549,7 +549,7 @@ def get_path_net_biases_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=False,
+    background=True,
 )
 def get_path_net_biases_next(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -569,7 +569,7 @@ def get_path_net_biases_next(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=False,
+    background=True,
 )
 def get_path_net_view_ranges_host(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -589,7 +589,7 @@ def get_path_net_view_ranges_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=False,
+    background=True,
 )
 def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -602,20 +602,3 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
         max_val=10,
         bins_factor=0.1,
     )
-
-
-
-"""
-    SELECT net_id, split_role as split_role, matched_split_role as matched_split_role, COUNT(*) AS res_count
-    FROM (
-    SELECT * FROM
-    (SELECT * FROM
-    (SELECT clip_name, grabIndex, net_id, role, bin_population, smooth_index, "dist_0.5", "dist_1.0", "dist_1.5", "dist_2.0", "dist_2.5", "dist_3.0", "dist_3.5", "dist_4.0", "dist_4.5", "dist_5.0", split_role, matched_split_role FROM aaa4dc3d639fdb2c8196ae5a15be6da9394)
-    WHERE (clip_name, grabIndex) IN (SELECT clip_name, grabIndex FROM aaa4dc3d639fdb2c8196ae5a15be6da9394)
-    AND split_role != -1)
-    INNER JOIN aaa90eabaf1f85f72f568e27c48306b6a1f USING (clip_name, grabIndex)
-    WHERE TRUE 
-    )
-    GROUP BY net_id, split_role, matched_split_role
-    
-"""
