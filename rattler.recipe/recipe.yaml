@@ -40,20 +40,6 @@ requirements:
     - fsspec
     - road-database-toolkit
 
-
-tests:
-  - script:
-      - echo "hello world"
-    requirements:
-      run:
-      - pytest
-      - pytest-xdist
-      - pytest-cov
-      - pytest-html
-      - coverage
-
-
-
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road_eval_dashboard
   summary: "Road evaluation dashboard repository"
