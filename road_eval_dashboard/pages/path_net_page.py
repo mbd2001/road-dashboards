@@ -54,11 +54,128 @@ basic_operations = [
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_properties.__dict__)
 
+role_layout = html.Div([html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]])
+pos_layout = html.Div([
+    card_wrapper(
+        [
+            dbc.Row(
+                [
+                    dcc.RangeSlider(
+                        id='acc-threshold-slider',
+                        min=0,
+                        max=2,
+                        step=0.1,
+                        value=[0.2, 0.5]
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_ACC_HOST, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_ACC_NEXT, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                ]
+            )
+        ]
+    ),
+    card_wrapper(
+        [
+            dbc.Row(
+                [
+                    dcc.RangeSlider(
+                        id='falses-threshold-slider',
+                        min=0,
+                        max=2,
+                        step=0.1,
+                        value=[0.5, 1]
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_HOST, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_NEXT, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                ]
+            )
+        ]
+    ),
+    card_wrapper(
+        [
+            dbc.Row(
+                [
+                    dcc.RangeSlider(
+                        id='misses-threshold-slider',
+                        min=0,
+                        max=2,
+                        step=0.1,
+                        value=[0.5, 1]
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_HOST, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_NEXT, config={"displayModeBar": False})]),
+                        width=6,
+                    ),
+                ]
+            )
+        ]
+    ),
+    card_wrapper(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_HOST, config={"displayModeBar": False})]),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_NEXT, config={"displayModeBar": False})]),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        loading_wrapper(
+                            [dcc.Graph(id=PATH_NET_VIEW_RANGES_HOST, config={"displayModeBar": False})]
+                        ),
+                        width=3,
+                    ),
+                    dbc.Col(
+                        loading_wrapper(
+                            [dcc.Graph(id=PATH_NET_VIEW_RANGES_NEXT, config={"displayModeBar": False})]
+                        ),
+                        width=3,
+                    ),
+                ]
+            )
+        ]
+    )])
+TABS_LAYOUTS = {"positional": pos_layout, "roles": role_layout}
+
 layout = html.Div(
     [
         html.H1("Path Net Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.dp_layout,
+        dcc.Tabs(id="pathnet-metrics-graphs", value='pathnet-metrics-positional', children=[
+            dcc.Tab(label='pathnet-metrics-positional', value='positional'),
+            dcc.Tab(label='pathnet-metrics-roles', value='roles'),
+        ]),
         card_wrapper(
             [
                 dbc.Row([dbc.Col(loading_wrapper(dcc.Dropdown(id=BIN_POPULATION_DROPDOWN, value="")), width=4)]),
@@ -75,122 +192,16 @@ layout = html.Div(
                 dbc.Row([dbc.Col(dbc.Button("Update Filters", id="pathnet_update_filters_btn", color="success"))]),
             ]
         ),
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dcc.RangeSlider(
-                            id='acc-threshold-slider',
-                            min=0,
-                            max=2,
-                            step=0.1,
-                            value=[0.2, 0.5]
-                        ),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_ACC_HOST, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_ACC_NEXT, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                    ]
-                )
-            ]
-        ),
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dcc.RangeSlider(
-                            id='falses-threshold-slider',
-                            min=0,
-                            max=2,
-                            step=0.1,
-                            value=[0.5, 1]
-                        ),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_HOST, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_NEXT, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                    ]
-                )
-            ]
-        ),
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dcc.RangeSlider(
-                            id='misses-threshold-slider',
-                            min=0,
-                            max=2,
-                            step=0.1,
-                            value=[0.5, 1]
-                        ),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_HOST, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_NEXT, config={"displayModeBar": False})]),
-                            width=6,
-                        ),
-                    ]
-                )
-            ]
-        ),
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_HOST, config={"displayModeBar": False})]),
-                            width=3,
-                        ),
-                        dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_BIASES_NEXT, config={"displayModeBar": False})]),
-                            width=3,
-                        ),
-                        dbc.Col(
-                            loading_wrapper(
-                                [dcc.Graph(id=PATH_NET_VIEW_RANGES_HOST, config={"displayModeBar": False})]
-                            ),
-                            width=3,
-                        ),
-                        dbc.Col(
-                            loading_wrapper(
-                                [dcc.Graph(id=PATH_NET_VIEW_RANGES_NEXT, config={"displayModeBar": False})]
-                            ),
-                            width=3,
-                        ),
-                    ]
-                )
-            ]
-        ),
-    ] +
-    [html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]]
+        html.Div(id='pathnet-metrics-content'),
+    ]
 )
 ROLE_CLASSES_NAMES = {"split": ["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
                       "merge": ["NONE", "MERGE_LEFT", "MERGE_RIGHT", "IGNORE"],
                       "primary": ["NONE", "PRIMARY", "SECONDARY", "IGNORE", "UNDEFINED"]
                       }
+@callback(Output("pathnet-metrics-content", "children"), Input("pathnet-metrics-graphs", "value"))
+def render_content(tab):
+    return TABS_LAYOUTS[tab]
 
 @callback(
     Output(PATHNET_FILTERS, "data"),
@@ -438,21 +449,23 @@ def generate_conf_matrices_components(nets, id):
     Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
     State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
+    Input(PATHNET_FILTERS, "data"),
     background=False,
 )
-def generate_overall_conf_matrices(nets, meta_data_filters, id):
+def generate_overall_conf_matrices(nets, meta_data_filters, id, pathnet_filters):
     if not nets:
         return no_update
     role = id["role"]
     diagonal_compare, mats_figs = generate_matrices_graphs(
-        label_col=f"{role}_role",
-        pred_col=f"matched_{role}_role",
+        pred_col=f"{role}_role",
+        label_col=f"matched_{role}_role",
         nets_tables=nets[PATHNET_PRED],
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
         class_names=ROLE_CLASSES_NAMES[role],
-        mat_name=f"{role} TPR for all dps"
+        mat_name=f"{role} TPR for all dps",
+        extra_filters=pathnet_filters
     )
     return diagonal_compare, mats_figs
 
@@ -463,21 +476,27 @@ def generate_overall_conf_matrices(nets, meta_data_filters, id):
     Input(NETS, "data"),
     Input(MD_FILTERS, "data"),
     State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
+    Input(PATHNET_FILTERS, "data"),
     background=False
 )
-def generate_host_conf_matrices(nets, meta_data_filters, id):
+def generate_host_conf_matrices(nets, meta_data_filters, id, pathnet_filters):
     if not nets:
         return no_update
+    if pathnet_filters:
+        pathnet_filters = f"{pathnet_filters} AND role = 'host'"
+    else:
+        pathnet_filters = "role = 'host'"
     role = id["role"]
     diagonal_compare, mats_figs = generate_matrices_graphs(
-        label_col=f"{role}_role",
-        pred_col=f"matched_{role}_role",
+        pred_col=f"{role}_role",
+        label_col=f"matched_{role}_role",
         nets_tables=nets[PATHNET_PRED],
         meta_data_table=nets["meta_data"],
         net_names=nets["names"],
         meta_data_filters=meta_data_filters,
         class_names=ROLE_CLASSES_NAMES[role],
-        mat_name=f"{role} TPR for host dp"
+        mat_name=f"{role} TPR for host dp",
+        extra_filters=pathnet_filters
     )
 
     return diagonal_compare, mats_figs
@@ -578,3 +597,20 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
         max_val=10,
         bins_factor=0.1,
     )
+
+
+
+"""
+    SELECT net_id, split_role as split_role, matched_split_role as matched_split_role, COUNT(*) AS res_count
+    FROM (
+    SELECT * FROM
+    (SELECT * FROM
+    (SELECT clip_name, grabIndex, net_id, role, bin_population, smooth_index, "dist_0.5", "dist_1.0", "dist_1.5", "dist_2.0", "dist_2.5", "dist_3.0", "dist_3.5", "dist_4.0", "dist_4.5", "dist_5.0", split_role, matched_split_role FROM aaa4dc3d639fdb2c8196ae5a15be6da9394)
+    WHERE (clip_name, grabIndex) IN (SELECT clip_name, grabIndex FROM aaa4dc3d639fdb2c8196ae5a15be6da9394)
+    AND split_role != -1)
+    INNER JOIN aaa90eabaf1f85f72f568e27c48306b6a1f USING (clip_name, grabIndex)
+    WHERE TRUE 
+    )
+    GROUP BY net_id, split_role, matched_split_role
+    
+"""
