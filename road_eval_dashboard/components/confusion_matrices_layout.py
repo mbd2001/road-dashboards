@@ -51,21 +51,18 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
 
 
 def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf_mat_id):
+    left_conf_mat_id, right_conf_mat_id = add_indices(ind, left_conf_mat_id, right_conf_mat_id)
     layout = card_wrapper(
         [
             dbc.Row([html.H4(children=net, style={"textAlign": "center"})]),
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper(
-                            [dcc.Graph(id={"type": left_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
-                        ),
+                        loading_wrapper([dcc.Graph(id=left_conf_mat_id, config={"displayModeBar": False})]),
                         width=6,
                     ),
                     dbc.Col(
-                        loading_wrapper(
-                            [dcc.Graph(id={"type": right_conf_mat_id, "index": ind}, config={"displayModeBar": False})]
-                        ),
+                        loading_wrapper([dcc.Graph(id=right_conf_mat_id, config={"displayModeBar": False})]),
                         width=6,
                     ),
                 ],
@@ -73,6 +70,16 @@ def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf
         ]
     )
     return layout
+
+
+def add_indices(ind, left_conf_mat_id, right_conf_mat_id):
+    if type(left_conf_mat_id) == str:
+        left_conf_mat_id = {"type": left_conf_mat_id}
+    if type(right_conf_mat_id) == str:
+        right_conf_mat_id = {"type": right_conf_mat_id}
+    left_conf_mat_id.update({"index": ind})
+    right_conf_mat_id.update({"index": ind})
+    return left_conf_mat_id, right_conf_mat_id
 
 
 def generate_conf_matrices(
@@ -88,14 +95,19 @@ def generate_conf_matrices(
     ca_oriented=False,
     compare_sign=False,
     ignore_val=-1,
+    extra_filters="",
 ):
+    if extra_filters:
+        extra_filters = f"{extra_filters} AND {label_col} != {ignore_val}"
+    else:
+        extra_filters = f"{label_col} != {ignore_val}"
     query = generate_conf_mat_query(
         nets_tables,
         meta_data_table,
         label_col,
         pred_col,
         meta_data_filters=meta_data_filters,
-        extra_filters=f"{label_col} != {ignore_val}",
+        extra_filters=extra_filters,
         role=role,
         ca_oriented=ca_oriented,
         compare_sign=compare_sign,
@@ -124,6 +136,7 @@ def generate_matrices_graphs(
     ca_oriented=False,
     compare_sign=False,
     ignore_val=-1,
+    extra_filters="",
 ):
     net_names = process_net_names_list(net_names)
     mats = generate_conf_matrices(
@@ -139,6 +152,7 @@ def generate_matrices_graphs(
         ca_oriented=ca_oriented,
         compare_sign=compare_sign,
         ignore_val=ignore_val,
+        extra_filters=extra_filters,
     )
     conf_mats = [mat["conf_matrix"] for mat in mats.values()]
     normalize_mats = [mat["normalize_mat"] for mat in mats.values()]
