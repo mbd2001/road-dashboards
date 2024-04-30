@@ -1,6 +1,8 @@
 # stores
 TABLES = "Tables"
 MD_FILTERS = "md_filters"
+IMAGES_IND = "images_ind"
+FRAMES_COL = "frames_col"
 
 
 # meta data filters
@@ -43,6 +45,7 @@ OBJS_MD_TABLE = "objs_md_table"
 # confusion matrices
 CONF_MATS_MAIN_TABLE = "conf_mats_main_table"
 CONF_MATS_MD_TABLE = "conf_mats_md_table"
+CONF_MATS_LABELS_TABLE = "conf_mats_labels_table"
 
 MAIN_NET_DROPDOWN = "main_net_dropdown"
 SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
@@ -53,6 +56,17 @@ GENERIC_SHOW_DIFF_BTN = "generic_show_diff_btn"
 DYNAMIC_CONF_MAT = "dynamic_conf_mat"
 DYNAMIC_CONF_DROPDOWN = "dynamic_conf_dropdown"
 DYNAMIC_SHOW_DIFF_IDX = "dynamic_show_diff_idx"
+
+
+# frame drawer
+MAIN_IMG = "main_img"
+MAIN_WORLD = "main_world"
+
+SECONDARY_IMG = "secondary_img"
+SECONDARY_WORLD = "secondary_world"
+
+NEXT_BTN = "next_btn"
+PREV_BTN = "prev_btn"
 
 
 # bar pie charts

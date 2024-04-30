@@ -15,8 +15,8 @@ def draw_confusion_matrix(conf_matrix, normalize_mat, x_label="", y_label="", ti
         normalize_mat,
         text_auto=".2f",
         title=title.title(),
-        x=conf_matrix.index,
-        y=conf_matrix.columns,
+        x=conf_matrix.columns,
+        y=conf_matrix.index,
         color_continuous_scale="blues",
         labels={"x": x_label, "y": y_label},
     )
@@ -34,6 +34,7 @@ def draw_confusion_matrix(conf_matrix, normalize_mat, x_label="", y_label="", ti
 
 
 def get_confusion_matrix(data, main_val="main_val", secondary_val="secondary_val", x_label="", y_label="", title=""):
+    # TODO: treat removed objs case
     conf_matrix, normalize_mat = compute_confusion_matrix(data, main_val, secondary_val)
     fig = draw_confusion_matrix(conf_matrix, normalize_mat, x_label=x_label, y_label=y_label, title=title)
     return fig

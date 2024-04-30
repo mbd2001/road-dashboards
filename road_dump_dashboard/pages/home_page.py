@@ -10,6 +10,6 @@ register_page(__name__, order=0, **page_properties.__dict__)
 
 def layout():
     home_page_layout = html.Div(
-        [html.H1("RoadE2E Dump Dashboard", className="mb-5"), card_wrapper([generate_catalog_layout()])]
+        [html.H1("RoadE2E Dump Dashboard", className="mb-5"), card_wrapper(generate_catalog_layout())]
     )
     return home_page_layout

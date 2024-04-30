@@ -1,7 +1,7 @@
 import plotly.express as px
 
 
-def basic_histogram_plot(data, x, y, title="", color=None):
+def basic_histogram_plot(data, x, y, title="", color="dump_name"):
     fig = px.bar(data, x=x, y=y, title=f"<b>{title}<b>", color=color)
     fig.update_layout(
         showlegend=False,

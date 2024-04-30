@@ -17,42 +17,32 @@ class Table:
 
 
 class Tables:
+    POTENTIAL_TABLES = ["meta_data", "lm_meta_data", "re_meta_data", "pw_meta_data", "rpw_meta_data"]
+
     def __init__(self, dump_names, **kwargs):
         self.names = dump_names
-
-        general_meta_data_tables = kwargs.get("meta_data_table", [])
-
-        lm_meta_data_tables = kwargs.get("lm_meta_data_table", [""] * len(general_meta_data_tables))
-        lm_meta_data_tables = self.replace_nones(lm_meta_data_tables)
-
-        re_meta_data_tables = kwargs.get("re_meta_data_table", [""] * len(general_meta_data_tables))
-        re_meta_data_tables = self.replace_nones(re_meta_data_tables)
-
-        pw_meta_data_tables = kwargs.get("pw_meta_data_table", [""] * len(general_meta_data_tables))
-        pw_meta_data_tables = self.replace_nones(pw_meta_data_tables)
-
-        q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
-        Thread(
-            target=wrapper, args=(generate_table_instance, q1, "meta_data", general_meta_data_tables, dump_names)
-        ).start()
-        Thread(
-            target=wrapper, args=(generate_table_instance, q2, "lm_meta_data", lm_meta_data_tables, dump_names)
-        ).start()
-        Thread(
-            target=wrapper, args=(generate_table_instance, q3, "re_meta_data", re_meta_data_tables, dump_names)
-        ).start()
-        Thread(
-            target=wrapper, args=(generate_table_instance, q4, "pw_meta_data", pw_meta_data_tables, dump_names)
-        ).start()
-
-        self.meta_data = q1.get()
-        self.lm_meta_data = q2.get()
-        self.re_meta_data = q3.get()
-        self.pw_meta_data = q4.get()
+        self.meta_data, self.lm_meta_data, self.re_meta_data, self.pw_meta_data, self.rpw_meta_data = self.init_tables(
+            dump_names, **kwargs
+        )
 
     @staticmethod
-    def replace_nones(tables_list):
-        return [table if table else "" for table in tables_list]
+    def get_tables_from_type(tables_type, num_of_dumps, **kwargs):
+        tables = kwargs.get(f"{tables_type}_table", [""] * num_of_dumps)
+        tables = [table if table else "" for table in tables]
+        return tables
+
+    def init_tables(self, dump_names, **kwargs):
+        num_of_dumps = len(kwargs.get("meta_data_table"))
+        tables_list = [
+            self.get_tables_from_type(table_type, num_of_dumps, **kwargs) for table_type in self.POTENTIAL_TABLES
+        ]
+        queues = [Queue() for _ in self.POTENTIAL_TABLES]
+        [
+            Thread(target=wrapper, args=(generate_table_instance, queue, table_type, tables, dump_names)).start()
+            for queue, table_type, tables in zip(queues, self.POTENTIAL_TABLES, tables_list)
+        ]
+        table_instances = [queue.get() for queue in queues]
+        return table_instances
 
 
 def wrapper(func, queue, *args):

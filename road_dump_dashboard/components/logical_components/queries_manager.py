@@ -19,7 +19,7 @@ SELECT_QUERY = """
 
 JOIN_QUERY = """
     (SELECT {columns_to_select} 
-    FROM {main_data} A INNER JOIN {secondary_data} B
+    FROM {main_data} A LEFT JOIN {secondary_data} B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex)) 
     {meta_data_filters})
     """
@@ -27,14 +27,14 @@ JOIN_QUERY = """
 CONF_QUERY = """
     SELECT main_val, secondary_val, COUNT(*) AS overall FROM
     (SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val
-    FROM ({main_data}) A INNER JOIN ({secondary_data}) B
-    ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex)))
+    FROM ({main_data}) A LEFT JOIN ({secondary_data}) B
+    ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id)))
     GROUP BY main_val, secondary_val
     """
 
 DIFF_IDS_QUERY = """
     SELECT A.clip_name as clip_name, A.grabindex as grabindex
-    FROM ({main_data}) A INNER JOIN ({secondary_data}) B
+    FROM ({main_data}) A FULL JOIN ({secondary_data}) B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id))
     WHERE A.{column_to_compare} != B.{column_to_compare}
     GROUP BY A.clip_name, A.grabindex
@@ -43,7 +43,7 @@ DIFF_IDS_QUERY = """
 
 JOIN_LABELS_QUERY = """
     SELECT '' AS main_start, LABELS_A.*, '' AS secondary_start, LABELS_B.*
-    FROM ({main_labels}) LABELS_A INNER JOIN ({secondary_labels}) LABELS_B 
+    FROM ({main_labels}) LABELS_A LEFT JOIN ({secondary_labels}) LABELS_B 
     ON ((LABELS_A.clip_name = LABELS_B.clip_name) AND (LABELS_A.grabindex = LABELS_B.grabindex) AND (LABELS_A.obj_id = LABELS_B.obj_id)) 
     WHERE (LABELS_A.clip_name, LABELS_A.grabindex) IN ({ids_data})
     """
@@ -88,6 +88,7 @@ def generate_conf_mat_query(
     meta_data_filters="",
     extra_filters="",
 ):
+    extra_filters = add_ignore_filter(column_to_compare, extra_filters, main_tables, meta_data_tables)
     extra_columns = [column_to_compare]
     main_data = generate_base_query(
         main_tables,
@@ -129,6 +130,7 @@ def generate_diff_query(
     extra_filters="",
     labels_tables=None,
 ):
+    extra_filters = add_ignore_filter(column_to_compare, extra_filters, main_tables, meta_data_tables)
     extra_columns = [column_to_compare]
     main_data = generate_base_query(
         main_tables,
@@ -179,6 +181,7 @@ def generate_count_query(
     bins_factor=None,
     dumps_to_include=None,
 ):
+    extra_filters = add_ignore_filter(group_by_column, extra_filters, main_tables, meta_data_tables)
     base_query = generate_base_query(
         main_tables,
         population,
@@ -330,3 +333,23 @@ def generate_filters(extra_filters, meta_data_filters, population, main_paths, i
     )
     filters_str = f"WHERE {filters_str}" if filters_str else ""
     return filters_str
+
+
+def add_ignore_filter(column, extra_filters, main_tables, meta_data_tables):
+    if not column:
+        return extra_filters
+
+    column_type = main_tables["columns_to_type"].get(column) or meta_data_tables["columns_to_type"].get(column)
+    if column_type.startswith(("int", "float", "double")):
+        ignore_filter = f"{column} <> 999 AND {column} <> -999 AND {column} <> -1"
+    elif column_type.startswith("object"):
+        ignore_filter = f"{column} != 'ignore' AND {column} != 'Unknown' AND {column} != 'IGNORE'"
+    else:
+        ignore_filter = ""
+
+    agg_filters = (
+        f"({extra_filters}) AND ({ignore_filter})"
+        if extra_filters and ignore_filter
+        else extra_filters or ignore_filter
+    )
+    return agg_filters

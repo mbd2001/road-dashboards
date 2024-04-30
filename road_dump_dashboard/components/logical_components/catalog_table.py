@@ -4,6 +4,7 @@ import json
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Input, Output, State, callback, dash_table, html, no_update
+from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dump_dashboard.components.constants.components_ids import (
     DUMP_CATALOG,
@@ -13,11 +14,9 @@ from road_dump_dashboard.components.constants.components_ids import (
     URL,
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper
-from road_dump_dashboard.components.logical_components.init_base_data import (
-    init_tables,
-    parse_catalog_rows,
-    run_eval_db_manager,
-)
+from road_dump_dashboard.components.logical_components.tables_properties import Tables
+
+run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
 
 def generate_catalog_layout():
@@ -61,9 +60,9 @@ def generate_catalog_layout():
                 )
             ),
             dbc.Row(
-                dbc.Col(dbc.Button("Choose Dump to Explore", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
+                dbc.Col(dbc.Button("Choose Dumps to Explore", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
             ),
-            loading_wrapper([html.Div(id=LOAD_NETS_DATA_NOTIFICATION)]),
+            loading_wrapper(html.Div(id=LOAD_NETS_DATA_NOTIFICATION)),
         ]
     )
     return layout
@@ -89,3 +88,16 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     dumps_list = list(rows["dump_name"])
     dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
     return dumps, notification, dump_list_hash
+
+
+def init_tables(rows):
+    tables = Tables(
+        rows["dump_name"],
+        **{table: rows[table].tolist() for table in rows.columns if table.endswith("_table") and any(rows[table])},
+    ).__dict__
+    return tables
+
+
+def parse_catalog_rows(rows, derived_virtual_selected_rows):
+    rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
+    return rows

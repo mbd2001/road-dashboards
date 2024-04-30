@@ -63,7 +63,7 @@ def dynamic_chart_layout():
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=DYNAMIC_CHART, config={"displayModeBar": False})]),
+                        loading_wrapper(dcc.Graph(id=DYNAMIC_CHART, config={"displayModeBar": False})),
                         width=11,
                     ),
                     dbc.Col(
@@ -98,12 +98,10 @@ def generic_charts_layout(obj_type, obj_ids):
                     card_wrapper(
                         [
                             loading_wrapper(
-                                [
-                                    dcc.Graph(
-                                        id={"type": obj_type, "index": id},
-                                        config={"displayModeBar": False},
-                                    )
-                                ]
+                                dcc.Graph(
+                                    id={"type": obj_type, "index": id},
+                                    config={"displayModeBar": False},
+                                )
                             )
                         ]
                     )
@@ -153,12 +151,7 @@ def get_dynamic_chart(
 
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
-
-    column_type = main_tables["columns_to_type"].get(group_by_column) or meta_data_tables["columns_to_type"].get(
-        group_by_column
-    )
-    ignore_str = get_ignore_str_from_column_type(group_by_column, column_type)
-    bins_factor = exponent_transform(slider_value) if column_type.startswith(("int", "float", "double")) else None
+    bins_factor = get_bins_factor(slider_value, group_by_column, main_tables, meta_data_tables)
     query = generate_count_query(
         main_tables,
         population,
@@ -167,16 +160,21 @@ def get_dynamic_chart(
         meta_data_filters=meta_data_filters,
         group_by_column=group_by_column,
         bins_factor=bins_factor,
-        extra_filters=ignore_str,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {group_by_column.replace('mdbi_', '').replace('_', ' ').title()}"
 
     if data[group_by_column].nunique() > 16:
-        fig = basic_histogram_plot(data, group_by_column, "overall", title=title, color="dump_name")
+        fig = basic_histogram_plot(data, group_by_column, "overall", title=title)
     else:
         fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)
     return fig
+
+
+def get_bins_factor(slider_value, column, main_tables, meta_data_tables):
+    column_type = main_tables["columns_to_type"].get(column) or meta_data_tables["columns_to_type"].get(column)
+    bins_factor = exponent_transform(slider_value) if column_type.startswith(("int", "float", "double")) else None
+    return bins_factor
 
 
 @callback(
@@ -199,11 +197,6 @@ def get_generic_column_chart(
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
     col_to_compare = col_to_compare["index"]
-
-    column_type = main_tables["columns_to_type"].get(col_to_compare) or meta_data_tables["columns_to_type"].get(
-        col_to_compare
-    )
-    ignore_str = get_ignore_str_from_column_type(col_to_compare, column_type)
     query = generate_count_query(
         main_tables,
         population,
@@ -211,7 +204,6 @@ def get_generic_column_chart(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         group_by_column=col_to_compare,
-        extra_filters=ignore_str,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {col_to_compare.title()}"
@@ -253,14 +245,3 @@ def get_generic_filter_chart(
     title = f"Distribution of {filters_name.title()}"
     fig = pie_or_line_wrapper(data, "filter", "overall", title=title)
     return fig
-
-
-def get_ignore_str_from_column_type(column, column_type):
-    if column_type.startswith(("int", "float", "double")):
-        ignore_filter = f"{column} <> 999 AND {column} <> -999 AND {column} <> -1"
-    elif column_type.startswith("object"):
-        ignore_filter = f"{column} != 'ignore' AND {column} != 'Unknown'"
-    else:
-        ignore_filter = ""
-
-    return ignore_filter

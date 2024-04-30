@@ -30,7 +30,7 @@ layout = html.Div(
                     value="",
                 ),
             ),
-            dbc.Row(loading_wrapper([dcc.Graph(id=COUNTRIES_HEAT_MAP, config={"displayModeBar": False})])),
+            dbc.Row(loading_wrapper(dcc.Graph(id=COUNTRIES_HEAT_MAP, config={"displayModeBar": False}))),
         ]
     )
 )

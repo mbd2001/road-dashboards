@@ -9,8 +9,8 @@ from dash import CeleryManager, Dash, DiskcacheManager, Input, Output, State, ca
 
 from road_dump_dashboard.components.constants.components_ids import TABLES, URL
 from road_dump_dashboard.components.dashboard_layout import page_content, sidebar
+from road_dump_dashboard.components.logical_components.catalog_table import init_tables, run_eval_db_manager
 from road_dump_dashboard.components.logical_components.dcc_stores import init_dcc_stores
-from road_dump_dashboard.components.logical_components.init_base_data import init_tables, run_eval_db_manager
 
 launch_uid = uuid4()
 if "REDIS_URL" in os.environ:

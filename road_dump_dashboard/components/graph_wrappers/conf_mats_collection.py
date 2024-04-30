@@ -3,6 +3,7 @@ from dash import MATCH, Input, Output, State, callback, callback_context, dcc, h
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dump_dashboard.components.constants.components_ids import (
+    CONF_MATS_LABELS_TABLE,
     CONF_MATS_MAIN_TABLE,
     CONF_MATS_MD_TABLE,
     DYNAMIC_CONF_DROPDOWN,
@@ -17,19 +18,20 @@ from road_dump_dashboard.components.constants.components_ids import (
     TABLES,
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
-from road_dump_dashboard.components.graph_wrappers import frames_display
+from road_dump_dashboard.components.graph_wrappers import frames_carousel
 from road_dump_dashboard.components.logical_components.queries_manager import generate_conf_mat_query
 from road_dump_dashboard.graphs.confusion_matrix import get_confusion_matrix
 
 
-def layout(main_table, meta_data_table=None, columns_to_compare=None):
-    if columns_to_compare is None:
-        columns_to_compare = []
+def layout(main_table, columns_to_compare, meta_data_table=None, labels_table=None):
+    if labels_table is None:
+        labels_table = main_table
 
     matrices_layout = html.Div(
         [
             html.Div(id=CONF_MATS_MAIN_TABLE, children=main_table, style={"display": "none"}),
             html.Div(id=CONF_MATS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
+            html.Div(id=CONF_MATS_LABELS_TABLE, children=labels_table, style={"display": "none"}),
             card_wrapper(
                 [
                     nets_selection_layout(),
@@ -37,7 +39,7 @@ def layout(main_table, meta_data_table=None, columns_to_compare=None):
                     *generic_rows_layout(columns_to_compare),
                 ]
             ),
-            frames_display.layout,
+            frames_carousel.layout(),
         ]
     )
 
@@ -80,7 +82,7 @@ def dynamic_conf_mat_layout():
                 placeholder="----",
                 value="",
             ),
-            loading_wrapper([dcc.Graph(id=DYNAMIC_CONF_MAT, config={"displayModeBar": False})]),
+            loading_wrapper(dcc.Graph(id=DYNAMIC_CONF_MAT, config={"displayModeBar": False})),
             dbc.Button(
                 "Draw Diff Frames",
                 id={"type": GENERIC_SHOW_DIFF_BTN, "index": DYNAMIC_SHOW_DIFF_IDX},
@@ -93,9 +95,6 @@ def dynamic_conf_mat_layout():
 
 
 def generic_rows_layout(columns_to_compare):
-    if not columns_to_compare:
-        return [None]
-
     list_columns_tuples = [tuple(columns_to_compare[i : i + 2]) for i in range(0, len(columns_to_compare), 2)]
     generic_rows = [
         dbc.Row(

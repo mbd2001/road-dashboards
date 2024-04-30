@@ -13,7 +13,7 @@ layout = html.Div(
         data_filters.layout(main_table="lm_meta_data", meta_data_table="meta_data"),
         base_dataset_statistics.layout(objs_name="lane marks", main_table="lm_meta_data", meta_data_table="meta_data"),
         bar_pie_graphs_collection.layout(
-            main_table="lm_meta_data", meta_data_table="meta_data", columns=["vert_role", "vert_color", "vert_type"]
+            main_table="lm_meta_data", meta_data_table="meta_data", columns=["role", "color", "type"]
         ),
     ]
 )
