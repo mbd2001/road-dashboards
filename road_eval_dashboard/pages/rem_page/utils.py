@@ -33,6 +33,7 @@ REM_FILTERS = {
 }
 IGNORES_FILTER = "{col} != -1 AND {col} < 999"
 
+
 def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
     layout = card_wrapper(
         [

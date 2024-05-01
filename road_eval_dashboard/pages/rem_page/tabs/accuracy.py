@@ -20,16 +20,18 @@ from road_eval_dashboard.components.queries_manager import (
 )
 from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_eval_dashboard.pages.rem_page.utils import (
+    IGNORES_FILTER,
     REM_FILTERS,
     REM_TYPE,
     SEC_FILTERS,
     Z_FILTERS,
     get_base_graph_layout,
     get_rem_fig,
-    get_rem_score, IGNORES_FILTER,
+    get_rem_score,
 )
 
 TAB = "accuracy"
+
 
 def get_settings_layout():
     options = [s.value for s in ZSources]
