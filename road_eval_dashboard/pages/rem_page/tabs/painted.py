@@ -1,6 +1,7 @@
 from dash import MATCH, Input, Output, State, callback, html, no_update
 
-from road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS
+from road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS, \
+    REM_ROLES_DROPDOWN
 from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
 
 TAB = "painted"
@@ -16,12 +17,13 @@ layout = html.Div(
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "figure"),
     Input(MD_FILTERS, "data"),
+    Input(REM_ROLES_DROPDOWN, "value"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "id"),
     background=True,
 )
-def get_none_dist_graph(meta_data_filters, nets, effective_samples, graph_id):
+def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_id):
     if not nets:
         return no_update
     filter_name = graph_id["filter"]
@@ -33,6 +35,7 @@ def get_none_dist_graph(meta_data_filters, nets, effective_samples, graph_id):
         interesting_filters=interesting_filters,
         effective_samples=effective_samples,
         filter_name=filter_name,
+        role=role
     )
     return fig
 
@@ -40,13 +43,14 @@ def get_none_dist_graph(meta_data_filters, nets, effective_samples, graph_id):
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "figure"),
     Input(MD_FILTERS, "data"),
+    Input(REM_ROLES_DROPDOWN, "value"),
     Input({"out": "sort_by_dist", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "on"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "id"),
     background=True,
 )
-def get_dist_graph(meta_data_filters, sort_by_dist, nets, effective_samples, graph_id):
+def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:
         return no_update
     filter_name = graph_id["filter"]
@@ -58,6 +62,7 @@ def get_dist_graph(meta_data_filters, sort_by_dist, nets, effective_samples, gra
         interesting_filters=interesting_filters,
         effective_samples=effective_samples,
         filter_name=filter_name,
+        role=role
     )
     return fig
 
@@ -68,6 +73,7 @@ def get_painted_fig(
     interesting_filters,
     effective_samples,
     filter_name,
+        role=""
 ):
     label = "rem_point_index"
     pred = "rem_painted_pred_point"
@@ -82,5 +88,6 @@ def get_painted_fig(
         label,
         pred,
         compare_operator="=",
+        role=role
     )
     return fig

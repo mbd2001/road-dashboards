@@ -9,7 +9,7 @@ from road_eval_dashboard.components.components_ids import (
     REM_ACCURACY_3D_SOURCE_DROPDOWN,
     REM_ACCURACY_ERROR_THRESHOLD_SLIDER,
     REM_ERROR_HISTOGRAM,
-    REM_ERROR_HISTOGRAM_Z_OR_SEC,
+    REM_ERROR_HISTOGRAM_Z_OR_SEC, REM_ROLES_DROPDOWN,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
@@ -96,13 +96,14 @@ layout = html.Div(
 
 @callback(
     Output(REM_ERROR_HISTOGRAM, "figure"),
+    Input(REM_ROLES_DROPDOWN, "value"),
     Input(REM_ACCURACY_3D_SOURCE_DROPDOWN, "value"),
     Input(REM_ERROR_HISTOGRAM_Z_OR_SEC, "on"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
 )
-def get_error_histogram_graph(source, z_or_sec, meta_data_filters, nets, effective_samples):
+def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, effective_samples):
     sum_col = f"rem_accuracy_{source}"
     interesting_filters = Z_FILTERS if z_or_sec else SEC_FILTERS
     query = generate_sum_bins_metric_query(
@@ -113,6 +114,7 @@ def get_error_histogram_graph(source, z_or_sec, meta_data_filters, nets, effecti
         meta_data_filters=meta_data_filters,
         extra_filters=f"{sum_col} != -1 AND {sum_col} < 999",
         extra_columns=["rem_point_sec", "rem_point_Z"],
+        role=role
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data.sort_values(by="net_id")
@@ -131,6 +133,7 @@ def get_error_histogram_graph(source, z_or_sec, meta_data_filters, nets, effecti
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "figure"),
     Input(MD_FILTERS, "data"),
+    Input(REM_ROLES_DROPDOWN, "value"),
     Input(REM_ACCURACY_3D_SOURCE_DROPDOWN, "value"),
     Input(REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "value"),
     Input(NETS, "data"),
@@ -138,7 +141,7 @@ def get_error_histogram_graph(source, z_or_sec, meta_data_filters, nets, effecti
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "id"),
     background=True,
 )
-def get_none_dist_graph(meta_data_filters, source, error_threshold, nets, effective_samples, graph_id):
+def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, effective_samples, graph_id):
     if not nets:
         return no_update
     filter_name = graph_id["filter"]
@@ -152,6 +155,7 @@ def get_none_dist_graph(meta_data_filters, source, error_threshold, nets, effect
         filter_name=filter_name,
         source=source,
         error_threshold=error_threshold,
+        role=role
     )
     return fig
 
@@ -159,6 +163,7 @@ def get_none_dist_graph(meta_data_filters, source, error_threshold, nets, effect
 @callback(
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "figure"),
     Input(MD_FILTERS, "data"),
+    Input(REM_ROLES_DROPDOWN, "value"),
     Input(REM_ACCURACY_3D_SOURCE_DROPDOWN, "value"),
     Input(REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "value"),
     Input({"out": "sort_by_dist", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "on"),
@@ -167,7 +172,7 @@ def get_none_dist_graph(meta_data_filters, source, error_threshold, nets, effect
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "id"),
     background=True,
 )
-def get_dist_graph(meta_data_filters, source, error_threshold, sort_by_dist, nets, effective_samples, graph_id):
+def get_dist_graph(meta_data_filters, role, source, error_threshold, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:
         return no_update
     filter_name = graph_id["filter"]
@@ -181,15 +186,16 @@ def get_dist_graph(meta_data_filters, source, error_threshold, sort_by_dist, net
         filter_name=filter_name,
         source=source,
         error_threshold=error_threshold,
+        role=role
     )
     return fig
 
 
 def get_accuracy_fig(
-    meta_data_filters, nets, interesting_filters, effective_samples, filter_name, source, error_threshold
+    meta_data_filters, nets, interesting_filters, effective_samples, filter_name, source, error_threshold, role=""
 ):
     label = f"rem_accuracy_{source}"
     pred = error_threshold
     title = f"Accuracy By {source} With Threshold {error_threshold}"
-    fig = get_rem_fig(meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, label, pred)
+    fig = get_rem_fig(meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, label, pred, role=role)
     return fig
