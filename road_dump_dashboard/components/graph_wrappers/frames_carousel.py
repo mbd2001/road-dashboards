@@ -32,9 +32,9 @@ from road_dump_dashboard.components.constants.components_ids import (
     SECONDARY_WORLD,
     TABLES,
 )
-from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper
-from road_dump_dashboard.components.logical_components.frame_drawer import draw_img, draw_world
-from road_dump_dashboard.components.logical_components.queries_manager import generate_diff_query
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper, card_wrapper
+from road_dump_dashboard.components.logical_components.frame_drawer import draw_img, draw_top_view
+from road_dump_dashboard.components.logical_components.queries_manager import generate_diff_with_labels_query, IMG_LIMIT
 
 DV_DB_MANAGER = DroneViewDBManager()
 
@@ -50,50 +50,52 @@ class Images:
 
 def layout():
     frames_layout = html.Div(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading_wrapper(html.Div(id=MAIN_WORLD)),
-                        width=1,
-                    ),
-                    dbc.Col(
-                        loading_wrapper(html.Div(id=MAIN_IMG)),
-                        width=5,
-                    ),
-                    dbc.Col(
-                        loading_wrapper(html.Div(id=SECONDARY_IMG)),
-                        width=5,
-                    ),
-                    dbc.Col(
-                        loading_wrapper(html.Div(id=SECONDARY_WORLD)),
-                        width=1,
-                    ),
-                ]
-            ),
-            dbc.Row(
-                dbc.Stack(
+        card_wrapper(
+            [
+                dbc.Row(
                     [
-                        dbc.Button(
-                            "Prev Frame",
-                            id=PREV_BTN,
-                            className="bg-primary mt-5",
-                            color="secondary",
-                            style={"margin": "10px"},
+                        dbc.Col(
+                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=MAIN_WORLD)),
+                            width=1,
                         ),
-                        dbc.Button(
-                            "Next Frame",
-                            id=NEXT_BTN,
-                            className="bg-primary mt-5",
-                            color="secondary",
-                            style={"margin": "10px"},
+                        dbc.Col(
+                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=MAIN_IMG)),
+                            width=5,
+                        ),
+                        dbc.Col(
+                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=SECONDARY_IMG)),
+                            width=5,
+                        ),
+                        dbc.Col(
+                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=SECONDARY_WORLD)),
+                            width=1,
                         ),
                     ],
-                    direction="horizontal",
-                    gap=1,
-                )
-            ),
-        ]
+                ),
+                dbc.Row(
+                    dbc.Stack(
+                        [
+                            dbc.Button(
+                                "Prev Frame",
+                                id=PREV_BTN,
+                                className="bg-primary mt-5",
+                                color="secondary",
+                                style={"margin": "10px"},
+                            ),
+                            dbc.Button(
+                                "Next Frame",
+                                id=NEXT_BTN,
+                                className="bg-primary mt-5",
+                                color="secondary",
+                                style={"margin": "10px"},
+                            ),
+                        ],
+                        direction="horizontal",
+                        gap=1,
+                    )
+                ),
+            ]
+        )
     )
     return frames_layout
 
@@ -133,9 +135,9 @@ def update_frame_graphs(
         secondary_world[ind]["props"]["style"]["display"] = "none"
 
         if triggered_id == PREV_BTN:
-            ind = (ind - 1) % 20
+            ind = (ind - 1) % IMG_LIMIT
         elif triggered_id == NEXT_BTN:
-            ind = (ind + 1) % 20
+            ind = (ind + 1) % IMG_LIMIT
 
     main_img[ind]["props"]["style"]["display"] = "block"
     main_world[ind]["props"]["style"]["display"] = "block"
@@ -187,7 +189,7 @@ def draw_diffs(
     ):
         return no_update, no_update, no_update, no_update, no_update
 
-    if triggered_id.get("type") == GENERIC_SHOW_DIFF_BTN:
+    if isinstance(triggered_id, dict) and triggered_id.get("type") == GENERIC_SHOW_DIFF_BTN:
         col_to_compare = triggered_id["index"]
         col_to_compare = col_to_compare if col_to_compare != DYNAMIC_SHOW_DIFF_IDX else dynamic_column
     else:
@@ -200,15 +202,15 @@ def draw_diffs(
     meta_data_tables = tables.get(meta_data_table)
     lables_table = tables[lables_table]
 
-    query = generate_diff_query(
+    query = generate_diff_with_labels_query(
         main_dump,
         secondary_dump,
         main_tables,
+        lables_table,
         population,
         col_to_compare,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
-        labels_tables=lables_table,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
@@ -237,9 +239,9 @@ def compute_images_from_query_data(data, main_dump, secondary_dump):
         main_labels = main_lables_dict[(clip_name, grab_index)]
         secondary_label = secondary_label_dict[(clip_name, grab_index)]
         main_img_figs.append(draw_img(curr_img, main_labels, main_dump, clip_name, grab_index))
-        main_world_figs.append(draw_world(main_labels))
+        main_world_figs.append(draw_top_view(main_labels))
         secondary_img_figs.append(draw_img(curr_img, secondary_label, secondary_dump, clip_name, grab_index))
-        secondary_world_figs.append(draw_world(secondary_label))
+        secondary_world_figs.append(draw_top_view(secondary_label))
 
     return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs
 
@@ -264,6 +266,7 @@ def parse_labels_df(labels_df):
         return {}
 
     labels_df = labels_df.rename(columns=lambda x: re.sub(r"\.\d+$", "", x))
+    labels_df = labels_df[labels_df['obj_id'].notna()]
     labels_dict = {x: y.to_dict("records") for x, y in labels_df.groupby(["clip_name", "grabindex"])}
     labels_dict = {
         frame_id: [merge_partitioned_columns(cand) for cand in frame_cands]

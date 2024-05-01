@@ -56,18 +56,10 @@ def generate_table_instance(name, tables, dump_names):
         return Table(name, tables_dict)
 
     columns_type = get_columns_data_types(table)
-
-    uninteresting_columns = [
-        "s3_path",
-        "pred_name",
-        "dump_name",
-        "population",
-        "grabindex",
-    ]
     relevant_columns_type = {
         col: dtype
         for col, dtype in columns_type.items()
-        if col not in uninteresting_columns and not re.search(r"(_|.)\d+$", col)
+        if not re.search(r"(_|.)\d+$", col)
     }
 
     columns_options = parse_columns_options(relevant_columns_type)
@@ -78,9 +70,17 @@ def generate_table_instance(name, tables, dump_names):
 
 
 def get_columns_data_types(table):
+    uninteresting_columns = [
+        "s3_path",
+        "pred_name",
+        "dump_name",
+        "population",
+        "grabindex",
+    ]
+
     query = f"SELECT * FROM ({table}) LIMIT 1"
     data, _ = query_athena(database="run_eval_db", query=query)
-    columns_type = {k.lower(): v for k, v in data.dtypes.apply(lambda x: x.name).to_dict().items()}
+    columns_type = {k.lower(): v for k, v in data.dtypes.apply(lambda x: x.name).to_dict().items() if k not in uninteresting_columns}
     return columns_type
 
 

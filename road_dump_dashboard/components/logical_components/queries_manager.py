@@ -19,7 +19,7 @@ SELECT_QUERY = """
 
 JOIN_QUERY = """
     (SELECT {columns_to_select} 
-    FROM {main_data} A LEFT JOIN {secondary_data} B
+    FROM {main_data} A INNER JOIN {secondary_data} B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex)) 
     {meta_data_filters})
     """
@@ -27,33 +27,26 @@ JOIN_QUERY = """
 CONF_QUERY = """
     SELECT main_val, secondary_val, COUNT(*) AS overall FROM
     (SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val
-    FROM ({main_data}) A LEFT JOIN ({secondary_data}) B
+    FROM ({main_data}) A INNER JOIN ({secondary_data}) B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id)))
     GROUP BY main_val, secondary_val
     """
 
 DIFF_IDS_QUERY = """
     SELECT A.clip_name as clip_name, A.grabindex as grabindex
-    FROM ({main_data}) A FULL JOIN ({secondary_data}) B
+    FROM ({main_data}) A INNER JOIN ({secondary_data}) B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id))
     WHERE A.{column_to_compare} != B.{column_to_compare}
     GROUP BY A.clip_name, A.grabindex
-    LIMIT 20
+    LIMIT {limit}
     """
 
 JOIN_LABELS_QUERY = """
     SELECT '' AS main_start, LABELS_A.*, '' AS secondary_start, LABELS_B.*
-    FROM ({main_labels}) LABELS_A LEFT JOIN ({secondary_labels}) LABELS_B 
+    FROM ({main_labels}) LABELS_A FULL JOIN ({secondary_labels}) LABELS_B 
     ON ((LABELS_A.clip_name = LABELS_B.clip_name) AND (LABELS_A.grabindex = LABELS_B.grabindex) AND (LABELS_A.obj_id = LABELS_B.obj_id)) 
     WHERE (LABELS_A.clip_name, LABELS_A.grabindex) IN ({ids_data})
     """
-
-# JOIN_LABELS_QUERY = """  # TODO: maybe more efficient
-#     SELECT '' AS main_start, LABELS_A.*, '' AS secondary_start, LABELS_B.*
-#     FROM ({ids_data}) IDS
-#     INNER JOIN ({main_labels}) LABELS_A ON ((IDS.clip_name = LABELS_A.clip_name) AND (IDS.grabindex = LABELS_A.grabindex))
-#     INNER JOIN ({secondary_labels}) LABELS_B ON ((LABELS_A.clip_name = LABELS_B.clip_name) AND (LABELS_A.grabindex = LABELS_B.grabindex) AND (LABELS_A.obj_id = LABELS_B.obj_id))
-#     """
 
 COUNT_QUERY = """
     SELECT dump_name, {group_by} AS {group_name}, {count_metric}
@@ -76,6 +69,8 @@ COUNT_ALL_METRIC = """
     COUNT(*) 
     AS {count_name}
     """
+
+IMG_LIMIT = 30
 
 
 def generate_conf_mat_query(
@@ -128,7 +123,7 @@ def generate_diff_query(
     meta_data_tables=None,
     meta_data_filters="",
     extra_filters="",
-    labels_tables=None,
+    limit=IMG_LIMIT,
 ):
     extra_filters = add_ignore_filter(column_to_compare, extra_filters, main_tables, meta_data_tables)
     extra_columns = [column_to_compare]
@@ -158,15 +153,39 @@ def generate_diff_query(
         main_data=main_data,
         secondary_data=secondary_data,
         column_to_compare=column_to_compare,
+        limit=limit,
     )
+    return query
 
-    if labels_tables:
-        query = JOIN_LABELS_QUERY.format(
-            ids_data=query,
-            main_labels=labels_tables["tables_dict"][main_dump],
-            secondary_labels=labels_tables["tables_dict"][secondary_dump],
-        )
 
+def generate_diff_with_labels_query(
+    main_dump,
+    secondary_dump,
+    main_tables,
+    labels_tables,
+    population,
+    column_to_compare,
+    meta_data_tables=None,
+    meta_data_filters="",
+    extra_filters="",
+    limit=IMG_LIMIT,
+):
+    diff_query = generate_diff_query(
+        main_dump,
+        secondary_dump,
+        main_tables,
+        population,
+        column_to_compare,
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        limit=limit,
+    )
+    query = JOIN_LABELS_QUERY.format(
+        ids_data=diff_query,
+        main_labels=labels_tables["tables_dict"][main_dump],
+        secondary_labels=labels_tables["tables_dict"][secondary_dump],
+    )
     return query
 
 

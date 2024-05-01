@@ -59,7 +59,6 @@ def redirect_to_home(pathname):
     Output(TABLES, "data", allow_duplicate=True),
     Input(URL, "hash"),
     State(TABLES, "data"),
-    background=True,
     prevent_initial_call=True,
 )
 def init_run(tables_list, existing_tables):

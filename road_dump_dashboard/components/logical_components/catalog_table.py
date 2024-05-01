@@ -75,7 +75,6 @@ def generate_catalog_layout():
     Input(UPDATE_RUNS_BTN, "n_clicks"),
     State(DUMP_CATALOG, "derived_virtual_data"),
     State(DUMP_CATALOG, "derived_virtual_selected_rows"),
-    background=True,
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:

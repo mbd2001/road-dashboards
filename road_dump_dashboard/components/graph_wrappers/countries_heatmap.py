@@ -56,7 +56,6 @@ def init_countries_dropdown(tables):
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(COUNTRIES_DROPDOWN, "value"),
-    background=True,
 )
 def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
     if not population or not tables or not chosen_dump:

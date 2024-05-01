@@ -5,9 +5,12 @@ from dash import dcc
 
 VERT = np.array((range(0, 256, 4))).reshape(-1, 1)
 IGNORE_VAL = -999
+IMG_AXIS = {"width": [0, 771], "height": [0, 256]}
+WORLD_AXIS = {"width": [-15, 15], "height": [-1, 150]}
+FIGS_HEIGHT = 800
 
 
-def draw_world(candidates):
+def draw_top_view(candidates):
     fig = go.Figure()
     for cand in candidates:
         idx = cand["obj_id"]
@@ -19,13 +22,15 @@ def draw_world(candidates):
         max_view_range_idx = cand.get("max_view_range_idx")
         draw_line(fig, idx, color, x, y=z, type=type, view_range=view_range, max_view_range_idx=max_view_range_idx)
 
-    fig.update_layout(showlegend=False)
+    fig.update_layout(showlegend=False, height=FIGS_HEIGHT)
+    fig.update_xaxes(range=WORLD_AXIS["width"])
+    fig.update_yaxes(range=WORLD_AXIS["height"])
     graph = dcc.Graph(config={"displayModeBar": False}, figure=fig, style={"display": "none"})
     return graph
 
 
 def draw_img(image, candidates, dump_name, clip_name, grab_index):
-    fig = px.imshow(image, color_continuous_scale="gray", origin="lower")
+    fig = px.imshow(image, color_continuous_scale="gray", origin="lower", aspect="auto")
     for cand in candidates:
         idx = cand["obj_id"]
         x = cand["dv_dp_points"][:, 0] if "dv_dp_points" in cand.keys() else cand["pos"]
@@ -47,8 +52,9 @@ def draw_img(image, candidates, dump_name, clip_name, grab_index):
             max_view_range_idx=max_view_range_idx,
         )
 
-    fig.update_layout(coloraxis_showscale=False)
-    fig.update_layout(title=f"{dump_name} <br><sup>{clip_name}, {grab_index}</sup>")
+    fig.update_layout(title=f"{dump_name} <br><sup>{clip_name}, {grab_index}</sup>", coloraxis_showscale=False, height=FIGS_HEIGHT)
+    fig.update_xaxes(showticklabels=False, range=IMG_AXIS["width"])
+    fig.update_yaxes(showticklabels=False, range=IMG_AXIS["height"])
     graph = dcc.Graph(config={"displayModeBar": False}, figure=fig, style={"display": "none"})
     return graph
 

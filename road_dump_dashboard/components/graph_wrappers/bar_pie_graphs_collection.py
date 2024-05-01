@@ -141,7 +141,6 @@ def init_dynamic_chart_dropdown(tables, main_table, meta_data_table):
     Input(INTERSECTION_SWITCH, "on"),
     State(CHARTS_MAIN_TABLE, "children"),
     State(CHARTS_MD_TABLE, "children"),
-    background=True,
 )
 def get_dynamic_chart(
     group_by_column, slider_value, meta_data_filters, tables, population, intersection_on, main_table, meta_data_table
@@ -186,7 +185,6 @@ def get_bins_factor(slider_value, column, main_tables, meta_data_tables):
     State({"type": GENERIC_COLUMNS_CHART, "index": MATCH}, "id"),
     State(CHARTS_MAIN_TABLE, "children"),
     State(CHARTS_MD_TABLE, "children"),
-    background=True,
 )
 def get_generic_column_chart(
     meta_data_filters, tables, population, intersection_on, col_to_compare, main_table, meta_data_table
@@ -220,7 +218,6 @@ def get_generic_column_chart(
     State({"type": GENERIC_FILTERS_CHART, "index": MATCH}, "id"),
     State(CHARTS_MAIN_TABLE, "children"),
     State(CHARTS_MD_TABLE, "children"),
-    background=True,
 )
 def get_generic_filter_chart(
     meta_data_filters, tables, population, intersection_on, filters, main_table, meta_data_table

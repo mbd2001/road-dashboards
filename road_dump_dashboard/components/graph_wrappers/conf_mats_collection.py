@@ -164,7 +164,6 @@ def init_secondary_dump_dropdown(tables):
     State({"type": GENERIC_CONF_MAT, "index": MATCH}, "id"),
     State(CONF_MATS_MAIN_TABLE, "children"),
     State(CONF_MATS_MD_TABLE, "children"),
-    background=True,
 )
 def get_generic_conf_mat(
     meta_data_filters, tables, population, main_dump, secondary_dump, col_to_compare, main_table, meta_data_table
@@ -213,7 +212,6 @@ def init_dynamic_conf_dropdown(tables):
     Input(DYNAMIC_CONF_DROPDOWN, "value"),
     State(CONF_MATS_MAIN_TABLE, "children"),
     State(CONF_MATS_MD_TABLE, "children"),
-    background=True,
 )
 def get_dynamic_conf_mat(
     meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_col, main_table, meta_data_table
