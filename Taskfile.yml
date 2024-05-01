@@ -7,7 +7,7 @@ vars:
   PYVERSION: 3.10
   PACKAGE_NAME: road-eval-dashboard
   PACKAGE_FOLDER: road_eval_dashboard
-  TEST_ENV_NAME: "{{.PACKAGE_NAME}}-env"
+  DEV_ENV_NAME: "{{.PACKAGE_NAME}}-dev"
   CONDA_RELEASE_CHANNEL: me-conda-dev-local
   PROJECT_VERSION:
       sh: hatch version
@@ -28,25 +28,33 @@ tasks:
       - hatch build --clean $HATCH_BUILD_OUTPUT_FOLDER
 
   conda:build:
-    desc: "build conda package with boa"
+    desc: "build conda package with rattler"
     cmds:
-      - boa build boa.recipe/ --output-folder {{.CONDA_BUILD_OUTPUT_FOLDER}} --no-test
+      - |
+        if ! command -v rattler-build >/dev/null 2>&1; then
+          echo "Installing rattler-build." && mamba install -y rattler-build
+        else
+          echo "Rattler-build is already installed."
+        fi
+      - mkdir -p {{.CONDA_BUILD_OUTPUT_FOLDER}}
+      - rattler-build build --package-format tar-bz2 -r rattler.recipe/ --output-dir {{.CONDA_BUILD_OUTPUT_FOLDER}} --no-test
+      - mamba index {{.CONDA_BUILD_OUTPUT_FOLDER}}
 
-  conda:create:dev:
-    desc: "create full testing environment"
+  conda:install:dev:
+    desc: "Install the dev conda env"
     cmds:
-      - python ./boa.recipe/create_env_yaml_from_recipe.py --env_type test --proj_name {{.PACKAGE_NAME}}
-      - mamba env create -n {{.TEST_ENV_NAME}} -f /tmp/{{.PACKAGE_NAME}}.test.yml
+      - python ./rattler.recipe/create_env_yaml_from_recipe.py --env_type dev --proj_name {{.PACKAGE_NAME}}
+      - mamba env create -n {{.DEV_ENV_NAME}} -f /tmp/{{.PACKAGE_NAME}}.dev.yml
 
-  conda:install-local-build:
+  conda:install:local-build:
     desc: "Install the built conda package in the test env. Should be called after build:conda."
     cmds:
-      - mamba install -y -n {{.TEST_ENV_NAME}} -c ./__localbuild__/conda --override-channels {{.PACKAGE_NAME}}
+      - mamba install -y -n {{.DEV_ENV_NAME}} -c ./__localbuild__/conda --override-channels {{.PACKAGE_NAME}}
 
   conda:test:
     desc: "Run tests with the built conda test env"
     cmds:
-      - mamba run -n {{.TEST_ENV_NAME}} pytest -v -s tests/units
+      - mamba run -n {{.DEV_ENV_NAME}} pytest -v -s tests/units
 
   pypi:test:
     desc: "Run tests with the built pypi test env"

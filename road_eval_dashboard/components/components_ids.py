@@ -104,12 +104,20 @@ PATH_NET_ACC_HOST = "path_net_accuracy_host"
 PATH_NET_ACC_NEXT = "path_net_accuracy_next"
 PATH_NET_MISSES_HOST = "path_net_misses_host"
 PATH_NET_MISSES_NEXT = "path_net_misses_next"
-PATH_NET_CONF_MAT = "path_net_conf_mat"
-PATH_NET_ALL_CONF_DIAGONAL = "overall_conf_mat_diagonal"
-PATH_NET_HOST_CONF_DIAGONAL = "overall_host_conf_mat_diagonal"
-PATH_NET_OVERALL_CONF_MAT = "path_net_overall_conf_mats"
-PATH_NET_HOST_CONF_MAT = "path_net_host_conf_mats"
-PATH_NET_ALL_CONF_MATS = "all_pathnet_conf_mats"
+
+
+PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"
+PATHNET_TPR_CARD = "all_dp_tpr_card_id"
+PATH_NET_ALL_TPR = "all_dp_tpr_id"
+PATH_NET_HOST_TPR = "host_dp_tpr_id"
+PATH_NET_HOST_CONF_MAT = "host_dp_conf_mat_id"
+PATH_NET_ALL_CONF_MATS = "all_dps_conf_mat_id"
+
+
+PATH_NET_BIASES_HOST = "path_net_biases_host"
+PATH_NET_BIASES_NEXT = "path_net_biases_next"
+PATH_NET_VIEW_RANGES_HOST = "path_net_view_range_host"
+PATH_NET_VIEW_RANGES_NEXT = "path_net_view_range_next"
 
 # lm 3d page
 LM_3D_SOURCE_DROPDOWN = "3d-source-dropdown"
