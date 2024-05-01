@@ -3,7 +3,7 @@ import enum
 from dash import Input, Output, callback, dcc, html, register_page
 
 from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
-from road_eval_dashboard.components.components_ids import REM_TABS, REM_TABS_CONTENT, REM_ROLES_DROPDOWN
+from road_eval_dashboard.components.components_ids import REM_ROLES_DROPDOWN, REM_TABS, REM_TABS_CONTENT
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.pages.rem_page.tabs import accuracy, availability, painted
@@ -13,10 +13,12 @@ register_page(__name__, path="/rem", name="REM", order=9, **extra_properties.__d
 
 TABS_LAYOUTS = {"accuracy": accuracy.layout, "availability": availability.layout, "painted": painted.layout}
 
+
 class Roles(str, enum.Enum):
     HOST = "host"
     NEXT = "next"
     OVERALL = ""
+
 
 def get_settings_layout():
     roles_options = {s.value: s.name.capitalize() for s in Roles}
@@ -26,6 +28,7 @@ def get_settings_layout():
             dcc.Dropdown(roles_options, Roles.HOST, id=REM_ROLES_DROPDOWN),
         ]
     )
+
 
 layout = html.Div(
     [

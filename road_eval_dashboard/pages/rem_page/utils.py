@@ -91,7 +91,7 @@ def get_rem_fig(
     label,
     pred,
     compare_operator="<=",
-        role=""
+    role="",
 ):
     query = generate_compare_metric_query(
         nets["gt_tables"],
@@ -103,7 +103,7 @@ def get_rem_fig(
         extra_filters=f"{label} != -1 AND {label} < 999",
         compare_operator=compare_operator,
         extra_columns=["rem_point_sec", "rem_point_Z"],
-        role=role
+        role=role,
     )
     data, _ = run_query_with_nets_names_processing(query)
     filter_name_to_display = filter_name.replace("_", " ").capitalize()

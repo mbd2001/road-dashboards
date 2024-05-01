@@ -1,7 +1,11 @@
 from dash import MATCH, Input, Output, State, callback, html, no_update
 
-from road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS, \
-    REM_ROLES_DROPDOWN
+from road_eval_dashboard.components.components_ids import (
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    MD_FILTERS,
+    NETS,
+    REM_ROLES_DROPDOWN,
+)
 from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
 
 TAB = "painted"
@@ -35,7 +39,7 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
         interesting_filters=interesting_filters,
         effective_samples=effective_samples,
         filter_name=filter_name,
-        role=role
+        role=role,
     )
     return fig
 
@@ -62,19 +66,12 @@ def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_sample
         interesting_filters=interesting_filters,
         effective_samples=effective_samples,
         filter_name=filter_name,
-        role=role
+        role=role,
     )
     return fig
 
 
-def get_painted_fig(
-    meta_data_filters,
-    nets,
-    interesting_filters,
-    effective_samples,
-    filter_name,
-        role=""
-):
+def get_painted_fig(meta_data_filters, nets, interesting_filters, effective_samples, filter_name, role=""):
     label = "rem_point_index"
     pred = "rem_painted_pred_point"
     title = f"Painted"
@@ -88,6 +85,6 @@ def get_painted_fig(
         label,
         pred,
         compare_operator="=",
-        role=role
+        role=role,
     )
     return fig

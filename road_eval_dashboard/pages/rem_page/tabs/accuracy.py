@@ -9,7 +9,8 @@ from road_eval_dashboard.components.components_ids import (
     REM_ACCURACY_3D_SOURCE_DROPDOWN,
     REM_ACCURACY_ERROR_THRESHOLD_SLIDER,
     REM_ERROR_HISTOGRAM,
-    REM_ERROR_HISTOGRAM_Z_OR_SEC, REM_ROLES_DROPDOWN,
+    REM_ERROR_HISTOGRAM_Z_OR_SEC,
+    REM_ROLES_DROPDOWN,
 )
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
@@ -114,7 +115,7 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
         meta_data_filters=meta_data_filters,
         extra_filters=f"{sum_col} != -1 AND {sum_col} < 999",
         extra_columns=["rem_point_sec", "rem_point_Z"],
-        role=role
+        role=role,
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data.sort_values(by="net_id")
@@ -155,7 +156,7 @@ def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, 
         filter_name=filter_name,
         source=source,
         error_threshold=error_threshold,
-        role=role
+        role=role,
     )
     return fig
 
@@ -186,7 +187,7 @@ def get_dist_graph(meta_data_filters, role, source, error_threshold, sort_by_dis
         filter_name=filter_name,
         source=source,
         error_threshold=error_threshold,
-        role=role
+        role=role,
     )
     return fig
 
@@ -197,5 +198,7 @@ def get_accuracy_fig(
     label = f"rem_accuracy_{source}"
     pred = error_threshold
     title = f"Accuracy By {source} With Threshold {error_threshold}"
-    fig = get_rem_fig(meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, label, pred, role=role)
+    fig = get_rem_fig(
+        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, label, pred, role=role
+    )
     return fig

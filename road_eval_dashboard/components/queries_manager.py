@@ -369,7 +369,7 @@ def generate_compare_metric_query(
     extra_filters="",
     compare_operator=">=",
     extra_columns=[],
-        role=""
+    role="",
 ):
     metrics = ", ".join(
         COMPARE_METRIC.format(
@@ -386,12 +386,19 @@ def generate_compare_metric_query(
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)] + extra_columns,
-        role=role
+        role=role,
     )
 
 
 def generate_sum_bins_metric_query(
-    data_tables, meta_data, sum_col, interesting_filters, meta_data_filters="", extra_filters="", extra_columns=[], role=""
+    data_tables,
+    meta_data,
+    sum_col,
+    interesting_filters,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
 ):
     metrics = ", ".join(
         SUM_BY_CASE_METRIC.format(col_name=sum_col, extra_filters=filter, ind=name)
@@ -409,7 +416,7 @@ def generate_sum_bins_metric_query(
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         extra_columns=[sum_col] + extra_columns,
-        role=role
+        role=role,
     )
 
 
