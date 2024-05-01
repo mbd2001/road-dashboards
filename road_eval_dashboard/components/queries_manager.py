@@ -352,7 +352,7 @@ def get_query_by_metrics(
 
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     if count_metrics is not None:
-        metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
+        metrics = format_metric_by_interesting_filters(count_metrics, MD_FILTER_COUNT)
         group_by = "net_id"
         md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
         query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
@@ -710,7 +710,7 @@ def generate_precision_query(
     role="",
 ):
     metrics = (
-        get_fb_per_filter_metrics(interesting_filters, FB_PRECISION_METRIC)
+        format_metric_by_interesting_filters(interesting_filters, FB_PRECISION_METRIC)
         if interesting_filters
         else get_fb_curve_metrics(FB_PRECISION_METRIC)
     )
@@ -745,7 +745,7 @@ def generate_recall_query(
         role=role,
     )
     metrics = (
-        get_fb_per_filter_metrics(interesting_filters, FB_OVERALL_METRIC)
+        format_metric_by_interesting_filters(interesting_filters, FB_OVERALL_METRIC)
         if interesting_filters
         else get_fb_curve_metrics(FB_CURVE_METRIC)
     )
@@ -753,7 +753,7 @@ def generate_recall_query(
     if not interesting_filters:
         return recall_query
 
-    metrics = get_fb_per_filter_metrics(interesting_filters, MD_FILTER_COUNT)
+    metrics = format_metric_by_interesting_filters(interesting_filters, MD_FILTER_COUNT)
     group_by = get_fb_group_by(input_thresh)
     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
 
@@ -761,7 +761,7 @@ def generate_recall_query(
     return final_query
 
 
-def get_fb_per_filter_metrics(interesting_filters, metric):
+def format_metric_by_interesting_filters(interesting_filters, metric):
     metrics = ", ".join(
         metric.format(extra_filters=f"AND ({filter})", ind=name) for name, filter in interesting_filters.items()
     )

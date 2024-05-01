@@ -26,11 +26,10 @@ from road_eval_dashboard.pages.rem_page.utils import (
     Z_FILTERS,
     get_base_graph_layout,
     get_rem_fig,
-    get_rem_score,
+    get_rem_score, IGNORES_FILTER,
 )
 
 TAB = "accuracy"
-
 
 def get_settings_layout():
     options = [s.value for s in ZSources]
@@ -113,7 +112,7 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
         sum_col=sum_col,
         interesting_filters=interesting_filters,
         meta_data_filters=meta_data_filters,
-        extra_filters=f"{sum_col} != -1 AND {sum_col} < 999",
+        extra_filters=IGNORES_FILTER.format(col=sum_col),
         extra_columns=["rem_point_sec", "rem_point_Z"],
         role=role,
     )

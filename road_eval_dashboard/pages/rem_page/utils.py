@@ -31,7 +31,7 @@ REM_FILTERS = {
     "weather": {"filters": WEATHER_FILTERS},
     "curve": {"filters": CURVE_BY_RAD_FILTERS, "dist_filters": CURVE_BY_DIST_FILTERS, "sort_by_dist": True},
 }
-
+IGNORES_FILTER = "{col} != -1 AND {col} < 999"
 
 def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
     layout = card_wrapper(
@@ -100,7 +100,7 @@ def get_rem_fig(
         pred,
         interesting_filters,
         meta_data_filters=meta_data_filters,
-        extra_filters=f"{label} != -1 AND {label} < 999",
+        extra_filters=IGNORES_FILTER.format(col=label),
         compare_operator=compare_operator,
         extra_columns=["rem_point_sec", "rem_point_Z"],
         role=role,
