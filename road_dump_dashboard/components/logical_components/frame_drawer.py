@@ -52,7 +52,9 @@ def draw_img(image, candidates, dump_name, clip_name, grab_index):
             max_view_range_idx=max_view_range_idx,
         )
 
-    fig.update_layout(title=f"{dump_name} <br><sup>{clip_name}, {grab_index}</sup>", coloraxis_showscale=False, height=FIGS_HEIGHT)
+    fig.update_layout(
+        title=f"{dump_name} <br><sup>{clip_name}, {grab_index}</sup>", coloraxis_showscale=False, height=FIGS_HEIGHT
+    )
     fig.update_xaxes(showticklabels=False, range=IMG_AXIS["width"])
     fig.update_yaxes(showticklabels=False, range=IMG_AXIS["height"])
     graph = dcc.Graph(config={"displayModeBar": False}, figure=fig, style={"display": "none"})

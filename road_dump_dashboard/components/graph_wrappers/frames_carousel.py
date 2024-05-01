@@ -32,9 +32,9 @@ from road_dump_dashboard.components.constants.components_ids import (
     SECONDARY_WORLD,
     TABLES,
 )
-from road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper, card_wrapper
+from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.logical_components.frame_drawer import draw_img, draw_top_view
-from road_dump_dashboard.components.logical_components.queries_manager import generate_diff_with_labels_query, IMG_LIMIT
+from road_dump_dashboard.components.logical_components.queries_manager import IMG_LIMIT, generate_diff_with_labels_query
 
 DV_DB_MANAGER = DroneViewDBManager()
 
@@ -266,7 +266,7 @@ def parse_labels_df(labels_df):
         return {}
 
     labels_df = labels_df.rename(columns=lambda x: re.sub(r"\.\d+$", "", x))
-    labels_df = labels_df[labels_df['obj_id'].notna()]
+    labels_df = labels_df[labels_df["obj_id"].notna()]
     labels_dict = {x: y.to_dict("records") for x, y in labels_df.groupby(["clip_name", "grabindex"])}
     labels_dict = {
         frame_id: [merge_partitioned_columns(cand) for cand in frame_cands]
