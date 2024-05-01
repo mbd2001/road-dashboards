@@ -4,8 +4,8 @@ from jira import JIRA
 
 MAX_ISSUE_KEY_DIGITS = 5
 ME_JIRA_SERVER = "https://jira.mobileye.com"
-USER = "alonw"
-TOKEN = "LTSjaeoUn7EVBe6UlmWyxU0UM63lJh7MujBDtm"
+USER = "s_s_sys_road"
+TOKEN = "HAxRuBpy8LevVUlgN4F267rDAKrLDygur1coJR"
 jira_client = None
 
 
