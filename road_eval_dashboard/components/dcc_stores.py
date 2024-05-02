@@ -2,6 +2,7 @@ from dash import dcc, html
 
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
+    GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
@@ -17,6 +18,7 @@ def init_dcc_stores():
     return html.Div(
         [
             dcc.Store(id=NETS, storage_type="session"),
+            dcc.Store(id=GRAPH_TO_COPY, storage_type="session"),
             dcc.Store(id=MD_COLUMNS_TO_TYPE, storage_type="session"),
             dcc.Store(id=MD_COLUMNS_OPTION, storage_type="session"),
             dcc.Store(id=MD_COLUMNS_TO_DISTINCT_VALUES, storage_type="session"),

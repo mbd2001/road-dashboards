@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
     generate_conf_mat_query,
@@ -23,7 +24,7 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
                     [
                         dbc.Row(
                             [
-                                dcc.Graph(id=upper_diag_id, config={"displayModeBar": False}),
+                                graph_wrapper(upper_diag_id),
                             ]
                         )
                     ]
@@ -36,7 +37,7 @@ def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_i
                     [
                         dbc.Row(
                             [
-                                dcc.Graph(id=lower_diag_id, config={"displayModeBar": False}),
+                                graph_wrapper(lower_diag_id),
                             ]
                         )
                     ]
@@ -58,11 +59,11 @@ def generate_confusion_matrix_card_layout(net, ind, left_conf_mat_id, right_conf
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=left_conf_mat_id, config={"displayModeBar": False})]),
+                        graph_wrapper(left_conf_mat_id),
                         width=6,
                     ),
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=right_conf_mat_id, config={"displayModeBar": False})]),
+                        graph_wrapper(right_conf_mat_id),
                         width=6,
                     ),
                 ],

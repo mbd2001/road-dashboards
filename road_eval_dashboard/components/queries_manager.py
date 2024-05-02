@@ -123,12 +123,12 @@ DIST_METRIC = """
     """
 
 VIEW_RANGE_SUCCESS_RATE_QUERY = """
-    SUM(CAST({max_Z_col}_pred >= {Z_sample} AND {max_Z_col}_label >= {Z_sample} AS DOUBLE)) / 
-    SUM(CAST({max_Z_col}_label >= {Z_sample} AS DOUBLE))
+    SUM(CAST("{max_Z_col}_pred" >= {Z_sample} AND "{max_Z_col}_label" >= {Z_sample} AS DOUBLE)) / 
+    SUM(CAST("{max_Z_col}_label" >= {Z_sample} AS DOUBLE))
     AS "vr_score_{Z_sample}"
     """
 
-VIEW_RANGE_COUNT_GT_QUERY = """ SUM(CAST({max_Z_col}_label >= {Z_sample} AS DOUBLE)) AS "vr_num_gt_{Z_sample}" """
+VIEW_RANGE_COUNT_GT_QUERY = """ SUM(CAST("{max_Z_col}_label" >= {Z_sample} AS DOUBLE)) AS "vr_num_gt_{Z_sample}" """
 
 TP_METRIC = """
     CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} > {thresh} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE)
@@ -487,12 +487,9 @@ def generate_view_range_success_rate_query(
     role="",
     naive_Z=False,
     use_err_est=True,
+    err_est_threshold=0.2,
 ):
-    max_Z_col = "view_range_max_Z"
-    if not naive_Z:
-        max_Z_col += "_3d"
-    if use_err_est:
-        max_Z_col += "_err_est"
+    max_Z_col = get_view_range_col_name("view_range_max_Z", naive_Z, use_err_est, err_est_threshold)
     metrics_lst = []
     for Z in Z_samples:
         metrics_lst.append(VIEW_RANGE_SUCCESS_RATE_QUERY.format(max_Z_col=max_Z_col, Z_sample=Z))
@@ -504,11 +501,19 @@ def generate_view_range_success_rate_query(
         meta_data_filters=meta_data_filters,
         extra_filters="confidence > 0 AND match <> -1",
         role=role,
-        extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
+        extra_columns=[f'"{max_Z_col}_pred"', f'"{max_Z_col}_label"'],
     )
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
     return query
+
+
+def get_view_range_col_name(max_Z_col, naive_Z, use_err_est, threshold):
+    if not naive_Z:
+        max_Z_col += "_3d"
+    if use_err_est:
+        max_Z_col += f"_err_est_{threshold}"
+    return max_Z_col
 
 
 def generate_view_range_histogram_query(
@@ -519,12 +524,9 @@ def generate_view_range_histogram_query(
     role="",
     naive_Z=False,
     use_err_est=True,
+    err_est_threshold=0.2,
 ):
-    max_Z_col = "view_range_max_Z"
-    if not naive_Z:
-        max_Z_col += "_3d"
-    if use_err_est:
-        max_Z_col += "_err_est"
+    max_Z_col = get_view_range_col_name("view_range_max_Z", naive_Z, use_err_est, err_est_threshold)
     query = generate_count_query(
         data_tables,
         meta_data,
@@ -532,13 +534,13 @@ def generate_view_range_histogram_query(
         bins_factor=bin_size,
         extra_filters="confidence > 0 AND match <> -1",
         role=role,
-        extra_columns=[f"{max_Z_col}_pred", f"{max_Z_col}_label"],
-        group_by_column=f"{max_Z_col}_pred",
+        extra_columns=[f'"{max_Z_col}_pred"', f'"{max_Z_col}_label"'],
+        group_by_column=f'"{max_Z_col}_pred"',
         group_by_net_id=True,
         include_all=False,
     )
 
-    query = f"{query} ORDER BY net_id, {max_Z_col}_pred"
+    query = f'{query} ORDER BY net_id, "{max_Z_col}_pred"'
 
     return query
 

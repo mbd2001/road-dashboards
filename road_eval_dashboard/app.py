@@ -8,6 +8,7 @@ from road_eval_dashboard.components import page_content, sidebar
 from road_eval_dashboard.components.catalog_table import update_state_by_nets
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
+    GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
@@ -59,6 +60,31 @@ app.layout = html.Div(
         page_content.layout,
     ],
     className="wrapper",
+)
+
+app.clientside_callback(
+    """function(stored_image_data) {
+    if (stored_image_data) {
+        const img = new Image();
+        img.src = 'data:image/png;base64,' + stored_image_data;
+
+        img.onload = function() {
+            const canvas = document.createElement('canvas');
+            canvas.width = this.naturalWidth;
+            canvas.height = this.naturalHeight;
+            canvas.getContext('2d').drawImage(this, 0, 0);
+
+            canvas.toBlob(function(blob) {
+                const item = new ClipboardItem({'image/png': blob});
+                navigator.clipboard.write([item]);
+            });
+        };
+    }
+    return window.dash_clientside.no_update, false
+}
+""",
+    Output("saved_alert", "is_open"),
+    Input(GRAPH_TO_COPY, "data"),
 )
 
 

@@ -7,11 +7,14 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER,
     VIEW_RANGE_HISTOGRAM_CUMULATIVE,
     VIEW_RANGE_HISTOGRAM_ERR_EST,
+    VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
     VIEW_RANGE_HISTOGRAM_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE,
     VIEW_RANGE_SUCCESS_RATE_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST,
+    VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_NAIVE_Z,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP,
@@ -19,13 +22,38 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_Z_STEP,
 )
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
 
 def view_range_success_rate_card():
     return card_wrapper(
         [
-            dbc.Row(loading_wrapper([dcc.Graph(id=VIEW_RANGE_SUCCESS_RATE, config={"displayModeBar": False})])),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        graph_wrapper(VIEW_RANGE_SUCCESS_RATE),
+                        width=11,
+                    ),
+                    dbc.Col(
+                        html.Div(
+                            [
+                                dcc.Slider(
+                                    id=VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD,
+                                    min=0.2,
+                                    max=0.3,
+                                    step=0.05,
+                                    value=0.2,
+                                    vertical=True,
+                                ),
+                                html.Label("Error Estimation Threshold", style={"text-align": "center"}),
+                            ],
+                            style={"width": "80%"},
+                        ),
+                        width=1,
+                    ),
+                ]
+            ),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
@@ -80,7 +108,7 @@ def view_range_histogram_card():
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=VIEW_RANGE_HISTOGRAM, config={"displayModeBar": False})]),
+                        graph_wrapper(VIEW_RANGE_HISTOGRAM),
                         width=11,
                     ),
                     dbc.Col(
@@ -117,6 +145,19 @@ def view_range_histogram_card():
                         label="filter error estimation",
                         labelPosition="top",
                     ),
+                    html.Div(
+                        [
+                            dcc.Slider(
+                                id=VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD,
+                                min=0.2,
+                                max=0.3,
+                                step=0.05,
+                                value=0.2,
+                            ),
+                            html.Label("Error Estimation Threshold", style={"text-align": "center"}),
+                        ],
+                        style={"width": "80%"},
+                    ),
                 ],
                 direction="horizontal",
                 gap=3,
@@ -129,14 +170,29 @@ def view_range_host_next_success_rate_card():
     return card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id={"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": ""},
-                            config={"displayModeBar": False},
-                        )
-                    ]
-                )
+                [
+                    dbc.Col(graph_wrapper({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": ""}), width=11),
+                    dbc.Col(
+                        html.Div(
+                            [
+                                dcc.Slider(
+                                    id={
+                                        "type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD,
+                                        "extra_filter": "",
+                                    },
+                                    min=0.2,
+                                    max=0.3,
+                                    step=0.05,
+                                    value=0.2,
+                                    vertical=True,
+                                ),
+                                html.Label("Error Estimation Threshold", style={"text-align": "center"}),
+                            ],
+                            style={"width": "80%"},
+                        ),
+                        width=1,
+                    ),
+                ]
             ),
             dbc.Stack(
                 [
@@ -192,11 +248,11 @@ def get_host_next_graph(host_id, next_id, is_Z_id):
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=host_id, config={"displayModeBar": False})]),
+                        graph_wrapper(host_id),
                         width=6,
                     ),
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=next_id, config={"displayModeBar": False})]),
+                        graph_wrapper(next_id),
                         width=6,
                     ),
                 ]
