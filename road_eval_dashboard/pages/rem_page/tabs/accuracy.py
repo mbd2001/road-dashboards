@@ -62,7 +62,7 @@ def get_error_histogram_layout():
         [
             dbc.Row(
                 graph_wrapper(
-                           REM_ERROR_HISTOGRAM,
+                    REM_ERROR_HISTOGRAM,
                 )
             ),
             dbc.Stack(

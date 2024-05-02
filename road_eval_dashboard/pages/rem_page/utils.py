@@ -40,15 +40,15 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
         [
             dbc.Row(
                 graph_wrapper(
-                            {
-                                "out": "graph",
-                                "filter": filter_name,
-                                "rem_type": REM_TYPE,
-                                "sort_by_dist": sort_by_dist,
-                                "tab": tab,
-                            }
-                        )
-                ),
+                    {
+                        "out": "graph",
+                        "filter": filter_name,
+                        "rem_type": REM_TYPE,
+                        "sort_by_dist": sort_by_dist,
+                        "tab": tab,
+                    }
+                )
+            ),
             dbc.Stack(
                 (
                     [
