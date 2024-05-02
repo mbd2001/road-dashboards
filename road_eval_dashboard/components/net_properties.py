@@ -52,7 +52,7 @@ class Nets:
                 f'"pos_dZ_{source}_{axis}_dists_{sec}"'
                 for sec in lm_3d_distances
                 for axis in ["Z", "X"]
-                for source in [s.value for s in ZSources]
+                for source in [s.value for s in ZSources if s != ZSources.Z_COORDS]
             ],
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",

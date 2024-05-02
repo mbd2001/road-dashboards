@@ -32,7 +32,7 @@ register_page(__name__, path="/lm_3d", name="LM 3D", order=3, **extra_properties
 
 
 def get_3d_source_layout():
-    options = [s.value for s in ZSources]
+    options = [s.value for s in ZSources if s != ZSources.Z_COORDS]
     return card_wrapper(
         [
             html.H6("Choose 3d source"),

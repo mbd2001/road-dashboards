@@ -79,7 +79,12 @@ COMPARE_QUERY = """
 COMPARE_METRIC = """
     CAST(COUNT(CASE WHEN ({label_col} {operator} {pred_col}) {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) /
     COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END)
-    AS score_{ind}
+    AS "score_{ind}"
+    """
+
+SUM_BY_CASE_METRIC = """
+    SUM(CASE WHEN ({extra_filters}) THEN {col_name} ELSE 0 END)
+    AS "score_{ind}"
     """
 
 FB_PRECISION_METRIC = """
@@ -197,6 +202,7 @@ class ZSources(str, enum.Enum):
     FUSION = "fusion"
     dZ = "dZ"
     dY = "dY"
+    Z_COORDS = "Z_coords"
 
 
 sec_to_dist_acc = {
@@ -325,7 +331,35 @@ def generate_vmax_fb_query(
     return query
 
 
-def generate_emdp_query(
+def get_query_by_metrics(
+    data_tables,
+    meta_data,
+    metrics,
+    count_metrics=None,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=extra_columns,
+        role=role,
+    )
+
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+    if count_metrics is not None:
+        metrics = format_metric_by_interesting_filters(count_metrics, MD_FILTER_COUNT)
+        group_by = "net_id"
+        md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+        query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
+    return query
+
+
+def generate_compare_metric_query(
     data_tables,
     meta_data,
     label_col,
@@ -334,22 +368,66 @@ def generate_emdp_query(
     meta_data_filters="",
     extra_filters="",
     compare_operator=">=",
+    extra_columns=[],
+    role="",
 ):
-    base_query = generate_base_query(
-        data_tables,
-        meta_data,
-        meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
-        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
-    )
     metrics = ", ".join(
         COMPARE_METRIC.format(
             label_col=label_col, operator=compare_operator, pred_col=pred_col, extra_filters=f"AND ({filter})", ind=name
         )
         for name, filter in interesting_filters.items()
     )
-    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
-    return query
+    count_metrics = get_compare_count_metrics(label_col, pred_col, interesting_filters, compare_operator)
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics=metrics,
+        count_metrics=count_metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)] + extra_columns,
+        role=role,
+    )
+
+
+def generate_sum_bins_metric_query(
+    data_tables,
+    meta_data,
+    sum_col,
+    interesting_filters,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    metrics = ", ".join(
+        SUM_BY_CASE_METRIC.format(col_name=sum_col, extra_filters=filter, ind=name)
+        for name, filter in interesting_filters.items()
+    )
+    count_metrics = {
+        interesting_filter_name: f"{extra_filters} AND {interesting_filter}"
+        for interesting_filter_name, interesting_filter in interesting_filters.items()
+    }
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics=metrics,
+        count_metrics=count_metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=[sum_col] + extra_columns,
+        role=role,
+    )
+
+
+def get_compare_count_metrics(label_col, pred_col, intresting_filters, operator):
+    count_metrics = {}
+    for extra_filter_name, extra_filter in intresting_filters.items():
+        extra_filter_str = f"AND {extra_filter}" if extra_filter_name else ""
+        count_metrics[extra_filter_name] = (
+            f'"{label_col}" IS NOT NULL AND "{label_col}" {operator} {pred_col} {extra_filter_str}'
+        )
+    return count_metrics
 
 
 def generate_avail_query(
@@ -524,24 +602,21 @@ def get_dist_query(
         for sec, thresh in distances_dict.items()
         for extra_filter_name, extra_filter in intresting_filters.items()
     )
-    base_query = generate_base_query(
+    count_metrics = (
+        get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
+        if is_add_filters_count
+        else None
+    )
+    return get_query_by_metrics(
         data_tables,
         meta_data,
+        metrics,
+        count_metrics=count_metrics,
         meta_data_filters=meta_data_filters,
         extra_filters=base_extra_filters,
         role=role,
         extra_columns=extra_columns,
     )
-    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
-
-    if is_add_filters_count:
-        count_metrics = get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
-        metrics = get_fb_per_filter_metrics(count_metrics, MD_FILTER_COUNT)
-        group_by = "net_id"
-        md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
-        query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
-
-    return query
 
 
 def get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator):
@@ -653,7 +728,7 @@ def generate_precision_query(
     role="",
 ):
     metrics = (
-        get_fb_per_filter_metrics(interesting_filters, FB_PRECISION_METRIC)
+        format_metric_by_interesting_filters(interesting_filters, FB_PRECISION_METRIC)
         if interesting_filters
         else get_fb_curve_metrics(FB_PRECISION_METRIC)
     )
@@ -688,7 +763,7 @@ def generate_recall_query(
         role=role,
     )
     metrics = (
-        get_fb_per_filter_metrics(interesting_filters, FB_OVERALL_METRIC)
+        format_metric_by_interesting_filters(interesting_filters, FB_OVERALL_METRIC)
         if interesting_filters
         else get_fb_curve_metrics(FB_CURVE_METRIC)
     )
@@ -696,7 +771,7 @@ def generate_recall_query(
     if not interesting_filters:
         return recall_query
 
-    metrics = get_fb_per_filter_metrics(interesting_filters, MD_FILTER_COUNT)
+    metrics = format_metric_by_interesting_filters(interesting_filters, MD_FILTER_COUNT)
     group_by = get_fb_group_by(input_thresh)
     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
 
@@ -704,7 +779,7 @@ def generate_recall_query(
     return final_query
 
 
-def get_fb_per_filter_metrics(interesting_filters, metric):
+def format_metric_by_interesting_filters(interesting_filters, metric):
     metrics = ", ".join(
         metric.format(extra_filters=f"AND ({filter})", ind=name) for name, filter in interesting_filters.items()
     )

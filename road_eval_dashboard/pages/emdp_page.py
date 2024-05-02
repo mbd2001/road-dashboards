@@ -29,7 +29,7 @@ from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     _get_emdp_col,
-    generate_emdp_query,
+    generate_compare_metric_query,
     generate_emdp_view_range_sec_histogram_query,
     generate_emdp_view_range_Z_histogram_query,
     run_query_with_nets_names_processing,
@@ -420,7 +420,7 @@ def get_emdp_fig(
     label = "is_matched" if is_precision else "Z_max_sec"
     label = _get_emdp_col(label, not is_world, filter_none_monotonic)
     pred = PRECISION_MATCHED if is_precision else sec_to_check
-    query = generate_emdp_query(
+    query = generate_compare_metric_query(
         nets["frame_tables"],
         nets["meta_data"],
         label,
