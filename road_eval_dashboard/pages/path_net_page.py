@@ -30,6 +30,7 @@ from road_eval_dashboard.components.components_ids import (
     SPLIT_ROLE_POPULATION_DROPDOWN,
 )
 from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
@@ -62,11 +63,11 @@ pos_layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_ACC_HOST, config={"displayModeBar": False})]),
+                            graph_wrapper(PATH_NET_ACC_HOST),
                             width=6,
                         ),
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_ACC_NEXT, config={"displayModeBar": False})]),
+                            graph_wrapper(PATH_NET_ACC_NEXT),
                             width=6,
                         ),
                     ]
@@ -86,11 +87,11 @@ pos_layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_HOST, config={"displayModeBar": False})]),
+                            graph_wrapper(PATH_NET_FALSES_HOST),
                             width=6,
                         ),
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_FALSES_NEXT, config={"displayModeBar": False})]),
+                            graph_wrapper(PATH_NET_FALSES_NEXT),
                             width=6,
                         ),
                     ]
@@ -110,11 +111,11 @@ pos_layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_HOST, config={"displayModeBar": False})]),
+                            graph_wrapper(PATH_NET_MISSES_HOST),
                             width=6,
                         ),
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=PATH_NET_MISSES_NEXT, config={"displayModeBar": False})]),
+                            graph_wrapper(PATH_NET_MISSES_NEXT),
                             width=6,
                         ),
                     ]
