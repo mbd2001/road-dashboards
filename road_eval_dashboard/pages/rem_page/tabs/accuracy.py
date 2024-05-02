@@ -12,6 +12,7 @@ from road_eval_dashboard.components.components_ids import (
     REM_ERROR_HISTOGRAM_Z_OR_SEC,
     REM_ROLES_DROPDOWN,
 )
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
     ZSources,
@@ -60,13 +61,8 @@ def get_error_histogram_layout():
     return card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id=REM_ERROR_HISTOGRAM,
-                            config={"displayModeBar": False},
-                        )
-                    ]
+                graph_wrapper(
+                           REM_ERROR_HISTOGRAM,
                 )
             ),
             dbc.Stack(

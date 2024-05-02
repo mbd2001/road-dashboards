@@ -10,6 +10,7 @@ from road_eval_dashboard.components.common_filters import (
     ROAD_TYPE_FILTERS,
     WEATHER_FILTERS,
 )
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
     generate_compare_metric_query,
@@ -38,21 +39,16 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
     layout = card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id={
+                graph_wrapper(
+                            {
                                 "out": "graph",
                                 "filter": filter_name,
                                 "rem_type": REM_TYPE,
                                 "sort_by_dist": sort_by_dist,
                                 "tab": tab,
-                            },
-                            config={"displayModeBar": False},
+                            }
                         )
-                    ]
-                )
-            ),
+                ),
             dbc.Stack(
                 (
                     [
