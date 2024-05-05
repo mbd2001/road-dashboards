@@ -39,6 +39,8 @@ requirements:
     - s3fs
     - fsspec
     - road-database-toolkit
+    - jira
+    - kaleido
 
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road_eval_dashboard

@@ -6,18 +6,13 @@ from road_eval_dashboard.components import base_dataset_statistics, meta_data_fi
 from road_eval_dashboard.components.components_ids import REM_ROLES_DROPDOWN, REM_TABS, REM_TABS_CONTENT
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.components.queries_manager import Roles
 from road_eval_dashboard.pages.rem_page.tabs import accuracy, availability, painted
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/rem", name="REM", order=9, **extra_properties.__dict__)
 
 TABS_LAYOUTS = {"accuracy": accuracy.layout, "availability": availability.layout, "painted": painted.layout}
-
-
-class Roles(str, enum.Enum):
-    HOST = "host"
-    NEXT = "next"
-    OVERALL = ""
 
 
 def get_settings_layout():

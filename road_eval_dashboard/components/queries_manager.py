@@ -177,9 +177,16 @@ CORRELATION_SUM_METRIC = """
     AS "sum_{ind}"
     """
 
+SUM_SUCCESS_RATE_METRIC = """
+    CAST(SUM(CASE WHEN {extra_filters} THEN {pred} ELSE 0 END) AS DOUBLE) / SUM(CASE WHEN {extra_filters} THEN {label} ELSE 0 END) 
+    AS "score_{ind}"
+    """
+
 THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
 )
+
+
 
 ROC_THRESHOLDS = np.concatenate(
     (
@@ -204,6 +211,10 @@ class ZSources(str, enum.Enum):
     dY = "dY"
     Z_COORDS = "Z_coords"
 
+class Roles(str, enum.Enum):
+    HOST = "host"
+    NEXT = "next"
+    OVERALL = ""
 
 sec_to_dist_acc = {
     0.5: 0.2,
@@ -378,6 +389,38 @@ def generate_compare_metric_query(
         for name, filter in interesting_filters.items()
     )
     count_metrics = get_compare_count_metrics(label_col, pred_col, interesting_filters, compare_operator)
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics=metrics,
+        count_metrics=count_metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)] + extra_columns,
+        role=role,
+    )
+
+def generate_sum_success_rate_metric_query(
+    data_tables,
+    meta_data,
+    label_col,
+    pred_col,
+    interesting_filters,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    metrics = ", ".join(
+        SUM_SUCCESS_RATE_METRIC.format(
+            label=label_col, pred=pred_col, extra_filters=f"({filter})", ind=name
+        )
+        for name, filter in interesting_filters.items()
+    )
+    count_metrics = {
+        interesting_filter_name: f"{extra_filters} AND {interesting_filter}"
+        for interesting_filter_name, interesting_filter in interesting_filters.items()
+    }
     return get_query_by_metrics(
         data_tables,
         meta_data,
