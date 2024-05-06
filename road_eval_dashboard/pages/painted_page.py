@@ -11,7 +11,8 @@ from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import Roles, \
-    generate_sum_success_rate_metric_query, run_query_with_nets_names_processing
+    generate_sum_success_rate_metric_query, run_query_with_nets_names_processing, \
+    generate_sum_success_rate_metric_by_Z_bins_query
 from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
 extra_properties = PageProperties("line-chart")
@@ -79,6 +80,21 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
     )
     return layout
 
+def get_painted_by_Z_layout(tab):
+    return  card_wrapper(
+        [
+            dbc.Row(
+                graph_wrapper(
+                    {
+                        "out": "graph_by_Z",
+                        "painted_type": PAINTED_TYPE,
+                        "tab": tab,
+                    }
+                )
+            )
+        ]
+    )
+
 
 layout = html.Div(
     [
@@ -99,13 +115,13 @@ layout = html.Div(
     ]
 )
 
-tp_layout = html.Div([
+tp_layout = html.Div([get_painted_by_Z_layout(TP_TAB)]+[
         get_base_graph_layout(filter_name, TP_TAB, sort_by_dist=filter_props.get("sort_by_dist", False))
         for filter_name, filter_props in PAINTED_FILTERS.items()
     ]
 )
 
-fp_layout = html.Div([
+fp_layout = html.Div([get_painted_by_Z_layout(TN_TAB)]+[
         get_base_graph_layout(filter_name, TN_TAB, sort_by_dist=filter_props.get("sort_by_dist", False))
         for filter_name, filter_props in PAINTED_FILTERS.items()
     ]
@@ -134,7 +150,7 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
     filters = PAINTED_FILTERS[filter_name]
     interesting_filters = filters["filters"]
     labels, preds = get_labels_and_preds_by_tab(tab)
-    title = f"{tab.upper()} Rate By Role {role}"
+    title = f"{tab.upper()} Rate By Role {role.capitalize()}"
     fig = get_painted_fig(
         meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, labels, preds, role=role
     )
@@ -160,11 +176,49 @@ def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_sample
     filters = PAINTED_FILTERS[filter_name]
     interesting_filters = filters["dist_filters"] if sort_by_dist else filters["filters"]
     labels, preds = get_labels_and_preds_by_tab(tab)
-    title = f"{tab.upper()} Rate By Role {role}"
+    title = f"{tab.upper()} Rate By Role {role.capitalize()}"
     fig = get_painted_fig(
         meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, labels, preds, role=role
     )
     return [fig]
+
+@callback(
+    Output({"out": "graph_by_Z", "painted_type": PAINTED_TYPE, "tab": ALL}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PAINTED_ROLES_DROPDOWN, "value"),
+    Input(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+    State({"out": "graph_by_Z", "painted_type": PAINTED_TYPE, "tab": ALL}, "id"),
+    background=True,
+)
+def get_Z_graph(meta_data_filters, role, nets, effective_samples, graph_id):
+    if not nets:
+        return no_update
+    graph_id = graph_id[0]
+    tab = graph_id['tab']
+    labels_to_preds = get_labels_to_preds_with_names_by_tab(tab)
+    title = f"{tab.upper()} Rate By Z With Role {role.capitalize()}"
+    query = generate_sum_success_rate_metric_by_Z_bins_query(
+        nets["gt_tables"],
+        nets["meta_data"],
+        labels_to_preds,
+        meta_data_filters=meta_data_filters,
+        role=role,
+    )
+    data, _ = run_query_with_nets_names_processing(query)
+    data = data.sort_values(by="net_id")
+    fig = draw_meta_data_filters(
+        data,
+        list(labels_to_preds.keys()),
+        get_painted_score,
+        effective_samples=effective_samples,
+        title=title,
+        yaxis="Score",
+        hover=True,
+        count_items_name="num of gt points"
+    )
+    return [fig]
+
 
 
 def get_labels_and_preds_by_tab(tab):
@@ -178,6 +232,15 @@ def get_labels_and_preds_by_tab(tab):
         preds.append(f"{base_pred_name}_{Z}_{next_Z}")
     return labels, preds
 
+
+def get_labels_to_preds_with_names_by_tab(tab):
+    base_label_name = "gt_painted_count" if tab == TP_TAB else "gt_not_painted_count"
+    base_pred_name = "pred_true_positive" if tab == TP_TAB else "pred_true_negative"
+    labels_to_pred = {}
+    for i, Z in enumerate(Z_BINS[:-1]):
+        next_Z = Z_BINS[i + 1]
+        labels_to_pred[f"{Z}_{next_Z}"] = (f"{base_label_name}_{Z}_{next_Z}", f"{base_pred_name}_{Z}_{next_Z}")
+    return labels_to_pred
 
 def get_painted_fig(
     meta_data_filters,

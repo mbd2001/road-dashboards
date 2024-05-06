@@ -432,6 +432,42 @@ def generate_sum_success_rate_metric_query(
         role=role,
     )
 
+def generate_sum_success_rate_metric_by_Z_bins_query(
+    data_tables,
+    meta_data,
+    labels_to_preds,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    metrics = ", ".join(
+        SUM_SUCCESS_RATE_METRIC.format(
+            label=label, pred=pred, extra_filters=f"{label} != -1", ind=name
+        )
+        for name, (label, pred) in labels_to_preds.items()
+    )
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=extra_columns + [col for name, label_to_pred in labels_to_preds.items() for col in label_to_pred],
+        role=role,
+    )
+
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+
+    SUM_METRIC = """
+        SUM("{col}")
+        AS "count_{ind}"
+        """
+    metrics = ", ".join([SUM_METRIC.format(col=label, ind=name) for name, (label, pred) in labels_to_preds.items()])
+    group_by = "net_id"
+    md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+    query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
+    return query
+
 
 def generate_sum_bins_metric_query(
     data_tables,
