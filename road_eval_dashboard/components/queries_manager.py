@@ -187,7 +187,6 @@ THRESHOLDS = np.concatenate(
 )
 
 
-
 ROC_THRESHOLDS = np.concatenate(
     (
         np.array([-1000]),
@@ -211,10 +210,12 @@ class ZSources(str, enum.Enum):
     dY = "dY"
     Z_COORDS = "Z_coords"
 
+
 class Roles(str, enum.Enum):
     HOST = "host"
     NEXT = "next"
     OVERALL = ""
+
 
 sec_to_dist_acc = {
     0.5: 0.2,
@@ -400,6 +401,7 @@ def generate_compare_metric_query(
         role=role,
     )
 
+
 def generate_sum_success_rate_metric_query(
     data_tables,
     meta_data,
@@ -412,9 +414,7 @@ def generate_sum_success_rate_metric_query(
     role="",
 ):
     metrics = ", ".join(
-        SUM_SUCCESS_RATE_METRIC.format(
-            label=label_col, pred=pred_col, extra_filters=f"({filter})", ind=name
-        )
+        SUM_SUCCESS_RATE_METRIC.format(label=label_col, pred=pred_col, extra_filters=f"({filter})", ind=name)
         for name, filter in interesting_filters.items()
     )
     count_metrics = {
@@ -432,6 +432,7 @@ def generate_sum_success_rate_metric_query(
         role=role,
     )
 
+
 def generate_sum_success_rate_metric_by_Z_bins_query(
     data_tables,
     meta_data,
@@ -442,9 +443,7 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
     role="",
 ):
     metrics = ", ".join(
-        SUM_SUCCESS_RATE_METRIC.format(
-            label=label, pred=pred, extra_filters=f"{label} != -1", ind=name
-        )
+        SUM_SUCCESS_RATE_METRIC.format(label=label, pred=pred, extra_filters=f"{label} != -1", ind=name)
         for name, (label, pred) in labels_to_preds.items()
     )
     base_query = generate_base_query(
