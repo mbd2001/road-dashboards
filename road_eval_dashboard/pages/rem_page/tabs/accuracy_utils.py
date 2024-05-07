@@ -132,16 +132,17 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": ALL, 'tab_type': 'accuracy'}, "figure"),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
-    Input(REM_ACCURACY_3D_SOURCE_DROPDOWN, "value"),
-    Input(REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "value"),
+    Input({'rem_type': REM_TYPE, 'out': REM_ACCURACY_3D_SOURCE_DROPDOWN, 'tab': ALL}, "value"),
+    Input({'rem_type': REM_TYPE, 'out': REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "tab": ALL}, "value"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": ALL, 'tab_type': 'accuracy'}, "id"),
-    background=True,
 )
 def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, effective_samples, graph_id):
     if not nets:
         return no_update
+    source = source[0]
+    error_threshold=error_threshold[0]
     graph_id = graph_id[0]
     filter_name = graph_id["filter"]
     filters = REM_FILTERS[filter_name]
@@ -165,18 +166,19 @@ def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, 
     Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": ALL, 'tab_type': 'accuracy'}, "figure"),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
-    Input(REM_ACCURACY_3D_SOURCE_DROPDOWN, "value"),
-    Input(REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "value"),
+    Input({'rem_type': REM_TYPE, 'out': REM_ACCURACY_3D_SOURCE_DROPDOWN, 'tab': ALL}, "value"),
+    Input({'rem_type': REM_TYPE, 'out': REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "tab": ALL}, "value"),
     Input({"out": "sort_by_dist", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": ALL, 'tab_type': 'accuracy'}, "on"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": ALL, 'tab_type': 'accuracy'}, "id"),
-    background=True,
 )
 def get_dist_graph(meta_data_filters, role, source, error_threshold, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:
         return no_update
     graph_id = graph_id[0]
+    source = source[0]
+    error_threshold = error_threshold[0]
     filter_name = graph_id["filter"]
     tab = graph_id['tab']
     filters = REM_FILTERS[filter_name]
