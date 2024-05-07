@@ -81,7 +81,6 @@ layout = html.Div(
     Input(LM_3D_ACC_OVERALL_Z_X, "on"),
     Input(LM_3D_SOURCE_DROPDOWN, "value"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_lm_3d_acc_overall(meta_data_filters, is_Z, Z_source, nets):
     if not nets:
@@ -108,7 +107,6 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, Z_source, nets):
     Input(NETS, "data"),
     State({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, "id"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    background=True,
     prevent_initial_call=True,
 )
 def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, Z_source, nets, graph_id, effective_samples):

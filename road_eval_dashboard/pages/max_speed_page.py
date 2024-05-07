@@ -118,7 +118,6 @@ layout = html.Div(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "id"),
-    background=True,
 )
 def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samples, input_id):
     if not nets:
@@ -144,7 +143,6 @@ def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samp
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "id"),
-    background=True,
 )
 def get_dist_graph(meta_data_filters, is_success_rate, filter_by_dist, nets, effective_samples, input_id):
     if not nets:

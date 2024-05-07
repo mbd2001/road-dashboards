@@ -16,7 +16,6 @@ RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobiley
 # pip installations
 RUN pip install --upgrade pip
 RUN pip install pycountry
-RUN pip install "dash[diskcache]"
 RUN pip install dash-bootstrap-components
 RUN pip install dash-daq
 RUN pip install numpy
