@@ -17,10 +17,10 @@ class Table:
 
 @dataclass
 class Nets:
-    def __init__(self, net_names, checkpoints, use_cases, populations, **kwargs):
+    def __init__(self, net_names, checkpoints, use_cases, populations, datasets, **kwargs):
         self.names = [
-            f"{net_name}_{checkpoint}_{use_case}"
-            for net_name, checkpoint, use_case in zip(net_names, checkpoints, use_cases)
+            f"{net_name}__{checkpoint}__{use_case}__{dataset}"
+            for net_name, checkpoint, use_case, dataset in zip(net_names, checkpoints, use_cases, datasets)
         ]
         self.population = (
             "Test"

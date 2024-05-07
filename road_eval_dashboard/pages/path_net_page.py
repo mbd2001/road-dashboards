@@ -4,7 +4,7 @@ import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter, pathnet_data_filter
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter, pathnet_events_extractor_card
 from road_eval_dashboard.components.components_ids import (
     BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
@@ -41,23 +41,23 @@ from road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
 )
 from road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
+from road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
-basic_operations = [
-    {"label": "Greater", "value": ">"},
-    {"label": "Greater or equal", "value": ">="},
-    {"label": "Less", "value": "<"},
-    {"label": "Less or equal", "value": "<="},
-    {"label": "Equal", "value": "="},
-    {"label": "Not Equal", "value": "<>"},
-    {"label": "Is NULL", "value": "IS NULL"},
-    {"label": "Is not NULL", "value": "IS NOT NULL"},
-]
+basic_operations = create_dropdown_options_list(
+    labels=["Greater", "Greater or equal", "Less", "Less or equal", "Equal", "Not Equal", "Is NULL", "Is not NULL"],
+    values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
+)
+
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_properties.__dict__)
 
 role_layout = html.Div([html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]])
 pos_layout = html.Div(
     [
+        html.H1("Path Net Metrics", className="mb-5"),
+        meta_data_filter.layout,
+        base_dataset_statistics.dp_layout,
+        pathnet_events_extractor_card.layout,
         card_wrapper(
             [
                 dbc.Row(
@@ -243,7 +243,7 @@ def create_population_dropdown(meta_data_filters, nets):
         column_name="bin_population",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return [{"label": population, "value": population} for population in df["bin_population"]]
+    return create_dropdown_options_list(labels=df["bin_population"])
 
 
 @callback(
@@ -254,11 +254,7 @@ def create_population_dropdown(meta_data_filters, nets):
 def create_dp_split_role_dropdown(nets):
     if not nets:
         return no_update
-    options = [
-        {"label": "split_role", "value": "split_role"},
-        {"label": "matched_split_role", "value": "matched_split_role"},
-    ]
-    return options
+    return create_dropdown_options_list(labels=["split_role", "matched_split_role"])
 
 
 @callback(
@@ -279,8 +275,7 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
         extra_columns=[split_role_population_values],
     )
     df, _ = run_query_with_nets_names_processing(query)
-    options = [{"label": population, "value": population} for population in df[split_role_population_values]]
-    return options
+    return create_dropdown_options_list(labels=df[split_role_population_values])
 
 
 @callback(
