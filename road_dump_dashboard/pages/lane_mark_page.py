@@ -13,7 +13,16 @@ layout = html.Div(
         data_filters.layout(main_table="lm_meta_data", meta_data_table="meta_data"),
         base_dataset_statistics.layout(objs_name="lane marks", main_table="lm_meta_data", meta_data_table="meta_data"),
         bar_pie_graphs_collection.layout(
-            main_table="lm_meta_data", meta_data_table="meta_data", columns=["role", "color", "type"]
+            main_table="lm_meta_data",
+            meta_data_table="meta_data",
+            columns=[
+                "role",
+                "color",
+                "type",
+                "view_range",
+                "lane_mark_width",
+                "dashed_length",
+            ],  # TODO: add 'dashed_gap'
         ),
     ]
 )

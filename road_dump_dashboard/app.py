@@ -12,25 +12,8 @@ from road_dump_dashboard.components.dashboard_layout import page_content, sideba
 from road_dump_dashboard.components.logical_components.catalog_table import init_tables, run_eval_db_manager
 from road_dump_dashboard.components.logical_components.dcc_stores import init_dcc_stores
 
-launch_uid = uuid4()
-if "REDIS_URL" in os.environ:
-    # Use Redis & Celery if REDIS_URL set as an env variable
-    from celery import Celery
-
-    celery_app = Celery(__name__, broker=os.environ["REDIS_URL"], backend=os.environ["REDIS_URL"])
-    background_callback_manager = CeleryManager(celery_app, cache_by=[lambda: launch_uid], expire=600)
-
-else:
-    # Diskcache for non-production apps when developing locally
-    import diskcache
-
-    cache = diskcache.Cache("./cache")
-    background_callback_manager = DiskcacheManager(cache, cache_by=[lambda: launch_uid], expire=600)
-
-
 app = Dash(
     __name__,
-    background_callback_manager=background_callback_manager,
     use_pages=True,
     external_stylesheets=[dbc.themes.BOOTSTRAP, dbc.icons.FONT_AWESOME],
     suppress_callback_exceptions=True,

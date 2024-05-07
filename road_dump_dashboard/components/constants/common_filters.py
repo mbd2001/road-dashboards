@@ -1,4 +1,6 @@
-FILTERS = {
+# TODO: create dataclasses
+
+FILTERS_DICT = {
     "road_type": {
         "filters": {
             "highway": "mdbi_road_highway = TRUE OR mdbi_road_freeway = TRUE",
@@ -12,7 +14,7 @@ FILTERS = {
             "mdbi_road_city",
         ],
     },
-    "lane_mark": {
+    "lane_mark_color": {
         "filters": {
             "yellow": "rightColor_yellow = TRUE OR leftColor_yellow = TRUE",
             "white": "rightColor_white = TRUE OR leftColor_white = TRUE",
@@ -26,5 +28,23 @@ FILTERS = {
             "rightColor_blue",
             "leftColor_blue",
         ],
+    },
+}
+
+
+COLUMNS_DICT = {
+    "lane_mark_width": {
+        "main_column": "half_width",
+        "extra_filters": "type in ('dashed', 'solidDashed', 'dashedSolid', 'dashedDashed', 'decelerationDashed')",
+    },
+    "dashed_gap": {
+        "main_column": "dashed_start_y",
+        "diff_column": "dashed_end_y",
+        "extra_filters": "type in ('dashed', 'solidDashed', 'dashedSolid', 'dashedDashed', 'decelerationDashed')",
+    },
+    "dashed_length": {
+        "main_column": "dashed_end_y",
+        "diff_column": "dashed_start_y",
+        "extra_filters": "type in ('dashed', 'solidDashed', 'dashedSolid', 'dashedDashed', 'decelerationDashed')",
     },
 }

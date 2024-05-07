@@ -1,3 +1,10 @@
+from road_database_toolkit.athena.athena_utils import create_athena_table_from_query, hash_path
+
+from road_dump_dashboard.components.logical_components.tables_properties import (
+    get_tables_property_union,
+    get_value_from_tables_property_union,
+)
+
 COMMON_COLUMNS = {
     "population",
     "batch_num",
@@ -11,17 +18,25 @@ COMMON_COLUMNS = {
 
 BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id"]
 
+DIFF_COL = "difference"
+
 SELECT_QUERY = """
     (SELECT {columns_to_select} 
     FROM {main_data} A
-    {meta_data_filters})
+    {filters})
     """
 
 JOIN_QUERY = """
     (SELECT {columns_to_select} 
     FROM {main_data} A INNER JOIN {secondary_data} B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex)) 
-    {meta_data_filters})
+    {filters})
+    """
+
+WITH_QUERY = """
+    WITH {base_name} AS 
+    ({query})
+    {to_select}
     """
 
 CONF_QUERY = """
@@ -42,7 +57,7 @@ DIFF_IDS_QUERY = """
     """
 
 JOIN_LABELS_QUERY = """
-    SELECT '' AS main_start, LABELS_A.*, '' AS secondary_start, LABELS_B.*
+    SELECT '' AS main_start, {main_columns}, '' AS secondary_start, {secondary_columns}
     FROM ({main_labels}) LABELS_A FULL JOIN ({secondary_labels}) LABELS_B 
     ON ((LABELS_A.clip_name = LABELS_B.clip_name) AND (LABELS_A.grabindex = LABELS_B.grabindex) AND (LABELS_A.obj_id = LABELS_B.obj_id)) 
     WHERE (LABELS_A.clip_name, LABELS_A.grabindex) IN ({ids_data})
@@ -80,11 +95,9 @@ def generate_conf_mat_query(
     population,
     column_to_compare,
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
+    meta_data_filters=None,
+    extra_filters=None,
 ):
-    extra_filters = add_ignore_filter(column_to_compare, extra_filters, main_tables, meta_data_tables)
-    extra_columns = [column_to_compare]
     main_data = generate_base_query(
         main_tables,
         population,
@@ -92,7 +105,7 @@ def generate_conf_mat_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
+        extra_columns=column_to_compare,
         dumps_to_include=main_dump,
     )
 
@@ -102,7 +115,7 @@ def generate_conf_mat_query(
         False,
         meta_data_tables=meta_data_tables,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
+        extra_columns=column_to_compare,
         dumps_to_include=secondary_dump,
     )
 
@@ -121,12 +134,10 @@ def generate_diff_query(
     population,
     column_to_compare,
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
+    meta_data_filters=None,
+    extra_filters=None,
     limit=IMG_LIMIT,
 ):
-    extra_filters = add_ignore_filter(column_to_compare, extra_filters, main_tables, meta_data_tables)
-    extra_columns = [column_to_compare]
     main_data = generate_base_query(
         main_tables,
         population,
@@ -134,7 +145,7 @@ def generate_diff_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
+        extra_columns=column_to_compare,
         dumps_to_include=main_dump,
     )
 
@@ -145,7 +156,7 @@ def generate_diff_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
+        extra_columns=column_to_compare,
         dumps_to_include=secondary_dump,
     )
 
@@ -166,8 +177,8 @@ def generate_diff_with_labels_query(
     population,
     column_to_compare,
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
+    meta_data_filters=None,
+    extra_filters=None,
     limit=IMG_LIMIT,
 ):
     diff_query = generate_diff_query(
@@ -182,9 +193,11 @@ def generate_diff_with_labels_query(
         limit=limit,
     )
     query = JOIN_LABELS_QUERY.format(
-        ids_data=diff_query,
+        main_columns=", ".join(f"LABELS_A.{col}" for col in labels_tables["columns_to_type"].keys()),
+        secondary_columns=", ".join(f"LABELS_B.{col}" for col in labels_tables["columns_to_type"].keys()),
         main_labels=labels_tables["tables_dict"][main_dump],
         secondary_labels=labels_tables["tables_dict"][secondary_dump],
+        ids_data=diff_query,
     )
     return query
 
@@ -194,13 +207,13 @@ def generate_count_query(
     population,
     intersection_on,
     meta_data_tables=None,
-    group_by_column="",
-    meta_data_filters="",
-    extra_filters="",
+    main_column=None,
+    diff_column=None,
+    meta_data_filters=None,
+    extra_filters=None,
     bins_factor=None,
     dumps_to_include=None,
 ):
-    extra_filters = add_ignore_filter(group_by_column, extra_filters, main_tables, meta_data_tables)
     base_query = generate_base_query(
         main_tables,
         population,
@@ -208,19 +221,19 @@ def generate_count_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=[group_by_column] if group_by_column else None,
+        extra_columns=[col for col in [main_column, diff_column] if col is not None],
         dumps_to_include=dumps_to_include,
     )
-    if group_by_column:
-        metrics = COUNT_ALL_METRIC.format(count_name="overall")
-        group_by = f"FLOOR({group_by_column} / {bins_factor}) * {bins_factor}" if bins_factor else group_by_column
+    metrics = COUNT_ALL_METRIC.format(count_name="overall")
+    if main_column:
+        col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
+        group_by = f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor else col_metric
+        group_name = DIFF_COL if diff_column else main_column
         query = COUNT_QUERY.format(
-            base_query=base_query, count_metric=metrics, group_by=group_by, group_name=group_by_column
+            base_query=base_query, count_metric=metrics, group_by=group_by, group_name=group_name
         )
     else:
-        metrics = "COUNT(*) AS overall"
         query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
-
     return query
 
 
@@ -230,8 +243,8 @@ def generate_dynamic_count_query(
     intersection_on,
     interesting_filters,
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
+    meta_data_filters=None,
+    extra_filters=None,
 ):
     metrics = ", ".join(
         COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name)
@@ -255,8 +268,8 @@ def generate_base_query(
     population,
     intersection_on,
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
+    meta_data_filters=None,
+    extra_filters=None,
     extra_columns=None,
     dumps_to_include=None,
 ):
@@ -268,10 +281,56 @@ def generate_base_query(
 
     main_paths = filter_paths(main_tables["tables_dict"], dumps_to_include)
     meta_data_paths = filter_paths(meta_data_tables["tables_dict"], dumps_to_include) if meta_data_tables else None
-
-    filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on)
+    type_filters = filter_ignore_multiple_columns(extra_columns, main_tables, meta_data_tables)
+    agg_cols, extra_columns = get_aggregated_columns(extra_columns, main_tables, meta_data_tables)
+    filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on, type_filters)
     base_data = generate_base_data(main_paths, filters, meta_data_paths, extra_columns)
+    if agg_cols:
+        base_data = generate_wildcard_union(agg_cols, base_data, main_tables, meta_data_tables)
+
     return base_data
+
+
+def get_aggregated_columns(extra_columns, main_tables, meta_data_tables=None):
+    if not extra_columns:
+        return {}, extra_columns
+
+    agg_cols = [
+        col for col in extra_columns if not get_value_from_tables_property_union(col, main_tables, meta_data_tables)
+    ]
+    if not agg_cols:
+        return {}, extra_columns
+
+    existing_cols = get_tables_property_union(main_tables, meta_data_tables, "columns_to_type")
+    matching_columns = {
+        agg_col: [col for col in existing_cols.keys() if col.startswith(agg_col)] for agg_col in agg_cols
+    }
+    for key, val in matching_columns.items():
+        extra_columns.remove(key)
+        extra_columns.extend(val)
+    return matching_columns, extra_columns
+
+
+def generate_wildcard_union(agg_cols, base_query, main_tables, meta_data_tables=None):
+    base_query = create_athena_table_from_query(base_query, database="run_eval_db")
+    base_columns = ", ".join(BASE_COLUMNS)
+    select_strings = [
+        ", ".join(f"{col} AS {agg_col}" for col, agg_col in zip(col_list, agg_cols.keys()))
+        for col_list in zip(*agg_cols.values())
+    ]
+    filter_strings = [
+        (
+            f"WHERE {filter_str}"
+            if (filter_str := filter_ignore_multiple_columns(col_list, main_tables, meta_data_tables))
+            else ""
+        )
+        for col_list in zip(*agg_cols.values())
+    ]
+    final_query = " UNION ALL ".join(
+        f"SELECT {select_str}, {base_columns} FROM {base_query} {filter_str}"
+        for select_str, filter_str in zip(select_strings, filter_strings)
+    )
+    return final_query
 
 
 def filter_paths(table_dict, dumps_to_include):
@@ -296,18 +355,17 @@ def generate_base_data(main_paths, filters, meta_data_paths=None, extra_columns=
         return datasets_list[0]
 
     union_str = f" UNION ALL SELECT * FROM ".join(datasets_list)
-    union_str = f"SELECT * FROM {union_str}"
     return union_str
 
 
-def generate_joined_data(main_paths, meta_data_paths, desired_columns, meta_data_filters):
+def generate_joined_data(main_paths, meta_data_paths, desired_columns, filters):
     data_columns_str = ", ".join(manipulate_column_to_avoid_ambiguities(col) for col in desired_columns)
     join_strings = [
         JOIN_QUERY.format(
             columns_to_select=data_columns_str,
             main_data=main_table,
             secondary_data=md_table,
-            meta_data_filters=meta_data_filters,
+            filters=filters,
         )
         for main_table, md_table in zip(main_paths, meta_data_paths)
         if main_table
@@ -320,12 +378,10 @@ def manipulate_column_to_avoid_ambiguities(col):
     return manipulated_column
 
 
-def generate_single_data(main_paths, desired_columns, meta_data_filters):
+def generate_single_data(main_paths, desired_columns, filters):
     data_columns_str = ", ".join(desired_columns)
     datasets_strings = [
-        SELECT_QUERY.format(
-            columns_to_select=data_columns_str, main_data=main_table, meta_data_filters=meta_data_filters
-        )
+        SELECT_QUERY.format(columns_to_select=data_columns_str, main_data=main_table, filters=filters)
         for main_table in main_paths
         if main_table
     ]
@@ -341,34 +397,41 @@ def generate_intersect_filter(main_paths, intersection_on):
     return intersect_select
 
 
-def generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on):
+def generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on, type_filters):
+    type_filters = f"({type_filters}) " if type_filters else ""
     extra_filters = f"({extra_filters}) " if extra_filters else ""
     meta_data_filters = f"({meta_data_filters}) " if meta_data_filters else ""
     population_filter = f"(A.population = '{population}') " if population != "all" else ""
     intersect_filter = generate_intersect_filter(main_paths, intersection_on)
 
     filters_str = " AND ".join(
-        ftr for ftr in [extra_filters, intersect_filter, meta_data_filters, population_filter] if ftr
+        ftr for ftr in [type_filters, extra_filters, meta_data_filters, population_filter, intersect_filter] if ftr
     )
     filters_str = f"WHERE {filters_str}" if filters_str else ""
     return filters_str
 
 
-def add_ignore_filter(column, extra_filters, main_tables, meta_data_tables):
-    if not column:
-        return extra_filters
+def filter_ignore_multiple_columns(columns, main_tables, meta_data_tables):
+    if not columns:
+        return ""
 
-    column_type = main_tables["columns_to_type"].get(column) or meta_data_tables["columns_to_type"].get(column)
+    if isinstance(columns, str):
+        columns = [columns]
+
+    filters = [filter_ignore_single_column(column, main_tables, meta_data_tables) for column in columns]
+    filters_str = " AND ".join(f"({ftr})" for ftr in filters if ftr)
+    return filters_str
+
+
+def filter_ignore_single_column(column, main_tables, meta_data_tables):
+    column_type = get_value_from_tables_property_union(column, main_tables, meta_data_tables)
+    if column_type is None:
+        return ""
+
     if column_type.startswith(("int", "float", "double")):
-        ignore_filter = f"{column} <> 999 AND {column} <> -999 AND {column} <> -1"
+        ignore_filter = f"{column} NOT IN (-1, 0) AND {column} BETWEEN -998 AND 998"
     elif column_type.startswith("object"):
-        ignore_filter = f"{column} != 'ignore' AND {column} != 'Unknown' AND {column} != 'IGNORE'"
+        ignore_filter = f"{column} NOT IN ('ignore', 'Unknown', 'IGNORE')"
     else:
         ignore_filter = ""
-
-    agg_filters = (
-        f"({extra_filters}) AND ({ignore_filter})"
-        if extra_filters and ignore_filter
-        else extra_filters or ignore_filter
-    )
-    return agg_filters
+    return ignore_filter

@@ -35,7 +35,6 @@ def layout(objs_name, main_table, meta_data_table=None):
     Input(INTERSECTION_SWITCH, "on"),
     State(OBJS_MAIN_TABLE, "children"),
     State(OBJS_MD_TABLE, "children"),
-    background=True,
 )
 def get_frame_count(meta_data_filters, tables, population, intersection_on, main_table, meta_data_table):
     if not population or not tables:

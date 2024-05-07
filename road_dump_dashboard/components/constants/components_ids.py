@@ -74,6 +74,8 @@ CHARTS_MAIN_TABLE = "charts_main_table"
 CHARTS_MD_TABLE = "charts_md_table"
 
 GENERIC_COLUMNS_CHART = "generic_columns_chart"
+GENERIC_COLUMNS_SLIDER = "generic_columns_slider"
+
 GENERIC_FILTERS_CHART = "generic_filters_chart"
 
 DYNAMIC_CHART_DROPDOWN = "dynamic_chart_drop_down"

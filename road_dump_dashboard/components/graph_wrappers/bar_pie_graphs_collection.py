@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_dump_dashboard.components.constants.common_filters import FILTERS
+from road_dump_dashboard.components.constants.common_filters import COLUMNS_DICT, FILTERS_DICT
 from road_dump_dashboard.components.constants.components_ids import (
     CHARTS_MAIN_TABLE,
     CHARTS_MD_TABLE,
@@ -10,6 +10,7 @@ from road_dump_dashboard.components.constants.components_ids import (
     DYNAMIC_CHART_DROPDOWN,
     DYNAMIC_CHART_SLIDER,
     GENERIC_COLUMNS_CHART,
+    GENERIC_COLUMNS_SLIDER,
     GENERIC_FILTERS_CHART,
     INTERSECTION_SWITCH,
     MD_FILTERS,
@@ -18,8 +19,13 @@ from road_dump_dashboard.components.constants.components_ids import (
 )
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.logical_components.queries_manager import (
+    DIFF_COL,
     generate_count_query,
     generate_dynamic_count_query,
+)
+from road_dump_dashboard.components.logical_components.tables_properties import (
+    get_tables_property_union,
+    get_value_from_tables_property_union,
 )
 from road_dump_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_dump_dashboard.graphs.pie_or_line_wrapper import pie_or_line_wrapper
@@ -29,20 +35,14 @@ def exponent_transform(value, base=10):
     return base**value
 
 
-def layout(main_table, meta_data_table=None, columns=None, filters=None):
-    if columns == None:
-        columns = []
-
-    if filters == None:
-        filters = []
-
+def layout(main_table, meta_data_table=None, columns=None, filters=None, diffs=None):
     graphs_layout = html.Div(
         [
             html.Div(id=CHARTS_MAIN_TABLE, children=main_table, style={"display": "none"}),
             html.Div(id=CHARTS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
             dynamic_chart_layout(),
-            *generic_charts_layout(GENERIC_COLUMNS_CHART, columns),
-            *generic_charts_layout(GENERIC_FILTERS_CHART, filters),
+            generic_charts_layout(GENERIC_COLUMNS_CHART, columns, GENERIC_COLUMNS_SLIDER),
+            generic_charts_layout(GENERIC_FILTERS_CHART, filters),
         ]
     )
     return graphs_layout
@@ -60,59 +60,61 @@ def dynamic_chart_layout():
                     value="",
                 )
             ),
-            dbc.Row(
-                [
-                    dbc.Col(
-                        loading_wrapper(dcc.Graph(id=DYNAMIC_CHART, config={"displayModeBar": False})),
-                        width=11,
-                    ),
-                    dbc.Col(
-                        dcc.Slider(
-                            -2,
-                            3,
-                            0.1,
-                            id=DYNAMIC_CHART_SLIDER,
-                            vertical=True,
-                            marks={i: "{}".format(exponent_transform(i)) for i in range(-2, 4)},
-                            value=-1,
-                        ),
-                        width=1,
-                    ),
-                ]
-            ),
+            dbc.Row(get_single_graph_layout(DYNAMIC_CHART, DYNAMIC_CHART_SLIDER)),
         ]
     )
 
     return dynamic_chart
 
 
-def generic_charts_layout(obj_type, obj_ids):
-    if not obj_ids:
-        return [None]
+def generic_charts_layout(graph_type, obj_ids, slider_type=None):
+    if obj_ids is None:
+        return
 
     list_ids_tuples = [tuple(obj_ids[i : i + 2]) for i in range(0, len(obj_ids), 2)]
-    generic_filters_charts = [
-        dbc.Row(
-            [
-                dbc.Col(
-                    card_wrapper(
-                        [
-                            loading_wrapper(
-                                dcc.Graph(
-                                    id={"type": obj_type, "index": id},
-                                    config={"displayModeBar": False},
-                                )
+    generic_filters_charts = html.Div(
+        [
+            dbc.Row(
+                [
+                    dbc.Col(
+                        card_wrapper(
+                            get_single_graph_layout(
+                                {"type": graph_type, "index": id},
+                                {"type": slider_type, "index": id} if slider_type else None,
                             )
-                        ]
+                        )
                     )
-                )
-                for id in ids_tuple
-            ]
-        )
-        for ids_tuple in list_ids_tuples
-    ]
-
+                    for id in ids_tuple
+                ]
+            )
+            for ids_tuple in list_ids_tuples
+        ]
+    )
     return generic_filters_charts
+
+
+def get_single_graph_layout(graph_id, slider_id=None):
+    graph = loading_wrapper(
+        dcc.Graph(
+            id=graph_id,
+            config={"displayModeBar": False},
+        )
+    )
+    slider = (
+        dcc.Slider(
+            -2,
+            3,
+            0.1,
+            id=slider_id,
+            vertical=True,
+            marks={i: "{}".format(exponent_transform(i)) for i in range(-2, 4)},
+            value=0,
+        )
+        if slider_id
+        else None
+    )
+    col_layout = dbc.Row([dbc.Col(graph, width=11), dbc.Col(slider, width=1)]) if slider is not None else graph
+    return col_layout
 
 
 @callback(
@@ -125,9 +127,7 @@ def init_dynamic_chart_dropdown(tables, main_table, meta_data_table):
     if not tables:
         return no_update
 
-    columns_options = tables[main_table]["columns_options"] + (
-        tables[meta_data_table]["columns_options"] if meta_data_table else []
-    )
+    columns_options = get_tables_property_union(tables[main_table], tables[meta_data_table])
     return columns_options
 
 
@@ -143,37 +143,17 @@ def init_dynamic_chart_dropdown(tables, main_table, meta_data_table):
     State(CHARTS_MD_TABLE, "children"),
 )
 def get_dynamic_chart(
-    group_by_column, slider_value, meta_data_filters, tables, population, intersection_on, main_table, meta_data_table
+    main_column, slider_value, meta_data_filters, tables, population, intersection_on, main_table, meta_data_table
 ):
-    if not population or not tables or not group_by_column:
+    if not population or not tables or not main_column:
         return no_update
 
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
-    bins_factor = get_bins_factor(slider_value, group_by_column, main_tables, meta_data_tables)
-    query = generate_count_query(
-        main_tables,
-        population,
-        intersection_on,
-        meta_data_tables=meta_data_tables,
-        meta_data_filters=meta_data_filters,
-        group_by_column=group_by_column,
-        bins_factor=bins_factor,
+    fig = get_group_by_chart(
+        main_tables, population, main_column, intersection_on, meta_data_tables, meta_data_filters, slider_value
     )
-    data, _ = query_athena(database="run_eval_db", query=query)
-    title = f"Distribution of {group_by_column.replace('mdbi_', '').replace('_', ' ').title()}"
-
-    if data[group_by_column].nunique() > 16:
-        fig = basic_histogram_plot(data, group_by_column, "overall", title=title)
-    else:
-        fig = pie_or_line_wrapper(data, group_by_column, "overall", title=title)
     return fig
-
-
-def get_bins_factor(slider_value, column, main_tables, meta_data_tables):
-    column_type = main_tables["columns_to_type"].get(column) or meta_data_tables["columns_to_type"].get(column)
-    bins_factor = exponent_transform(slider_value) if column_type.startswith(("int", "float", "double")) else None
-    return bins_factor
 
 
 @callback(
@@ -183,30 +163,85 @@ def get_bins_factor(slider_value, column, main_tables, meta_data_tables):
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
     State({"type": GENERIC_COLUMNS_CHART, "index": MATCH}, "id"),
+    Input({"type": GENERIC_COLUMNS_SLIDER, "index": MATCH}, "value"),
     State(CHARTS_MAIN_TABLE, "children"),
     State(CHARTS_MD_TABLE, "children"),
 )
 def get_generic_column_chart(
-    meta_data_filters, tables, population, intersection_on, col_to_compare, main_table, meta_data_table
+    meta_data_filters, tables, population, intersection_on, column, slider_value, main_table, meta_data_table
 ):
     if not population or not tables:
         return no_update
 
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
-    col_to_compare = col_to_compare["index"]
+    filters_name = column["index"]
+    main_column, diff_column, extra_filters = get_query_params(filters_name)
+    fig = get_group_by_chart(
+        main_tables,
+        population,
+        main_column,
+        intersection_on,
+        meta_data_tables,
+        meta_data_filters,
+        slider_value,
+        diff_column,
+        extra_filters,
+    )
+    return fig
+
+
+def get_query_params(filters_name):
+    filters_dict = COLUMNS_DICT.get(filters_name)
+    if filters_dict is None:
+        return filters_name, None, None
+
+    main_column = filters_dict.get("main_column")
+    diff_column = filters_dict.get("diff_column")
+    extra_filters = filters_dict.get("extra_filters")
+    return main_column, diff_column, extra_filters
+
+
+def get_group_by_chart(
+    main_tables,
+    population,
+    main_column,
+    intersection_on,
+    meta_data_tables=None,
+    meta_data_filters=None,
+    slider_value=None,
+    diff_column=None,
+    extra_filters=None,
+):
+    bins_factor = (
+        None if slider_value is None else get_bins_factor(slider_value, main_column, main_tables, meta_data_tables)
+    )
     query = generate_count_query(
         main_tables,
         population,
         intersection_on,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
-        group_by_column=col_to_compare,
+        main_column=main_column,
+        bins_factor=bins_factor,
+        diff_column=diff_column,
+        extra_filters=extra_filters,
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
-    title = f"Distribution of {col_to_compare.title()}"
-    fig = pie_or_line_wrapper(data, col_to_compare, "overall", title=title)
+    title = f"Distribution of {main_column.title()}" + (f" and {diff_column.title()} diff" if diff_column else "")
+    col_id = DIFF_COL if diff_column else main_column
+    if data[col_id].nunique() > 16:
+        fig = basic_histogram_plot(data, col_id, "overall", title=title)
+    else:
+        fig = pie_or_line_wrapper(data, col_id, "overall", title=title)
     return fig
+
+
+def get_bins_factor(slider_value, column, main_tables, meta_data_tables):
+    column_type = get_value_from_tables_property_union(column, main_tables, meta_data_tables, key_as_prefix=True)
+    bins_factor = exponent_transform(slider_value) if column_type.startswith(("int", "float", "double")) else None
+    return bins_factor
 
 
 @callback(
@@ -228,7 +263,7 @@ def get_generic_filter_chart(
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
     filters_name = filters["index"]
-    filters = FILTERS[filters_name]
+    filters = FILTERS_DICT[filters_name]
     query = generate_dynamic_count_query(
         main_tables,
         population,

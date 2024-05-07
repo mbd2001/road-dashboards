@@ -68,7 +68,7 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
         population,
         False,
         meta_data_filters=meta_data_filters,
-        group_by_column=group_by_column,
+        main_column=group_by_column,
         dumps_to_include=chosen_dump,
     )
     data, _ = query_athena(database="run_eval_db", query=query)

@@ -20,6 +20,7 @@ from road_dump_dashboard.components.constants.components_ids import (
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.graph_wrappers import frames_carousel
 from road_dump_dashboard.components.logical_components.queries_manager import generate_conf_mat_query
+from road_dump_dashboard.components.logical_components.tables_properties import get_tables_property_union
 from road_dump_dashboard.graphs.confusion_matrix import get_confusion_matrix
 
 
@@ -82,12 +83,7 @@ def dynamic_conf_mat_layout():
                 placeholder="----",
                 value="",
             ),
-            loading_wrapper(dcc.Graph(id=DYNAMIC_CONF_MAT, config={"displayModeBar": False})),
-            dbc.Button(
-                "Draw Diff Frames",
-                id={"type": GENERIC_SHOW_DIFF_BTN, "index": DYNAMIC_SHOW_DIFF_IDX},
-                className="bg-primary mt-5",
-            ),
+            get_single_mat_layout(DYNAMIC_CONF_MAT, {"type": GENERIC_SHOW_DIFF_BTN, "index": DYNAMIC_SHOW_DIFF_IDX}),
         ]
     )
 
@@ -100,19 +96,10 @@ def generic_rows_layout(columns_to_compare):
         dbc.Row(
             [
                 dbc.Col(
-                    [
-                        loading_wrapper(
-                            dcc.Graph(
-                                id={"type": GENERIC_CONF_MAT, "index": col_to_compare},
-                                config={"displayModeBar": False},
-                            )
-                        ),
-                        dbc.Button(
-                            "Draw Diff Frames",
-                            id={"type": GENERIC_SHOW_DIFF_BTN, "index": col_to_compare},
-                            className="bg-primary mt-5",
-                        ),
-                    ]
+                    get_single_mat_layout(
+                        {"type": GENERIC_CONF_MAT, "index": col_to_compare},
+                        {"type": GENERIC_SHOW_DIFF_BTN, "index": col_to_compare},
+                    )
                 )
                 for col_to_compare in columns_tuple
             ]
@@ -121,6 +108,25 @@ def generic_rows_layout(columns_to_compare):
     ]
 
     return generic_rows
+
+
+def get_single_mat_layout(mat_id, diff_btn_id):
+    mat_layout = html.Div(
+        [
+            loading_wrapper(
+                dcc.Graph(
+                    id=mat_id,
+                    config={"displayModeBar": False},
+                )
+            ),
+            dbc.Button(
+                "Draw Diff Frames",
+                id=diff_btn_id,
+                className="bg-primary mt-5",
+            ),
+        ]
+    )
+    return mat_layout
 
 
 @callback(
@@ -174,18 +180,8 @@ def get_generic_conf_mat(
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
     col_to_compare = col_to_compare["index"]
-    query = generate_conf_mat_query(
-        main_dump,
-        secondary_dump,
-        main_tables,
-        population,
-        col_to_compare,
-        meta_data_tables=meta_data_tables,
-        meta_data_filters=meta_data_filters,
-    )
-    data, _ = query_athena(database="run_eval_db", query=query)
-    fig = get_confusion_matrix(
-        data, x_label=secondary_dump, y_label=main_dump, title=f"{col_to_compare.title()} Confusion Matrix"
+    fig = get_conf_mat_fig(
+        main_tables, col_to_compare, main_dump, secondary_dump, population, meta_data_tables, meta_data_filters
     )
     return fig
 
@@ -193,12 +189,14 @@ def get_generic_conf_mat(
 @callback(
     Output(DYNAMIC_CONF_DROPDOWN, "options"),
     Input(TABLES, "data"),
+    State(CONF_MATS_MAIN_TABLE, "children"),
+    State(CONF_MATS_MD_TABLE, "children"),
 )
-def init_dynamic_conf_dropdown(tables):
+def init_dynamic_conf_dropdown(tables, main_table, secondary_table):
     if not tables:
         return no_update
 
-    columns_options = tables["meta_data"]["columns_options"]
+    columns_options = get_tables_property_union(tables[main_table], tables[secondary_table])
     return columns_options
 
 
@@ -221,19 +219,28 @@ def get_dynamic_conf_mat(
 
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
-    column_to_compare = dynamic_col
+    col_to_compare = dynamic_col
+    fig = get_conf_mat_fig(
+        main_tables, col_to_compare, main_dump, secondary_dump, population, meta_data_tables, meta_data_filters
+    )
+    return fig
+
+
+def get_conf_mat_fig(
+    main_tables, col_to_compare, main_dump, secondary_dump, population, meta_data_tables=None, meta_data_filters=None
+):
     query = generate_conf_mat_query(
         main_dump,
         secondary_dump,
         main_tables,
         population,
-        column_to_compare,
+        col_to_compare,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )
 
     data, _ = query_athena(database="run_eval_db", query=query)
     fig = get_confusion_matrix(
-        data, x_label=secondary_dump, y_label=main_dump, title=f"{dynamic_col.title()} Confusion Matrix"
+        data, x_label=secondary_dump, y_label=main_dump, title=f"{col_to_compare.title()} Confusion Matrix"
     )
     return fig

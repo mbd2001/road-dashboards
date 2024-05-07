@@ -119,3 +119,27 @@ def parse_distinct_dict(distinct_dict, max_distinct_values=30):
 def parse_columns_options(columns_to_type):
     columns_options = [{"label": col.replace("_", " ").title(), "value": col} for col in columns_to_type.keys()]
     return columns_options
+
+
+def get_value_from_tables_property_union(
+    key, main_tables, meta_data_tables=None, prop="columns_to_type", key_as_prefix=False
+):
+    val = main_tables[prop].get(key)
+    if val is None and meta_data_tables is not None:
+        val = meta_data_tables[prop].get(key)
+    if val is not None or key_as_prefix is False:
+        return val
+
+    union_dicts = get_tables_property_union(main_tables, meta_data_tables, prop)
+    for dict_key, dict_val in union_dicts.items():
+        if dict_key.startswith(key):
+            return dict_val
+    return None
+
+
+def get_tables_property_union(main_tables, meta_data_tables=None, prop="columns_options"):
+    main_dict = main_tables[prop]
+    meta_data_dict = meta_data_tables[prop] if meta_data_tables else None
+    if isinstance(main_dict, list):
+        return main_dict + (meta_data_dict if meta_data_dict is not None else [])
+    return {**main_dict, **(meta_data_dict if meta_data_dict is not None else {})}

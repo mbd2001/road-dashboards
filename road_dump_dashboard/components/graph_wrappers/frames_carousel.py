@@ -163,7 +163,6 @@ def update_frame_graphs(
     State(CONF_MATS_MD_TABLE, "children"),
     State(CONF_MATS_LABELS_TABLE, "children"),
     State(FRAMES_COL, "data"),
-    background=True,
 )
 def draw_diffs(
     show_diff_n_clicks,
