@@ -71,7 +71,6 @@ def get_columns_data_types(table):
         "pred_name",
         "dump_name",
         "population",
-        "grabindex",
     ]
 
     query = f"SELECT * FROM ({table}) LIMIT 1"
