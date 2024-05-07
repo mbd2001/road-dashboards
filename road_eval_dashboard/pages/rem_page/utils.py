@@ -35,7 +35,7 @@ REM_FILTERS = {
 IGNORES_FILTER = "{col} != -1 AND {col} < 999"
 
 
-def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
+def get_base_graph_layout(filter_name, tab, sort_by_dist=False, tab_type="regular"):
     layout = card_wrapper(
         [
             dbc.Row(
@@ -46,6 +46,7 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
                         "rem_type": REM_TYPE,
                         "sort_by_dist": sort_by_dist,
                         "tab": tab,
+                        "tab_type": tab_type
                     }
                 )
             ),
@@ -59,6 +60,7 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False):
                                 "rem_type": REM_TYPE,
                                 "sort_by_dist": sort_by_dist,
                                 "tab": tab,
+                                "tab_type": tab_type
                             },
                             on=False,
                             label="Sort By Dist",
