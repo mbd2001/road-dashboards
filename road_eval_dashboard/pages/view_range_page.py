@@ -76,7 +76,6 @@ layout = html.Div(
     Input(VIEW_RANGE_SUCCESS_RATE_Z_STEP, "value"),
     Input(VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD, "value"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_view_range_success_rate_plot(
     meta_data_filters, naive_Z, filter_err_est, Z_range, Z_step, err_est_threshold, nets
@@ -132,7 +131,6 @@ def get_view_range_success_rate_plot(
     Input(NETS, "data"),
     State({"type": VIEW_RANGE_SUCCESS_RATE_HOST_NEXT, "extra_filter": MATCH}, "id"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    background=True,
 )
 def get_view_range_success_rate_interesting_plots(
     meta_data_filters, naive_Z, filter_err_est, Z_range, Z_step, err_est_threshold, nets, id, effective_samples
@@ -197,7 +195,6 @@ def get_view_range_success_rate_interesting_plots(
     Input(VIEW_RANGE_HISTOGRAM_CUMULATIVE, "on"),
     Input(VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD, "value"),
     Input(NETS, "data"),
-    background=True,
     prevent_initial_call=True,
 )
 def get_view_range_histogram_plot(

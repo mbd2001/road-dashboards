@@ -137,7 +137,6 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "id"),
-    background=True,
 )
 def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, effective_samples, graph_id):
     if not nets:
@@ -168,7 +167,6 @@ def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, 
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "id"),
-    background=True,
 )
 def get_dist_graph(meta_data_filters, role, source, error_threshold, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:

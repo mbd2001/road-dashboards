@@ -22,7 +22,6 @@ layout = html.Div(
     Output(CATALOG, "data"),
     Output(RUN_EVAL_CATALOG, "data"),
     Input(CATALOG, "data"),
-    background=True,
 )
 def init_catalog(catalog):
     if catalog is None:
