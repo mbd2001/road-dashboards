@@ -25,7 +25,6 @@ layout = html.Div(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB}, "id"),
-    background=True,
 )
 def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_id):
     if not nets:
@@ -52,7 +51,6 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB}, "id"),
-    background=True,
 )
 def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:

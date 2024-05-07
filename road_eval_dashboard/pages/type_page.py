@@ -116,7 +116,6 @@ def generate_host_matrices(meta_data_filters, nets):
     Output(TYPE_OVERALL, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_overall_type_score(meta_data_filters, nets):
     if not nets:
@@ -142,7 +141,6 @@ def get_overall_type_score(meta_data_filters, nets):
     Output(TYPE_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_host_type_score(meta_data_filters, nets):
     if not nets:

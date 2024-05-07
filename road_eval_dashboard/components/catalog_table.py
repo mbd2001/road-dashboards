@@ -103,7 +103,6 @@ def generate_catalog_layout():
     Input(UPDATE_RUNS_BTN, "n_clicks"),
     State(CATALOG, "data"),
     State(RUN_EVAL_CATALOG, "selected_rows"),
-    background=True,
     prevent_initial_call=True,
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):

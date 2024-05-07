@@ -213,7 +213,6 @@ def render_content(tab):
     State(ROLE_POPULATION_VALUE, "value"),
     State("roles_operation", "value"),
     Input("pathnet_update_filters_btn", "n_clicks"),
-    background=True,
 )
 def update_pathnet_filters(bin_population, column, value, roles_operation, n_clicks):
     if (not bin_population and not column and not value) or not n_clicks:
@@ -231,7 +230,6 @@ def update_pathnet_filters(bin_population, column, value, roles_operation, n_cli
     Output(BIN_POPULATION_DROPDOWN, "options"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def create_population_dropdown(meta_data_filters, nets):
     if not nets:
@@ -249,7 +247,6 @@ def create_population_dropdown(meta_data_filters, nets):
 @callback(
     Output(SPLIT_ROLE_POPULATION_DROPDOWN, "options"),
     Input(NETS, "data"),
-    background=True,
 )
 def create_dp_split_role_dropdown(nets):
     if not nets:
@@ -262,7 +259,6 @@ def create_dp_split_role_dropdown(nets):
     Input(SPLIT_ROLE_POPULATION_DROPDOWN, "value"),
     State(MD_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
 )
 def create_dp_split_role_dropdown(split_role_population_values, meta_data_filters, nets):
     if not split_role_population_values or not nets:
@@ -284,7 +280,6 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input("acc-threshold-slider", "value"),
-    background=True,
 )
 def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -308,7 +303,6 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_value
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input("acc-threshold-slider", "value"),
-    background=True,
 )
 def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -332,7 +326,6 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_value
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input("falses-threshold-slider", "value"),
-    background=True,
 )
 def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -356,7 +349,6 @@ def get_path_net_falses_host(meta_data_filters, pathnet_filters, nets, slider_va
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input("falses-threshold-slider", "value"),
-    background=True,
 )
 def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -380,7 +372,6 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, slider_va
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input("misses-threshold-slider", "value"),
-    background=True,
 )
 def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -404,7 +395,6 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, slider_va
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input("misses-threshold-slider", "value"),
-    background=True,
 )
 def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -426,7 +416,6 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, slider_va
     Output({"out": "graph", "role": MATCH}, "children"),
     Input(NETS, "data"),
     State({"out": "graph", "role": MATCH}, "id"),
-    background=True,
 )
 def generate_conf_matrices_components(nets, graph_id):
     if not nets:
@@ -448,7 +437,6 @@ def generate_conf_matrices_components(nets, graph_id):
     Input(MD_FILTERS, "data"),
     State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
     Input(PATHNET_FILTERS, "data"),
-    background=True,
 )
 def generate_overall_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filters):
     if not nets:
@@ -475,7 +463,6 @@ def generate_overall_conf_matrices(nets, meta_data_filters, graph_id, pathnet_fi
     Input(MD_FILTERS, "data"),
     State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
     Input(PATHNET_FILTERS, "data"),
-    background=True,
 )
 def generate_host_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filters):
     if not nets:
@@ -532,7 +519,6 @@ def get_column_histogram(meta_data_filters, pathnet_filters, nets, role, column,
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
 )
 def get_path_net_biases_host(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -545,7 +531,6 @@ def get_path_net_biases_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
 )
 def get_path_net_biases_next(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -565,7 +550,6 @@ def get_path_net_biases_next(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
 )
 def get_path_net_view_ranges_host(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(
@@ -585,7 +569,6 @@ def get_path_net_view_ranges_host(meta_data_filters, pathnet_filters, nets):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     State(NETS, "data"),
-    background=True,
 )
 def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
     return get_column_histogram(

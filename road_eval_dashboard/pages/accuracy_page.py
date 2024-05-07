@@ -39,7 +39,6 @@ layout = html.Div(
     Output(FB_TRADEOFF_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_fb_host(meta_data_filters, nets):
     if not nets:
@@ -57,7 +56,6 @@ def get_fb_host(meta_data_filters, nets):
     Output(FB_TRADEOFF_OVERALL, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_fb_overall(meta_data_filters, nets):
     if not nets:
