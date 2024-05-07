@@ -239,7 +239,7 @@ def update_operation_dropdown_options(meta_data_col, tables, data_table, meta_da
     if not callback_context.triggered_id:
         return no_update, no_update
 
-    column_type = get_value_from_tables_property_union(column, tables[data_table], tables[meta_data_table])
+    column_type = get_value_from_tables_property_union(meta_data_col, tables[data_table], tables[meta_data_table])
     if column_type.startswith(("int", "float", "double")):
         options = [
             {"label": "Greater", "value": ">"},
