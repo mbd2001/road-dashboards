@@ -1,6 +1,8 @@
 import base64
 import json
 
+from dash import html
+
 NETS_STATE_KEY = "nets"
 META_DATA_STATE_KEY = "meta_data"
 
@@ -26,3 +28,27 @@ def get_state(state_hash, key=None):
     if key:
         return state.get(key)
     return state
+
+
+def create_dropdown_options_list(labels, values=None):
+    if not values:
+        values = labels
+
+    assert len(labels) == len(values), "If values is different from labels, both should be of the same size"
+    return [{"label": label, "value": value} for label, value in zip(labels, values)]
+
+
+def create_message(msg, style=None, color="red"):
+    if style is None:
+        style = {"margin-top": 10, "color": color}
+    message_lines = msg.split("\n")
+
+    # Create a list of Dash HTML components, interspersing html.Br() elements for line breaks
+    formatted_message = [html.Span(line, style=style) for line in message_lines]
+
+    # Insert html.Br() after each line except the last one
+    components = []
+    for component in formatted_message[:-1]:
+        components.extend([component, html.Br()])
+    components.append(formatted_message[-1])
+    return html.Div(components)
