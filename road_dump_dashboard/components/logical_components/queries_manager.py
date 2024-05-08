@@ -1,3 +1,4 @@
+from natsort import natsorted
 from road_database_toolkit.athena.athena_utils import create_athena_table_from_query, hash_path
 
 from road_dump_dashboard.components.logical_components.tables_properties import (
@@ -303,7 +304,7 @@ def get_aggregated_columns(extra_columns, main_tables, meta_data_tables=None):
 
     existing_cols = get_tables_property_union(main_tables, meta_data_tables, "columns_to_type")
     matching_columns = {
-        agg_col: [col for col in existing_cols.keys() if col.startswith(agg_col)] for agg_col in agg_cols
+        agg_col: natsorted([col for col in existing_cols.keys() if col.startswith(agg_col)]) for agg_col in agg_cols
     }
     for key, val in matching_columns.items():
         extra_columns.remove(key)
