@@ -30,7 +30,8 @@ from road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.queries_manager import generate_fb_query, run_query_with_nets_names_processing
 from road_eval_dashboard.graphs.meta_data_filters_graph import calc_fb_per_row, draw_meta_data_filters
 
@@ -38,7 +39,7 @@ from road_eval_dashboard.graphs.meta_data_filters_graph import calc_fb_per_row, 
 def get_base_graph_layout(graph_id, host_button_id, sort_by_dist_id=None):
     layout = card_wrapper(
         [
-            dbc.Row(loading_wrapper([dcc.Graph(id=graph_id, config={"displayModeBar": False})])),
+            dbc.Row(graph_wrapper(graph_id)),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
@@ -87,7 +88,6 @@ layout = html.Div(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_road_type(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -112,7 +112,6 @@ def fb_per_road_type(meta_data_filters, is_host, nets, effective_samples, thresh
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_lane_mark_type(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -137,7 +136,6 @@ def fb_per_lane_mark_type(meta_data_filters, is_host, nets, effective_samples, t
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_lane_mark_color(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -163,7 +161,6 @@ def fb_per_lane_mark_color(meta_data_filters, is_host, nets, effective_samples, 
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_curve(meta_data_filters, is_host, by_dist, nets, effective_samples, thresh):
     if not nets:
@@ -189,7 +186,6 @@ def fb_per_curve(meta_data_filters, is_host, by_dist, nets, effective_samples, t
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_event(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -214,7 +210,6 @@ def fb_per_event(meta_data_filters, is_host, nets, effective_samples, thresh):
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_weather_type(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:

@@ -15,7 +15,8 @@ from road_eval_dashboard.components.components_ids import (
     TYPE_OVERALL,
 )
 from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_compare_query, run_query_with_nets_names_processing
 from road_eval_dashboard.graphs.bar_graph import basic_bar_graph
@@ -33,12 +34,8 @@ layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=TYPE_OVERALL, config={"displayModeBar": False})])], width=6
-                        ),
-                        dbc.Col(
-                            [loading_wrapper([dcc.Graph(id=TYPE_HOST, config={"displayModeBar": False})])], width=6
-                        ),
+                        dbc.Col([graph_wrapper(TYPE_OVERALL)], width=6),
+                        dbc.Col([graph_wrapper(TYPE_HOST)], width=6),
                     ]
                 )
             ]
@@ -119,7 +116,6 @@ def generate_host_matrices(meta_data_filters, nets):
     Output(TYPE_OVERALL, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_overall_type_score(meta_data_filters, nets):
     if not nets:
@@ -145,7 +141,6 @@ def get_overall_type_score(meta_data_filters, nets):
     Output(TYPE_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_host_type_score(meta_data_filters, nets):
     if not nets:

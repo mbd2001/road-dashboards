@@ -24,11 +24,12 @@ from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     _get_emdp_col,
-    generate_emdp_query,
+    generate_compare_metric_query,
     generate_emdp_view_range_sec_histogram_query,
     generate_emdp_view_range_Z_histogram_query,
     run_query_with_nets_names_processing,
@@ -79,18 +80,8 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
     layout = card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id={
-                                "out": "graph",
-                                "filter": filter_name,
-                                "emdp_type": EMDP_TYPE,
-                                "sort_by_dist": sort_by_dist,
-                            },
-                            config={"displayModeBar": False},
-                        )
-                    ]
+                graph_wrapper(
+                    {"out": "graph", "filter": filter_name, "emdp_type": EMDP_TYPE, "sort_by_dist": sort_by_dist}
                 )
             ),
             dbc.Stack(
@@ -207,7 +198,7 @@ def get_view_range_histogram_layout():
             dbc.Row(
                 [
                     dbc.Col(
-                        loading_wrapper([dcc.Graph(id=EMDP_VIEW_RANGE_HISTOGRAM, config={"displayModeBar": False})]),
+                        graph_wrapper(EMDP_VIEW_RANGE_HISTOGRAM),
                         width=11,
                     )
                 ]
@@ -257,7 +248,6 @@ layout = html.Div(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "id"),
-    background=True,
 )
 def get_none_dist_graph(
     meta_data_filters, is_world, is_precision, filter_none_monotonic, sec_to_check, nets, effective_samples, graph_id
@@ -294,7 +284,6 @@ def get_none_dist_graph(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "id"),
-    background=True,
 )
 def get_dist_graph(
     meta_data_filters,
@@ -335,7 +324,6 @@ def get_dist_graph(
     Input(EMDP_VIEW_RANGE_HISTOGRAM_NORM, "on"),
     Input(EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC, "on"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_view_range_histogram_plot(meta_data_filters, naive_Z, cumulative, monotonic, norm, by_sec, nets):
     if not nets:
@@ -429,7 +417,7 @@ def get_emdp_fig(
     label = "is_matched" if is_precision else "Z_max_sec"
     label = _get_emdp_col(label, not is_world, filter_none_monotonic)
     pred = PRECISION_MATCHED if is_precision else sec_to_check
-    query = generate_emdp_query(
+    query = generate_compare_metric_query(
         nets["frame_tables"],
         nets["meta_data"],
         label,

@@ -16,7 +16,6 @@ RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobiley
 # pip installations
 RUN pip install --upgrade pip
 RUN pip install pycountry
-RUN pip install "dash[diskcache]"
 RUN pip install dash-bootstrap-components
 RUN pip install dash-daq
 RUN pip install numpy
@@ -26,6 +25,8 @@ RUN pip install tqdm
 RUN pip install fsspec
 RUN pip install s3fs==0.4.2
 RUN pip install road-database-toolkit
+RUN pip install jira
+RUN pip install kaleido
 
 ENV PYTHONPATH=/app
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional

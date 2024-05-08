@@ -17,10 +17,10 @@ class Table:
 
 @dataclass
 class Nets:
-    def __init__(self, net_names, checkpoints, use_cases, populations, **kwargs):
+    def __init__(self, net_names, checkpoints, use_cases, populations, datasets, **kwargs):
         self.names = [
-            f"{net_name}_{checkpoint}_{use_case}"
-            for net_name, checkpoint, use_case in zip(net_names, checkpoints, use_cases)
+            f"{net_name}__{checkpoint}__{use_case}__{dataset}"
+            for net_name, checkpoint, use_case, dataset in zip(net_names, checkpoints, use_cases, datasets)
         ]
         self.population = (
             "Test"
@@ -52,7 +52,7 @@ class Nets:
                 f'"pos_dZ_{source}_{axis}_dists_{sec}"'
                 for sec in lm_3d_distances
                 for axis in ["Z", "X"]
-                for source in [s.value for s in ZSources]
+                for source in [s.value for s in ZSources if s != ZSources.Z_COORDS]
             ],
             "ignore = FALSE",
             "confidence > 0 AND match <> -1 AND ca_role <> 'other'",
@@ -62,8 +62,6 @@ class Nets:
             "grabIndex",
             "net_id",
             "role",
-            "split_role",
-            "matched_split_role",
             "bin_population",
             "smooth_index",
         ] + [f'"dist_{dist / 2}"' for dist in range(1, 11)]

@@ -39,21 +39,9 @@ requirements:
     - s3fs
     - fsspec
     - road-database-toolkit
+    - jira
+    - python-kaleido
     - natsort
-
-
-tests:
-  - script:
-      - echo "hello world"
-    requirements:
-      run:
-      - pytest
-      - pytest-xdist
-      - pytest-cov
-      - pytest-html
-      - coverage
-
-
 
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road_eval_dashboard

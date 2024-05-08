@@ -5,6 +5,7 @@ PATHNET_PRED = "pathnet_pred_tables"
 
 # stores
 NETS = "nets"
+GRAPH_TO_COPY = "graph_to_copy"
 CATALOG = "catalog"
 MD_COLUMNS_TO_TYPE = "md_columns_to_type"
 MD_COLUMNS_OPTION = "md_columns_options"
@@ -87,6 +88,15 @@ EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC = "emdp_view_range_histogram_monotonic"
 EMDP_VIEW_RANGE_HISTOGRAM_NORM = "emdp_view_range_histogram_norm"
 EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC = "emdp_view_range_histogram_by_sec"
 
+# rem page
+REM_ACCURACY_3D_SOURCE_DROPDOWN = "rem-accuracy-3d-source-dropdown"
+REM_ACCURACY_ERROR_THRESHOLD_SLIDER = "rem-accuracy-error-threshold-slider"
+REM_TABS_CONTENT = "rem-tabs-content"
+REM_TABS = "rem-tabs"
+REM_ERROR_HISTOGRAM = "rem_error_histogram"
+REM_ERROR_HISTOGRAM_Z_OR_SEC = "rem_error_histogram_z_or_sec"
+REM_ROLES_DROPDOWN = "rem-roles-dropdown"
+
 
 # counters
 POPULATION_STATE = "population_state"
@@ -104,12 +114,40 @@ PATH_NET_ACC_HOST = "path_net_accuracy_host"
 PATH_NET_ACC_NEXT = "path_net_accuracy_next"
 PATH_NET_MISSES_HOST = "path_net_misses_host"
 PATH_NET_MISSES_NEXT = "path_net_misses_next"
-PATH_NET_CONF_MAT = "path_net_conf_mat"
-PATH_NET_ALL_CONF_DIAGONAL = "overall_conf_mat_diagonal"
-PATH_NET_HOST_CONF_DIAGONAL = "overall_host_conf_mat_diagonal"
-PATH_NET_OVERALL_CONF_MAT = "path_net_overall_conf_mats"
-PATH_NET_HOST_CONF_MAT = "path_net_host_conf_mats"
-PATH_NET_ALL_CONF_MATS = "all_pathnet_conf_mats"
+
+
+PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"
+PATHNET_TPR_CARD = "all_dp_tpr_card_id"
+PATH_NET_ALL_TPR = "all_dp_tpr_id"
+PATH_NET_HOST_TPR = "host_dp_tpr_id"
+PATH_NET_HOST_CONF_MAT = "host_dp_conf_mat_id"
+PATH_NET_ALL_CONF_MATS = "all_dps_conf_mat_id"
+
+
+PATH_NET_BIASES_HOST = "path_net_biases_host"
+PATH_NET_BIASES_NEXT = "path_net_biases_next"
+PATH_NET_VIEW_RANGES_HOST = "path_net_view_range_host"
+PATH_NET_VIEW_RANGES_NEXT = "path_net_view_range_next"
+
+PATHNET_EVENTS_NET_ID_DROPDOWN = "pathnet_events_net_id_dropdown"
+PATHNET_EVENTS_CHOSEN_NET = "pathnet_events_chosen_net"
+PATHNET_EVENTS_DP_SOURCE_DROPDOWN = "pathnet_events_dp_source_dropdown"
+PATHNET_EVENTS_ROLE_DROPDOWN = "pathnet_events_role_dropdown"
+PATHNET_EVENTS_DIST_DROPDOWN = "pathnet_events_dist_dropdown"
+PATHNET_EVENTS_METRIC_DROPDOWN = "pathnet_events_metric_dropdown"
+PATHNET_EVENTS_ORDER_DROPDOWN = "pathnet_events_order_dropdown"
+PATHNET_EVENTS_NUM_EVENTS = "pathnet_events_num_events"
+PATHNET_EVENTS_NET_CHOOSING_BUTTON = "pathnet_events_net_choosing_button"
+PATHNET_EVENTS_SUBMIT_BUTTON = "pathnet_events_submit_button"
+PATHNET_EVENTS_DATA_TABLE = "pathnet_events_data_table"
+PATHNET_EVENTS_BOOKMARKS_JSON = "pathnet_events_bookmarks_json"
+PATHNET_EXPLORER_DATA = "pathnet_explorer_data"
+PATHNET_EVENTS_ERROR_MESSAGE = "pathnet_events_error_message"
+PATHNET_OPEN_EXPORT_EVENTS_WINDOW_BUTTON = "pathnet_open_export_events_window_button"
+PATHNET_EXPORT_TO_BOOKMARK_WINDOW = "pathnet_export_to_bookmark_window"
+PATHNET_BOOKMARKS_JSON_FILE_NAME = "pathnet_bookmarks_json_file_name"
+PATHNET_EXPORT_JSON_BUTTON = "pathnet_export_json_button"
+PATHNET_EXPORT_JSON_LOG_MESSAGE = "pathnet_export_json_log_message"
 
 # lm 3d page
 LM_3D_SOURCE_DROPDOWN = "3d-source-dropdown"
@@ -125,18 +163,21 @@ VIEW_RANGE_SUCCESS_RATE_NAIVE_Z = f"{VIEW_RANGE_SUCCESS_RATE}_naive_Z"
 VIEW_RANGE_SUCCESS_RATE_ERR_EST = f"{VIEW_RANGE_SUCCESS_RATE}_err_est"
 VIEW_RANGE_SUCCESS_RATE_Z_RANGE = f"{VIEW_RANGE_SUCCESS_RATE}_Z_range"
 VIEW_RANGE_SUCCESS_RATE_Z_STEP = f"{VIEW_RANGE_SUCCESS_RATE}_Z_step"
+VIEW_RANGE_SUCCESS_RATE_ERR_EST_THRESHOLD = f"{VIEW_RANGE_SUCCESS_RATE}_err_est_threshold"
 
 VIEW_RANGE_SUCCESS_RATE_HOST_NEXT = f"{VIEW_RANGE_SUCCESS_RATE}_host_next"
 VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_NAIVE_Z = f"{VIEW_RANGE_SUCCESS_RATE_HOST_NEXT}_naive_Z"
 VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST = f"{VIEW_RANGE_SUCCESS_RATE_HOST_NEXT}_err_est"
 VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_RANGE = f"{VIEW_RANGE_SUCCESS_RATE_HOST_NEXT}_Z_range"
 VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_Z_STEP = f"{VIEW_RANGE_SUCCESS_RATE_HOST_NEXT}_Z_step"
+VIEW_RANGE_SUCCESS_RATE_HOST_NEXT_ERR_EST_THRESHOLD = f"{VIEW_RANGE_SUCCESS_RATE_HOST_NEXT}_err_est_threshold"
 
 VIEW_RANGE_HISTOGRAM = "view_range_histogram"
 VIEW_RANGE_HISTOGRAM_NAIVE_Z = f"{VIEW_RANGE_HISTOGRAM}_naive_Z"
 VIEW_RANGE_HISTOGRAM_ERR_EST = f"{VIEW_RANGE_HISTOGRAM}_err_est"
 VIEW_RANGE_HISTOGRAM_CUMULATIVE = f"{VIEW_RANGE_HISTOGRAM}_cumulative"
 VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER = f"{VIEW_RANGE_HISTOGRAM}_bin_size_slider"
+VIEW_RANGE_HISTOGRAM_ERR_EST_THRESHOLD = f"{VIEW_RANGE_HISTOGRAM}_err_est_threshold"
 
 # data exploration page
 COUNTRIES_HEAT_MAP = "countries_heat_map"

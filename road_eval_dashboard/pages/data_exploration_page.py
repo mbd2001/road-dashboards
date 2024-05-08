@@ -19,7 +19,8 @@ from road_eval_dashboard.components.components_ids import (
     ROAD_TYPE_PIE_CHART,
     TVGT_PIE_CHART,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_count_query, generate_dynamic_count_query
 from road_eval_dashboard.graphs.countries_map import (
@@ -58,7 +59,7 @@ layout = html.Div(
                 dbc.Row(
                     [
                         dbc.Col(
-                            loading_wrapper([dcc.Graph(id=DYNAMIC_PIE_CHART, config={"displayModeBar": False})]),
+                            graph_wrapper(DYNAMIC_PIE_CHART),
                             width=11,
                         ),
                         dbc.Col(
@@ -80,11 +81,11 @@ layout = html.Div(
         dbc.Row(
             [
                 dbc.Col(
-                    card_wrapper([loading_wrapper([dcc.Graph(id=TVGT_PIE_CHART, config={"displayModeBar": False})])]),
+                    card_wrapper([graph_wrapper(TVGT_PIE_CHART)]),
                     width=6,
                 ),
                 dbc.Col(
-                    card_wrapper([loading_wrapper([dcc.Graph(id=GTEM_PIE_CHART, config={"displayModeBar": False})])]),
+                    card_wrapper([graph_wrapper(GTEM_PIE_CHART)]),
                     width=6,
                 ),
             ],
@@ -92,20 +93,16 @@ layout = html.Div(
         dbc.Row(
             [
                 dbc.Col(
-                    card_wrapper(
-                        [loading_wrapper([dcc.Graph(id=ROAD_TYPE_PIE_CHART, config={"displayModeBar": False})])]
-                    ),
+                    card_wrapper([graph_wrapper(ROAD_TYPE_PIE_CHART)]),
                     width=6,
                 ),
                 dbc.Col(
-                    card_wrapper(
-                        [loading_wrapper([dcc.Graph(id=LANE_MARK_COLOR_PIE_CHART, config={"displayModeBar": False})])]
-                    ),
+                    card_wrapper([graph_wrapper(LANE_MARK_COLOR_PIE_CHART)]),
                     width=6,
                 ),
             ],
         ),
-        card_wrapper([dbc.Row(loading_wrapper([dcc.Graph(id=COUNTRIES_HEAT_MAP, config={"displayModeBar": False})]))]),
+        card_wrapper([dbc.Row(graph_wrapper(COUNTRIES_HEAT_MAP))]),
     ]
 )
 
@@ -114,7 +111,6 @@ layout = html.Div(
     Output(COUNTRIES_HEAT_MAP, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_countries_heat_map(meta_data_filters, nets):
     if not nets:
@@ -139,7 +135,6 @@ def get_countries_heat_map(meta_data_filters, nets):
     Output(TVGT_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_tvgt_pie_chart(meta_data_filters, nets):
     if not nets:
@@ -160,7 +155,6 @@ def get_tvgt_pie_chart(meta_data_filters, nets):
     Output(GTEM_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_gtem_pie_chart(meta_data_filters, nets):
     if not nets:
@@ -192,7 +186,6 @@ def init_pie_dropdown(md_columns_options):
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
     State(MD_COLUMNS_TO_TYPE, "data"),
-    background=True,
 )
 def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, nets, meta_data_dict):
     if not nets or not group_by_column:
@@ -228,7 +221,6 @@ def get_dynamic_pie_chart(group_by_column, slider_value, meta_data_filters, nets
     Output(ROAD_TYPE_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_road_type_pie_chart(meta_data_filters, nets):
     if not nets:
@@ -253,7 +245,6 @@ def get_road_type_pie_chart(meta_data_filters, nets):
     Output(LANE_MARK_COLOR_PIE_CHART, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_lane_mark_color_pie_chart(meta_data_filters, nets):
     if not nets:

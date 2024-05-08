@@ -15,10 +15,10 @@ from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
-    INTERSTING_FILTERS_DIST_TO_CHECK,
     ZSources,
     generate_lm_3d_query,
     lm_3d_distances,
@@ -32,7 +32,7 @@ register_page(__name__, path="/lm_3d", name="LM 3D", order=3, **extra_properties
 
 
 def get_3d_source_layout():
-    options = [s.value for s in ZSources]
+    options = [s.value for s in ZSources if s != ZSources.Z_COORDS]
     return card_wrapper(
         [
             html.H6("Choose 3d source"),
@@ -49,7 +49,7 @@ layout = html.Div(
         get_3d_source_layout(),
         card_wrapper(
             [
-                dbc.Row(loading_wrapper([dcc.Graph(id=LM_3D_ACC_OVERALL, config={"displayModeBar": False})])),
+                dbc.Row([graph_wrapper(LM_3D_ACC_OVERALL)]),
                 daq.BooleanSwitch(
                     id=LM_3D_ACC_OVERALL_Z_X,
                     on=False,
@@ -81,7 +81,6 @@ layout = html.Div(
     Input(LM_3D_ACC_OVERALL_Z_X, "on"),
     Input(LM_3D_SOURCE_DROPDOWN, "value"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_lm_3d_acc_overall(meta_data_filters, is_Z, Z_source, nets):
     if not nets:
@@ -108,7 +107,6 @@ def get_lm_3d_acc_overall(meta_data_filters, is_Z, Z_source, nets):
     Input(NETS, "data"),
     State({"type": LM_3D_ACC_HOST, "extra_filter": MATCH}, "id"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    background=True,
     prevent_initial_call=True,
 )
 def get_lm_3d_acc_interesting_filter(meta_data_filters, is_Z, Z_source, nets, graph_id, effective_samples):

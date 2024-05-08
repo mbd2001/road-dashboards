@@ -13,7 +13,8 @@ from road_eval_dashboard.components.common_filters import (
     VMAX_BINS_FILTERS,
 )
 from road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
     generate_vmax_fb_query,
@@ -56,18 +57,13 @@ def get_base_graph_layout(filter_name, max_speed_type, is_sort_by_dist=False):
     layout = card_wrapper(
         [
             dbc.Row(
-                loading_wrapper(
-                    [
-                        dcc.Graph(
-                            id={
-                                "out": "graph",
-                                "filter": filter_name,
-                                "type": max_speed_type,
-                                "is_sort_by_dist": is_sort_by_dist,
-                            },
-                            config={"displayModeBar": False},
-                        )
-                    ]
+                graph_wrapper(
+                    {
+                        "out": "graph",
+                        "filter": filter_name,
+                        "type": max_speed_type,
+                        "is_sort_by_dist": is_sort_by_dist,
+                    },
                 )
             ),
             dbc.Stack(
@@ -122,7 +118,6 @@ layout = html.Div(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": False}, "id"),
-    background=True,
 )
 def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samples, input_id):
     if not nets:
@@ -148,7 +143,6 @@ def get_none_dist_graph(meta_data_filters, is_success_rate, nets, effective_samp
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "type": MATCH, "is_sort_by_dist": True}, "id"),
-    background=True,
 )
 def get_dist_graph(meta_data_filters, is_success_rate, filter_by_dist, nets, effective_samples, input_id):
     if not nets:

@@ -46,10 +46,10 @@ def get_greens_reds(data, interesting_columns, effective_samples, score_func):
 def draw_meta_data_filters(
     data, interesting_columns, score_func, hover=False, effective_samples={}, title="", xaxis="Filter", yaxis="Fb Score"
 ):
-    if effective_samples:
+    if all(f"sum_{col}" in effective_samples for col in interesting_columns):
         greens, reds = get_greens_reds(data, interesting_columns, effective_samples, score_func)
     else:
-        greens, reds = None, None
+        greens, reds = {}, {}
 
     fig = go.Figure()
     for ind, row in data.iterrows():
@@ -60,7 +60,8 @@ def draw_meta_data_filters(
                 marker=(
                     dict(
                         symbol=[
-                            choose_symbol(col, reds[row.net_id], greens[row.net_id]) for col in interesting_columns
+                            choose_symbol(col, reds.get(row.net_id, []), greens.get(row.net_id, []))
+                            for col in interesting_columns
                         ],
                         size=10,
                     )
