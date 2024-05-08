@@ -173,6 +173,7 @@ layout = create_events_extractor_layout()
 @callback(
     Output(PATHNET_EVENTS_NET_ID_DROPDOWN, "options"),
     Input(NETS, "data"),
+    background=True,
 )
 def get_eval_name(nets):
     return create_dropdown_options_list(nets["names"]) if nets else no_update
