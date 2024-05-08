@@ -54,10 +54,6 @@ register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_prop
 role_layout = html.Div([html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]])
 pos_layout = html.Div(
     [
-        html.H1("Path Net Metrics", className="mb-5"),
-        meta_data_filter.layout,
-        base_dataset_statistics.dp_layout,
-        pathnet_events_extractor_card.layout,
         card_wrapper(
             [
                 dbc.Row(
@@ -167,13 +163,18 @@ layout = html.Div(
         html.H1("Path Net Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.dp_layout,
-        dcc.Tabs(
-            id="pathnet-metrics-graphs",
-            value="positional",
-            children=[
-                dcc.Tab(label="pathnet-metrics-positional", value="positional"),
-                dcc.Tab(label="pathnet-metrics-roles", value="roles"),
-            ],
+        pathnet_events_extractor_card.layout,
+        card_wrapper(
+            [
+                dcc.Tabs(
+                    id="pathnet-metrics-graphs",
+                    value="positional",
+                    children=[
+                        dcc.Tab(label="pathnet-metrics-positional", value="positional"),
+                        dcc.Tab(label="pathnet-metrics-roles", value="roles"),
+                    ],
+                ),
+            ]
         ),
         card_wrapper(
             [
