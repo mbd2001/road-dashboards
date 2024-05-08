@@ -7,17 +7,12 @@ from road_eval_dashboard.components.components_ids import REM_ROLES_DROPDOWN, RE
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.pages.rem_page.tabs import accuracy, availability, painted, width
+from road_eval_dashboard.components.queries_manager import Roles
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/rem", name="REM", order=9, **extra_properties.__dict__)
 
 TABS_LAYOUTS = {"accuracy": accuracy.layout, "availability": availability.layout, "painted": painted.layout, 'width': width.layout}
-
-
-class Roles(str, enum.Enum):
-    HOST = "host"
-    NEXT = "next"
-    OVERALL = ""
 
 
 def get_settings_layout():

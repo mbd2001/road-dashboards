@@ -44,7 +44,15 @@ def get_greens_reds(data, interesting_columns, effective_samples, score_func):
 
 
 def draw_meta_data_filters(
-    data, interesting_columns, score_func, hover=False, effective_samples={}, title="", xaxis="Filter", yaxis="Fb Score"
+    data,
+    interesting_columns,
+    score_func,
+    hover=False,
+    effective_samples={},
+    title="",
+    xaxis="Filter",
+    yaxis="Fb Score",
+    count_items_name="lane marks",
 ):
     if all(f"sum_{col}" in effective_samples for col in interesting_columns):
         greens, reds = get_greens_reds(data, interesting_columns, effective_samples, score_func)
@@ -69,7 +77,11 @@ def draw_meta_data_filters(
                     else None
                 ),
                 name=row.net_id,
-                hovertext=["lane marks: " + str(row[f"count_{col}"]) for col in interesting_columns] if hover else None,
+                hovertext=(
+                    [f"{count_items_name}: " + str(row[f"count_{col}"]) for col in interesting_columns]
+                    if hover
+                    else None
+                ),
             )
         )
     fig.update_layout(

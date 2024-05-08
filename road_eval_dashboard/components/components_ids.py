@@ -96,6 +96,11 @@ REM_ERROR_HISTOGRAM = "rem_error_histogram"
 REM_ERROR_HISTOGRAM_Z_OR_SEC = "rem_error_histogram_z_or_sec"
 REM_ROLES_DROPDOWN = "rem-roles-dropdown"
 
+# painted
+PAINTED_ROLES_DROPDOWN = "painted-roles-dropdown"
+PAINTED_TABS_CONTENT = "painted-tabs-content"
+PAINTED_TABS = "painted-tabs"
+
 # width page
 WIDTH_ROLES_DROPDOWN = "width-roles-dropdown"
 WIDTH_3D_SOURCE_DROPDOWN = "width-3d-source-dropdown"
