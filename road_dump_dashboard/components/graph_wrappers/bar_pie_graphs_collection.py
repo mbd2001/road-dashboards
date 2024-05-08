@@ -227,7 +227,6 @@ def get_group_by_chart(
         diff_column=diff_column,
         extra_filters=extra_filters,
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     title = f"Distribution of {main_column.title()}" + (f" and {diff_column.title()} diff" if diff_column else "")
     col_id = DIFF_COL if diff_column else main_column
