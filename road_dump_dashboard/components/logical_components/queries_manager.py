@@ -286,7 +286,7 @@ def generate_base_query(
     filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on, type_filters)
     base_data = generate_base_data(main_paths, filters, meta_data_paths, extra_columns)
     if agg_cols:
-        base_data = generate_wildcard_union(agg_cols, base_data, main_tables, meta_data_tables)
+        base_data = generate_agg_cols_union(agg_cols, base_data, main_tables, meta_data_tables)
 
     return base_data
 
@@ -311,7 +311,7 @@ def get_aggregated_columns(extra_columns, main_tables, meta_data_tables=None):
     return matching_columns, extra_columns
 
 
-def generate_wildcard_union(agg_cols, base_query, main_tables, meta_data_tables=None):
+def generate_agg_cols_union(agg_cols, base_query, main_tables, meta_data_tables=None):
     base_query = create_athena_table_from_query(base_query, database="run_eval_db")
     base_columns = ", ".join(BASE_COLUMNS)
     select_strings = [

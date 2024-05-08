@@ -298,7 +298,9 @@ def update_meta_data_values_options(operation, index, col, tables, main_table, m
     if not callback_context.triggered_id:
         return no_update
 
-    distinguish_values = get_value_from_tables_property_union(col, tables[main_table], tables[meta_data_table], "columns_distinguish_values")
+    distinguish_values = get_value_from_tables_property_union(
+        col, tables[main_table], tables[meta_data_table], "columns_distinguish_values"
+    )
     column_type = get_value_from_tables_property_union(col, tables[main_table], tables[meta_data_table])
     if operation in ["IS NULL", "IS NOT NULL"]:
         return dcc.Input(
