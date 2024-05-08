@@ -15,7 +15,6 @@ layout = card_wrapper(
     Output(OBJ_COUNT, "children"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_nets_obj_count(meta_data_filters, nets):
     if not nets:

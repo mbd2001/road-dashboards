@@ -177,6 +177,19 @@ CORRELATION_SUM_METRIC = """
     AS "sum_{ind}"
     """
 
+EXTRACT_EVENT_METRIC = """
+    {dist_column} IS NOT NULL AND 
+    {dist_column} {operator} {dist_thresh} AND 
+    bin_population = '{dp_source}'
+"""
+
+EXTRACT_EVENT_QUERY = """
+    SELECT {selected_columns} 
+    FROM ({base_query}) 
+    WHERE {metrics_cmd}
+    ORDER BY {order_cmd}
+"""
+
 SUM_SUCCESS_RATE_METRIC = """
     CAST(SUM(CASE WHEN {extra_filters} THEN {pred} ELSE 0 END) AS DOUBLE) / SUM(CASE WHEN {extra_filters} THEN {label} ELSE 0 END) 
     AS "score_{ind}"
@@ -185,7 +198,6 @@ SUM_SUCCESS_RATE_METRIC = """
 THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
 )
-
 
 ROC_THRESHOLDS = np.concatenate(
     (
@@ -553,6 +565,37 @@ def generate_path_net_query(
         role,
         extra_columns=extra_columns,
         base_extra_filters=extra_filters,
+    )
+    return query
+
+
+def generate_pathnet_events_query(
+    data_tables,
+    meta_data,
+    meta_data_filters,
+    dp_source,
+    role,
+    dist,
+    metric,
+    order,
+):
+    meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
+    extra_columns = ["dp_id", "matched_dp_id", "match_score"]  # "batch_num"
+    base_query = generate_base_query(
+        data_tables, meta_data, meta_data_filters=meta_data_filters, role=role, extra_columns=extra_columns
+    )
+
+    operator = "<" if metric == "accuracy" else ">"
+    dist_thresh = sec_to_dist_acc[dist] if metric == "accuracy" else sec_to_dist_falses[dist]
+    dist_column = f'"dist_{dist}"'
+    order_cmd = f"{dist_column} {order}"
+    metrics_cmd = EXTRACT_EVENT_METRIC.format(
+        dist_column=dist_column, operator=operator, dist_thresh=dist_thresh, dp_source=dp_source
+    )
+
+    selected_columns = f"clip_name, grabIndex, {dist_column}, batch_num, sample_index, " + ", ".join(extra_columns)
+    query = EXTRACT_EVENT_QUERY.format(
+        selected_columns=selected_columns, base_query=base_query, metrics_cmd=metrics_cmd, order_cmd=order_cmd
     )
     return query
 

@@ -248,7 +248,6 @@ layout = html.Div(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": False}, "id"),
-    background=True,
 )
 def get_none_dist_graph(
     meta_data_filters, is_world, is_precision, filter_none_monotonic, sec_to_check, nets, effective_samples, graph_id
@@ -285,7 +284,6 @@ def get_none_dist_graph(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "emdp_type": EMDP_TYPE, "sort_by_dist": True}, "id"),
-    background=True,
 )
 def get_dist_graph(
     meta_data_filters,
@@ -326,7 +324,6 @@ def get_dist_graph(
     Input(EMDP_VIEW_RANGE_HISTOGRAM_NORM, "on"),
     Input(EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC, "on"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_view_range_histogram_plot(meta_data_filters, naive_Z, cumulative, monotonic, norm, by_sec, nets):
     if not nets:

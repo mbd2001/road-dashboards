@@ -103,7 +103,6 @@ def generate_catalog_layout():
     Input(UPDATE_RUNS_BTN, "n_clicks"),
     State(CATALOG, "data"),
     State(RUN_EVAL_CATALOG, "selected_rows"),
-    background=True,
     prevent_initial_call=True,
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
@@ -167,6 +166,7 @@ def init_nets(rows, derived_virtual_selected_rows):
         rows["checkpoint"],
         rows["use_case"],
         rows["population"],
+        rows["dataset"],
         **{table: rows[table].tolist() for table in rows.columns if table.endswith("table") and any(rows[table])},
     ).__dict__
     return nets

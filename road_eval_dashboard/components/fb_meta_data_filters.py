@@ -88,7 +88,6 @@ layout = html.Div(
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_road_type(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -113,7 +112,6 @@ def fb_per_road_type(meta_data_filters, is_host, nets, effective_samples, thresh
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_lane_mark_type(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -138,7 +136,6 @@ def fb_per_lane_mark_type(meta_data_filters, is_host, nets, effective_samples, t
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_lane_mark_color(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -164,7 +161,6 @@ def fb_per_lane_mark_color(meta_data_filters, is_host, nets, effective_samples, 
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_curve(meta_data_filters, is_host, by_dist, nets, effective_samples, thresh):
     if not nets:
@@ -190,7 +186,6 @@ def fb_per_curve(meta_data_filters, is_host, by_dist, nets, effective_samples, t
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_event(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:
@@ -215,7 +210,6 @@ def fb_per_event(meta_data_filters, is_host, nets, effective_samples, thresh):
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(NET_ID_TO_FB_BEST_THRESH, "data"),
-    background=True,
 )
 def fb_per_weather_type(meta_data_filters, is_host, nets, effective_samples, thresh):
     if not nets:

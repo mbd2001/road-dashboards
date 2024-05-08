@@ -155,7 +155,6 @@ def get_color_score(meta_data_filters, nets, role=""):
     Output(COLOR_OVERALL, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_overall_color_score(meta_data_filters, nets):
     if not nets:
@@ -170,7 +169,6 @@ def get_overall_color_score(meta_data_filters, nets):
     Output(COLOR_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_host_color_score(meta_data_filters, nets):
     if not nets:
@@ -185,7 +183,6 @@ def get_host_color_score(meta_data_filters, nets):
     Output(COLOR_OVERALL_DAY, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_overall_day_color_score(meta_data_filters, nets):
     if not nets:
@@ -201,7 +198,6 @@ def get_overall_day_color_score(meta_data_filters, nets):
     Output(COLOR_OVERALL_NIGHT, "figure"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
-    background=True,
 )
 def get_overall_night_color_score(meta_data_filters, nets):
     if not nets:
