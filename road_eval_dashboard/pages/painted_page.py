@@ -164,7 +164,6 @@ def render_content(tab):
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "painted_type": PAINTED_TYPE, "sort_by_dist": False, "tab": ALL}, "id"),
-    background=True,
 )
 def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_id):
     if not nets:
@@ -192,7 +191,6 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "painted_type": PAINTED_TYPE, "sort_by_dist": True, "tab": ALL}, "id"),
-    background=True,
 )
 def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:
@@ -217,7 +215,6 @@ def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_sample
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph_by_Z", "painted_type": PAINTED_TYPE, "tab": ALL}, "id"),
-    background=True,
 )
 def get_Z_graph(meta_data_filters, role, nets, effective_samples, graph_id):
     if not nets:
@@ -266,7 +263,7 @@ def get_labels_to_preds_with_names_by_tab(tab):
     labels_to_pred = {}
     for i, Z in enumerate(Z_BINS[:-1]):
         next_Z = Z_BINS[i + 1]
-        labels_to_pred[f"{Z}_{next_Z}"] = (f"{base_label_name}_{Z}_{next_Z}", f"{base_pred_name}_{Z}_{next_Z}")
+        labels_to_pred[f"{Z}"] = (f"{base_label_name}_{Z}_{next_Z}", f"{base_pred_name}_{Z}_{next_Z}")
     return labels_to_pred
 
 
