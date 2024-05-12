@@ -27,6 +27,7 @@ RUN pip install s3fs==0.4.2
 RUN pip install road-database-toolkit
 RUN pip install jira
 RUN pip install kaleido
+RUN pip install scipy
 
 ENV PYTHONPATH=/app
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional

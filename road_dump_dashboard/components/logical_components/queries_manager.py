@@ -86,7 +86,7 @@ COUNT_ALL_METRIC = """
     AS {count_name}
     """
 
-IMG_LIMIT = 30
+IMG_LIMIT = 25
 
 
 def generate_conf_mat_query(
