@@ -473,7 +473,12 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
         CAST(SUM(CASE WHEN {extra_filters} THEN "{col}" ELSE 0 END) AS DOUBLE)
         AS "count_{ind}"
         """
-    metrics = ", ".join([SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1") for name, (label, pred) in labels_to_preds.items()])
+    metrics = ", ".join(
+        [
+            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1")
+            for name, (label, pred) in labels_to_preds.items()
+        ]
+    )
     group_by = "net_id"
     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
     query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
@@ -509,6 +514,7 @@ def generate_sum_bins_metric_query(
         role=role,
     )
 
+
 def generate_sum_bins_by_diff_cols_metric_query(
     data_tables,
     meta_data,
@@ -538,7 +544,12 @@ def generate_sum_bins_by_diff_cols_metric_query(
             CAST(SUM(CASE WHEN {extra_filters} THEN "{col}" ELSE 0 END) AS DOUBLE)
             AS "count_{ind}"
             """
-    metrics = ", ".join([SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1 AND {label} < 999") for name, (label, pred) in labels_to_preds.items()])
+    metrics = ", ".join(
+        [
+            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1 AND {label} < 999")
+            for name, (label, pred) in labels_to_preds.items()
+        ]
+    )
     group_by = "net_id"
     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
     query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")

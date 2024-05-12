@@ -14,14 +14,22 @@ from road_eval_dashboard.components.common_filters import (
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
-    NETS, WIDTH_ROLES_DROPDOWN, WIDTH_3D_SOURCE_DROPDOWN, WIDTH_ERROR_HISTOGRAM,
+    NETS,
+    WIDTH_3D_SOURCE_DROPDOWN,
+    WIDTH_ERROR_HISTOGRAM,
+    WIDTH_ROLES_DROPDOWN,
 )
 from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import (
-    run_query_with_nets_names_processing, Roles, ZSources, generate_sum_success_rate_metric_by_Z_bins_query,
-    generate_sum_success_rate_metric_query, generate_sum_bins_metric_query, generate_sum_bins_by_diff_cols_metric_query,
+    Roles,
+    ZSources,
+    generate_sum_bins_by_diff_cols_metric_query,
+    generate_sum_bins_metric_query,
+    generate_sum_success_rate_metric_by_Z_bins_query,
+    generate_sum_success_rate_metric_query,
+    run_query_with_nets_names_processing,
 )
 from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
@@ -112,11 +120,12 @@ def get_error_histogram_layout():
         [
             dbc.Row(
                 graph_wrapper(
-                    {"width_type": WIDTH_TYPE, 'out': WIDTH_ERROR_HISTOGRAM},
+                    {"width_type": WIDTH_TYPE, "out": WIDTH_ERROR_HISTOGRAM},
                 )
             ),
         ]
     )
+
 
 layout = html.Div(
     [
@@ -124,18 +133,19 @@ layout = html.Div(
         meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
         get_settings_layout(),
-    html.Div(
-    [get_error_histogram_layout(), get_width_by_Z_layout()]
-    + [
-        get_base_graph_layout(filter_name, sort_by_dist=filter_props.get("sort_by_dist", False))
-        for filter_name, filter_props in WIDTH_FILTERS.items()
-    ]
-)
+        html.Div(
+            [get_error_histogram_layout(), get_width_by_Z_layout()]
+            + [
+                get_base_graph_layout(filter_name, sort_by_dist=filter_props.get("sort_by_dist", False))
+                for filter_name, filter_props in WIDTH_FILTERS.items()
+            ]
+        ),
     ]
 )
 
+
 @callback(
-    Output({"width_type": WIDTH_TYPE, 'out': WIDTH_ERROR_HISTOGRAM}, "figure"),
+    Output({"width_type": WIDTH_TYPE, "out": WIDTH_ERROR_HISTOGRAM}, "figure"),
     Input(WIDTH_ROLES_DROPDOWN, "value"),
     Input(WIDTH_3D_SOURCE_DROPDOWN, "value"),
     Input(MD_FILTERS, "data"),
@@ -161,14 +171,13 @@ def get_error_histogram_graph(role, source, meta_data_filters, nets, effective_s
         title=f"Error Histogram By {source}",
         yaxis="Score",
         hover=True,
-        count_items_name="points"
+        count_items_name="points",
     )
     return fig
 
+
 @callback(
-    Output(
-        {"out": "graph", "filter": MATCH, "width_type": WIDTH_TYPE, "sort_by_dist": False}, "figure"
-    ),
+    Output({"out": "graph", "filter": MATCH, "width_type": WIDTH_TYPE, "sort_by_dist": False}, "figure"),
     Input(MD_FILTERS, "data"),
     Input(WIDTH_ROLES_DROPDOWN, "value"),
     Input(WIDTH_3D_SOURCE_DROPDOWN, "value"),
@@ -195,9 +204,7 @@ def get_none_dist_graph(meta_data_filters, role, source, nets, effective_samples
     Input(MD_FILTERS, "data"),
     Input(WIDTH_ROLES_DROPDOWN, "value"),
     Input(WIDTH_3D_SOURCE_DROPDOWN, "value"),
-    Input(
-        {"out": "sort_by_dist", "filter": MATCH, "width_type": WIDTH_TYPE, "sort_by_dist": True}, "on"
-    ),
+    Input({"out": "sort_by_dist", "filter": MATCH, "width_type": WIDTH_TYPE, "sort_by_dist": True}, "on"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State({"out": "graph", "filter": MATCH, "width_type": WIDTH_TYPE, "sort_by_dist": True}, "id"),

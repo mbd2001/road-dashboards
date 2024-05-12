@@ -46,7 +46,7 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False, tab_type="regula
                         "rem_type": REM_TYPE,
                         "sort_by_dist": sort_by_dist,
                         "tab": tab,
-                        "tab_type": tab_type
+                        "tab_type": tab_type,
                     }
                 )
             ),
@@ -60,7 +60,7 @@ def get_base_graph_layout(filter_name, tab, sort_by_dist=False, tab_type="regula
                                 "rem_type": REM_TYPE,
                                 "sort_by_dist": sort_by_dist,
                                 "tab": tab,
-                                "tab_type": tab_type
+                                "tab_type": tab_type,
                             },
                             on=False,
                             label="Sort By Dist",

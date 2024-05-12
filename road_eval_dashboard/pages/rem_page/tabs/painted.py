@@ -19,12 +19,32 @@ layout = html.Div(
 
 
 @callback(
-    Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB, "tab_type": "regular"}, "figure"),
+    Output(
+        {
+            "out": "graph",
+            "filter": MATCH,
+            "rem_type": REM_TYPE,
+            "sort_by_dist": False,
+            "tab": TAB,
+            "tab_type": "regular",
+        },
+        "figure",
+    ),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": False, "tab": TAB, "tab_type": "regular"}, "id"),
+    State(
+        {
+            "out": "graph",
+            "filter": MATCH,
+            "rem_type": REM_TYPE,
+            "sort_by_dist": False,
+            "tab": TAB,
+            "tab_type": "regular",
+        },
+        "id",
+    ),
 )
 def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_id):
     if not nets:
@@ -44,13 +64,43 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
 
 
 @callback(
-    Output({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB, "tab_type": "regular"}, "figure"),
+    Output(
+        {
+            "out": "graph",
+            "filter": MATCH,
+            "rem_type": REM_TYPE,
+            "sort_by_dist": True,
+            "tab": TAB,
+            "tab_type": "regular",
+        },
+        "figure",
+    ),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
-    Input({"out": "sort_by_dist", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB, "tab_type": "regular"}, "on"),
+    Input(
+        {
+            "out": "sort_by_dist",
+            "filter": MATCH,
+            "rem_type": REM_TYPE,
+            "sort_by_dist": True,
+            "tab": TAB,
+            "tab_type": "regular",
+        },
+        "on",
+    ),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State({"out": "graph", "filter": MATCH, "rem_type": REM_TYPE, "sort_by_dist": True, "tab": TAB, "tab_type": "regular"}, "id"),
+    State(
+        {
+            "out": "graph",
+            "filter": MATCH,
+            "rem_type": REM_TYPE,
+            "sort_by_dist": True,
+            "tab": TAB,
+            "tab_type": "regular",
+        },
+        "id",
+    ),
 )
 def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:
