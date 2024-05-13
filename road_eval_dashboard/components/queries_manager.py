@@ -455,7 +455,7 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
     role="",
 ):
     metrics = ", ".join(
-        SUM_SUCCESS_RATE_METRIC.format(label=label, pred=pred, extra_filters=f"{label} != -1", ind=name)
+        SUM_SUCCESS_RATE_METRIC.format(label=label, pred=pred, extra_filters=f"{label} >= 0", ind=name)
         for name, (label, pred) in labels_to_preds.items()
     )
     base_query = generate_base_query(
@@ -525,7 +525,7 @@ def generate_sum_bins_by_diff_cols_metric_query(
     role="",
 ):
     metrics = ", ".join(
-        SUM_BY_CASE_METRIC.format(col_name=pred, extra_filters=f"{pred} != -1 AND {pred} < 999", ind=name)
+        SUM_BY_CASE_METRIC.format(col_name=pred, extra_filters=f"{pred} >= 0 AND {pred} < 999", ind=name)
         for name, (label, pred) in labels_to_preds.items()
     )
 

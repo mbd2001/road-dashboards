@@ -35,7 +35,7 @@ from road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_fi
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/width", name="Width", order=11, **extra_properties.__dict__)
-Z_BINS = [0, 50, 100, 150, 200, 250, 300, 350, 999]
+Z_BINS = [0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 999]
 WIDTH_TYPE = "width"
 WIDTH_FILTERS = {
     "road_type": {"filters": ROAD_TYPE_FILTERS},
@@ -298,7 +298,7 @@ def get_width_fig(
         "+".join(preds),
         interesting_filters,
         meta_data_filters=meta_data_filters,
-        extra_filters=" AND ".join([f"{label} != -1" for label in labels]),
+        extra_filters=" AND ".join([f"{label} >= 0" for label in labels]),
         extra_columns=labels + preds,
         role=role,
     )
