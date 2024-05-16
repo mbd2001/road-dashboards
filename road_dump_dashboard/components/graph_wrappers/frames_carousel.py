@@ -5,11 +5,11 @@ from dataclasses import dataclass
 import dash_bootstrap_components as dbc
 import numpy as np
 from dash import ALL, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
-
-# TODO: change when noam merge DroneViewDBManager to toolkit
-from maffe_bins.road_db.drone_view_images.drone_view_db_manager import DroneViewDBManager
 from natsort import natsorted
 from road_database_toolkit.athena.athena_utils import query_athena
+
+# TODO: change when noam merge DroneViewDBManager to toolkit
+from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dump_dashboard.components.constants.components_ids import (
     CONF_MATS_LABELS_TABLE,
@@ -35,8 +35,6 @@ from road_dump_dashboard.components.constants.components_ids import (
 from road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper, loading_wrapper
 from road_dump_dashboard.components.logical_components.frame_drawer import draw_img, draw_top_view
 from road_dump_dashboard.components.logical_components.queries_manager import IMG_LIMIT, generate_diff_with_labels_query
-
-DV_DB_MANAGER = DroneViewDBManager()
 
 
 @dataclass
@@ -228,7 +226,7 @@ def compute_images_from_query_data(data, main_dump, secondary_dump):
     grab_indexes = [int(gi) for gi in grab_indexes]
     data_types = ["data"] * len(clip_names)
 
-    images = DV_DB_MANAGER.load_images_multiple_clips(clip_names, grab_indexes, data_types)
+    images = DroneViewDBManager.load_multiple_clips_images(clip_names, grab_indexes, data_types)
     main_img_figs = []
     main_world_figs = []
     secondary_img_figs = []
