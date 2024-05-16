@@ -4,7 +4,7 @@ import time
 
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import MATCH, Input, Output, State, callback, dash_table, dcc, html, no_update
+from dash import Input, Output, State, callback, no_update
 
 from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
@@ -30,9 +30,7 @@ from road_eval_dashboard.components.components_ids import (
     PATHNET_OPEN_EXPORT_EVENTS_WINDOW_BUTTON,
     PATHNET_PRED,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.queries_manager import (
-    distances,
     generate_avail_query,
     generate_pathnet_events_query,
     run_query_with_nets_names_processing,
@@ -49,127 +47,6 @@ MF_EXPLORER_PARAMS = """
 """
 
 
-# ------------------------------------------------- layout-creation ------------------------------------------------- #
-def create_events_extractor_layout():
-    header_row = dbc.Row(
-        [
-            dbc.Col(html.H2("Extract events", className="mb-5"), width=10),
-            dbc.Col(
-                dbc.Button(
-                    "Export",
-                    id=PATHNET_OPEN_EXPORT_EVENTS_WINDOW_BUTTON,
-                    color="primary",
-                    className="me-1",
-                    style={"position": "absolute", "top": 5, "right": 5},
-                ),
-                width=2,
-                align="end",
-            ),
-        ],
-        style={"position": "relative"},
-        justify="between",  # This will spread the columns to the full available width
-    )
-
-    export_to_bookmark_window = dbc.Modal(
-        [
-            dbc.ModalHeader(dbc.ModalTitle("Export events to bookmarks")),
-            dbc.ModalBody(
-                [
-                    dbc.Textarea(
-                        id=PATHNET_BOOKMARKS_JSON_FILE_NAME,
-                        placeholder="Specify a path for saving the events...",
-                        style={"width": "100%", "height": "100px"},
-                    ),
-                    html.Div(id=PATHNET_EXPORT_JSON_LOG_MESSAGE, children=[]),
-                ]
-            ),
-            dbc.ModalFooter(dbc.Button("Export", id=PATHNET_EXPORT_JSON_BUTTON, className="ms-auto", color="primary")),
-        ],
-        id=PATHNET_EXPORT_TO_BOOKMARK_WINDOW,
-        is_open=False,
-    )
-
-    net_options_dropdowns_row = dbc.Row(
-        [
-            dbc.Col(dcc.Dropdown(id=PATHNET_EVENTS_NET_ID_DROPDOWN, placeholder="Select Net-ID")),
-            dbc.Col(
-                loading_wrapper(dcc.Dropdown(id=PATHNET_EVENTS_DP_SOURCE_DROPDOWN, placeholder="Select DP-Source"))
-            ),
-        ],
-        style={"margin-bottom": "10px"},
-    )
-
-    filtering_dropdowns_row = dbc.Row(
-        [
-            dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_ROLE_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["host", "non-host"]),
-                    placeholder="Select Role",
-                )
-            ),
-            dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_DIST_DROPDOWN,
-                    options=create_dropdown_options_list(labels=distances),
-                    placeholder="Select Dist (sec)",
-                ),
-            ),
-            dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_METRIC_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["accuracy", "false", "miss"]),
-                    placeholder="Select Metric",
-                ),
-            ),
-            dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_ORDER_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["Ascending", "Descending"], values=["ASC", "DESC"]),
-                    placeholder="Select Order",
-                ),
-            ),
-        ],
-        style={"margin-bottom": "10px"},
-    )
-
-    submit_events_filtering_row = dbc.Row(
-        [
-            dbc.Col(dbc.Button("Submit", id=PATHNET_EVENTS_SUBMIT_BUTTON, color="success")),
-            dbc.Col(
-                dcc.Input(
-                    id=PATHNET_EVENTS_NUM_EVENTS,
-                    placeholder="Specify number of events to extract (optional)...",
-                    min=100,
-                    max=150000,
-                    step=1,
-                    type="number",
-                    style={"width": "inherit", "height": "100%"},
-                ),
-                style={"flex": 15},
-            ),
-            dbc.Col(html.Div(id=PATHNET_EVENTS_ERROR_MESSAGE), style={"flex": 20}),
-        ],
-        style={"margin-bottom": "10px"},
-    )
-
-    events_extractor = card_wrapper(
-        [
-            header_row,
-            export_to_bookmark_window,
-            net_options_dropdowns_row,
-            filtering_dropdowns_row,
-            submit_events_filtering_row,
-            dash_table.DataTable(id=PATHNET_EVENTS_DATA_TABLE, page_size=40),
-        ]
-    )
-    return events_extractor
-
-
-layout = create_events_extractor_layout()
-
-
-# ----------------------------------------------- callback-definitions ----------------------------------------------- #
 @callback(
     Output(PATHNET_EVENTS_NET_ID_DROPDOWN, "options"),
     Input(NETS, "data"),
@@ -200,7 +77,7 @@ def create_dp_source_dropdown(net, meta_data_filters):
 
 @callback(
     Output(PATHNET_EVENTS_CHOSEN_NET, "data"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     Input(PATHNET_EVENTS_NET_ID_DROPDOWN, "value"),
     prevent_initial_call=True,
 )
@@ -267,8 +144,8 @@ def create_data_dict_for_explorer(net_name, dp_source, role, dist, metric):
     Output(PATHNET_EVENTS_BOOKMARKS_JSON, "data"),
     Output(PATHNET_EXPLORER_DATA, "data"),
     Output(PATHNET_EVENTS_ERROR_MESSAGE, "children"),
-    Input(PATHNET_EVENTS_CHOSEN_NET, "data"),
-    Input(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_CHOSEN_NET, "data"),
+    State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "value"),
     Input(PATHNET_EVENTS_SUBMIT_BUTTON, "n_clicks"),
     State(MD_FILTERS, "data"),
     State(PATHNET_EVENTS_ROLE_DROPDOWN, "value"),
