@@ -37,11 +37,6 @@ COLUMNS_DICT = {
         "main_column": "half_width",
         "extra_filters": "type in ('dashed', 'solidDashed', 'dashedSolid', 'dashedDashed', 'decelerationDashed')",
     },
-    "dashed_gap": {
-        "main_column": "dashed_start_y",
-        "diff_column": "dashed_end_y",
-        "extra_filters": "type in ('dashed', 'solidDashed', 'dashedSolid', 'dashedDashed', 'decelerationDashed')",
-    },
     "dashed_length": {
         "main_column": "dashed_end_y",
         "diff_column": "dashed_start_y",
