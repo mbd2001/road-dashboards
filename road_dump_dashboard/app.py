@@ -1,7 +1,5 @@
 import base64
 import json
-import os
-from uuid import uuid4
 
 import dash_bootstrap_components as dbc
 import pandas as pd
