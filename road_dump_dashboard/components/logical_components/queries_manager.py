@@ -66,7 +66,7 @@ JOIN_LABELS_QUERY = """
     """
 
 COUNT_QUERY = """
-    SELECT dump_name, {group_by} AS {group_name}, {count_metric}
+    SELECT dump_name, {group_by} {group_name}, {count_metric}
     FROM ({base_query})
     GROUP BY dump_name, {group_by} ORDER BY dump_name
     """
@@ -78,13 +78,19 @@ DYNAMIC_QUERY = """
     """
 
 COUNT_FILTER_METRIC = """
-    COUNT(CASE WHEN {extra_filters} THEN 1 ELSE NULL END)
+    COUNT(CASE WHEN {extra_filters} THEN 1 ELSE NULL END) {divide_by_all}
     AS {ind}
     """
 
 COUNT_ALL_METRIC = """
     COUNT(*) 
     AS {count_name}
+    """
+
+COUNT_PERCENTAGE = """
+    WITH t1 AS ({query})
+    SELECT dump_name, {group_name}, (100.0 * overall) / (SUM(overall) OVER (PARTITION BY dump_name)) as percentage
+    FROM t1
     """
 
 IMG_LIMIT = 25
@@ -215,6 +221,7 @@ def generate_count_query(
     extra_filters=None,
     bins_factor=None,
     dumps_to_include=None,
+    compute_percentage=False,
 ):
     base_query = generate_base_query(
         main_tables,
@@ -227,17 +234,50 @@ def generate_count_query(
         dumps_to_include=dumps_to_include,
     )
     metrics = COUNT_ALL_METRIC.format(count_name="overall")
-    if main_column:
-        col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
-        group_by = (
-            f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor and bins_factor != 1 else col_metric
-        )
-        group_name = DIFF_COL if diff_column else main_column
-        query = COUNT_QUERY.format(
-            base_query=base_query, count_metric=metrics, group_by=group_by, group_name=group_name
-        )
-    else:
+    if main_column is None:
         query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
+        return query
+
+    col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
+    group_by = (
+        f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor and bins_factor != 1 else col_metric
+    )
+    group_name = DIFF_COL if diff_column else main_column
+    query = COUNT_QUERY.format(
+        base_query=base_query, count_metric=metrics, group_by=group_by, group_name=f" AS {group_name}"
+    )
+    if compute_percentage is True:
+        query = COUNT_PERCENTAGE.format(group_name=group_name, query=query)
+    return query
+
+
+def generate_count_obj_query(
+    main_tables,
+    population,
+    intersection_on,
+    meta_data_tables=None,
+    meta_data_filters=None,
+    extra_filters=None,
+    dumps_to_include=None,
+    compute_percentage=False,
+):
+    base_query = generate_base_query(
+        main_tables,
+        population,
+        intersection_on,
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        dumps_to_include=dumps_to_include,
+    )
+    metrics = COUNT_ALL_METRIC.format(count_name="objects_per_frame")
+    group_by = "clip_name, grabindex"
+    query = COUNT_QUERY.format(base_query=base_query, count_metric=metrics, group_by=group_by, group_name="")
+    metrics = COUNT_ALL_METRIC.format(count_name="overall")
+    group_by = "objects_per_frame"
+    query = COUNT_QUERY.format(base_query=query, count_metric=metrics, group_by=group_by, group_name="")
+    if compute_percentage is True:
+        query = COUNT_PERCENTAGE.format(group_name=group_by, query=query)
     return query
 
 
@@ -249,9 +289,11 @@ def generate_dynamic_count_query(
     meta_data_tables=None,
     meta_data_filters=None,
     extra_filters=None,
+    compute_percentage=False,
 ):
+    divide_by_all = "* 100.0 / COUNT(*)" if compute_percentage is True else ""
     metrics = ", ".join(
-        COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name)
+        COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name, divide_by_all=divide_by_all)
         for name, filter in interesting_filters["filters"].items()
     )
     base_query = generate_base_query(
@@ -289,7 +331,7 @@ def generate_base_query(
     agg_cols, extra_columns = get_aggregated_columns(extra_columns, main_tables, meta_data_tables)
     filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on, type_filters)
     base_data = generate_base_data(main_paths, filters, meta_data_paths, extra_columns)
-    if agg_cols:  # TODO: solve bug
+    if agg_cols:
         base_data = generate_agg_cols_union(agg_cols, base_data, main_tables, meta_data_tables)
 
     return base_data

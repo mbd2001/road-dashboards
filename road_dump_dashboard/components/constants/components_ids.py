@@ -77,12 +77,17 @@ CHARTS_MD_TABLE = "charts_md_table"
 
 GENERIC_COLUMNS_CHART = "generic_columns_chart"
 GENERIC_COLUMNS_SLIDER = "generic_columns_slider"
+GENERIC_PERCENTAGE_SWITCH = "generic_percentage_switch"
 
 GENERIC_FILTERS_CHART = "generic_filters_chart"
 
 DYNAMIC_CHART_DROPDOWN = "dynamic_chart_drop_down"
 DYNAMIC_CHART = "dynamic_chart"
 DYNAMIC_CHART_SLIDER = "dynamic_chart_slider"
+DYNAMIC_PERCENTAGE_SWITCH = "dynamic_percentage_switch"
+
+OBJ_COUNT_CHART = "obj_count_chart"
+OBJ_COUNT_PERCENTAGE_SWITCH = "obj_count_percentage_switch"
 
 
 # countries heatmap
