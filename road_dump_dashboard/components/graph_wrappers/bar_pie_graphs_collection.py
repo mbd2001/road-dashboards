@@ -121,13 +121,12 @@ def get_single_graph_layout(graph_id, slider_id=None):
     Output(DYNAMIC_CHART_DROPDOWN, "options"),
     Input(TABLES, "data"),
     State(CHARTS_MAIN_TABLE, "children"),
-    State(CHARTS_MD_TABLE, "children"),
 )
-def init_dynamic_chart_dropdown(tables, main_table, meta_data_table):
+def init_dynamic_chart_dropdown(tables, main_table):
     if not tables:
         return no_update
 
-    columns_options = get_tables_property_union(tables[main_table], tables[meta_data_table])
+    columns_options = get_tables_property_union(tables[main_table])
     return columns_options
 
 
@@ -176,7 +175,7 @@ def get_generic_column_chart(
     main_tables = tables[main_table]
     meta_data_tables = tables.get(meta_data_table)
     filters_name = column["index"]
-    main_column, diff_column, extra_filters = get_query_params(filters_name)
+    main_column, diff_column, extra_filters, graph_title = get_query_params(filters_name)
     fig = get_group_by_chart(
         main_tables,
         population,
@@ -187,6 +186,7 @@ def get_generic_column_chart(
         slider_value,
         diff_column,
         extra_filters,
+        graph_title,
     )
     return fig
 
@@ -194,12 +194,12 @@ def get_generic_column_chart(
 def get_query_params(filters_name):
     filters_dict = COLUMNS_DICT.get(filters_name)
     if filters_dict is None:
-        return filters_name, None, None
+        return filters_name, None, None, None
 
     main_column = filters_dict.get("main_column")
     diff_column = filters_dict.get("diff_column")
     extra_filters = filters_dict.get("extra_filters")
-    return main_column, diff_column, extra_filters
+    return main_column, diff_column, extra_filters, filters_name
 
 
 def get_group_by_chart(
@@ -212,6 +212,7 @@ def get_group_by_chart(
     slider_value=None,
     diff_column=None,
     extra_filters=None,
+    graph_title=None,
 ):
     bins_factor = (
         None if slider_value is None else get_bins_factor(slider_value, main_column, main_tables, meta_data_tables)
@@ -228,7 +229,7 @@ def get_group_by_chart(
         extra_filters=extra_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
-    title = f"Distribution of {main_column.title()}" + (f" and {diff_column.title()} diff" if diff_column else "")
+    title = get_graph_title(main_column, diff_column, graph_title)
     col_id = DIFF_COL if diff_column else main_column
     if data[col_id].nunique() > 16:
         fig = basic_histogram_plot(data, col_id, "overall", title=title)
@@ -273,6 +274,17 @@ def get_generic_filter_chart(
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data = data.melt(id_vars=["dump_name"], var_name="filter", value_name="overall")
-    title = f"Distribution of {filters_name.title()}"
+    title = get_graph_title(graph_title=filters_name)
     fig = pie_or_line_wrapper(data, "filter", "overall", title=title)
     return fig
+
+
+def get_graph_title(main_column=None, diff_column=None, graph_title=None):
+    if graph_title is not None:
+        title = graph_title.title().replace("_", " ")
+        return f"Distribution of {title}"
+
+    title = main_column.title()
+    title += f" and {diff_column.title()} diff" if diff_column is not None else ""
+    title = title.replace("_", " ")
+    return f"Distribution of {title}"

@@ -147,7 +147,7 @@ def init_layout(tables, main_table, meta_data_table):
     if not tables:
         return no_update
 
-    columns_options = get_tables_property_union(tables[main_table], tables[meta_data_table])
+    columns_options = get_tables_property_union(tables[main_table], tables.get(meta_data_table))
     return [get_group_layout(1, columns_options)]
 
 
@@ -178,7 +178,7 @@ def add_filters(add_clicks, add_group, filters_list, tables, main_table, meta_da
         empty_index = get_empty_index(base_ind, filters_list)
 
     button_type = callback_context.triggered_id["type"]
-    columns_options = get_tables_property_union(tables[main_table], tables[meta_data_table])
+    columns_options = get_tables_property_union(tables[main_table], tables.get(meta_data_table))
     if button_type == ADD_FILTER_BTN and empty_index:
         patched_children.append(get_filter_row_initial_layout(empty_index, columns_options))
     elif button_type == ADD_SUB_GROUP and empty_index:
@@ -239,7 +239,7 @@ def update_operation_dropdown_options(meta_data_col, tables, data_table, meta_da
     if not callback_context.triggered_id:
         return no_update, no_update
 
-    column_type = get_value_from_tables_property_union(meta_data_col, tables[data_table], tables[meta_data_table])
+    column_type = get_value_from_tables_property_union(meta_data_col, tables[data_table], tables.get(meta_data_table))
     if column_type.startswith(("int", "float", "double")):
         options = [
             {"label": "Greater", "value": ">"},
@@ -299,9 +299,9 @@ def update_meta_data_values_options(operation, index, col, tables, main_table, m
         return no_update
 
     distinguish_values = get_value_from_tables_property_union(
-        col, tables[main_table], tables[meta_data_table], "columns_distinguish_values"
+        col, tables[main_table], tables.get(meta_data_table), "columns_distinguish_values"
     )
-    column_type = get_value_from_tables_property_union(col, tables[main_table], tables[meta_data_table])
+    column_type = get_value_from_tables_property_union(col, tables[main_table], tables.get(meta_data_table))
     if operation in ["IS NULL", "IS NOT NULL"]:
         return dcc.Input(
             id={"type": MD_VAL, "index": curr_index},

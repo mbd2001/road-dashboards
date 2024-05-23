@@ -12,6 +12,7 @@ IGNORE_VAL = -999
 IMG_AXIS = {"width": [0, 771], "height": [0, 256]}
 WORLD_AXIS = {"width": [-15, 15], "height": [-1, 150]}
 FIGS_HEIGHT = 800
+COLOR_SCHEME = px.colors.qualitative.Plotly
 
 
 @dataclass
@@ -21,13 +22,14 @@ class CandidateParams:
     x: np.array
     y: np.array
     type: Optional[str] = None
+    role: Optional[str] = None
     half_width: Optional[np.array] = None
     view_range: Optional[int] = None
     max_view_range_idx: Optional[int] = None
     dashed_y: Optional[np.array] = None
 
     def __post_init__(self):
-        self.color = self.select_color(self.color)
+        self.color = self.select_color(self.color, self.obj_id)
         self.x, self.y, self.half_width, self.dashed_y = self.cut_max_view_range(
             self.x, self.y, self.half_width, self.dashed_y, self.max_view_range_idx
         )
@@ -36,10 +38,14 @@ class CandidateParams:
         )
 
     @staticmethod
-    def select_color(color_str=None):
-        if color_str is None or color_str == "ignore":
+    def select_color(color_str=None, obj_id=None):
+        if color_str == "ignore":
             return "green"
-        return color_str
+
+        elif color_str:
+            return color_str
+
+        return COLOR_SCHEME[obj_id % len(COLOR_SCHEME)]
 
     @staticmethod
     def cut_max_view_range(x, y=None, half_width=None, dashed_y=None, max_view_range_idx=None):
@@ -69,9 +75,10 @@ class CandidateParams:
 
 
 def get_candidate(cand: dict, is_img: bool = True):
-    obj_id = cand["obj_id"]
+    obj_id = int(cand["obj_id"])
     color = cand.get("color")
     type = cand.get("type")
+    role = cand.get("role")
     view_range = cand.get("view_range")
     max_view_range_idx = cand.get("max_view_range_idx")
     if is_img is True:
@@ -83,6 +90,7 @@ def get_candidate(cand: dict, is_img: bool = True):
             obj_id=obj_id,
             color=color,
             type=type,
+            role=role,
             view_range=view_range,
             max_view_range_idx=max_view_range_idx,
             x=x,
@@ -152,7 +160,7 @@ def draw_line(fig, cand):
         else:
             draw_line_width(fig, cand.x, cand.y, cand.half_width, cand.color, cand.obj_id)
 
-    draw_line_scatter(fig, cand.x, cand.y, cand.obj_id, cand.color, cand.type, cand.view_range)
+    draw_line_scatter(fig, cand.x, cand.y, cand.obj_id, cand.color, cand.type, cand.role, cand.view_range)
 
 
 def draw_interpolated_dashed_points(fig, cand):
@@ -184,7 +192,7 @@ def draw_line_width(fig, x, y, half_width, color, obj_id):
     )
 
 
-def draw_line_scatter(fig, x, y, obj_id, color, type=None, view_range=None):
+def draw_line_scatter(fig, x, y, obj_id, color, type=None, role=None, view_range=None):
     fig.add_trace(
         go.Scatter(
             x=x,
@@ -192,13 +200,13 @@ def draw_line_scatter(fig, x, y, obj_id, color, type=None, view_range=None):
             mode="lines",
             legendgroup=obj_id,
             name=f"candidate {obj_id}",
-            hovertemplate=parser_annotation(type, view_range),
+            hovertemplate=parser_annotation(type, role, view_range),
             line=dict(color=color, width=2),
         )
     )
 
 
-def parser_annotation(type=None, view_range=None):
+def parser_annotation(type=None, role=None, view_range=None):
     view_range = f"vr={view_range}" if view_range else ""
-    txt_str = ", ".join(label.title() for label in [type, view_range] if label)
+    txt_str = ", ".join(label.title() for label in [type, role, view_range] if label)
     return txt_str

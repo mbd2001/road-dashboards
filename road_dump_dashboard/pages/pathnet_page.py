@@ -15,7 +15,7 @@ layout = html.Div(
         bar_pie_graphs_collection.layout(
             main_table="rpw_meta_data",
             meta_data_table="meta_data",
-            columns=["dp_role", "dp_split_role", "dp_primary_role", "dp_merge_role", "dp_points_oncoming"],
+            columns=["dp_role", "dp_split_role", "dp_primary_role", "dp_merge_role", "dp_points_oncoming", "batch_num"],
         ),
         conf_mats_collection.layout(
             main_table="rpw_meta_data",

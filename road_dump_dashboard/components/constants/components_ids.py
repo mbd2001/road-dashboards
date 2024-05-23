@@ -57,6 +57,8 @@ DYNAMIC_CONF_MAT = "dynamic_conf_mat"
 DYNAMIC_CONF_DROPDOWN = "dynamic_conf_dropdown"
 DYNAMIC_SHOW_DIFF_IDX = "dynamic_show_diff_idx"
 
+DISPLAY_CONF_MATS = "display_conf_mats"
+
 
 # frame drawer
 MAIN_IMG = "main_img"

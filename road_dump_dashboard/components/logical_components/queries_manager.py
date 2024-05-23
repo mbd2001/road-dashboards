@@ -15,6 +15,7 @@ COMMON_COLUMNS = {
     "pred_name",
     "dump_name",
     "obj_id",
+    "batch_num",
 }
 
 BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id"]
@@ -67,13 +68,13 @@ JOIN_LABELS_QUERY = """
 COUNT_QUERY = """
     SELECT dump_name, {group_by} AS {group_name}, {count_metric}
     FROM ({base_query})
-    GROUP BY dump_name, {group_by}
+    GROUP BY dump_name, {group_by} ORDER BY dump_name
     """
 
 DYNAMIC_QUERY = """
     SELECT dump_name, {metrics}
     FROM ({base_query})
-    GROUP BY dump_name
+    GROUP BY dump_name ORDER BY dump_name
     """
 
 COUNT_FILTER_METRIC = """
@@ -228,7 +229,9 @@ def generate_count_query(
     metrics = COUNT_ALL_METRIC.format(count_name="overall")
     if main_column:
         col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
-        group_by = f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor else col_metric
+        group_by = (
+            f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor and bins_factor != 1 else col_metric
+        )
         group_name = DIFF_COL if diff_column else main_column
         query = COUNT_QUERY.format(
             base_query=base_query, count_metric=metrics, group_by=group_by, group_name=group_name
@@ -286,7 +289,7 @@ def generate_base_query(
     agg_cols, extra_columns = get_aggregated_columns(extra_columns, main_tables, meta_data_tables)
     filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on, type_filters)
     base_data = generate_base_data(main_paths, filters, meta_data_paths, extra_columns)
-    if agg_cols:
+    if agg_cols:  # TODO: solve bug
         base_data = generate_agg_cols_union(agg_cols, base_data, main_tables, meta_data_tables)
 
     return base_data
@@ -296,16 +299,15 @@ def get_aggregated_columns(extra_columns, main_tables, meta_data_tables=None):
     if not extra_columns:
         return {}, extra_columns
 
-    agg_cols = [
-        col for col in extra_columns if not get_value_from_tables_property_union(col, main_tables, meta_data_tables)
-    ]
-    if not agg_cols:
-        return {}, extra_columns
-
     existing_cols = get_tables_property_union(main_tables, meta_data_tables, "columns_to_type")
     matching_columns = {
-        agg_col: natsorted([col for col in existing_cols.keys() if col.startswith(agg_col)]) for agg_col in agg_cols
+        agg_col: natsorted([col for col in existing_cols.keys() if col.startswith(agg_col)])
+        for agg_col in extra_columns
     }
+    matching_columns = {agg_col: matching for agg_col, matching in matching_columns.items() if len(matching) > 1}
+    if not matching_columns:
+        return {}, extra_columns
+
     for key, val in matching_columns.items():
         extra_columns.remove(key)
         extra_columns.extend(val)
@@ -374,8 +376,9 @@ def generate_joined_data(main_paths, meta_data_paths, desired_columns, filters):
     return join_strings
 
 
-def manipulate_column_to_avoid_ambiguities(col):
-    manipulated_column = f"A.{col} AS {col}" if col in COMMON_COLUMNS else col
+def manipulate_column_to_avoid_ambiguities(col, as_original_col=True):
+    manipulated_column = f"A.{col}" if col in COMMON_COLUMNS else col
+    manipulated_column = f"{manipulated_column} AS {col}" if as_original_col else manipulated_column
     return manipulated_column
 
 
@@ -429,8 +432,9 @@ def filter_ignore_single_column(column, main_tables, meta_data_tables):
     if column_type is None:
         return ""
 
+    column = manipulate_column_to_avoid_ambiguities(column, as_original_col=False)
     if column_type.startswith(("int", "float", "double")):
-        ignore_filter = f"{column} NOT IN (-1, 0) AND {column} BETWEEN -998 AND 998"
+        ignore_filter = f"{column} <> -1 AND {column} BETWEEN -998 AND 998"
     elif column_type.startswith("object"):
         ignore_filter = f"{column} NOT IN ('ignore', 'Unknown', 'IGNORE')"
     else:

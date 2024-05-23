@@ -264,7 +264,9 @@ def parse_labels_df(labels_df):
 
     labels_df = labels_df.rename(columns=lambda x: re.sub(r"\.\d+$", "", x))
     labels_df = labels_df[labels_df["obj_id"].notna()]
-    labels_dict = {x: y.to_dict("records") for x, y in labels_df.groupby(["clip_name", "grabindex"])}
+    labels_dict = {
+        x: y.to_dict("records") for x, y in labels_df.sort_values("obj_id").groupby(["clip_name", "grabindex"])
+    }
     labels_dict = {
         frame_id: [merge_partitioned_columns(cand) for cand in frame_cands]
         for frame_id, frame_cands in labels_dict.items()

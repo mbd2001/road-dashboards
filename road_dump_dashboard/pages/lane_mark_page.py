@@ -21,7 +21,8 @@ layout = html.Div(
                 "type",
                 "view_range",
                 "lane_mark_width",
-                "dashed_length",
+                "dashed_length_img",
+                "batch_num",
             ],  # TODO: add 'dashed_gap'
         ),
         conf_mats_collection.layout(

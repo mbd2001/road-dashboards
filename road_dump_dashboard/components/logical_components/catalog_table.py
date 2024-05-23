@@ -19,8 +19,8 @@ from road_dump_dashboard.components.logical_components.tables_properties import 
 run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
 
-def generate_catalog_layout():
-    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop(["batches", "populations"], axis=1)
+def layout():
+    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop(["batches", "populations", "split_conditions"], axis=1)
     catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
     catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(

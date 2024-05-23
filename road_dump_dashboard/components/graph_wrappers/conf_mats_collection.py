@@ -1,11 +1,12 @@
 import dash_bootstrap_components as dbc
-from dash import MATCH, Input, Output, State, callback, callback_context, dcc, html, no_update, register_page
+from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dump_dashboard.components.constants.components_ids import (
     CONF_MATS_LABELS_TABLE,
     CONF_MATS_MAIN_TABLE,
     CONF_MATS_MD_TABLE,
+    DISPLAY_CONF_MATS,
     DYNAMIC_CONF_DROPDOWN,
     DYNAMIC_CONF_MAT,
     DYNAMIC_SHOW_DIFF_IDX,
@@ -29,7 +30,8 @@ def layout(main_table, columns_to_compare, meta_data_table=None, labels_table=No
         labels_table = main_table
 
     matrices_layout = html.Div(
-        [
+        id=DISPLAY_CONF_MATS,
+        children=[
             html.Div(id=CONF_MATS_MAIN_TABLE, children=main_table, style={"display": "none"}),
             html.Div(id=CONF_MATS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
             html.Div(id=CONF_MATS_LABELS_TABLE, children=labels_table, style={"display": "none"}),
@@ -41,9 +43,9 @@ def layout(main_table, columns_to_compare, meta_data_table=None, labels_table=No
                 ]
             ),
             frames_carousel.layout(),
-        ]
+        ],
+        style={"display": "none"},
     )
-
     return matrices_layout
 
 
@@ -130,34 +132,36 @@ def get_single_mat_layout(mat_id, diff_btn_id):
 
 
 @callback(
-    Output(MAIN_NET_DROPDOWN, "options"),
-    Output(MAIN_NET_DROPDOWN, "label"),
-    Output(MAIN_NET_DROPDOWN, "value"),
+    Output(DISPLAY_CONF_MATS, "style"),
     Input(TABLES, "data"),
 )
-def init_main_dump_dropdown(tables):
-    if not tables:
-        return no_update, no_update, no_update
+def init_dumps_dropdown(tables):
+    if not tables or len(tables["names"]) <= 1:
+        return no_update
 
-    options = [{"label": name.title(), "value": name} for name in tables["names"]]
-    return options, options[0]["label"], options[0]["value"]
+    patched_style = Patch()
+    patched_style["display"] = "block"
+    return patched_style
 
 
 @callback(
+    Output(MAIN_NET_DROPDOWN, "options"),
+    Output(MAIN_NET_DROPDOWN, "label"),
+    Output(MAIN_NET_DROPDOWN, "value"),
     Output(SECONDARY_NET_DROPDOWN, "options"),
     Output(SECONDARY_NET_DROPDOWN, "label"),
     Output(SECONDARY_NET_DROPDOWN, "value"),
     Input(TABLES, "data"),
 )
-def init_secondary_dump_dropdown(tables):
+def init_dumps_dropdown(tables):
     if not tables:
-        return no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update
 
     options = [{"label": name.title(), "value": name} for name in tables["names"]]
     if len(options) < 2:
-        return no_update, no_update, no_update
+        return options, options[0]["label"], options[0]["value"], no_update, no_update, no_update
 
-    return options, options[1]["label"], options[1]["value"]
+    return options, options[0]["label"], options[0]["value"], options, options[1]["label"], options[1]["value"]
 
 
 @callback(
@@ -190,13 +194,12 @@ def get_generic_conf_mat(
     Output(DYNAMIC_CONF_DROPDOWN, "options"),
     Input(TABLES, "data"),
     State(CONF_MATS_MAIN_TABLE, "children"),
-    State(CONF_MATS_MD_TABLE, "children"),
 )
-def init_dynamic_conf_dropdown(tables, main_table, secondary_table):
+def init_dynamic_conf_dropdown(tables, main_table):
     if not tables:
         return no_update
 
-    columns_options = get_tables_property_union(tables[main_table], tables[secondary_table])
+    columns_options = get_tables_property_union(tables[main_table])
     return columns_options
 
 
