@@ -277,7 +277,8 @@ def get_generic_column_chart(
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     title = get_graph_title(graph_title="Objects Count")
-    fig = basic_histogram_plot(data, "objects_per_frame", "overall", title=title)
+    y_col = "percentage" if compute_percentage else "overall"
+    fig = basic_histogram_plot(data, "objects_per_frame", y_col, title=title)
     return fig
 
 
