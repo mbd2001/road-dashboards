@@ -3,7 +3,6 @@ import dash_daq as daq
 from dash import MATCH, Input, Output, State, callback, html, no_update, register_page
 
 from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
@@ -22,6 +21,7 @@ from road_eval_dashboard.components.queries_manager import (
     generate_vmax_success_rate_query,
     run_query_with_nets_names_processing,
 )
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.road_eval_dashboard.graphs import calc_fb_per_row, draw_meta_data_filters
 
 f_beta = 1

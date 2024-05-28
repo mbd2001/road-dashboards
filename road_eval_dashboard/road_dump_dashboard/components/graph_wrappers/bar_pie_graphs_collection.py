@@ -28,13 +28,10 @@ from road_eval_dashboard.road_dump_dashboard.components.logical_components impor
     generate_count_obj_query,
     generate_count_query,
     generate_dynamic_count_query,
-)
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
     get_tables_property_union,
     get_value_from_tables_property_union,
 )
-from road_eval_dashboard.road_dump_dashboard.graphs import basic_histogram_plot
-from road_eval_dashboard.road_dump_dashboard.graphs import pie_or_line_wrapper
+from road_eval_dashboard.road_dump_dashboard.graphs import basic_histogram_plot, pie_or_line_wrapper
 
 
 def exponent_transform(value, base=10):

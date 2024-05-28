@@ -9,8 +9,11 @@ from road_eval_dashboard.components.queries_manager import (
     process_net_names_list,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.road_eval_dashboard.graphs import compute_confusion_matrix, draw_multiple_nets_confusion_matrix
-from road_eval_dashboard.road_eval_dashboard.graphs import draw_conf_diagonal_compare
+from road_eval_dashboard.road_eval_dashboard.graphs import (
+    compute_confusion_matrix,
+    draw_conf_diagonal_compare,
+    draw_multiple_nets_confusion_matrix,
+)
 
 
 def generate_matrices_layout(nets, upper_diag_id, lower_diag_id, left_conf_mat_id, right_conf_mat_id):

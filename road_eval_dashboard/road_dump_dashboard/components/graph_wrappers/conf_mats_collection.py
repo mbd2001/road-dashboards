@@ -20,8 +20,10 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
 )
 from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper, loading_wrapper
 from road_eval_dashboard.road_dump_dashboard.components.graph_wrappers import frames_carousel
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import generate_conf_mat_query
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import get_tables_property_union
+from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
+    generate_conf_mat_query,
+    get_tables_property_union,
+)
 from road_eval_dashboard.road_dump_dashboard.graphs import get_confusion_matrix
 
 

@@ -4,7 +4,6 @@ from dash import Input, Output, State, callback, dcc, html, no_update, register_
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.components.common_filters import LANE_MARK_COLOR_FILTERS, ROAD_TYPE_FILTERS
 from road_eval_dashboard.components.components_ids import (
     COUNTRIES_HEAT_MAP,
@@ -24,14 +23,15 @@ from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_count_query, generate_dynamic_count_query
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.road_eval_dashboard.graphs import (
+    basic_histogram_plot,
+    basic_pie_chart,
     generate_world_map,
     iso_alpha_from_name,
     normalize_countries_count_to_percentiles,
     normalize_countries_names,
 )
-from road_eval_dashboard.road_eval_dashboard.graphs import basic_histogram_plot
-from road_eval_dashboard.road_eval_dashboard.graphs import basic_pie_chart
 
 extra_properties = PageProperties("search")
 register_page(__name__, path="/data_exploration", name="Data Exploration", order=1, **extra_properties.__dict__)

@@ -3,7 +3,6 @@ import dash_daq as daq
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
 from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
@@ -29,6 +28,7 @@ from road_eval_dashboard.components.queries_manager import (
     generate_sum_success_rate_metric_query,
     run_query_with_nets_names_processing,
 )
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.road_eval_dashboard.graphs import draw_meta_data_filters
 
 extra_properties = PageProperties("line-chart")

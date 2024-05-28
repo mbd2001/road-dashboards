@@ -1,8 +1,11 @@
 import dash_bootstrap_components as dbc
 from dash import html
 
-from road_eval_dashboard.road_dump_dashboard.components.common_pages_layout import population_card, objs_count_card, \
-    intersection_data_switch
+from road_eval_dashboard.road_dump_dashboard.components.common_pages_layout import (
+    intersection_data_switch,
+    objs_count_card,
+    population_card,
+)
 
 
 def layout(objs_name, main_table, meta_data_table=None):

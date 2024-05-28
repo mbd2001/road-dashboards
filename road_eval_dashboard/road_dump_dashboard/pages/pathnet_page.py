@@ -1,9 +1,11 @@
 from dash import html, register_page
 
-from road_eval_dashboard.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
 from road_eval_dashboard.road_dump_dashboard import PageProperties
-from road_eval_dashboard.road_dump_dashboard.components.graph_wrappers import conf_mats_collection, \
-    bar_pie_graphs_collection
+from road_eval_dashboard.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
+from road_eval_dashboard.road_dump_dashboard.components.graph_wrappers import (
+    bar_pie_graphs_collection,
+    conf_mats_collection,
+)
 
 page_properties = PageProperties("search", path="/pathnet", name="Pathnet")
 register_page(__name__, order=3, **page_properties.__dict__)

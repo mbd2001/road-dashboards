@@ -3,7 +3,6 @@ import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, html, no_update, register_page
 
 from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
@@ -39,6 +38,7 @@ from road_eval_dashboard.pages.card_generators import (
     view_range_host_next_success_rate_card,
     view_range_success_rate_card,
 )
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/lm_view_range", name="LM View Range", order=3, **extra_properties.__dict__)

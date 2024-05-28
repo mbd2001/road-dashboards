@@ -4,7 +4,6 @@ from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_updat
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.components.components_ids import (
     BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
@@ -41,6 +40,7 @@ from road_eval_dashboard.components.queries_manager import (
     generate_path_net_query,
     run_query_with_nets_names_processing,
 )
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.road_eval_dashboard.graphs import draw_path_net_graph
 from road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 

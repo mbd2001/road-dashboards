@@ -2,12 +2,12 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, html, no_update, register_page
 
 from road_eval_dashboard.components import fb_meta_data_filters, meta_data_filter
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.components.components_ids import FB_TRADEOFF_HOST, FB_TRADEOFF_OVERALL, MD_FILTERS, NETS
 from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
 from road_eval_dashboard.components.queries_manager import generate_fb_query, run_query_with_nets_names_processing
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.road_eval_dashboard.graphs import draw_precision_recall_curve
 
 extra_properties = PageProperties("line-chart")

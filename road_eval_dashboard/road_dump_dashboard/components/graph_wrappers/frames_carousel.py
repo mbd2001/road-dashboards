@@ -33,8 +33,12 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     TABLES,
 )
 from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper, loading_wrapper
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import draw_img, draw_top_view
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import IMG_LIMIT, generate_diff_with_labels_query
+from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
+    IMG_LIMIT,
+    draw_img,
+    draw_top_view,
+    generate_diff_with_labels_query,
+)
 
 
 @dataclass

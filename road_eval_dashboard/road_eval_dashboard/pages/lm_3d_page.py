@@ -3,7 +3,6 @@ import dash_daq as daq
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
 from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.components.common_filters import LM_3D_FILTERS
 from road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
@@ -25,8 +24,9 @@ from road_eval_dashboard.components.queries_manager import (
     lm_3d_distances,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.road_eval_dashboard.graphs import draw_path_net_graph
 from road_eval_dashboard.pages.card_generators import get_host_next_graph
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
+from road_eval_dashboard.road_eval_dashboard.graphs import draw_path_net_graph
 
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/lm_3d", name="LM 3D", order=3, **extra_properties.__dict__)

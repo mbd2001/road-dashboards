@@ -1,6 +1,11 @@
 from dash import dcc, html
 
-from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids import FRAMES_COL, IMAGES_IND, MD_FILTERS, TABLES
+from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids import (
+    FRAMES_COL,
+    IMAGES_IND,
+    MD_FILTERS,
+    TABLES,
+)
 
 
 def init_dcc_stores():
