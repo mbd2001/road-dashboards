@@ -2,10 +2,10 @@
 FROM python:3.10-slim
 
 # Set the working directory to /app
-WORKDIR /app
+WORKDIR /app/road_eval_dashboard/road_eval_dashboard
 
 # Copy the current directory contents into the container at /app
-COPY . /app
+COPY ./road_eval_dashboard/road_eval_dashboard /app/road_eval_dashboard/road_eval_dashboard
 
 RUN chmod 777 -R /app
 
@@ -15,20 +15,7 @@ RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobiley
 
 # pip installations
 RUN pip install --upgrade pip
-RUN pip install pycountry
-RUN pip install dash-bootstrap-components
-RUN pip install dash-daq
-RUN pip install numpy
-RUN pip install pandas
-RUN pip install boto3
-RUN pip install tqdm
-RUN pip install fsspec
-RUN pip install s3fs==0.4.2
-RUN pip install road-database-toolkit
-RUN pip install jira
-RUN pip install kaleido
-RUN pip install scipy
-RUN pip install natsort
+RUN pip install -r /app/road_eval_dashboard/road_eval_dashboard/requirements.txt
 
 ENV PYTHONPATH=/app
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
@@ -38,4 +25,4 @@ USER root
 EXPOSE 6007
 
 # Run app.py when the container launches
-CMD ["python", "/app/road_eval_dashboard/app.py"]
+CMD ["python", "app.py"]
