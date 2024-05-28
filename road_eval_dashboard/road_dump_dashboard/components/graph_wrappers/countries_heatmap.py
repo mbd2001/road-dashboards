@@ -9,9 +9,12 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     POPULATION_DROPDOWN,
     TABLES,
 )
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper, loading_wrapper
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import generate_count_query
-from road_eval_dashboard.road_dump_dashboard.graphs import (
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
+from road_eval_dashboard.road_dump_dashboard.graphs.countries_map import (
     generate_world_map,
     iso_alpha_from_name,
     normalize_countries_count_to_percentiles,

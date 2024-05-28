@@ -32,11 +32,13 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     SECONDARY_WORLD,
     TABLES,
 )
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper, loading_wrapper
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.frame_drawer import draw_img, draw_top_view
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.queries_manager import (
     IMG_LIMIT,
-    draw_img,
-    draw_top_view,
     generate_diff_with_labels_query,
 )
 

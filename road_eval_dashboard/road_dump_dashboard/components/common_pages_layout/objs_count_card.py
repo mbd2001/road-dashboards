@@ -10,9 +10,12 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     POPULATION_DROPDOWN,
     TABLES,
 )
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper, loading_wrapper
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import generate_count_query
-from road_eval_dashboard.road_dump_dashboard.graphs import human_format_int
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
+from road_eval_dashboard.road_dump_dashboard.graphs.big_number import human_format_int
 
 
 def layout(objs_name, main_table, meta_data_table=None):

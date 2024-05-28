@@ -1,7 +1,7 @@
 from natsort import natsorted
 from road_database_toolkit.athena.athena_utils import create_athena_table_from_query
 
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.tables_properties import (
     get_tables_property_union,
     get_value_from_tables_property_union,
 )

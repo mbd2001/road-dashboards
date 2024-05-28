@@ -13,8 +13,8 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     UPDATE_RUNS_BTN,
     URL,
 )
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import loading_wrapper
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import Tables
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.tables_properties import Tables
 
 run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 

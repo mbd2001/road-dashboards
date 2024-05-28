@@ -18,13 +18,18 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     SECONDARY_NET_DROPDOWN,
     TABLES,
 )
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper, loading_wrapper
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
 from road_eval_dashboard.road_dump_dashboard.components.graph_wrappers import frames_carousel
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.queries_manager import (
     generate_conf_mat_query,
+)
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.tables_properties import (
     get_tables_property_union,
 )
-from road_eval_dashboard.road_dump_dashboard.graphs import get_confusion_matrix
+from road_eval_dashboard.road_dump_dashboard.graphs.confusion_matrix import get_confusion_matrix
 
 
 def layout(main_table, columns_to_compare, meta_data_table=None, labels_table=None):

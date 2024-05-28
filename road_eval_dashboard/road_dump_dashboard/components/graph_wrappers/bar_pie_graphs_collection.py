@@ -3,7 +3,7 @@ import dash_daq as daq
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.road_dump_dashboard import COLUMNS_DICT, FILTERS_DICT
+from road_eval_dashboard.road_dump_dashboard.components.constants.common_filters import COLUMNS_DICT, FILTERS_DICT
 from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids import (
     CHARTS_MAIN_TABLE,
     CHARTS_MD_TABLE,
@@ -22,8 +22,11 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     POPULATION_DROPDOWN,
     TABLES,
 )
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper, loading_wrapper
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.queries_manager import (
     DIFF_COL,
     generate_count_obj_query,
     generate_count_query,
@@ -31,7 +34,8 @@ from road_eval_dashboard.road_dump_dashboard.components.logical_components impor
     get_tables_property_union,
     get_value_from_tables_property_union,
 )
-from road_eval_dashboard.road_dump_dashboard.graphs import basic_histogram_plot, pie_or_line_wrapper
+from road_eval_dashboard.road_dump_dashboard.graphs.histogram_plot import basic_histogram_plot
+from road_eval_dashboard.road_dump_dashboard.graphs.pie_or_line_wrapper import pie_or_line_wrapper
 
 
 def exponent_transform(value, base=10):
