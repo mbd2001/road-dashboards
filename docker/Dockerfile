@@ -28,6 +28,7 @@ RUN pip install road-database-toolkit
 RUN pip install jira
 RUN pip install kaleido
 RUN pip install scipy
+RUN pip install natsort
 
 ENV PYTHONPATH=/app
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
