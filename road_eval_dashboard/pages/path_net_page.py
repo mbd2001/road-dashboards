@@ -4,7 +4,7 @@ import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter, pathnet_events_extractor_card
+from road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_eval_dashboard.components.components_ids import (
     BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
@@ -33,6 +33,7 @@ from road_eval_dashboard.components.confusion_matrices_layout import generate_ma
 from road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.components.pathnet_events_extractor.layout import layout as events_extractor_card
 from road_eval_dashboard.components.queries_manager import (
     distances,
     generate_avail_query,
@@ -54,10 +55,6 @@ register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_prop
 role_layout = html.Div([html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]])
 pos_layout = html.Div(
     [
-        html.H1("Path Net Metrics", className="mb-5"),
-        meta_data_filter.layout,
-        base_dataset_statistics.dp_layout,
-        pathnet_events_extractor_card.layout,
         card_wrapper(
             [
                 dbc.Row(
@@ -167,13 +164,18 @@ layout = html.Div(
         html.H1("Path Net Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.dp_layout,
-        dcc.Tabs(
-            id="pathnet-metrics-graphs",
-            value="positional",
-            children=[
-                dcc.Tab(label="pathnet-metrics-positional", value="positional"),
-                dcc.Tab(label="pathnet-metrics-roles", value="roles"),
-            ],
+        events_extractor_card,
+        card_wrapper(
+            [
+                dcc.Tabs(
+                    id="pathnet-metrics-graphs",
+                    value="positional",
+                    children=[
+                        dcc.Tab(label="pathnet-metrics-positional", value="positional"),
+                        dcc.Tab(label="pathnet-metrics-roles", value="roles"),
+                    ],
+                ),
+            ]
         ),
         card_wrapper(
             [

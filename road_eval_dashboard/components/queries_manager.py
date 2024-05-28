@@ -190,6 +190,11 @@ EXTRACT_EVENT_QUERY = """
     ORDER BY {order_cmd}
 """
 
+SUM_SUCCESS_RATE_METRIC = """
+    CAST(SUM(CASE WHEN {extra_filters} THEN {pred} ELSE 0 END) AS DOUBLE) / SUM(CASE WHEN {extra_filters} THEN {label} ELSE 0 END) 
+    AS "score_{ind}"
+    """
+
 THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
 )
@@ -216,6 +221,12 @@ class ZSources(str, enum.Enum):
     dZ = "dZ"
     dY = "dY"
     Z_COORDS = "Z_coords"
+
+
+class Roles(str, enum.Enum):
+    HOST = "host"
+    NEXT = "next"
+    OVERALL = ""
 
 
 sec_to_dist_acc = {
@@ -401,6 +412,72 @@ def generate_compare_metric_query(
         extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)] + extra_columns,
         role=role,
     )
+
+
+def generate_sum_success_rate_metric_query(
+    data_tables,
+    meta_data,
+    label_col,
+    pred_col,
+    interesting_filters,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    metrics = ", ".join(
+        SUM_SUCCESS_RATE_METRIC.format(label=label_col, pred=pred_col, extra_filters=f"({filter})", ind=name)
+        for name, filter in interesting_filters.items()
+    )
+    count_metrics = {
+        interesting_filter_name: f"{extra_filters} AND {interesting_filter}"
+        for interesting_filter_name, interesting_filter in interesting_filters.items()
+    }
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics=metrics,
+        count_metrics=count_metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)] + extra_columns,
+        role=role,
+    )
+
+
+def generate_sum_success_rate_metric_by_Z_bins_query(
+    data_tables,
+    meta_data,
+    labels_to_preds,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    metrics = ", ".join(
+        SUM_SUCCESS_RATE_METRIC.format(label=label, pred=pred, extra_filters=f"{label} != -1", ind=name)
+        for name, (label, pred) in labels_to_preds.items()
+    )
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=extra_columns + [col for name, label_to_pred in labels_to_preds.items() for col in label_to_pred],
+        role=role,
+    )
+
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
+
+    SUM_METRIC = """
+        SUM("{col}")
+        AS "count_{ind}"
+        """
+    metrics = ", ".join([SUM_METRIC.format(col=label, ind=name) for name, (label, pred) in labels_to_preds.items()])
+    group_by = "net_id"
+    md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
+    query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
+    return query
 
 
 def generate_sum_bins_metric_query(
