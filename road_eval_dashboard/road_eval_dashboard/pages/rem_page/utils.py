@@ -15,7 +15,7 @@ from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_compare_metric_query,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.road_eval_dashboard.graphs import draw_meta_data_filters
+from road_eval_dashboard.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
 Z_BINS = list(range(0, 300, 50)) + [999]
 Z_FILTERS = {f"{z}": f"rem_point_Z BETWEEN {z} AND {Z_BINS[i+1]}" for i, z in enumerate(Z_BINS[:-1])}

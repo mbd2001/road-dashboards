@@ -3,7 +3,7 @@ import itertools
 import numpy as np
 import plotly.graph_objects as go
 
-from road_eval_dashboard.road_eval_dashboard.graphs import calc_fb
+from road_eval_dashboard.road_eval_dashboard.graphs.precision_recall_curve import calc_fb
 
 
 def compute_z_score_for_binomial_distribution(score1, score2, n1, n2):

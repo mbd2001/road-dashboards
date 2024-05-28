@@ -1,7 +1,10 @@
 import pandas as pd
 from dash import Input, Output, callback, dcc, html, no_update, register_page
 
-from road_eval_dashboard.road_eval_dashboard.components.catalog_table import generate_catalog_layout, run_eval_db_manager
+from road_eval_dashboard.road_eval_dashboard.components.catalog_table import (
+    generate_catalog_layout,
+    run_eval_db_manager,
+)
 from road_eval_dashboard.road_eval_dashboard.components.components_ids import CATALOG, RUN_EVAL_CATALOG
 from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties

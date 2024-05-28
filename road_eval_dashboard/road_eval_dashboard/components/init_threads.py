@@ -7,7 +7,7 @@ from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_fb_query,
     generate_grab_index_hist_query,
 )
-from road_eval_dashboard.road_eval_dashboard.graphs import calc_best_thresh
+from road_eval_dashboard.road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
 
 
 def generate_meta_data_dicts(nets):

@@ -19,6 +19,7 @@ from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_sum_bins_metric_query,
     run_query_with_nets_names_processing,
 )
+from road_eval_dashboard.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_eval_dashboard.road_eval_dashboard.pages.rem_page.utils import (
     IGNORES_FILTER,
     REM_FILTERS,
@@ -29,7 +30,6 @@ from road_eval_dashboard.road_eval_dashboard.pages.rem_page.utils import (
     get_rem_fig,
     get_rem_score,
 )
-from road_eval_dashboard.road_eval_dashboard.graphs import draw_meta_data_filters
 
 TAB = "accuracy"
 

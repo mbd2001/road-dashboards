@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 import numpy as np
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
-from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     ALL_SCENE_CONF_DIAGONALS,
     ALL_SCENE_CONF_DIAGONALS_MEST,
@@ -36,13 +36,10 @@ from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     process_net_names_list,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
-from road_eval_dashboard.road_eval_dashboard.graphs import (
-    basic_bar_graph,
-    draw_conf_diagonal_compare,
-    draw_confusion_matrix,
-    draw_roc_curve,
-)
+from road_eval_dashboard.road_eval_dashboard.graphs.bar_graph import basic_bar_graph
+from road_eval_dashboard.road_eval_dashboard.graphs.confusion_matrix import draw_confusion_matrix
+from road_eval_dashboard.road_eval_dashboard.graphs.roc_curve import draw_roc_curve
+from road_eval_dashboard.road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
 
 scene_class_names = ["False", "True"]
 extra_properties = PageProperties("line-chart")

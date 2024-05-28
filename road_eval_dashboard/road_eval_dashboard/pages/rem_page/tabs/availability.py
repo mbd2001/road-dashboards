@@ -6,7 +6,12 @@ from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     NETS,
     REM_ROLES_DROPDOWN,
 )
-from road_eval_dashboard.road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
+from road_eval_dashboard.road_eval_dashboard.pages.rem_page.utils import (
+    REM_FILTERS,
+    REM_TYPE,
+    get_base_graph_layout,
+    get_rem_fig,
+)
 
 TAB = "availability"
 

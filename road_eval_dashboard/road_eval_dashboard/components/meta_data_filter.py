@@ -10,7 +10,12 @@ from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     URL,
 )
 from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, add_state, get_state, hash_to_dict
+from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import (
+    META_DATA_STATE_KEY,
+    add_state,
+    get_state,
+    hash_to_dict,
+)
 
 NUM_FILTERS_PER_GROUP = 10
 

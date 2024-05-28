@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, State, callback, html, no_update, register_page
 
-from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_eval_dashboard.road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
@@ -12,7 +12,11 @@ from road_eval_dashboard.road_eval_dashboard.components.common_filters import (
     MAX_SPEED_FILTERS,
     VMAX_BINS_FILTERS,
 )
-from road_eval_dashboard.road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    MD_FILTERS,
+    NETS,
+)
 from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
@@ -21,8 +25,10 @@ from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_vmax_success_rate_query,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
-from road_eval_dashboard.road_eval_dashboard.graphs import calc_fb_per_row, draw_meta_data_filters
+from road_eval_dashboard.road_eval_dashboard.graphs.meta_data_filters_graph import (
+    calc_fb_per_row,
+    draw_meta_data_filters,
+)
 
 f_beta = 1
 B2 = f_beta**2

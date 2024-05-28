@@ -32,8 +32,14 @@ from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
 )
 from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.road_eval_dashboard.components.queries_manager import generate_fb_query, run_query_with_nets_names_processing
-from road_eval_dashboard.road_eval_dashboard.graphs import calc_fb_per_row, draw_meta_data_filters
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
+    generate_fb_query,
+    run_query_with_nets_names_processing,
+)
+from road_eval_dashboard.road_eval_dashboard.graphs.meta_data_filters_graph import (
+    calc_fb_per_row,
+    draw_meta_data_filters,
+)
 
 
 def get_base_graph_layout(graph_id, host_button_id, sort_by_dist_id=None):
