@@ -1,4 +1,4 @@
-include road_eval_dashboard/__mxp_version.py
-include road_eval_dashboard/_resources_/*.zip
+include road_dashboards/__mxp_version.py
+include road_dashboards/_resources_/*.zip
 include version/**/*
 include __build_info/**/*

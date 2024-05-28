@@ -1,7 +1,7 @@
-site_name: road-eval-dashboard docs
+site_name: road-dashboards docs
 # @info.todo: fill your gitlab repo URL + Name
-repo_url: http://gitlab.mobileye.com/road_algo/road-eval-dashboard
-repo_name: road_algo/road-eval-dashboard
+repo_url: http://gitlab.mobileye.com/road_algo/road-dashboards
+repo_name: road_algo/road-dashboards
 edit_uri: edit/master/docs/
 
 plugins:

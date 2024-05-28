@@ -2,10 +2,10 @@
 FROM python:3.10-slim
 
 # Set the working directory to /app
-WORKDIR /app/road_eval_dashboard/road_eval_dashboard
+WORKDIR /app/road_dashboards/road_eval_dashboard
 
 # Copy the current directory contents into the container at /app
-COPY ./road_eval_dashboard/road_eval_dashboard /app/road_eval_dashboard/road_eval_dashboard
+COPY ./road_dashboards/road_eval_dashboard /app/road_dashboards/road_eval_dashboard
 
 RUN chmod 777 -R /app
 
@@ -15,7 +15,7 @@ RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobiley
 
 # pip installations
 RUN pip install --upgrade pip
-RUN pip install -r /app/road_eval_dashboard/road_eval_dashboard/requirements.txt
+RUN pip install -r /app/road_dashboards/road_eval_dashboard/requirements.txt
 
 ENV PYTHONPATH=/app
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
