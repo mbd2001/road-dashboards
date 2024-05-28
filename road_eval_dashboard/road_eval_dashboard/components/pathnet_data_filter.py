@@ -1,9 +1,9 @@
 import dash_bootstrap_components as dbc
 from dash import ALL, MATCH, Input, Output, State, callback, callback_context, dcc, html, no_update
 
-from road_eval_dashboard.components.components_ids import PATHNET_FILTERS
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.meta_data_filter import parse_one_filter
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import PATHNET_FILTERS
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.meta_data_filter import parse_one_filter
 
 
 def get_filter_row_initial_layout(index, md_columns_options):

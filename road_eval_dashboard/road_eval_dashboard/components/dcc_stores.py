@@ -1,6 +1,6 @@
 from dash import dcc, html
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,

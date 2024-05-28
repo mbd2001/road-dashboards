@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import dash_table, dcc, html
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     PATHNET_BOOKMARKS_JSON_FILE_NAME,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
@@ -18,9 +18,9 @@ from road_eval_dashboard.components.components_ids import (
     PATHNET_EXPORT_TO_BOOKMARK_WINDOW,
     PATHNET_OPEN_EXPORT_EVENTS_WINDOW_BUTTON,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_eval_dashboard.components.queries_manager import distances
-from road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import distances
+from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
 
 # ------------------------------------------------- layout-creation ------------------------------------------------- #

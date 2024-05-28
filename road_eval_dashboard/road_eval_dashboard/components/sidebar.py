@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, html, page_registry
 
-from road_eval_dashboard.components.components_ids import SIDEBAR, URL
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import SIDEBAR, URL
 
 MAFFE_LOGO = "https://gitlab.mobileye.com/uploads/-/system/project/avatar/807/index.jpeg"
 

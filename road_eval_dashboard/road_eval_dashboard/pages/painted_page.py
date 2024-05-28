@@ -2,8 +2,8 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.common_filters import (
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
     EVENT_FILTERS,
@@ -11,7 +11,7 @@ from road_eval_dashboard.components.common_filters import (
     ROAD_TYPE_FILTERS,
     WEATHER_FILTERS,
 )
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
     NETS,
@@ -19,10 +19,10 @@ from road_eval_dashboard.components.components_ids import (
     PAINTED_TABS,
     PAINTED_TABS_CONTENT,
 )
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     Roles,
     generate_sum_success_rate_metric_by_Z_bins_query,
     generate_sum_success_rate_metric_query,

@@ -4,8 +4,8 @@ import pandas as pd
 import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.common_filters import (
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
     EVENT_FILTERS,
@@ -13,7 +13,7 @@ from road_eval_dashboard.components.common_filters import (
     ROAD_TYPE_FILTERS,
     WEATHER_FILTERS,
 )
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     EMDP_VIEW_RANGE_HISTOGRAM,
     EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC,
@@ -24,10 +24,10 @@ from road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
 )
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     _get_emdp_col,
     generate_compare_metric_query,
     generate_emdp_view_range_sec_histogram_query,

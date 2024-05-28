@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
     NETS,
@@ -12,14 +12,14 @@ from road_eval_dashboard.components.components_ids import (
     REM_ERROR_HISTOGRAM_Z_OR_SEC,
     REM_ROLES_DROPDOWN,
 )
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     ZSources,
     generate_sum_bins_metric_query,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.pages.rem_page.utils import (
+from road_eval_dashboard.road_eval_dashboard.pages.rem_page.utils import (
     IGNORES_FILTER,
     REM_FILTERS,
     REM_TYPE,

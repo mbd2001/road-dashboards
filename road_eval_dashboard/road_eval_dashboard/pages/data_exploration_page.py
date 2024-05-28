@@ -3,9 +3,9 @@ import pandas as pd
 from dash import Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.common_filters import LANE_MARK_COLOR_FILTERS, ROAD_TYPE_FILTERS
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.common_filters import LANE_MARK_COLOR_FILTERS, ROAD_TYPE_FILTERS
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     COUNTRIES_HEAT_MAP,
     DYNAMIC_PIE_CHART,
     DYNAMIC_PIE_CHART_DROPDOWN,
@@ -19,10 +19,10 @@ from road_eval_dashboard.components.components_ids import (
     ROAD_TYPE_PIE_CHART,
     TVGT_PIE_CHART,
 )
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import generate_count_query, generate_dynamic_count_query
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import generate_count_query, generate_dynamic_count_query
 from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.road_eval_dashboard.graphs import (
     basic_histogram_plot,

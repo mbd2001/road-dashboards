@@ -2,8 +2,8 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, State, callback, html, no_update, register_page
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.common_filters import (
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
     DIST_FROM_CURVE_VMAX_15_FILTERS,
@@ -12,11 +12,11 @@ from road_eval_dashboard.components.common_filters import (
     MAX_SPEED_FILTERS,
     VMAX_BINS_FILTERS,
 )
-from road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import EFFECTIVE_SAMPLES_PER_BATCH, MD_FILTERS, NETS
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_vmax_fb_query,
     generate_vmax_success_rate_query,
     run_query_with_nets_names_processing,

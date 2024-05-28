@@ -2,15 +2,15 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     URL,
 )
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, add_state, get_state, hash_to_dict
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, add_state, get_state, hash_to_dict
 
 NUM_FILTERS_PER_GROUP = 10
 

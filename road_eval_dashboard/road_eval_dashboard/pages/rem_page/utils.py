@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 
-from road_eval_dashboard.components.common_filters import (
+from road_eval_dashboard.road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
     EVENT_FILTERS,
@@ -9,9 +9,9 @@ from road_eval_dashboard.components.common_filters import (
     ROAD_TYPE_FILTERS,
     WEATHER_FILTERS,
 )
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_compare_metric_query,
     run_query_with_nets_names_processing,
 )

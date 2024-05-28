@@ -3,8 +3,8 @@ import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
     NETS,
@@ -28,12 +28,12 @@ from road_eval_dashboard.components.components_ids import (
     ROLE_POPULATION_VALUE,
     SPLIT_ROLE_POPULATION_DROPDOWN,
 )
-from road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.pathnet_events_extractor.layout import layout as events_extractor_card
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs, generate_matrices_layout
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.pathnet_events_extractor.layout import layout as events_extractor_card
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     distances,
     generate_avail_query,
     generate_count_query,
@@ -42,7 +42,7 @@ from road_eval_dashboard.components.queries_manager import (
 )
 from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 from road_eval_dashboard.road_eval_dashboard.graphs import draw_path_net_graph
-from road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
+from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
 basic_operations = create_dropdown_options_list(
     labels=["Greater", "Greater or equal", "Less", "Less or equal", "Equal", "Not Equal", "Is NULL", "Is not NULL"],

@@ -4,9 +4,9 @@ import dash_bootstrap_components as dbc
 import plotly.graph_objects as go
 from dash import ALL, MATCH, Input, Output, State, callback, ctx, dcc, html, no_update
 
-from road_eval_dashboard.components.components_ids import GRAPH_TO_COPY
-from road_eval_dashboard.components.export_jira_modal import get_jira_modal_layout
-from road_eval_dashboard.components.layout_wrapper import loading_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import GRAPH_TO_COPY
+from road_eval_dashboard.road_eval_dashboard.components.export_jira_modal import get_jira_modal_layout
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import loading_wrapper
 
 
 def graph_wrapper(graph_id):

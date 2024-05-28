@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Input, Output, State, callback, no_update
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
     PATHNET_BOOKMARKS_JSON_FILE_NAME,
@@ -30,12 +30,12 @@ from road_eval_dashboard.components.components_ids import (
     PATHNET_OPEN_EXPORT_EVENTS_WINDOW_BUTTON,
     PATHNET_PRED,
 )
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
     generate_pathnet_events_query,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list, create_message
+from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list, create_message
 
 BOOKMARKS_COLUMNS = ["batch_num", "sample_index"]
 MF_EXPLORER_PARAMS = """ 

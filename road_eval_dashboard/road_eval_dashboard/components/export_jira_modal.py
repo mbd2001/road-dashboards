@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from jira import JIRAError
 
-from road_eval_dashboard.utils.jira_handler import add_image_in_comment, get_jira_issues_from_prefix
+from road_eval_dashboard.road_eval_dashboard.utils.jira_handler import add_image_in_comment, get_jira_issues_from_prefix
 
 
 def get_jira_modal_layout(graph_id_str):

@@ -1,11 +1,11 @@
 from dash import Input, Output, callback, dcc, html, register_page
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.components_ids import REM_ROLES_DROPDOWN, REM_TABS, REM_TABS_CONTENT
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import Roles
-from road_eval_dashboard.pages.rem_page.tabs import accuracy, availability, painted
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import REM_ROLES_DROPDOWN, REM_TABS, REM_TABS_CONTENT
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import Roles
+from road_eval_dashboard.road_eval_dashboard.pages.rem_page.tabs import accuracy, availability, painted
 from road_eval_dashboard.road_eval_dashboard.components import base_dataset_statistics
 
 extra_properties = PageProperties("line-chart")

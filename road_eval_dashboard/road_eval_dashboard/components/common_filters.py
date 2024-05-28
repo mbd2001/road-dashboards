@@ -1,4 +1,4 @@
-from road_eval_dashboard.components.queries_manager import INTERSTING_FILTERS_DIST_TO_CHECK
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import INTERSTING_FILTERS_DIST_TO_CHECK
 
 ROAD_TYPE_FILTERS = {
     "highway": "mdbi_road_highway = TRUE OR mdbi_road_freeway = TRUE",

@@ -2,8 +2,8 @@ import pandas as pd
 import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, html, no_update, register_page
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
     NETS,
@@ -26,14 +26,14 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_Z_STEP,
 )
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_view_range_histogram_query,
     generate_view_range_success_rate_query,
     get_view_range_col_name,
     run_query_with_nets_names_processing,
 )
-from road_eval_dashboard.pages.card_generators import (
+from road_eval_dashboard.road_eval_dashboard.pages.card_generators import (
     view_range_histogram_card,
     view_range_host_next_success_rate_card,
     view_range_success_rate_card,

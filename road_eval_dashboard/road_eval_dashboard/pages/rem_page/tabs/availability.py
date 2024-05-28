@@ -1,12 +1,12 @@
 from dash import MATCH, Input, Output, State, callback, html, no_update
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
     NETS,
     REM_ROLES_DROPDOWN,
 )
-from road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
+from road_eval_dashboard.road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout, get_rem_fig
 
 TAB = "availability"
 

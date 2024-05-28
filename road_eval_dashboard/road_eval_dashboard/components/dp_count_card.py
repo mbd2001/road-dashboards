@@ -1,9 +1,9 @@
 from dash import Input, Output, callback, html
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components.components_ids import DP_COUNT, MD_FILTERS, NETS, PATHNET_PRED
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_eval_dashboard.components.queries_manager import generate_count_query
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import DP_COUNT, MD_FILTERS, NETS, PATHNET_PRED
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import generate_count_query
 from road_eval_dashboard.road_eval_dashboard.graphs import human_format_int
 
 layout = card_wrapper(

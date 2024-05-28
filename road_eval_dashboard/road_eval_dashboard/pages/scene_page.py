@@ -5,8 +5,8 @@ import dash_bootstrap_components as dbc
 import numpy as np
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
-from road_eval_dashboard.components import meta_data_filter
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components import meta_data_filter
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     ALL_SCENE_CONF_DIAGONALS,
     ALL_SCENE_CONF_DIAGONALS_MEST,
     ALL_SCENE_CONF_MATS,
@@ -25,11 +25,11 @@ from road_eval_dashboard.components.components_ids import (
     SCENE_SIGNALS_DATA_READY,
     SCENE_SIGNALS_LIST,
 )
-from road_eval_dashboard.components.confusion_matrices_layout import generate_conf_matrices
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_eval_dashboard.components.page_properties import PageProperties
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.confusion_matrices_layout import generate_conf_matrices
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.page_properties import PageProperties
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     ROC_THRESHOLDS,
     generate_compare_query,
     generate_roc_query,

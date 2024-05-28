@@ -1,7 +1,7 @@
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_eval_dashboard.components.common_filters import ALL_FILTERS
-from road_eval_dashboard.components.queries_manager import (
+from road_eval_dashboard.road_eval_dashboard.components.common_filters import ALL_FILTERS
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import (
     generate_base_query,
     generate_cols_query,
     generate_fb_query,

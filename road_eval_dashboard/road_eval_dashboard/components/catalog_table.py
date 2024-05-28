@@ -6,7 +6,7 @@ import pandas as pd
 from dash import ALL, Input, Output, State, callback, ctx, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     CATALOG,
     EFFECTIVE_SAMPLES_PER_BATCH,
     LOAD_NETS_DATA_NOTIFICATION,
@@ -20,15 +20,15 @@ from road_eval_dashboard.components.components_ids import (
     UPDATE_RUNS_BTN,
     URL,
 )
-from road_eval_dashboard.components.init_threads import (
+from road_eval_dashboard.road_eval_dashboard.components.init_threads import (
     generate_effective_samples_per_batch,
     generate_meta_data_dicts,
     get_best_fb_per_net,
     get_list_of_scene_signals,
 )
-from road_eval_dashboard.components.layout_wrapper import loading_wrapper
-from road_eval_dashboard.components.net_properties import Nets
-from road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, add_state
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import loading_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.net_properties import Nets
+from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, add_state
 
 run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
 

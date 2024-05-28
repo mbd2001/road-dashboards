@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, State, callback, html, no_update
 
-from road_eval_dashboard.components.common_filters import (
+from road_eval_dashboard.road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
     CURVE_BY_RAD_FILTERS,
     EVENT_FILTERS,
@@ -11,7 +11,7 @@ from road_eval_dashboard.components.common_filters import (
     ROAD_TYPE_FILTERS,
     WEATHER_FILTERS,
 )
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     FB_PER_CURVE_BY_DIST,
     FB_PER_CURVE_GRAPH,
@@ -30,9 +30,9 @@ from road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
 )
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_eval_dashboard.components.queries_manager import generate_fb_query, run_query_with_nets_names_processing
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.queries_manager import generate_fb_query, run_query_with_nets_names_processing
 from road_eval_dashboard.road_eval_dashboard.graphs import calc_fb_per_row, draw_meta_data_filters
 
 

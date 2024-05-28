@@ -2,7 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import dcc, html
 
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_HISTOGRAM,
     VIEW_RANGE_HISTOGRAM_BIN_SIZE_SLIDER,
     VIEW_RANGE_HISTOGRAM_CUMULATIVE,
@@ -22,8 +22,8 @@ from road_eval_dashboard.components.components_ids import (
     VIEW_RANGE_SUCCESS_RATE_Z_RANGE,
     VIEW_RANGE_SUCCESS_RATE_Z_STEP,
 )
-from road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.graph_wrapper import graph_wrapper
+from road_eval_dashboard.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 
 
 def view_range_success_rate_card():

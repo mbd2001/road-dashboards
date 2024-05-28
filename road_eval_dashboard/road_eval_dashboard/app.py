@@ -4,9 +4,9 @@ from uuid import uuid4
 import dash_bootstrap_components as dbc
 from dash import Dash, Input, Output, State, dcc, html, no_update
 
-from road_eval_dashboard.components import page_content, sidebar
-from road_eval_dashboard.components.catalog_table import update_state_by_nets
-from road_eval_dashboard.components.components_ids import (
+from road_eval_dashboard.road_eval_dashboard.components import page_content, sidebar
+from road_eval_dashboard.road_eval_dashboard.components.catalog_table import update_state_by_nets
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,
@@ -19,9 +19,9 @@ from road_eval_dashboard.components.components_ids import (
     STATE_NOTIFICATION,
     URL,
 )
-from road_eval_dashboard.components.dcc_stores import init_dcc_stores
-from road_eval_dashboard.components.meta_data_filter import recursive_build_meta_data_filters
-from road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, NETS_STATE_KEY, get_state
+from road_eval_dashboard.road_eval_dashboard.components.dcc_stores import init_dcc_stores
+from road_eval_dashboard.road_eval_dashboard.components.meta_data_filter import recursive_build_meta_data_filters
+from road_eval_dashboard.road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, NETS_STATE_KEY, get_state
 
 app = Dash(
     __name__,

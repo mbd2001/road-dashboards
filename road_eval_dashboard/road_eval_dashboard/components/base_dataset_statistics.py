@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import html
 
-from road_eval_dashboard.components import (
+from road_eval_dashboard.road_eval_dashboard.components import (
     dp_count_card,
     emdp_count_card,
     frame_count_card,
