@@ -190,10 +190,10 @@ def get_dynamic_chart(
         population,
         main_column,
         intersection_on,
-        meta_data_tables,
-        meta_data_filters,
-        slider_value,
-        compute_percentage,
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
+        slider_value=slider_value,
+        compute_percentage=compute_percentage,
     )
     return fig
 
@@ -233,13 +233,13 @@ def get_generic_column_chart(
         population,
         main_column,
         intersection_on,
-        meta_data_tables,
-        meta_data_filters,
-        slider_value,
-        diff_column,
-        extra_filters,
-        graph_title,
-        compute_percentage,
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
+        slider_value=slider_value,
+        diff_column=diff_column,
+        extra_filters=extra_filters,
+        graph_title=graph_title,
+        compute_percentage=compute_percentage,
     )
     return fig
 
