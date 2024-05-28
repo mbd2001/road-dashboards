@@ -25,7 +25,7 @@ def layout():
     catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(
         [
-            dbc.Row(html.H2("Dump Catalog", className="mb-5")),
+            dbc.Row(html.H2("Datasets Catalog", className="mb-5")),
             dbc.Row(
                 dash_table.DataTable(
                     id=DUMP_CATALOG,
@@ -60,7 +60,7 @@ def layout():
                 )
             ),
             dbc.Row(
-                dbc.Col(dbc.Button("Choose Dumps to Explore", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
+                dbc.Col(dbc.Button("Choose Datasets to Explore", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
             ),
             loading_wrapper(html.Div(id=LOAD_NETS_DATA_NOTIFICATION)),
         ]
@@ -82,7 +82,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
 
     rows = parse_catalog_rows(rows, derived_virtual_selected_rows)
     dumps = init_tables(rows)
-    notification = dbc.Alert("Dump data loaded successfully!", color="success", dismissable=True)
+    notification = dbc.Alert("Datasets loaded successfully!", color="success", dismissable=True)
 
     dumps_list = list(rows["dump_name"])
     dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")

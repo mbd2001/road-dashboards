@@ -240,7 +240,7 @@ def generate_count_query(
 
     col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
     group_by = (
-        f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor and bins_factor != 1 else col_metric
+        f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor else col_metric
     )
     group_name = DIFF_COL if diff_column else main_column
     query = COUNT_QUERY.format(
