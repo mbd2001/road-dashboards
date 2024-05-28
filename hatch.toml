@@ -1,8 +1,8 @@
 [version]
-path = "road_eval_dashboard/__about__.py"
+path = "road_dashboards/__about__.py"
 
 [build]
-include = ["road_eval_dashboard"]
+include = ["road_dashboards"]
 
 [publish.me-conda]
 artifacts = "./__localbuild__/conda/"

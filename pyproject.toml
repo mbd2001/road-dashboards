@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "road-eval-dashboard"
+name = "road-dashboards"
 dynamic = ["version"]
 description = ''
 readme = "README.md"
@@ -37,16 +37,16 @@ profile = "black"
 line_length = 120
 
 [tool.coverage.run]
-source_pkgs = ["road_eval_dashboard"]
+source_pkgs = ["road_dashboards"]
 branch = true
 parallel = true
 omit = [
-  "road_eval_dashboard/__about__.py",
+  "road_dashboards/__about__.py",
 ]
 
 [tool.coverage.paths]
-road-database-toolkit = ["road_eval_dashboard", "*/road-eval-dashboard/road_eval_dashboard"]
-tests = ["tests", "*/road-eval-dashboard/tests"]
+road-dashboards = ["road_dashboards", "*/road-dashboards/road_dashboards"]
+tests = ["tests", "*/road-dashboards/tests"]
 
 [tool.coverage.report]
 exclude_lines = [

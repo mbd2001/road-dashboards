@@ -1,5 +1,5 @@
 variables:
-  PACKAGE_FOLDER: "road_eval_dashboard"
+  PACKAGE_FOLDER: "road_dashboards"
   HATCH_BUILD_OUTPUT_FOLDER: "./__localbuild__/pypi" # Also configured in task.yaml
   CONDA_BUILD_OUTPUT_FOLDER: "./__localbuild__/conda" # Also configured in task.yaml
   PYPI_REPO: "https://artifactory.sddc.mobileye.com/artifactory/api/pypi/me-pypi-dev"
@@ -183,7 +183,7 @@ deploy:reload_app:
     - road-algo-sm
   stage: deploy
   script:
-    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-dashboards_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
     - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
   extends: .only-master-pushes
   needs:
