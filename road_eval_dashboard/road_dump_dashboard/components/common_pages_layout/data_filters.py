@@ -20,11 +20,13 @@ from road_eval_dashboard.road_dump_dashboard.components.constants.components_ids
     TABLES,
     UPDATE_FILTERS_BTN,
 )
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper
-from road_eval_dashboard.road_dump_dashboard.components.logical_components import (
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.queries_manager import (
+    manipulate_column_to_avoid_ambiguities,
+)
+from road_eval_dashboard.road_dump_dashboard.components.logical_components.tables_properties import (
     get_tables_property_union,
     get_value_from_tables_property_union,
-    manipulate_column_to_avoid_ambiguities,
 )
 
 NUM_FILTERS_PER_GROUP = 10

@@ -1,7 +1,7 @@
 from dash import html, register_page
 
-from road_eval_dashboard.road_dump_dashboard import PageProperties
-from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout import card_wrapper
+from road_eval_dashboard.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
+from road_eval_dashboard.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
 from road_eval_dashboard.road_dump_dashboard.components.logical_components import catalog_table
 
 page_properties = PageProperties(icon="home", path="/home", name="Home")

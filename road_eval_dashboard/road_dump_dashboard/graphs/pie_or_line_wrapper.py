@@ -1,4 +1,5 @@
-from road_eval_dashboard.road_dump_dashboard.graphs import basic_pie_chart, draw_line_graph
+from road_eval_dashboard.road_dump_dashboard.graphs.line_graph import draw_line_graph
+from road_eval_dashboard.road_dump_dashboard.graphs.pie_chart import basic_pie_chart
 
 
 def pie_or_line_wrapper(data, names, values, title="", hover=None, color="dump_name"):
