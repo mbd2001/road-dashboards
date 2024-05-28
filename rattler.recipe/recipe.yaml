@@ -41,6 +41,8 @@ requirements:
     - road-database-toolkit
     - jira
     - python-kaleido
+    - natsort
+    - scipy
 
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road_eval_dashboard

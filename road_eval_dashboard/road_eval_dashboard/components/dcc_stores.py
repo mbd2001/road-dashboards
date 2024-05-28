@@ -1,0 +1,37 @@
+from dash import dcc, html
+
+from road_eval_dashboard.road_eval_dashboard.components.components_ids import (
+    EFFECTIVE_SAMPLES_PER_BATCH,
+    GRAPH_TO_COPY,
+    MD_COLUMNS_OPTION,
+    MD_COLUMNS_TO_DISTINCT_VALUES,
+    MD_COLUMNS_TO_TYPE,
+    MD_FILTERS,
+    NET_ID_TO_FB_BEST_THRESH,
+    NETS,
+    PATHNET_EVENTS_BOOKMARKS_JSON,
+    PATHNET_EVENTS_CHOSEN_NET,
+    PATHNET_EXPLORER_DATA,
+    PATHNET_FILTERS,
+    SCENE_SIGNALS_LIST,
+)
+
+
+def init_dcc_stores():
+    return html.Div(
+        [
+            dcc.Store(id=NETS, storage_type="session"),
+            dcc.Store(id=GRAPH_TO_COPY, storage_type="session"),
+            dcc.Store(id=MD_COLUMNS_TO_TYPE, storage_type="session"),
+            dcc.Store(id=MD_COLUMNS_OPTION, storage_type="session"),
+            dcc.Store(id=MD_COLUMNS_TO_DISTINCT_VALUES, storage_type="session"),
+            dcc.Store(id=MD_FILTERS, storage_type="session"),
+            dcc.Store(id=PATHNET_FILTERS, storage_type="session"),
+            dcc.Store(id=EFFECTIVE_SAMPLES_PER_BATCH, storage_type="session"),
+            dcc.Store(id=NET_ID_TO_FB_BEST_THRESH, storage_type="session"),
+            dcc.Store(id=SCENE_SIGNALS_LIST, storage_type="session"),
+            dcc.Store(id=PATHNET_EVENTS_CHOSEN_NET, storage_type="session"),
+            dcc.Store(id=PATHNET_EVENTS_BOOKMARKS_JSON, storage_type="session"),
+            dcc.Store(id=PATHNET_EXPLORER_DATA, storage_type="session"),
+        ]
+    )
