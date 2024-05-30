@@ -16,11 +16,23 @@ class Table:
 
 
 @dataclass
+class NetInfo:
+    net_id: str
+    checkpoint: str
+    use_case: str
+    dataset: str
+    population: str
+
+    def __bool__(self):
+        return True
+
+
+@dataclass
 class Nets:
     def __init__(self, net_names, checkpoints, use_cases, populations, datasets, **kwargs):
         self.names = [
-            f"{net_name}__{checkpoint}__{use_case}__{dataset}"
-            for net_name, checkpoint, use_case, dataset in zip(net_names, checkpoints, use_cases, datasets)
+            f"{net_name}_{checkpoint}_{use_case}"
+            for net_name, checkpoint, use_case in zip(net_names, checkpoints, use_cases)
         ]
         self.population = (
             "Test"
@@ -76,3 +88,7 @@ class Nets:
         self.pathnet_pred_tables = self.pathnet_pred_tables.__dict__ if self.pathnet_pred_tables else None
         self.pathnet_gt_tables = self.pathnet_gt_tables.__dict__ if self.pathnet_gt_tables else None
         self.pathnet_host_boundaries = self.pathnet_host_boundaries.__dict__ if self.pathnet_host_boundaries else None
+        self.nets_info = [
+            NetInfo(net_id, ckpt, use_case, dataset, pop).__dict__
+            for net_id, ckpt, use_case, dataset, pop in zip(net_names, checkpoints, use_cases, datasets, populations)
+        ]

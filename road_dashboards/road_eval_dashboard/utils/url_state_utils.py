@@ -1,6 +1,7 @@
 import base64
 import json
 
+import dash_bootstrap_components as dbc
 from dash import html
 
 NETS_STATE_KEY = "nets"
@@ -38,17 +39,19 @@ def create_dropdown_options_list(labels, values=None):
     return [{"label": label, "value": value} for label, value in zip(labels, values)]
 
 
-def create_message(msg, style=None, color="red"):
+def create_alert_message(msg, color, style=None):
     if style is None:
-        style = {"margin-top": 10, "color": color}
+        style = {"margin-top": 10}
+
     message_lines = msg.split("\n")
 
     # Create a list of Dash HTML components, interspersing html.Br() elements for line breaks
-    formatted_message = [html.Span(line, style=style) for line in message_lines]
+    formatted_message = [html.Span(line) for line in message_lines]
 
     # Insert html.Br() after each line except the last one
     components = []
     for component in formatted_message[:-1]:
         components.extend([component, html.Br()])
     components.append(formatted_message[-1])
-    return html.Div(components)
+
+    return dbc.Alert(components, color=color, style=style)
