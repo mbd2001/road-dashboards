@@ -8,6 +8,7 @@ default:
   image: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda-py310
   tags:
     - road-algo-lg
+  interruptible: true
   before_script:
     - | # install hatch if not installed:
       if ! command -v hatch >/dev/null 2>&1; then
@@ -37,10 +38,11 @@ default:
     - source .auth/.setup_auth.sh
 
 stages:
-  - code-check
+  - pre
   - build
   - test
   - deploy
+  - post
 
 workflow:
   rules:
@@ -103,10 +105,10 @@ test:conda:
   needs:
     - build:conda
 
-code-check:pycheck:
+pycheck:
   tags:
     - road-algo-sm
-  stage: code-check
+  stage: pre
   script:
     - hatch --verbose run lint:check
   rules:
@@ -158,33 +160,69 @@ deploy:docs:
       - public
   extends: .only-master-pushes
 
-deploy:docker:
+.docker-deploy: &docker-deploy-before-script
+  - |
+    apk add git rclone python3 aws-cli py3-pip
+    python3 -m venv /path/to/venv
+    . /path/to/venv/bin/activate
+    if ! command -v hatch >/dev/null 2>&1; then
+      echo "Installing Hatch." && pip install hatch
+    else
+      echo "Hatch is already installed."
+    fi
+  - source .auth/.setup_auth.sh
+
+deploy:docker:eval-dashboard:
   image: docker:cli
   stage: deploy
+  tags:
+    - road-algo-md
+  before_script:
+    - *docker-deploy-before-script
   variables:
     DOCKER_BUILDKIT: "0"
-  before_script:
-    - |
-      apk add git rclone python3 aws-cli py3-pip
-      python3 -m venv /path/to/venv
-      . /path/to/venv/bin/activate
-      if ! command -v hatch >/dev/null 2>&1; then
-        echo "Installing Hatch." && pip install hatch
-      else
-        echo "Hatch is already installed."
-      fi
-    - source .auth/.setup_auth.sh
+    IMAGE_NAME: road-eval-dashboard
+    DOCKERFILE_NAME: ./docker/Dockerfile.eval-dashboard
   script:
     - task docker:build_and_push
-  extends: .only-master-pushes
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - road_dashboards/road_eval_dashboard/*
+        - docker/Dockerfile.eval-dashboard
 
-deploy:reload_app:
-  tags:
-    - road-algo-sm
+deploy:docker:data-exploration:
+  image: docker:cli
   stage: deploy
+  tags:
+    - road-algo-md
+  before_script:
+    - *docker-deploy-before-script
+  variables:
+    DOCKER_BUILDKIT: "0"
+    IMAGE_NAME: road-data-exploration
+    DOCKERFILE_NAME: ./docker/Dockerfile.data-exploration
   script:
-    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-dashboards_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - task docker:build_and_push
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - road_dashboards/road_dump_dashboard/*
+        - docker/Dockerfile.data-exploration
+
+deploy:reload_app_containers:
+  stage: post
+  script:
+    - echo "Reloading the Dynamic Stats container."
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboards_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
     - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
+    - echo "Dynamic Stats container reloaded."
+    - echo "Reloading the Data Exploration container."
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-data-exploration_latest"],"containerName":["data_exploration"],"dockerRunArgs":["-p 6008:6008"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
+    - echo "Data Exploration container reloaded."
   extends: .only-master-pushes
-  needs:
-    - deploy:docker
