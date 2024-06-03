@@ -6,7 +6,7 @@ import sys
 
 from loguru import logger
 
-from road_eval_dashboard import dummy_main_module
+from road_dashboards import dummy_main_module
 
 
 def test_dummy():

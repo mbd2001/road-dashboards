@@ -1,7 +1,7 @@
 context: {}
 
 package:
-  name: road-eval-dashboard
+  name: road-dashboards
 
   version: ${{ env.get("PROJECT_VERSION") }}
 
@@ -41,8 +41,10 @@ requirements:
     - road-database-toolkit
     - jira
     - python-kaleido
+    - natsort
+    - scipy
 
 about:
-  homepage: http://gitlab.mobileye.com/road_algo/road_eval_dashboard
-  summary: "Road evaluation dashboard repository"
+  homepage: http://gitlab.mobileye.com/road_algo/road-dashboards
+  summary: "Road dashboards repository"
 

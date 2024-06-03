@@ -9,9 +9,8 @@ vars:
   registry_num: "771416621287"
   registry_name: "algo.road"
   aws_repo: "{{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com/{{.registry_name}}"
-  image_name: road-eval-dashboard
-  dockerfile_name:
-    sh: find `git rev-parse --show-toplevel` -name "*Dockerfile*" | head -n 1
+  image_name: "{{.IMAGE_NAME}}"
+  dockerfile_name: "{{.DOCKERFILE_NAME}}"
   docker_params: " -u `id -u`:`id -g` -e USER=$USER -v /mobileye/shared:/mobileye/shared"
   docker_tag: "{{.image_name}}_{{.BUILD_TIME}}"
   full_ecr_name: "{{.aws_repo}}:{{.docker_tag}}"

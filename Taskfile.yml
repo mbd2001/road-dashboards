@@ -5,8 +5,8 @@ includes:
 
 vars:
   PYVERSION: 3.10
-  PACKAGE_NAME: road-eval-dashboard
-  PACKAGE_FOLDER: road_eval_dashboard
+  PACKAGE_NAME: road-dashboards
+  PACKAGE_FOLDER: road_dashboards
   DEV_ENV_NAME: "{{.PACKAGE_NAME}}-dev"
   CONDA_RELEASE_CHANNEL: me-conda-dev-local
   PROJECT_VERSION:
