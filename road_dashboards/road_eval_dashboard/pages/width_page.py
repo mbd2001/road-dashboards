@@ -259,8 +259,8 @@ def get_Z_graph(meta_data_filters, role, source, nets, effective_samples):
 
 
 def get_labels_and_preds(source):
-    base_label_name = "width_gt_valid_count"
-    base_pred_name = f"width_{source}_success_rate"
+    base_label_name = "lm_width_gt_valid_count"
+    base_pred_name = f"lm_width_{source}_success_rate"
     labels = []
     preds = []
     for i, Z in enumerate(Z_BINS[:-1]):
@@ -271,8 +271,8 @@ def get_labels_and_preds(source):
 
 
 def get_labels_to_preds_with_names(source, pred_type="success_rate"):
-    base_label_name = "width_gt_valid_count"
-    base_pred_name = f"width_{source}_{pred_type}"
+    base_label_name = "lm_width_gt_valid_count"
+    base_pred_name = f"lm_width_{source}_{pred_type}"
     labels_to_pred = {}
     for i, Z in enumerate(Z_BINS[:-1]):
         next_Z = Z_BINS[i + 1]

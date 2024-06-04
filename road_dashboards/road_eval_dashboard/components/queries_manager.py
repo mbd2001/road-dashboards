@@ -83,7 +83,7 @@ COMPARE_METRIC = """
     """
 
 SUM_BY_CASE_METRIC = """
-    SUM(CASE WHEN ({extra_filters}) THEN {col_name} ELSE 0 END)
+    CAST(SUM(CASE WHEN ({extra_filters}) THEN {col_name} ELSE 0 END) AS DOUBLE)
     AS "score_{ind}"
     """
 
@@ -546,7 +546,7 @@ def generate_sum_bins_by_diff_cols_metric_query(
             """
     metrics = ", ".join(
         [
-            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1 AND {label} < 999")
+            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} >= 0 AND {label} < 999")
             for name, (label, pred) in labels_to_preds.items()
         ]
     )
