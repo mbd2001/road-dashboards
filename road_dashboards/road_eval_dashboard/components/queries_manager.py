@@ -573,13 +573,15 @@ def generate_pathnet_events_query(
     data_tables,
     meta_data,
     meta_data_filters,
+    meta_data_columns,
     dp_source,
     role,
     dist,
     metric,
     order,
 ):
-    meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
+    if "frame_has_labels_mf" in meta_data_columns:
+        meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
     extra_columns = ["dp_id", "matched_dp_id", "match_score"]  # "batch_num"
     base_query = generate_base_query(
         data_tables, meta_data, meta_data_filters=meta_data_filters, role=role, extra_columns=extra_columns

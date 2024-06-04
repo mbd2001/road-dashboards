@@ -1,12 +1,13 @@
 import copy
 import json
 
-import boto3
 import pandas as pd
-from botocore.exceptions import ClientError, NoCredentialsError
+from botocore.exceptions import ClientError
 from dash import Input, Output, State, callback, no_update
+from road_database_toolkit.cloud_file_system.file_operations import path_join, write_json
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
+    MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     NETS,
     PATHNET_EVENTS_BOOKMARKS_JSON,
@@ -42,7 +43,9 @@ EXPLORER_PARAMS = """
     --use_case {use_case} 
     --bookmarks {bookmarks_name}
 """
-S3_CLIENT = boto3.client("s3")
+S3_EVENTS_DIR = (
+    "s3://mobileye-team-road/roade2e_database/run_eval_catalog/{net_id}/{checkpoint}/{use_case}/{dataset}/events"
+)
 
 
 @callback(
@@ -93,9 +96,12 @@ def update_chosen_net_data(nets, chosen_net_id):
     return net
 
 
-def check_build_events_input(n_clicks, mandatory_args):
+def check_build_events_input(n_clicks, meta_data_columns, mandatory_args):
     if not n_clicks:
         return False, ""
+
+    if not all(mandatory_column in meta_data_columns for mandatory_column in ["sample_index", "batch_num"]):
+        return False, "This eval's meta-data is missing of (sample_index, batch_num) columns"
 
     if not all(mandatory_args):
         return False, "Please specify an option for each dropdown."
@@ -126,12 +132,15 @@ def converts_events_df_to_bookmarks_json(events_df):
         lambda row: "; ".join(f"{col}={val}" for col, val in row.items()), axis=1
     )
 
-    return df_as_bookmarks.to_json(date_format="iso", orient="split")
+    return df_as_bookmarks.to_dict(orient="split")["data"]
 
 
 def create_data_dict_for_explorer(net_info, dp_source, role, dist, metric):
-    s3_dir_path = (
-        f"roade2e_database/run_eval_catalog/{net_info['net_id']}/{net_info['checkpoint']}/{net_info['dataset']}/events"
+    s3_dir_path = S3_EVENTS_DIR.format(
+        dataset=net_info["dataset"],
+        net_id=net_info["net_id"],
+        checkpoint=net_info["checkpoint"],
+        use_case=net_info["use_case"],
     )
     bookmarks_file_name = f"{metric}_{dp_source}_{role}_dist{dist}"
     explorer_params = EXPLORER_PARAMS.format(
@@ -147,6 +156,24 @@ def create_data_dict_for_explorer(net_info, dp_source, role, dist, metric):
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
+def get_events_df(dist, dp_source, meta_data_cols, meta_data_filters, metric, net, order, role, samples_num):
+    DEFAULT_SAMPLES_NUM = 200
+    query = generate_pathnet_events_query(
+        data_tables=net[PATHNET_PRED],
+        meta_data=net["meta_data"],
+        meta_data_filters=meta_data_filters,
+        meta_data_columns=meta_data_cols,
+        dp_source=dp_source,
+        role=([f"'{role}'", f"'unmatched-{role}'"] if metric == "false" else role),
+        dist=float(dist),
+        metric=metric,
+        order=order,
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    df = df.head(samples_num if samples_num else DEFAULT_SAMPLES_NUM)
+    return df
+
+
 @callback(
     Output(PATHNET_EVENTS_DATA_TABLE, "data"),
     Output(PATHNET_EVENTS_DATA_TABLE, "columns"),
@@ -157,6 +184,7 @@ def create_data_dict_for_explorer(net_info, dp_source, role, dist, metric):
     State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "value"),
     Input(PATHNET_EVENTS_SUBMIT_BUTTON, "n_clicks"),
     State(MD_FILTERS, "data"),
+    State(MD_COLUMNS_TO_TYPE, "data"),
     State(PATHNET_EVENTS_ROLE_DROPDOWN, "value"),
     State(PATHNET_EVENTS_DIST_DROPDOWN, "value"),
     State(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
@@ -164,27 +192,15 @@ def create_data_dict_for_explorer(net_info, dp_source, role, dist, metric):
     State(PATHNET_EVENTS_NUM_EVENTS, "value"),
     prevent_initial_call=True,
 )
-def build_events_df(net, dp_source, n_clicks, meta_data_filters, role, dist, metric, order, samples_num):
-    DEFAULT_SAMPLES_NUM = 200
-
+def build_events_df(
+    net, dp_source, n_clicks, meta_data_filters, meta_data_cols, role, dist, metric, order, samples_num
+):
     dropdown_args = (net, dp_source, role, dist, metric, order)
-    input_valid, input_error_message = check_build_events_input(n_clicks, dropdown_args)
+    input_valid, input_error_message = check_build_events_input(n_clicks, meta_data_cols, dropdown_args)
     if not input_valid:
         return no_update, no_update, no_update, no_update, create_alert_message(input_error_message, color="warning")
 
-    query = generate_pathnet_events_query(
-        data_tables=net[PATHNET_PRED],
-        meta_data=net["meta_data"],
-        meta_data_filters=meta_data_filters,
-        dp_source=dp_source,
-        role=([f"'{role}'", f"'unmatched-{role}'"] if metric == "false" else role),
-        dist=float(dist),
-        metric=metric,
-        order=order,
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    df = df.head(samples_num if samples_num else DEFAULT_SAMPLES_NUM)
-
+    df = get_events_df(dist, dp_source, meta_data_cols, meta_data_filters, metric, net, order, role, samples_num)
     df_sane, sanity_error_message = check_events_df_sanity(events_df=df)
     if not df_sane:
         return no_update, no_update, no_update, no_update, create_alert_message(sanity_error_message, color="warning")
@@ -211,25 +227,22 @@ def build_events_df(net, dp_source, n_clicks, meta_data_filters, role, dist, met
     State(PATHNET_EXPLORER_DATA, "data"),
     prevent_initial_call=True,
 )
-def dump_bookmarks_json(n_clicks, serialized_json, explorer_data):
-    if not all([n_clicks, serialized_json, explorer_data]):
+def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
+    if not all([n_clicks, bookmarks_dict, explorer_data]):
         return no_update
 
     s3_dir_path = explorer_data["s3_dir_path"]
     bookmarks_file_name = explorer_data["bookmarks_name"]
-    s3_key = f"{s3_dir_path}/{bookmarks_file_name}.json"
     explore_params = explorer_data["explorer_params"]
 
-    s3_full_path = f"s3://mobileye-team-road/{s3_key}"
+    s3_full_path = path_join(s3_dir_path, f"{bookmarks_file_name}.json")
     try:
-        S3_CLIENT.put_object(Bucket="mobileye-team-road", Key=s3_key, Body=serialized_json)
+        write_json(s3_full_path, bookmarks_dict)
         success_message = f"Bookmarks dumped to:\n{s3_full_path}\n\nParams for explorer: {explore_params}"
         return create_alert_message(success_message, color="success")
 
     except (json.JSONDecodeError, TypeError) as e:
         error_message = f"Invalid to decode json format.\nTraceback: {e}"
-    except NoCredentialsError:
-        error_message = "Credentials not available to access S3."
     except ClientError as e:
         error_message = f"Error uploading to S3:\n'{s3_full_path}' failed.\nTraceback: {e}"
 
