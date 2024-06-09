@@ -1,22 +1,19 @@
 import dash_bootstrap_components as dbc
 from dash import dash_table, dcc, html
 
+import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.components_ids import (
-    PATHNET_BOOKMARKS_JSON_FILE_NAME,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
-    PATHNET_EVENTS_ERROR_MESSAGE,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
     PATHNET_EVENTS_ORDER_DROPDOWN,
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_SUBMIT_BUTTON,
-    PATHNET_EXPORT_JSON_BUTTON,
-    PATHNET_EXPORT_JSON_LOG_MESSAGE,
-    PATHNET_EXPORT_TO_BOOKMARK_WINDOW,
-    PATHNET_OPEN_EXPORT_EVENTS_WINDOW_BUTTON,
+    PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
+    PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_dashboards.road_eval_dashboard.components.queries_manager import distances
@@ -24,14 +21,14 @@ from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dro
 
 
 # ------------------------------------------------- layout-creation ------------------------------------------------- #
-def create_events_extractor_layout():
-    header_row = dbc.Row(
+def create_header_row():
+    return dbc.Row(
         [
             dbc.Col(html.H2("Extract events", className="mb-5"), width=10),
             dbc.Col(
                 dbc.Button(
                     "Export",
-                    id=PATHNET_OPEN_EXPORT_EVENTS_WINDOW_BUTTON,
+                    id=PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
                     color="primary",
                     className="me-1",
                     style={"position": "absolute", "top": 5, "right": 5},
@@ -44,26 +41,9 @@ def create_events_extractor_layout():
         justify="between",  # This will spread the columns to the full available width
     )
 
-    export_to_bookmark_window = dbc.Modal(
-        [
-            dbc.ModalHeader(dbc.ModalTitle("Export events to bookmarks")),
-            dbc.ModalBody(
-                [
-                    dbc.Textarea(
-                        id=PATHNET_BOOKMARKS_JSON_FILE_NAME,
-                        placeholder="Specify a path for saving the events...",
-                        style={"width": "100%", "height": "100px"},
-                    ),
-                    html.Div(id=PATHNET_EXPORT_JSON_LOG_MESSAGE, children=[]),
-                ]
-            ),
-            dbc.ModalFooter(dbc.Button("Export", id=PATHNET_EXPORT_JSON_BUTTON, className="ms-auto", color="primary")),
-        ],
-        id=PATHNET_EXPORT_TO_BOOKMARK_WINDOW,
-        is_open=False,
-    )
 
-    net_options_dropdowns_row = dbc.Row(
+def create_net_options_dropdown_row():
+    return dbc.Row(
         [
             dbc.Col(loading_wrapper(dcc.Dropdown(id=PATHNET_EVENTS_NET_ID_DROPDOWN, placeholder="Select Net-ID"))),
             dbc.Col(
@@ -73,7 +53,9 @@ def create_events_extractor_layout():
         style={"margin-bottom": "10px"},
     )
 
-    filtering_dropdowns_row = dbc.Row(
+
+def create_filtering_dropdowns_row():
+    return dbc.Row(
         [
             dbc.Col(
                 dcc.Dropdown(
@@ -107,9 +89,11 @@ def create_events_extractor_layout():
         style={"margin-bottom": "10px"},
     )
 
-    submit_events_filtering_row = dbc.Row(
+
+def create_submit_events_filtering_row():
+    return dbc.Row(
         [
-            dbc.Col(dbc.Button("Submit", id=PATHNET_EVENTS_SUBMIT_BUTTON, color="success")),
+            dbc.Col(dbc.Button("Extract", id=PATHNET_EVENTS_SUBMIT_BUTTON, color="success")),
             dbc.Col(
                 dcc.Input(
                     id=PATHNET_EVENTS_NUM_EVENTS,
@@ -122,19 +106,32 @@ def create_events_extractor_layout():
                 ),
                 style={"flex": 15},
             ),
-            dbc.Col(html.Div(id=PATHNET_EVENTS_ERROR_MESSAGE), style={"flex": 20}),
         ],
         style={"margin-bottom": "10px"},
     )
 
+
+def create_events_extractor_layout():
+    header_row = create_header_row()
+
+    net_options_dropdowns_row = create_net_options_dropdown_row()
+
+    filtering_dropdowns_row = create_filtering_dropdowns_row()
+
+    submit_events_filtering_row = create_submit_events_filtering_row()
+
+    log_msg_div = loading_wrapper(html.Div(id=PATHNET_EXTRACT_EVENTS_LOG_MESSAGE))
+
+    events_datatable_div = dash_table.DataTable(id=PATHNET_EVENTS_DATA_TABLE, page_size=40)
+
     events_extractor = card_wrapper(
         [
             header_row,
-            export_to_bookmark_window,
             net_options_dropdowns_row,
             filtering_dropdowns_row,
             submit_events_filtering_row,
-            dash_table.DataTable(id=PATHNET_EVENTS_DATA_TABLE, page_size=40),
+            log_msg_div,
+            events_datatable_div,
         ]
     )
     return events_extractor
