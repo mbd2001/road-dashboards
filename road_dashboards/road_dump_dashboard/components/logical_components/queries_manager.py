@@ -402,7 +402,9 @@ def generate_base_data(main_paths, filters, meta_data_paths=None, extra_columns=
 
 
 def generate_joined_data(main_paths, meta_data_paths, desired_columns, filters):
-    data_columns_str = ", ".join(manipulate_column_to_avoid_ambiguities(col) for col in desired_columns)
+    data_columns_str = ", ".join(
+        manipulate_column_to_avoid_ambiguities(col, as_original_col=True) for col in desired_columns
+    )
     join_strings = [
         JOIN_QUERY.format(
             columns_to_select=data_columns_str,
@@ -416,7 +418,7 @@ def generate_joined_data(main_paths, meta_data_paths, desired_columns, filters):
     return join_strings
 
 
-def manipulate_column_to_avoid_ambiguities(col, as_original_col=True):
+def manipulate_column_to_avoid_ambiguities(col, as_original_col=False):
     manipulated_column = f"A.{col}" if col in COMMON_COLUMNS else col
     manipulated_column = f"{manipulated_column} AS {col}" if as_original_col else manipulated_column
     return manipulated_column
@@ -472,7 +474,7 @@ def filter_ignore_single_column(column, main_tables, meta_data_tables):
     if column_type is None:
         return ""
 
-    column = manipulate_column_to_avoid_ambiguities(column, as_original_col=False)
+    column = manipulate_column_to_avoid_ambiguities(column)
     if column_type.startswith(("int", "float", "double")):
         ignore_filter = f"{column} <> -1 AND {column} BETWEEN -998 AND 998"
     elif column_type.startswith("object"):

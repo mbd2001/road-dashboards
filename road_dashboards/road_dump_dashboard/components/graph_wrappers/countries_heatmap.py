@@ -64,6 +64,7 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
     if not population or not tables or not chosen_dump:
         return no_update
 
+    print(meta_data_filters)
     main_tables = tables["meta_data"]
     group_by_column = "mdbi_country"
     query = generate_count_query(
@@ -74,6 +75,7 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
         main_column=group_by_column,
         dumps_to_include=chosen_dump,
     )
+    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     data["normalized"] = normalize_countries_count_to_percentiles(data["overall"].to_numpy())
     data[group_by_column] = data[group_by_column].apply(normalize_countries_names)
