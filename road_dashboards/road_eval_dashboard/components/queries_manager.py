@@ -228,7 +228,7 @@ class Roles(str, enum.Enum):
     NEXT = "next"
     OVERALL = ""
 
-
+IGNORE_VALUE = 999
 sec_to_dist_acc = {
     0.5: 0.2,
     1.0: 0.2,
@@ -525,7 +525,7 @@ def generate_sum_bins_by_diff_cols_metric_query(
     role="",
 ):
     metrics = ", ".join(
-        SUM_BY_CASE_METRIC.format(col_name=pred, extra_filters=f"{pred} >= 0 AND {pred} < 999", ind=name)
+        SUM_BY_CASE_METRIC.format(col_name=pred, extra_filters=f"{pred} >= 0 AND {pred} < {IGNORE_VALUE}", ind=name)
         for name, (label, pred) in labels_to_preds.items()
     )
 
@@ -546,7 +546,7 @@ def generate_sum_bins_by_diff_cols_metric_query(
             """
     metrics = ", ".join(
         [
-            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} >= 0 AND {label} < 999")
+            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} >= 0 AND {label} < {IGNORE_VALUE}")
             for name, (label, pred) in labels_to_preds.items()
         ]
     )
