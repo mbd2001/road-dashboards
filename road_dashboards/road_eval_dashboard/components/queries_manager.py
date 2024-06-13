@@ -228,6 +228,7 @@ class Roles(str, enum.Enum):
     NEXT = "next"
     OVERALL = ""
 
+
 IGNORE_VALUE = 999
 sec_to_dist_acc = {
     0.5: 0.2,
