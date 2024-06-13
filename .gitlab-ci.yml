@@ -190,7 +190,7 @@ deploy:docker:eval-dashboard:
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
-        - road_dashboards/road_eval_dashboard/*
+        - road_dashboards/road_eval_dashboard/**
         - docker/Dockerfile.eval-dashboard
 
 deploy:docker:data-exploration:
@@ -211,7 +211,7 @@ deploy:docker:data-exploration:
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
-        - road_dashboards/road_dump_dashboard/*
+        - road_dashboards/road_dump_dashboard/**
         - docker/Dockerfile.data-exploration
 
 post:reload-data-exploration:
@@ -228,7 +228,7 @@ post:reload-data-exploration:
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
-        - road_dashboards/road_dump_dashboard/*
+        - road_dashboards/road_dump_dashboard/**
         - docker/Dockerfile.data-exploration
   needs:
     - deploy:docker:data-exploration
@@ -247,7 +247,7 @@ post:reload-eval-dashboard:
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
-        - road_dashboards/road_eval_dashboard/*
+        - road_dashboards/road_eval_dashboard/**
         - docker/Dockerfile.eval-dashboard
   needs:
     - deploy:docker:eval-dashboard
