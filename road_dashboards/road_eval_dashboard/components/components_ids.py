@@ -102,6 +102,11 @@ PAINTED_ROLES_DROPDOWN = "painted-roles-dropdown"
 PAINTED_TABS_CONTENT = "painted-tabs-content"
 PAINTED_TABS = "painted-tabs"
 
+# width page
+WIDTH_ROLES_DROPDOWN = "width-roles-dropdown"
+WIDTH_3D_SOURCE_DROPDOWN = "width-3d-source-dropdown"
+WIDTH_ERROR_HISTOGRAM = "width_error_histogram"
+
 # counters
 POPULATION_STATE = "population_state"
 FRAME_COUNT = "frame_count"
