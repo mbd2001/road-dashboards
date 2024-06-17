@@ -32,7 +32,7 @@ FILTERS_DICT = {
 }
 
 
-COLUMNS_DICT = {
+COLUMNS_DICT = {  # TODO: consider adding post-process func option
     "lane_mark_width": {
         "main_column": "half_width",
         "extra_filters": "type in ('dashed', 'solidDashed', 'dashedSolid', 'dashedDashed', 'decelerationDashed')",
