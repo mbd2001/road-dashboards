@@ -6,6 +6,17 @@ from threading import Thread
 
 from road_database_toolkit.athena.athena_utils import query_athena
 
+POSITION_COLUMNS = [
+    "half_width",
+    "pos",
+    "pos_X",
+    "pos_Z",
+    "ds_y_off",
+    "de_y_off",
+    "dp_points",
+    "dv_dp_points",
+]
+
 
 @dataclass
 class Table:
@@ -56,7 +67,11 @@ def generate_table_instance(name, tables, dump_names):
         return Table(name, tables_dict)
 
     columns_type = get_columns_data_types(table)
-    relevant_columns_type = {col: dtype for col, dtype in columns_type.items() if not re.search(r"(_|.)\d+$", col)}
+    relevant_columns_type = {
+        col: dtype
+        for col, dtype in columns_type.items()
+        if not any(col.startswith(pos_col) for pos_col in POSITION_COLUMNS)
+    }
 
     columns_options = parse_columns_options(relevant_columns_type)
     columns_distinguish_values = generate_meta_data_dicts(table, relevant_columns_type)
