@@ -84,7 +84,6 @@ def generic_charts_layout(graph_type, obj_ids, percentage_button_type, slider_ty
     if obj_ids is None:
         return
 
-    list_ids_tuples = [tuple(obj_ids[i : i + 2]) for i in range(0, len(obj_ids), 2)]
     generic_filters_charts = html.Div(
         [
             dbc.Row(
@@ -92,16 +91,16 @@ def generic_charts_layout(graph_type, obj_ids, percentage_button_type, slider_ty
                     dbc.Col(
                         card_wrapper(
                             get_single_graph_layout(
-                                {"type": graph_type, "index": id},
-                                {"type": percentage_button_type, "index": id},
-                                {"type": slider_type, "index": id} if slider_type else None,
+                                {"type": graph_type, "index": obj_id},
+                                {"type": percentage_button_type, "index": obj_id},
+                                {"type": slider_type, "index": obj_id} if slider_type else None,
                             )
                         )
                     )
-                    for id in ids_tuple
+                    for obj_id in obj_ids_in_row
                 ]
             )
-            for ids_tuple in list_ids_tuples
+            for obj_ids_in_row in obj_ids
         ]
     )
     return generic_filters_charts

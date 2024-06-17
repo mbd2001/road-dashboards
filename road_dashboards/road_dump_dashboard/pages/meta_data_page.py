@@ -19,8 +19,8 @@ layout = html.Div(
         base_dataset_statistics.layout(objs_name="frames", main_table="meta_data"),
         bar_pie_graphs_collection.layout(
             main_table="meta_data",
-            columns=["is_tv_perfect", "gtem_labels_exist", "batch_num"],
-            filters=["road_type", "lane_mark_color"],
+            columns=[["is_tv_perfect", "gtem_labels_exist"], ["curve_rad_ahead"], ["batch_num"]],
+            filters=[["road_type", "lane_mark_color"]],
         ),
         conf_mats_collection.layout(main_table="meta_data", columns_to_compare=["is_tv_perfect", "gtem_labels_exist"]),
         countries_heatmap.layout,

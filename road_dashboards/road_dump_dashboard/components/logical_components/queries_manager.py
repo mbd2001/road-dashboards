@@ -13,9 +13,7 @@ COMMON_COLUMNS = {
     "clip_name",
     "grabindex",
     "pred_name",
-    "dump_name",
     "obj_id",
-    "batch_num",
 }
 
 BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id"]
@@ -343,6 +341,7 @@ def get_aggregated_columns(extra_columns, main_tables, meta_data_tables=None):
     matching_columns = {
         agg_col: natsorted([col for col in existing_cols.keys() if col.startswith(agg_col)])
         for agg_col in extra_columns
+        if not get_value_from_tables_property_union(agg_col, main_tables, meta_data_tables, "columns_to_type")
     }
     matching_columns = {agg_col: matching for agg_col, matching in matching_columns.items() if len(matching) > 1}
     if not matching_columns:
@@ -470,15 +469,17 @@ def filter_ignore_multiple_columns(columns, main_tables, meta_data_tables):
 
 
 def filter_ignore_single_column(column, main_tables, meta_data_tables):
-    column_type = get_value_from_tables_property_union(column, main_tables, meta_data_tables)
-    if column_type is None:
-        return ""
-
-    column = manipulate_column_to_avoid_ambiguities(column)
-    if column_type.startswith(("int", "float", "double")):
-        ignore_filter = f"{column} <> -1 AND {column} BETWEEN -998 AND 998"
-    elif column_type.startswith("object"):
-        ignore_filter = f"{column} NOT IN ('ignore', 'Unknown', 'IGNORE')"
-    else:
-        ignore_filter = ""
-    return ignore_filter
+    # column_type = get_value_from_tables_property_union(column, main_tables, meta_data_tables)
+    # if column_type is None:
+    #     return ""
+    #
+    # column = manipulate_column_to_avoid_ambiguities(column)
+    # if column_type.startswith(("int", "float", "double")):
+    #     ignore_filter = f"{column} <> -1 AND {column} BETWEEN -998 AND 998"
+    # elif column_type.startswith("object"):
+    #     ignore_filter = f"{column} NOT IN ('ignore', 'Unknown', 'IGNORE')"
+    # else:
+    #     ignore_filter = ""
+    # return ignore_filter
+    # TODO: consider replacing ignore mechanism
+    return ""

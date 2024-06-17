@@ -19,13 +19,10 @@ layout = html.Div(
             main_table="lm_meta_data",
             meta_data_table="meta_data",
             columns=[
-                "role",
-                "color",
-                "type",
-                "view_range",
-                "lane_mark_width",
-                "dashed_length_img",
-                "batch_num",
+                ["role", "color"],
+                ["type", "view_range"],
+                ["lane_mark_width", "dashed_length_img"],
+                ["batch_num"],
             ],  # TODO: add 'dashed_gap'
         ),
         conf_mats_collection.layout(
