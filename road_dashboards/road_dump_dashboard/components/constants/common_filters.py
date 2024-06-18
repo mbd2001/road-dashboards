@@ -3,9 +3,10 @@
 FILTERS_DICT = {
     "road_type": {
         "filters": {
-            "highway": "mdbi_road_highway = TRUE OR mdbi_road_freeway = TRUE",
+            "highway": "mdbi_road_highway = TRUE",
             "country": "mdbi_road_country = TRUE",
             "urban": "mdbi_road_city = TRUE",
+            "freeway": "mdbi_road_freeway = TRUE",
         },
         "extra_columns": [
             "mdbi_road_highway",
