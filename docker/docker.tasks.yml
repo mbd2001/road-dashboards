@@ -11,7 +11,7 @@ vars:
   aws_repo: "{{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com/{{.registry_name}}"
   image_name: "{{.IMAGE_NAME}}"
   dockerfile_name: "{{.DOCKERFILE_NAME}}"
-  docker_params: "--restart=unless-stopped -u `id -u`:`id -g` -e USER=$USER -v /mobileye/shared:/mobileye/shared"
+  docker_params: "-u `id -u`:`id -g` -e USER=$USER -v /mobileye/shared:/mobileye/shared"
   docker_tag: "{{.image_name}}_{{.BUILD_TIME}}"
   full_ecr_name: "{{.aws_repo}}:{{.docker_tag}}"
   full_ecr_name_latest: "{{.aws_repo}}:{{.image_name}}_latest"
