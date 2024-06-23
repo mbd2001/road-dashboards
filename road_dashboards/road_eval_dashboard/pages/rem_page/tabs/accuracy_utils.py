@@ -8,8 +8,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     NETS,
     REM_ACCURACY_3D_SOURCE_DROPDOWN,
     REM_ACCURACY_ERROR_THRESHOLD_SLIDER,
-    REM_ERROR_HISTOGRAM,
-    REM_ERROR_HISTOGRAM_Z_OR_SEC,
+    REM_AVERAGE_ERROR,
+    REM_AVERAGE_ERROR_Z_OR_SEC,
     REM_ROLES_DROPDOWN,
 )
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
@@ -28,7 +28,7 @@ from road_dashboards.road_eval_dashboard.pages.rem_page.utils import (
     Z_FILTERS,
     get_base_graph_layout,
     get_rem_fig,
-    get_rem_score,
+    get_rem_score, Z_BINS, SEC_BINS,
 )
 
 
@@ -62,13 +62,13 @@ def get_error_histogram_layout(tab):
         [
             dbc.Row(
                 graph_wrapper(
-                    {"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM, "tab": tab},
+                    {"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR, "tab": tab},
                 )
             ),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
-                        id={"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM_Z_OR_SEC, "tab": tab},
+                        id={"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR_Z_OR_SEC, "tab": tab},
                         on=False,
                         label="Sec/Z",
                         labelPosition="top",
@@ -96,19 +96,20 @@ def get_accuracy_layout(tab):
 
 
 @callback(
-    Output({"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM, "tab": MATCH}, "figure"),
+    Output({"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR, "tab": MATCH}, "figure"),
     Input(REM_ROLES_DROPDOWN, "value"),
     Input({"rem_type": REM_TYPE, "out": REM_ACCURACY_3D_SOURCE_DROPDOWN, "tab": MATCH}, "value"),
-    Input({"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM_Z_OR_SEC, "tab": MATCH}, "on"),
+    Input({"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR_Z_OR_SEC, "tab": MATCH}, "on"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State({"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM, "tab": MATCH}, "id"),
+    State({"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR, "tab": MATCH}, "id"),
 )
-def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, effective_samples, graph_id):
+def get_average_error_graph(role, source, z_or_sec, meta_data_filters, nets, effective_samples, graph_id):
     tab = graph_id["tab"]
     sum_col = f"rem_{tab}_{source}"
     interesting_filters = Z_FILTERS if z_or_sec else SEC_FILTERS
+    filter_name = "Z Bins" if z_or_sec else "Seconds"
     query = generate_sum_bins_metric_query(
         nets["gt_tables"],
         nets["meta_data"],
@@ -120,14 +121,18 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
         role=role,
     )
     data, _ = run_query_with_nets_names_processing(query)
+    bins = Z_BINS if z_or_sec else SEC_BINS
+    for bin in bins[:-1]:
+        data[f'score_{bin}'] = data[f'score_{bin}'] / data[f'count_{bin}']
     data = data.sort_values(by="net_id")
     fig = draw_meta_data_filters(
         data,
         list(interesting_filters.keys()),
         get_rem_score,
         effective_samples=effective_samples,
-        title=f"Error Histogram By {source}",
-        yaxis="Score",
+        title=f"Average Error By {source}",
+        xaxis=filter_name,
+        yaxis="Avg Error",
         hover=True,
     )
     return fig
@@ -259,6 +264,6 @@ def get_accuracy_fig(
     pred = error_threshold
     title = f"Accuracy By {source} With Threshold {error_threshold}"
     fig = get_rem_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, label, pred, role=role
+        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, filter_name, "Success Rate", label, pred, role=role
     )
     return fig

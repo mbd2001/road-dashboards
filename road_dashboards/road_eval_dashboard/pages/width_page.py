@@ -16,7 +16,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
     WIDTH_3D_SOURCE_DROPDOWN,
-    WIDTH_ERROR_HISTOGRAM,
+    WIDTH_AVERAGE_ERROR,
     WIDTH_ROLES_DROPDOWN,
 )
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
@@ -47,7 +47,7 @@ WIDTH_FILTERS = {
 
 
 def get_settings_layout():
-    sources_options = [s.value for s in ZSources if s != ZSources.Z_COORDS]
+    sources_options = [s.value for s in ZSources]
     roles_options = {s.value: s.name.capitalize() for s in Roles}
     return card_wrapper(
         [
@@ -115,12 +115,12 @@ def get_width_by_Z_layout():
     )
 
 
-def get_error_histogram_layout():
+def get_average_error_layout():
     return card_wrapper(
         [
             dbc.Row(
                 graph_wrapper(
-                    {"width_type": WIDTH_TYPE, "out": WIDTH_ERROR_HISTOGRAM},
+                    {"width_type": WIDTH_TYPE, "out": WIDTH_AVERAGE_ERROR},
                 )
             ),
         ]
@@ -134,7 +134,7 @@ layout = html.Div(
         base_dataset_statistics.frame_layout,
         get_settings_layout(),
         html.Div(
-            [get_error_histogram_layout(), get_width_by_Z_layout()]
+            [get_average_error_layout(), get_width_by_Z_layout()]
             + [
                 get_base_graph_layout(filter_name, sort_by_dist=filter_props.get("sort_by_dist", False))
                 for filter_name, filter_props in WIDTH_FILTERS.items()
@@ -145,14 +145,14 @@ layout = html.Div(
 
 
 @callback(
-    Output({"width_type": WIDTH_TYPE, "out": WIDTH_ERROR_HISTOGRAM}, "figure"),
+    Output({"width_type": WIDTH_TYPE, "out": WIDTH_AVERAGE_ERROR}, "figure"),
     Input(WIDTH_ROLES_DROPDOWN, "value"),
     Input(WIDTH_3D_SOURCE_DROPDOWN, "value"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
 )
-def get_error_histogram_graph(role, source, meta_data_filters, nets, effective_samples):
+def get_average_error_graph(role, source, meta_data_filters, nets, effective_samples):
     labels_to_preds = get_labels_to_preds_with_names(source, pred_type="sum_error")
     query = generate_sum_bins_by_diff_cols_metric_query(
         nets["gt_tables"],
@@ -163,13 +163,16 @@ def get_error_histogram_graph(role, source, meta_data_filters, nets, effective_s
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data.sort_values(by="net_id")
+    for bin in Z_BINS[:-1]:
+        data[f'score_{bin}'] = data[f'score_{bin}'] / data[f'count_{bin}']
     fig = draw_meta_data_filters(
         data,
         list(labels_to_preds.keys()),
         get_width_score,
         effective_samples=effective_samples,
-        title=f"Error Histogram By {source}",
-        yaxis="Score",
+        title=f"Average Error By {source}",
+        xaxis="Z Bins",
+        yaxis="Avg Error",
         hover=True,
         count_items_name="points",
     )
@@ -194,7 +197,7 @@ def get_none_dist_graph(meta_data_filters, role, source, nets, effective_samples
     labels, preds = get_labels_and_preds(source)
     title = f"Success Rate By Role {role.capitalize()}"
     fig = get_width_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, labels, preds, role=role
+        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, filter_name, 'Success Rate', labels, preds, role=role
     )
     return fig
 
@@ -218,7 +221,7 @@ def get_dist_graph(meta_data_filters, role, source, sort_by_dist, nets, effectiv
     labels, preds = get_labels_and_preds(source)
     title = f"Success Rate By Role {role.capitalize()}"
     fig = get_width_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, labels, preds, role=role
+        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, filter_name, 'Success Rate', labels, preds, role=role
     )
     return fig
 
@@ -251,7 +254,8 @@ def get_Z_graph(meta_data_filters, role, source, nets, effective_samples):
         get_width_score,
         effective_samples=effective_samples,
         title=title,
-        yaxis="Score",
+        xaxis="Z Bins",
+        yaxis="Success Rate",
         hover=True,
         count_items_name="num of gt points",
     )
@@ -287,6 +291,8 @@ def get_width_fig(
     effective_samples,
     filter_name,
     title,
+        xaxis,
+        yaxis,
     labels,
     preds,
     role="",
@@ -311,7 +317,8 @@ def get_width_fig(
         get_width_score,
         effective_samples=effective_samples,
         title=f"{title} Per {filter_name_to_display}",
-        yaxis="Score",
+        yaxis=yaxis,
+        xaxis=xaxis,
         hover=True,
     )
     return fig

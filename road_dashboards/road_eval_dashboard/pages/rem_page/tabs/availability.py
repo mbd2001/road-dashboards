@@ -135,6 +135,8 @@ def get_availability_fig(meta_data_filters, nets, interesting_filters, effective
         effective_samples,
         filter_name,
         title,
+        filter_name,
+        "Success Rate",
         label,
         pred,
         compare_operator="=",

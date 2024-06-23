@@ -135,6 +135,8 @@ def get_painted_fig(meta_data_filters, nets, interesting_filters, effective_samp
         effective_samples,
         filter_name,
         title,
+        filter_name,
+        "Success Rate",
         label,
         pred,
         compare_operator="=",

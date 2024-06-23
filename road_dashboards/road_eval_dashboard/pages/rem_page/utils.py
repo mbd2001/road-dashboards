@@ -17,7 +17,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
-Z_BINS = list(range(0, 300, 50)) + [999]
+Z_BINS = [0, 10, 20, 30, 40, 50, 75, 100, 125, 150, 200, 999]
 Z_FILTERS = {f"{z}": f"rem_point_Z BETWEEN {z} AND {Z_BINS[i+1]}" for i, z in enumerate(Z_BINS[:-1])}
 SEC_BINS = [r * 0.5 for r in range(0, 11)] + [999]
 SEC_FILTERS = {f"{sec}": f"rem_point_sec BETWEEN {sec} AND {SEC_BINS[i+1]}" for i, sec in enumerate(SEC_BINS[:-1])}
@@ -86,6 +86,8 @@ def get_rem_fig(
     effective_samples,
     filter_name,
     title,
+xaxis,
+        yaxis,
     label,
     pred,
     compare_operator="<=",
@@ -112,7 +114,8 @@ def get_rem_fig(
         get_rem_score,
         effective_samples=effective_samples,
         title=f"{title} Per {filter_name_to_display}",
-        yaxis="Score",
+        xaxis=xaxis,
+        yaxis=yaxis,
         hover=True,
     )
     return fig
