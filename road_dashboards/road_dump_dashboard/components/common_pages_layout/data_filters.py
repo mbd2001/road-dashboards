@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
+from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, page_registry
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     ADD_FILTER_BTN,
@@ -9,8 +9,6 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     FILTER_LIST,
     FILTER_ROW,
     FILTERS,
-    FILTERS_MAIN_TABLE,
-    FILTERS_MD_TABLE,
     MD_COLUMNS,
     MD_FILTERS,
     MD_OPERATION,
@@ -19,6 +17,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     REMOVE_SUB_GROUP,
     TABLES,
     UPDATE_FILTERS_BTN,
+    URL,
 )
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
 from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import (
@@ -120,36 +119,30 @@ def get_group_layout(index, md_columns_options):
     return group_layout
 
 
-def layout(main_table, meta_data_table=None):
-    empty_layout = html.Div(
-        card_wrapper(
-            [
-                html.Div(id=FILTERS_MAIN_TABLE, children=main_table, style={"display": "none"}),
-                html.Div(id=FILTERS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
-                html.H3("Filters"),
-                html.Div(id=FILTERS),
-                dbc.Stack(
-                    dbc.Button("Update Filters", id=UPDATE_FILTERS_BTN, color="success", style={"margin": "10px"}),
-                    direction="horizontal",
-                    gap=1,
-                ),
-            ]
-        )
+layout = html.Div(
+    card_wrapper(
+        [
+            html.H3("Filters"),
+            html.Div(id=FILTERS),
+            dbc.Stack(
+                dbc.Button("Update Filters", id=UPDATE_FILTERS_BTN, color="success", style={"margin": "10px"}),
+                direction="horizontal",
+                gap=1,
+            ),
+        ]
     )
-    return empty_layout
-
-
-@callback(
-    Output(FILTERS, "children"),
-    Input(TABLES, "data"),
-    State(FILTERS_MAIN_TABLE, "children"),
-    State(FILTERS_MD_TABLE, "children"),
 )
-def init_layout(tables, main_table, meta_data_table):
+
+
+@callback(Output(FILTERS, "children"), Input(TABLES, "data"), State(URL, "pathname"))
+def init_layout(tables, pathname):
     if not tables:
         return no_update
 
-    columns_options = get_tables_property_union(tables[main_table], tables.get(meta_data_table))
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    columns_options = get_tables_property_union(main_tables, meta_data_tables)
     return [get_group_layout(1, columns_options)]
 
 
@@ -159,10 +152,9 @@ def init_layout(tables, main_table, meta_data_table):
     Input({"type": ADD_SUB_GROUP, "index": MATCH}, "n_clicks"),
     State({"type": FILTER_LIST, "index": MATCH}, "children"),
     State(TABLES, "data"),
-    State(FILTERS_MAIN_TABLE, "children"),
-    State(FILTERS_MD_TABLE, "children"),
+    State(URL, "pathname"),
 )
-def add_filters(add_clicks, add_group, filters_list, tables, main_table, meta_data_table):
+def add_filters(add_clicks, add_group, filters_list, tables, pathname):
     if not any([add_clicks, add_group]) or not callback_context.triggered_id:
         return no_update
 
@@ -179,8 +171,11 @@ def add_filters(add_clicks, add_group, filters_list, tables, main_table, meta_da
         base_ind = group_ind * NUM_FILTERS_PER_GROUP
         empty_index = get_empty_index(base_ind, filters_list)
 
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
     button_type = callback_context.triggered_id["type"]
-    columns_options = get_tables_property_union(tables[main_table], tables.get(meta_data_table))
+    columns_options = get_tables_property_union(main_tables, meta_data_tables)
     if button_type == ADD_FILTER_BTN and empty_index:
         patched_children.append(get_filter_row_initial_layout(empty_index, columns_options))
     elif button_type == ADD_SUB_GROUP and empty_index:
@@ -231,17 +226,19 @@ def remove_sub_group(remove_clicks):
     Output({"type": MD_OPERATION, "index": MATCH}, "value"),
     Input({"type": MD_COLUMNS, "index": MATCH}, "value"),
     State(TABLES, "data"),
-    State(FILTERS_MAIN_TABLE, "children"),
-    State(FILTERS_MD_TABLE, "children"),
+    State(URL, "pathname"),
 )
-def update_operation_dropdown_options(meta_data_col, tables, data_table, meta_data_table):
+def update_operation_dropdown_options(meta_data_col, tables, pathname):
     if not meta_data_col or not tables:
         return [], ""
 
     if not callback_context.triggered_id:
         return no_update, no_update
 
-    column_type = get_value_from_tables_property_union(meta_data_col, tables[data_table], tables.get(meta_data_table))
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    column_type = get_value_from_tables_property_union(meta_data_col, main_tables, meta_data_tables)
     if column_type.startswith(("int", "float", "double")):
         options = [
             {"label": "Greater", "value": ">"},
@@ -282,10 +279,9 @@ def update_operation_dropdown_options(meta_data_col, tables, data_table, meta_da
     State({"type": MD_OPERATION, "index": MATCH}, "id"),
     State({"type": MD_COLUMNS, "index": MATCH}, "value"),
     State(TABLES, "data"),
-    State(FILTERS_MAIN_TABLE, "children"),
-    State(FILTERS_MD_TABLE, "children"),
+    State(URL, "pathname"),
 )
-def update_meta_data_values_options(operation, index, col, tables, main_table, meta_data_table):
+def update_meta_data_values_options(operation, index, col, tables, pathname):
     # TODO: refactor
     curr_index = index["index"]
     if not col or not operation:
@@ -300,10 +296,13 @@ def update_meta_data_values_options(operation, index, col, tables, main_table, m
     if not callback_context.triggered_id:
         return no_update
 
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
     distinguish_values = get_value_from_tables_property_union(
-        col, tables[main_table], tables.get(meta_data_table), "columns_distinguish_values"
+        col, main_tables, meta_data_tables, "columns_distinguish_values"
     )
-    column_type = get_value_from_tables_property_union(col, tables[main_table], tables.get(meta_data_table))
+    column_type = get_value_from_tables_property_union(col, main_tables, meta_data_tables)
     if operation in ["IS NULL", "IS NOT NULL"]:
         return dcc.Input(
             id={"type": MD_VAL, "index": curr_index},

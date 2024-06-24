@@ -75,9 +75,13 @@ DYNAMIC_QUERY = """
     GROUP BY dump_name ORDER BY dump_name
     """
 
-COUNT_FILTER_METRIC = """
-    COUNT(CASE WHEN {extra_filters} THEN 1 ELSE NULL END) {divide_by_all}
-    AS {ind}
+CASES_DESCRIPTION = """
+    SELECT *,
+    CASE
+        {cases}
+        ELSE 'other'
+    END AS cases
+    FROM ({base_query})
     """
 
 COUNT_ALL_METRIC = """
@@ -100,6 +104,7 @@ def generate_conf_mat_query(
     main_tables,
     population,
     column_to_compare,
+    extra_columns,
     meta_data_tables=None,
     meta_data_filters=None,
     extra_filters=None,
@@ -111,7 +116,7 @@ def generate_conf_mat_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=column_to_compare,
+        extra_columns=extra_columns,
         dumps_to_include=main_dump,
     )
 
@@ -121,7 +126,7 @@ def generate_conf_mat_query(
         False,
         meta_data_tables=meta_data_tables,
         extra_filters=extra_filters,
-        extra_columns=column_to_compare,
+        extra_columns=extra_columns,
         dumps_to_include=secondary_dump,
     )
 
@@ -215,7 +220,9 @@ def generate_count_query(
     meta_data_tables=None,
     main_column=None,
     diff_column=None,
+    interesting_cases=None,
     meta_data_filters=None,
+    extra_columns=None,
     extra_filters=None,
     bins_factor=None,
     dumps_to_include=None,
@@ -228,17 +235,23 @@ def generate_count_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=[col for col in [main_column, diff_column] if col is not None],
+        extra_columns=extra_columns,
         dumps_to_include=dumps_to_include,
     )
     metrics = COUNT_ALL_METRIC.format(count_name="overall")
-    if main_column is None:
+    if main_column is None and interesting_cases is None:
         query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
         return query
 
-    col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
-    group_by = f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor else col_metric
-    group_name = DIFF_COL if diff_column else main_column
+    if interesting_cases:
+        cases = "\n".join(f"WHEN ({filter}) THEN '{name}'" for name, filter in interesting_cases.items())
+        base_query = CASES_DESCRIPTION.format(cases=cases, base_query=base_query)
+        group_by = group_name = "cases"
+    else:
+        col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
+        group_by = f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor else col_metric
+        group_name = DIFF_COL if diff_column else main_column
+
     query = COUNT_QUERY.format(
         base_query=base_query, count_metric=metrics, group_by=group_by, group_name=f" AS {group_name}"
     )
@@ -277,34 +290,6 @@ def generate_count_obj_query(
     return query
 
 
-def generate_dynamic_count_query(
-    main_tables,
-    population,
-    intersection_on,
-    interesting_filters,
-    meta_data_tables=None,
-    meta_data_filters=None,
-    extra_filters=None,
-    compute_percentage=False,
-):
-    divide_by_all = "* 100.0 / COUNT(*)" if compute_percentage is True else ""
-    metrics = ", ".join(
-        COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name, divide_by_all=divide_by_all)
-        for name, filter in interesting_filters["filters"].items()
-    )
-    base_query = generate_base_query(
-        main_tables,
-        population,
-        intersection_on,
-        meta_data_tables=meta_data_tables,
-        meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
-        extra_columns=interesting_filters["extra_columns"],
-    )
-    query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
-    return query
-
-
 def generate_base_query(
     main_tables,
     population,
@@ -323,12 +308,11 @@ def generate_base_query(
 
     main_paths = filter_paths(main_tables["tables_dict"], dumps_to_include)
     meta_data_paths = filter_paths(meta_data_tables["tables_dict"], dumps_to_include) if meta_data_tables else None
-    type_filters = filter_ignore_multiple_columns(extra_columns, main_tables, meta_data_tables)
     agg_cols, extra_columns = get_aggregated_columns(extra_columns, main_tables, meta_data_tables)
-    filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on, type_filters)
+    filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on)
     base_data = generate_base_data(main_paths, filters, meta_data_paths, extra_columns)
     if agg_cols:
-        base_data = generate_agg_cols_union(agg_cols, base_data, main_tables, meta_data_tables)
+        base_data = generate_agg_cols_union(agg_cols, base_data)
 
     return base_data
 
@@ -347,30 +331,22 @@ def get_aggregated_columns(extra_columns, main_tables, meta_data_tables=None):
     if not matching_columns:
         return {}, extra_columns
 
+    extra_columns = extra_columns.copy()
     for key, val in matching_columns.items():
         extra_columns.remove(key)
         extra_columns.extend(val)
     return matching_columns, extra_columns
 
 
-def generate_agg_cols_union(agg_cols, base_query, main_tables, meta_data_tables=None):
+def generate_agg_cols_union(agg_cols, base_query):
     base_query = create_athena_table_from_query(base_query, database="run_eval_db")
     base_columns = ", ".join(BASE_COLUMNS)
     select_strings = [
         ", ".join(f"{col} AS {agg_col}" for col, agg_col in zip(col_list, agg_cols.keys()))
         for col_list in zip(*agg_cols.values())
     ]
-    filter_strings = [
-        (
-            f"WHERE {filter_str}"
-            if (filter_str := filter_ignore_multiple_columns(col_list, main_tables, meta_data_tables))
-            else ""
-        )
-        for col_list in zip(*agg_cols.values())
-    ]
     final_query = " UNION ALL ".join(
-        f"SELECT {select_str}, {base_columns} FROM {base_query} {filter_str}"
-        for select_str, filter_str in zip(select_strings, filter_strings)
+        f"SELECT {select_str}, {base_columns} FROM {base_query} " for select_str in select_strings
     )
     return final_query
 
@@ -442,44 +418,14 @@ def generate_intersect_filter(main_paths, intersection_on):
     return intersect_select
 
 
-def generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on, type_filters):
-    type_filters = f"({type_filters}) " if type_filters else ""
+def generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on):
     extra_filters = f"({extra_filters}) " if extra_filters else ""
     meta_data_filters = f"({meta_data_filters}) " if meta_data_filters else ""
     population_filter = f"(A.population = '{population}') " if population != "all" else ""
     intersect_filter = generate_intersect_filter(main_paths, intersection_on)
 
     filters_str = " AND ".join(
-        ftr for ftr in [type_filters, extra_filters, meta_data_filters, population_filter, intersect_filter] if ftr
+        ftr for ftr in [extra_filters, meta_data_filters, population_filter, intersect_filter] if ftr
     )
     filters_str = f"WHERE {filters_str}" if filters_str else ""
     return filters_str
-
-
-def filter_ignore_multiple_columns(columns, main_tables, meta_data_tables):
-    if not columns:
-        return ""
-
-    if isinstance(columns, str):
-        columns = [columns]
-
-    filters = [filter_ignore_single_column(column, main_tables, meta_data_tables) for column in columns]
-    filters_str = " AND ".join(f"({ftr})" for ftr in filters if ftr)
-    return filters_str
-
-
-def filter_ignore_single_column(column, main_tables, meta_data_tables):
-    # column_type = get_value_from_tables_property_union(column, main_tables, meta_data_tables)
-    # if column_type is None:
-    #     return ""
-    #
-    # column = manipulate_column_to_avoid_ambiguities(column)
-    # if column_type.startswith(("int", "float", "double")):
-    #     ignore_filter = f"{column} <> -1 AND {column} BETWEEN -998 AND 998"
-    # elif column_type.startswith("object"):
-    #     ignore_filter = f"{column} NOT IN ('ignore', 'Unknown', 'IGNORE')"
-    # else:
-    #     ignore_filter = ""
-    # return ignore_filter
-    # TODO: consider replacing ignore mechanism
-    return ""

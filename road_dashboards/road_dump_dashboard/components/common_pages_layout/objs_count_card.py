@@ -1,14 +1,13 @@
-from dash import Input, Output, State, callback, html
+from dash import Input, Output, State, callback, html, page_registry
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     INTERSECTION_SWITCH,
     MD_FILTERS,
     OBJS_COUNT,
-    OBJS_MAIN_TABLE,
-    OBJS_MD_TABLE,
     POPULATION_DROPDOWN,
     TABLES,
+    URL,
 )
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
@@ -18,11 +17,9 @@ from road_dashboards.road_dump_dashboard.components.logical_components.queries_m
 from road_dashboards.road_dump_dashboard.graphs.big_number import human_format_int
 
 
-def layout(objs_name, main_table, meta_data_table=None):
+def layout(objs_name):
     objs_count_layout = card_wrapper(
         [
-            html.Div(id=OBJS_MAIN_TABLE, children=main_table, style={"display": "none"}),
-            html.Div(id=OBJS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
             html.H3(f"Num {objs_name.title()}"),
             loading_wrapper(html.H4(id=OBJS_COUNT)),
         ],
@@ -36,20 +33,20 @@ def layout(objs_name, main_table, meta_data_table=None):
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
-    State(OBJS_MAIN_TABLE, "children"),
-    State(OBJS_MD_TABLE, "children"),
+    State(URL, "pathname"),
 )
-def get_frame_count(meta_data_filters, tables, population, intersection_on, main_table, meta_data_table):
+def get_frame_count(meta_data_filters, tables, population, intersection_on, pathname):
     if not population or not tables:
         return 0
 
-    main_table = tables[main_table]
-    meta_data_table = tables.get(meta_data_table)
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
     query = generate_count_query(
-        main_table,
+        main_tables,
         population,
         intersection_on,
-        meta_data_tables=meta_data_table,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)

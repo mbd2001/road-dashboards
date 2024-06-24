@@ -13,7 +13,10 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     UPDATE_RUNS_BTN,
     URL,
 )
-from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import loading_wrapper
+from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Tables
 
 run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
@@ -24,46 +27,48 @@ def layout():
     catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
     catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(
-        [
-            dbc.Row(html.H2("Datasets Catalog", className="mb-5")),
-            dbc.Row(
-                dash_table.DataTable(
-                    id=DUMP_CATALOG,
-                    columns=[
-                        {"name": i, "id": i, "deletable": False, "selectable": True}
-                        for i in ["dump_name", "use_case", "user", "total_frames", "last_change"]
-                    ],
-                    data=catalog_data_dict,
-                    filter_action="native",
-                    sort_action="native",
-                    sort_mode="multi",
-                    sort_by=[{"column_id": "last_change", "direction": "desc"}],
-                    row_selectable="multi",
-                    selected_rows=[],
-                    page_action="native",
-                    page_current=0,
-                    page_size=20,
-                    css=[{"selector": ".show-hide", "rule": "display: none"}],
-                    style_cell={"textAlign": "left"},
-                    style_header={
-                        "background-color": "#4e4e50",
-                        "fontWeight": "bold",
-                        "color": "white",
-                    },
-                    style_data={
-                        "backgroundColor": "white",
-                        "color": "rgb(102, 102, 102)",
-                    },
-                    style_table={
-                        "border": "1px solid rgb(230, 230, 230)",
-                    },
-                )
-            ),
-            dbc.Row(
-                dbc.Col(dbc.Button("Choose Datasets to Explore", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
-            ),
-            loading_wrapper(html.Div(id=LOAD_NETS_DATA_NOTIFICATION)),
-        ]
+        card_wrapper(
+            [
+                dbc.Row(html.H2("Datasets Catalog", className="mb-5")),
+                dbc.Row(
+                    dash_table.DataTable(
+                        id=DUMP_CATALOG,
+                        columns=[
+                            {"name": i, "id": i, "deletable": False, "selectable": True}
+                            for i in ["dump_name", "use_case", "user", "total_frames", "last_change"]
+                        ],
+                        data=catalog_data_dict,
+                        filter_action="native",
+                        sort_action="native",
+                        sort_mode="multi",
+                        sort_by=[{"column_id": "last_change", "direction": "desc"}],
+                        row_selectable="multi",
+                        selected_rows=[],
+                        page_action="native",
+                        page_current=0,
+                        page_size=20,
+                        css=[{"selector": ".show-hide", "rule": "display: none"}],
+                        style_cell={"textAlign": "left"},
+                        style_header={
+                            "background-color": "#4e4e50",
+                            "fontWeight": "bold",
+                            "color": "white",
+                        },
+                        style_data={
+                            "backgroundColor": "white",
+                            "color": "rgb(102, 102, 102)",
+                        },
+                        style_table={
+                            "border": "1px solid rgb(230, 230, 230)",
+                        },
+                    )
+                ),
+                dbc.Row(
+                    dbc.Col(dbc.Button("Choose Datasets to Explore", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
+                ),
+                loading_wrapper(html.Div(id=LOAD_NETS_DATA_NOTIFICATION)),
+            ]
+        )
     )
     return layout
 

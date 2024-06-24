@@ -4,20 +4,16 @@ from dataclasses import dataclass
 
 import dash_bootstrap_components as dbc
 import numpy as np
-from dash import ALL, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
+from dash import ALL, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, page_registry
 from natsort import natsorted
 from road_database_toolkit.athena.athena_utils import query_athena
-
-# TODO: change when noam merge DroneViewDBManager to toolkit
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
-    CONF_MATS_LABELS_TABLE,
-    CONF_MATS_MAIN_TABLE,
-    CONF_MATS_MD_TABLE,
     DYNAMIC_CONF_DROPDOWN,
     DYNAMIC_SHOW_DIFF_IDX,
     FRAMES_COL,
+    FRAMES_LAYOUT,
     GENERIC_SHOW_DIFF_BTN,
     IMAGES_IND,
     MAIN_IMG,
@@ -31,7 +27,9 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     SECONDARY_NET_DROPDOWN,
     SECONDARY_WORLD,
     TABLES,
+    URL,
 )
+from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import GRAPHS_PER_PAGE
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
@@ -54,52 +52,60 @@ class Images:
 
 def layout():
     frames_layout = html.Div(
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=MAIN_WORLD)),
-                            width=1,
-                        ),
-                        dbc.Col(
-                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=MAIN_IMG)),
-                            width=5,
-                        ),
-                        dbc.Col(
-                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=SECONDARY_IMG)),
-                            width=5,
-                        ),
-                        dbc.Col(
-                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=SECONDARY_WORLD)),
-                            width=1,
-                        ),
-                    ],
-                ),
-                dbc.Row(
-                    dbc.Stack(
+        id=FRAMES_LAYOUT,
+        children=[
+            card_wrapper(
+                [
+                    dbc.Row(
                         [
-                            dbc.Button(
-                                "Prev Frame",
-                                id=PREV_BTN,
-                                className="bg-primary mt-5",
-                                color="secondary",
-                                style={"margin": "10px"},
+                            dbc.Col(
+                                loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=MAIN_WORLD)),
+                                width=1,
                             ),
-                            dbc.Button(
-                                "Next Frame",
-                                id=NEXT_BTN,
-                                className="bg-primary mt-5",
-                                color="secondary",
-                                style={"margin": "10px"},
+                            dbc.Col(
+                                loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=MAIN_IMG)),
+                                width=5,
+                            ),
+                            dbc.Col(
+                                loading_wrapper(
+                                    html.Div(dcc.Graph(config={"displayModeBar": False}), id=SECONDARY_IMG)
+                                ),
+                                width=5,
+                            ),
+                            dbc.Col(
+                                loading_wrapper(
+                                    html.Div(dcc.Graph(config={"displayModeBar": False}), id=SECONDARY_WORLD)
+                                ),
+                                width=1,
                             ),
                         ],
-                        direction="horizontal",
-                        gap=1,
-                    )
-                ),
-            ]
-        )
+                    ),
+                    dbc.Row(
+                        dbc.Stack(
+                            [
+                                dbc.Button(
+                                    "Prev Frame",
+                                    id=PREV_BTN,
+                                    className="bg-primary mt-5",
+                                    color="secondary",
+                                    style={"margin": "10px"},
+                                ),
+                                dbc.Button(
+                                    "Next Frame",
+                                    id=NEXT_BTN,
+                                    className="bg-primary mt-5",
+                                    color="secondary",
+                                    style={"margin": "10px"},
+                                ),
+                            ],
+                            direction="horizontal",
+                            gap=1,
+                        )
+                    ),
+                ]
+            )
+        ],
+        hidden=True,
     )
     return frames_layout
 
@@ -156,6 +162,8 @@ def update_frame_graphs(
     Output(SECONDARY_IMG, "children"),
     Output(SECONDARY_WORLD, "children"),
     Output(IMAGES_IND, "data"),
+    Output(FRAMES_LAYOUT, "hidden"),
+    Output(FRAMES_COL, "data"),
     Input({"type": GENERIC_SHOW_DIFF_BTN, "index": ALL}, "n_clicks"),
     Input(MD_FILTERS, "data"),
     State(TABLES, "data"),
@@ -163,9 +171,7 @@ def update_frame_graphs(
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
     Input(DYNAMIC_CONF_DROPDOWN, "value"),
-    State(CONF_MATS_MAIN_TABLE, "children"),
-    State(CONF_MATS_MD_TABLE, "children"),
-    State(CONF_MATS_LABELS_TABLE, "children"),
+    State(URL, "pathname"),
     State(FRAMES_COL, "data"),
 )
 def draw_diffs(
@@ -176,9 +182,7 @@ def draw_diffs(
     main_dump,
     secondary_dump,
     dynamic_column,
-    main_table,
-    meta_data_table,
-    lables_table,
+    pathname,
     frames_col,
 ):
     triggered_id = callback_context.triggered_id
@@ -190,20 +194,26 @@ def draw_diffs(
         or not secondary_dump
         or not any(show_diff_n_clicks)
     ):
-        return no_update, no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
+    page_name = pathname.strip("/")
+    page_properties = page_registry[f"pages.{page_name}"]
     if isinstance(triggered_id, dict) and triggered_id.get("type") == GENERIC_SHOW_DIFF_BTN:
-        col_to_compare = triggered_id["index"]
-        col_to_compare = col_to_compare if col_to_compare != DYNAMIC_SHOW_DIFF_IDX else dynamic_column
+        graph_name = triggered_id["index"]
+        if graph_name == DYNAMIC_SHOW_DIFF_IDX:
+            column_to_compare = dynamic_column
+        else:
+            graph_properties = GRAPHS_PER_PAGE[page_name]["conf_mat_graphs"][graph_name]
+            column_to_compare = graph_properties["column_to_compare"]
     else:
         if frames_col is None:
-            return no_update, no_update, no_update, no_update, no_update
+            return no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
-        col_to_compare = frames_col
+        column_to_compare = frames_col
 
-    main_tables = tables[main_table]
-    meta_data_tables = tables.get(meta_data_table)
-    lables_table = tables[lables_table]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    lables_table = tables[page_properties["labels_table"]]
 
     query = generate_diff_with_labels_query(
         main_dump,
@@ -211,7 +221,7 @@ def draw_diffs(
         main_tables,
         lables_table,
         population,
-        col_to_compare,
+        column_to_compare,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )
@@ -219,7 +229,7 @@ def draw_diffs(
     main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
         data, main_dump, secondary_dump
     )
-    return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0
+    return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0, False, column_to_compare
 
 
 def compute_images_from_query_data(data, main_dump, secondary_dump):

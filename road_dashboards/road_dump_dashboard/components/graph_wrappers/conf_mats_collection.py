@@ -1,28 +1,30 @@
 import dash_bootstrap_components as dbc
-from dash import MATCH, Input, Output, Patch, State, callback, dcc, html, no_update
+import dash_daq as daq
+from dash import MATCH, Input, Output, Patch, State, callback, dcc, html, no_update, page_registry
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
-    CONF_MATS_LABELS_TABLE,
-    CONF_MATS_MAIN_TABLE,
-    CONF_MATS_MD_TABLE,
     DISPLAY_CONF_MATS,
     DYNAMIC_CONF_DROPDOWN,
     DYNAMIC_CONF_MAT,
     DYNAMIC_SHOW_DIFF_IDX,
     GENERIC_CONF_MAT,
+    GENERIC_FILTER_IGNORES_BTN,
     GENERIC_SHOW_DIFF_BTN,
     MAIN_NET_DROPDOWN,
     MD_FILTERS,
     POPULATION_DROPDOWN,
     SECONDARY_NET_DROPDOWN,
     TABLES,
+    URL,
 )
+from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import GRAPHS_PER_PAGE
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
 )
 from road_dashboards.road_dump_dashboard.components.graph_wrappers import frames_carousel
+from road_dashboards.road_dump_dashboard.components.graph_wrappers.generic_grid import get_grid_layout
 from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import generate_conf_mat_query
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
     get_tables_property_union,
@@ -30,21 +32,15 @@ from road_dashboards.road_dump_dashboard.components.logical_components.tables_pr
 from road_dashboards.road_dump_dashboard.graphs.confusion_matrix import get_confusion_matrix
 
 
-def layout(main_table, columns_to_compare, meta_data_table=None, labels_table=None):
-    if labels_table is None:
-        labels_table = main_table
-
+def layout(graphs_properties):
     matrices_layout = html.Div(
         id=DISPLAY_CONF_MATS,
         children=[
-            html.Div(id=CONF_MATS_MAIN_TABLE, children=main_table, style={"display": "none"}),
-            html.Div(id=CONF_MATS_MD_TABLE, children=meta_data_table, style={"display": "none"}),
-            html.Div(id=CONF_MATS_LABELS_TABLE, children=labels_table, style={"display": "none"}),
             card_wrapper(
                 [
                     nets_selection_layout(),
                     dynamic_conf_mat_layout(),
-                    *generic_rows_layout(columns_to_compare),
+                    get_grid_layout(graphs_properties, generic_conf_mat_layout),
                 ]
             ),
             frames_carousel.layout(),
@@ -81,6 +77,20 @@ def nets_selection_layout():
     return nets_selection
 
 
+def generic_conf_mat_layout(graph_properties):
+    index = graph_properties["name"]
+    include_filter_ignores = bool(graph_properties["ignore_filter"])
+    conf_mat_layout = (
+        get_single_mat_layout(
+            {"type": GENERIC_CONF_MAT, "index": index},
+            {"type": GENERIC_SHOW_DIFF_BTN, "index": index},
+            filter_ignores_id={"type": GENERIC_FILTER_IGNORES_BTN, "index": index},
+            include_filter_ignores=include_filter_ignores,
+        ),
+    )
+    return conf_mat_layout
+
+
 def dynamic_conf_mat_layout():
     dynamic_conf_mat = dbc.Row(
         [
@@ -97,43 +107,40 @@ def dynamic_conf_mat_layout():
     return dynamic_conf_mat
 
 
-def generic_rows_layout(columns_to_compare):
-    list_columns_tuples = [tuple(columns_to_compare[i : i + 2]) for i in range(0, len(columns_to_compare), 2)]
-    generic_rows = [
-        dbc.Row(
-            [
-                dbc.Col(
-                    get_single_mat_layout(
-                        {"type": GENERIC_CONF_MAT, "index": col_to_compare},
-                        {"type": GENERIC_SHOW_DIFF_BTN, "index": col_to_compare},
-                    )
-                )
-                for col_to_compare in columns_tuple
-            ]
+def get_single_mat_layout(mat_id, diff_btn_id, filter_ignores_id=None, include_filter_ignores=True):
+    mat_row = dbc.Row(
+        loading_wrapper(
+            dcc.Graph(
+                id=mat_id,
+                config={"displayModeBar": False},
+            )
         )
-        for columns_tuple in list_columns_tuples
-    ]
-
-    return generic_rows
-
-
-def get_single_mat_layout(mat_id, diff_btn_id):
-    mat_layout = html.Div(
-        [
-            loading_wrapper(
-                dcc.Graph(
-                    id=mat_id,
-                    config={"displayModeBar": False},
-                )
-            ),
-            dbc.Button(
-                "Draw Diff Frames",
-                id=diff_btn_id,
-                className="bg-primary mt-5",
-            ),
-        ]
     )
-    return mat_layout
+    draw_diff_button = dbc.Button(
+        "Draw Diff Frames",
+        id=diff_btn_id,
+        className="bg-primary mt-5",
+    )
+    filter_ignores_button = (
+        daq.BooleanSwitch(
+            id=filter_ignores_id,
+            on=False,
+            label="Show All <-> Filter Ignores",
+            labelPosition="top",
+        )
+        if filter_ignores_id
+        else None
+    )
+
+    if filter_ignores_button is not None and include_filter_ignores is True:
+        buttons_row = dbc.Row(dbc.Stack([draw_diff_button, filter_ignores_button], direction="horizontal", gap=1))
+    elif filter_ignores_button is not None:
+        buttons_row = dbc.Row([draw_diff_button, html.Div(filter_ignores_button, hidden=True)])
+    else:
+        buttons_row = dbc.Row(draw_diff_button)
+
+    single_mat_layout = html.Div([mat_row, buttons_row])
+    return single_mat_layout
 
 
 @callback(
@@ -177,20 +184,33 @@ def init_dumps_dropdown(tables):
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
     State({"type": GENERIC_CONF_MAT, "index": MATCH}, "id"),
-    State(CONF_MATS_MAIN_TABLE, "children"),
-    State(CONF_MATS_MD_TABLE, "children"),
+    Input({"type": GENERIC_FILTER_IGNORES_BTN, "index": MATCH}, "on"),
+    State(URL, "pathname"),
 )
 def get_generic_conf_mat(
-    meta_data_filters, tables, population, main_dump, secondary_dump, col_to_compare, main_table, meta_data_table
+    meta_data_filters, tables, population, main_dump, secondary_dump, col_to_compare, filter_ignores, pathname
 ):
     if not population or not tables or not main_dump or not secondary_dump:
         return no_update
 
-    main_tables = tables[main_table]
-    meta_data_tables = tables.get(meta_data_table)
-    col_to_compare = col_to_compare["index"]
+    page_name = pathname.strip("/")
+    page_properties = page_registry[f"pages.{page_name}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
+
+    graph_name = col_to_compare["index"]
+    graph_properties = GRAPHS_PER_PAGE[page_name]["conf_mat_graphs"][graph_name]
     fig = get_conf_mat_fig(
-        main_tables, col_to_compare, main_dump, secondary_dump, population, meta_data_tables, meta_data_filters
+        main_tables,
+        graph_properties["column_to_compare"],
+        graph_properties["extra_columns"],
+        main_dump,
+        secondary_dump,
+        population,
+        graph_properties["name"],
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
+        extra_filters=graph_properties["ignore_filter"] if filter_ignores else None,
     )
     return fig
 
@@ -198,13 +218,15 @@ def get_generic_conf_mat(
 @callback(
     Output(DYNAMIC_CONF_DROPDOWN, "options"),
     Input(TABLES, "data"),
-    State(CONF_MATS_MAIN_TABLE, "children"),
+    State(URL, "pathname"),
 )
-def init_dynamic_conf_dropdown(tables, main_table):
+def init_dynamic_conf_dropdown(tables, pathname):
     if not tables:
         return no_update
 
-    columns_options = get_tables_property_union(tables[main_table])
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    columns_options = get_tables_property_union(main_tables)
     return columns_options
 
 
@@ -216,39 +238,53 @@ def init_dynamic_conf_dropdown(tables, main_table):
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
     Input(DYNAMIC_CONF_DROPDOWN, "value"),
-    State(CONF_MATS_MAIN_TABLE, "children"),
-    State(CONF_MATS_MD_TABLE, "children"),
+    State(URL, "pathname"),
 )
-def get_dynamic_conf_mat(
-    meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_col, main_table, meta_data_table
-):
+def get_dynamic_conf_mat(meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_col, pathname):
     if not population or not tables or not main_dump or not secondary_dump or not dynamic_col:
         return no_update
 
-    main_tables = tables[main_table]
-    meta_data_tables = tables.get(meta_data_table)
-    col_to_compare = dynamic_col
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    column_to_compare = dynamic_col
     fig = get_conf_mat_fig(
-        main_tables, col_to_compare, main_dump, secondary_dump, population, meta_data_tables, meta_data_filters
+        main_tables,
+        column_to_compare,
+        [column_to_compare],
+        main_dump,
+        secondary_dump,
+        population,
+        f"{column_to_compare.title()} Classification",
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
     )
     return fig
 
 
 def get_conf_mat_fig(
-    main_tables, col_to_compare, main_dump, secondary_dump, population, meta_data_tables=None, meta_data_filters=None
+    main_tables,
+    column_to_compare,
+    extra_columns,
+    main_dump,
+    secondary_dump,
+    population,
+    graph_title,
+    meta_data_tables=None,
+    meta_data_filters=None,
+    extra_filters=None,
 ):
     query = generate_conf_mat_query(
         main_dump,
         secondary_dump,
         main_tables,
         population,
-        col_to_compare,
+        column_to_compare,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
     )
-
     data, _ = query_athena(database="run_eval_db", query=query)
-    fig = get_confusion_matrix(
-        data, x_label=secondary_dump, y_label=main_dump, title=f"{col_to_compare.title()} Confusion Matrix"
-    )
+    fig = get_confusion_matrix(data, x_label=secondary_dump, y_label=main_dump, title=graph_title)
     return fig
