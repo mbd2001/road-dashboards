@@ -118,7 +118,7 @@ MD_FILTER_COUNT = """
 
 DIST_METRIC = """
     CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
-    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) AND ("{base_dist_column_name}_{dist}" < 999) {extra_filters} THEN 1 ELSE NULL END)
+    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) {extra_filters} THEN 1 ELSE NULL END)
     AS "score_{ind}"
     """
 
@@ -476,7 +476,7 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
         """
     metrics = ", ".join(
         [
-            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1")
+            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} >= 0")
             for name, (label, pred) in labels_to_preds.items()
         ]
     )
@@ -742,6 +742,7 @@ def generate_lm_3d_query(
         base_extra_filters="confidence > 0 AND match <> -1",
         is_add_filters_count=True,
         intresting_filters=intresting_filters,
+        extra_filters=f'AND ("{base_column_name}_{{dist}}" < 999)'
     )
     return query
 
@@ -758,6 +759,7 @@ def get_dist_query(
     is_add_filters_count=False,
     intresting_filters=None,
     extra_columns=None,
+    extra_filters=""
 ):
     if intresting_filters is None:
         intresting_filters = {"": ""}
@@ -765,12 +767,12 @@ def get_dist_query(
         DIST_METRIC.format(
             thresh_filter=f"{operator} {thresh}",
             dist=sec,
-            extra_filters=f"AND {extra_filter}" if extra_filter_name else "",
+            extra_filters=f"{extra_filters.format(dist=sec)} AND {intresting_filter}" if intresting_filter_name else extra_filters.format(dist=sec),
             base_dist_column_name=base_dist_column_name,
-            ind=extra_filter_name if extra_filter_name else sec,
+            ind=intresting_filter_name if intresting_filter_name else sec,
         )
         for sec, thresh in distances_dict.items()
-        for extra_filter_name, extra_filter in intresting_filters.items()
+        for intresting_filter_name, intresting_filter in intresting_filters.items()
     )
     count_metrics = (
         get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
