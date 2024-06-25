@@ -10,10 +10,11 @@ from road_database_toolkit.athena.athena_utils import query_athena
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
+    CURR_DRAWN_GRAPH,
     DYNAMIC_CONF_DROPDOWN,
-    DYNAMIC_SHOW_DIFF_IDX,
-    FRAMES_COL,
+    DYNAMIC_SHOW_DIFF_BTN,
     FRAMES_LAYOUT,
+    GENERIC_FILTER_IGNORES_BTN,
     GENERIC_SHOW_DIFF_BTN,
     IMAGES_IND,
     MAIN_IMG,
@@ -157,64 +158,56 @@ def update_frame_graphs(
 
 
 @callback(
-    Output(MAIN_IMG, "children"),
-    Output(MAIN_WORLD, "children"),
-    Output(SECONDARY_IMG, "children"),
-    Output(SECONDARY_WORLD, "children"),
-    Output(IMAGES_IND, "data"),
-    Output(FRAMES_LAYOUT, "hidden"),
-    Output(FRAMES_COL, "data"),
+    Output(MAIN_IMG, "children", allow_duplicate=True),
+    Output(MAIN_WORLD, "children", allow_duplicate=True),
+    Output(SECONDARY_IMG, "children", allow_duplicate=True),
+    Output(SECONDARY_WORLD, "children", allow_duplicate=True),
+    Output(IMAGES_IND, "data", allow_duplicate=True),
+    Output(FRAMES_LAYOUT, "hidden", allow_duplicate=True),
+    Output(CURR_DRAWN_GRAPH, "data", allow_duplicate=True),
     Input({"type": GENERIC_SHOW_DIFF_BTN, "index": ALL}, "n_clicks"),
-    Input(MD_FILTERS, "data"),
+    State({"type": GENERIC_FILTER_IGNORES_BTN, "index": ALL}, "on"),
+    State(MD_FILTERS, "data"),
     State(TABLES, "data"),
-    Input(POPULATION_DROPDOWN, "value"),
-    Input(MAIN_NET_DROPDOWN, "value"),
-    Input(SECONDARY_NET_DROPDOWN, "value"),
-    Input(DYNAMIC_CONF_DROPDOWN, "value"),
+    State(POPULATION_DROPDOWN, "value"),
+    State(MAIN_NET_DROPDOWN, "value"),
+    State(SECONDARY_NET_DROPDOWN, "value"),
     State(URL, "pathname"),
-    State(FRAMES_COL, "data"),
+    prevent_initial_call=True,
 )
 def draw_diffs(
     show_diff_n_clicks,
+    ignore_filters,
     meta_data_filters,
     tables,
     population,
     main_dump,
     secondary_dump,
-    dynamic_column,
     pathname,
-    frames_col,
 ):
     triggered_id = callback_context.triggered_id
     if (
         not triggered_id
+        or main_dump == secondary_dump
         or not population
         or not tables
         or not main_dump
         or not secondary_dump
-        or not any(show_diff_n_clicks)
     ):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     page_name = pathname.strip("/")
+    graph_name = triggered_id["index"]
+    ignore_filters = [i for i in callback_context.states_list[0] if i["id"]["index"] == graph_name][0]["value"]
+    graph_properties = GRAPHS_PER_PAGE[page_name]["conf_mat_graphs"][graph_name]
+    column_to_compare = graph_properties["column_to_compare"]
+    extra_columns = graph_properties["extra_columns"]
+    extra_filters = graph_properties["ignore_filter"] if ignore_filters else None
+
     page_properties = page_registry[f"pages.{page_name}"]
-    if isinstance(triggered_id, dict) and triggered_id.get("type") == GENERIC_SHOW_DIFF_BTN:
-        graph_name = triggered_id["index"]
-        if graph_name == DYNAMIC_SHOW_DIFF_IDX:
-            column_to_compare = dynamic_column
-        else:
-            graph_properties = GRAPHS_PER_PAGE[page_name]["conf_mat_graphs"][graph_name]
-            column_to_compare = graph_properties["column_to_compare"]
-    else:
-        if frames_col is None:
-            return no_update, no_update, no_update, no_update, no_update, no_update, no_update
-
-        column_to_compare = frames_col
-
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
     lables_table = tables[page_properties["labels_table"]]
-
     query = generate_diff_with_labels_query(
         main_dump,
         secondary_dump,
@@ -222,14 +215,163 @@ def draw_diffs(
         lables_table,
         population,
         column_to_compare,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
         data, main_dump, secondary_dump
     )
-    return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0, False, column_to_compare
+    return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0, False, graph_name
+
+
+@callback(
+    Output(MAIN_IMG, "children", allow_duplicate=True),
+    Output(MAIN_WORLD, "children", allow_duplicate=True),
+    Output(SECONDARY_IMG, "children", allow_duplicate=True),
+    Output(SECONDARY_WORLD, "children", allow_duplicate=True),
+    Output(IMAGES_IND, "data", allow_duplicate=True),
+    Output(FRAMES_LAYOUT, "hidden"),
+    Output(CURR_DRAWN_GRAPH, "data"),
+    State(MD_FILTERS, "data"),
+    State(TABLES, "data"),
+    State(POPULATION_DROPDOWN, "value"),
+    State(MAIN_NET_DROPDOWN, "value"),
+    State(SECONDARY_NET_DROPDOWN, "value"),
+    State(DYNAMIC_CONF_DROPDOWN, "value"),
+    Input(DYNAMIC_SHOW_DIFF_BTN, "n_clicks"),
+    State(URL, "pathname"),
+    prevent_initial_call=True,
+)
+def draw_diffs(
+    meta_data_filters,
+    tables,
+    population,
+    main_dump,
+    secondary_dump,
+    dynamic_column,
+    show_diff_n_clicks,
+    pathname,
+):
+    if (
+        not show_diff_n_clicks
+        or main_dump == secondary_dump
+        or not population
+        or not tables
+        or not main_dump
+        or not secondary_dump
+        or not dynamic_column
+    ):
+        return no_update, no_update, no_update, no_update, no_update, no_update, no_update
+
+    column_to_compare = dynamic_column
+    extra_columns = [column_to_compare]
+    extra_filters = None
+
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    lables_table = tables[page_properties["labels_table"]]
+    query = generate_diff_with_labels_query(
+        main_dump,
+        secondary_dump,
+        main_tables,
+        lables_table,
+        population,
+        column_to_compare,
+        extra_columns,
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+    )
+    data, _ = query_athena(database="run_eval_db", query=query)
+    main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
+        data, main_dump, secondary_dump
+    )
+    return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0, False, DYNAMIC_SHOW_DIFF_BTN
+
+
+@callback(
+    Output(MAIN_IMG, "children"),
+    Output(MAIN_WORLD, "children"),
+    Output(SECONDARY_IMG, "children"),
+    Output(SECONDARY_WORLD, "children"),
+    Output(IMAGES_IND, "data"),
+    Input({"type": GENERIC_FILTER_IGNORES_BTN, "index": ALL}, "on"),
+    Input(MD_FILTERS, "data"),
+    State(TABLES, "data"),
+    Input(POPULATION_DROPDOWN, "value"),
+    Input(MAIN_NET_DROPDOWN, "value"),
+    Input(SECONDARY_NET_DROPDOWN, "value"),
+    Input(DYNAMIC_CONF_DROPDOWN, "value"),
+    State(URL, "pathname"),
+    State(CURR_DRAWN_GRAPH, "data"),
+)
+def draw_diffs(
+    ignore_filters,
+    meta_data_filters,
+    tables,
+    population,
+    main_dump,
+    secondary_dump,
+    dynamic_column,
+    pathname,
+    curr_drawn_graph,
+):
+    triggered_id = callback_context.triggered_id
+    if (
+        main_dump == secondary_dump
+        or not curr_drawn_graph
+        or (
+            isinstance(triggered_id, dict)
+            and triggered_id["type"] == GENERIC_FILTER_IGNORES_BTN
+            and triggered_id["index"] != curr_drawn_graph
+        )
+        or (triggered_id == DYNAMIC_CONF_DROPDOWN and curr_drawn_graph != DYNAMIC_SHOW_DIFF_BTN)
+        or not population
+        or not tables
+        or not main_dump
+        or not secondary_dump
+    ):
+        return no_update, no_update, no_update, no_update, no_update
+
+    page_name = pathname.strip("/")
+    if curr_drawn_graph == DYNAMIC_SHOW_DIFF_BTN:
+        column_to_compare = dynamic_column
+        extra_columns = [column_to_compare]
+        extra_filters = None
+    else:
+        ignore_filters = [i for i in callback_context.inputs_list[0] if i["id"]["index"] == curr_drawn_graph][0][
+            "value"
+        ]
+        graph_properties = GRAPHS_PER_PAGE[page_name]["conf_mat_graphs"][curr_drawn_graph]
+        column_to_compare = graph_properties["column_to_compare"]
+        extra_columns = graph_properties["extra_columns"]
+        extra_filters = graph_properties["ignore_filter"] if ignore_filters else None
+
+    page_properties = page_registry[f"pages.{page_name}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    lables_table = tables[page_properties["labels_table"]]
+    query = generate_diff_with_labels_query(
+        main_dump,
+        secondary_dump,
+        main_tables,
+        lables_table,
+        population,
+        column_to_compare,
+        extra_columns,
+        meta_data_tables=meta_data_tables,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+    )
+    data, _ = query_athena(database="run_eval_db", query=query)
+    main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
+        data, main_dump, secondary_dump
+    )
+    return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0
 
 
 def compute_images_from_query_data(data, main_dump, secondary_dump):

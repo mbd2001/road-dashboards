@@ -2,7 +2,7 @@
 TABLES = "Tables"
 MD_FILTERS = "md_filters"
 IMAGES_IND = "images_ind"
-FRAMES_COL = "frames_col"
+CURR_DRAWN_GRAPH = "curr_drawn_graph"
 
 
 # meta data filters
@@ -48,7 +48,7 @@ GENERIC_FILTER_IGNORES_BTN = "generic_filter_ignores_btn"
 
 DYNAMIC_CONF_MAT = "dynamic_conf_mat"
 DYNAMIC_CONF_DROPDOWN = "dynamic_conf_dropdown"
-DYNAMIC_SHOW_DIFF_IDX = "dynamic_show_diff_idx"
+DYNAMIC_SHOW_DIFF_BTN = "dynamic_show_diff_btn"
 
 DISPLAY_CONF_MATS = "display_conf_mats"
 

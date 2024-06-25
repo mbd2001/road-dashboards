@@ -81,7 +81,7 @@ meta_data_graphs = GraphsPerPage(
             full_grid_row=True,
             include_slider=True,
             slider_default_value=2,
-            ignore_filter="curve_rad_ahead < 10000 AND curve_rad_ahead > 0",
+            ignore_filter="curve_rad_ahead <> 99999",
         ),
         CountGraphProperties(name="Batch Distribution", group_by_column="batch_num", full_grid_row=True),
         CountGraphProperties(
@@ -164,17 +164,37 @@ lane_marks_graphs = GraphsPerPage(
 pathnet_graphs = GraphsPerPage(
     count_graphs=[
         CountGraphProperties(name="Role Distribution", group_by_column="dp_role"),
-        CountGraphProperties(name="Split Role Distribution", group_by_column="dp_split_role"),
-        CountGraphProperties(name="Primary Role Distribution", group_by_column="dp_primary_role"),
-        CountGraphProperties(name="Merge Role Distribution", group_by_column="dp_merge_role"),
+        CountGraphProperties(
+            name="Split Role Distribution", group_by_column="dp_split_role", ignore_filter="dp_split_role <> 'IGNORE'"
+        ),
+        CountGraphProperties(
+            name="Primary Role Distribution",
+            group_by_column="dp_primary_role",
+            ignore_filter="dp_primary_role <> 'IGNORE'",
+        ),
+        CountGraphProperties(
+            name="Merge Role Distribution", group_by_column="dp_merge_role", ignore_filter="dp_merge_role <> 'IGNORE'"
+        ),
         CountGraphProperties(name="Oncoming Distribution", group_by_column="dp_points_oncoming"),
         CountGraphProperties(name="Batch Distribution", group_by_column="batch_num", full_grid_row=True),
     ],
     conf_mat_graphs=[
         ConfMatGraphProperties(name="Role Classification", column_to_compare="dp_role", full_grid_row=True),
-        ConfMatGraphProperties(name="Split Role Classification", column_to_compare="dp_split_role"),
-        ConfMatGraphProperties(name="Primary Role Classification", column_to_compare="dp_primary_role"),
-        ConfMatGraphProperties(name="Merge Role Classification", column_to_compare="dp_merge_role"),
+        ConfMatGraphProperties(
+            name="Split Role Classification",
+            column_to_compare="dp_split_role",
+            ignore_filter="dp_split_role <> 'IGNORE'",
+        ),
+        ConfMatGraphProperties(
+            name="Primary Role Classification",
+            column_to_compare="dp_primary_role",
+            ignore_filter="dp_primary_role <> 'IGNORE'",
+        ),
+        ConfMatGraphProperties(
+            name="Merge Role Classification",
+            column_to_compare="dp_merge_role",
+            ignore_filter="dp_merge_role <> 'IGNORE'",
+        ),
         ConfMatGraphProperties(name="Oncoming Classification", column_to_compare="dp_points_oncoming"),
     ],
 )

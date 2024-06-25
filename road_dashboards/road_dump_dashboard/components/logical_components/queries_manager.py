@@ -144,6 +144,7 @@ def generate_diff_query(
     main_tables,
     population,
     column_to_compare,
+    extra_columns,
     meta_data_tables=None,
     meta_data_filters=None,
     extra_filters=None,
@@ -156,7 +157,7 @@ def generate_diff_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=column_to_compare,
+        extra_columns=extra_columns,
         dumps_to_include=main_dump,
     )
 
@@ -167,7 +168,7 @@ def generate_diff_query(
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=column_to_compare,
+        extra_columns=extra_columns,
         dumps_to_include=secondary_dump,
     )
 
@@ -187,6 +188,7 @@ def generate_diff_with_labels_query(
     labels_tables,
     population,
     column_to_compare,
+    extra_columns,
     meta_data_tables=None,
     meta_data_filters=None,
     extra_filters=None,
@@ -198,6 +200,7 @@ def generate_diff_with_labels_query(
         main_tables,
         population,
         column_to_compare,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,

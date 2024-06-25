@@ -7,7 +7,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     DISPLAY_CONF_MATS,
     DYNAMIC_CONF_DROPDOWN,
     DYNAMIC_CONF_MAT,
-    DYNAMIC_SHOW_DIFF_IDX,
+    DYNAMIC_SHOW_DIFF_BTN,
     GENERIC_CONF_MAT,
     GENERIC_FILTER_IGNORES_BTN,
     GENERIC_SHOW_DIFF_BTN,
@@ -100,7 +100,7 @@ def dynamic_conf_mat_layout():
                 placeholder="----",
                 value="",
             ),
-            get_single_mat_layout(DYNAMIC_CONF_MAT, {"type": GENERIC_SHOW_DIFF_BTN, "index": DYNAMIC_SHOW_DIFF_IDX}),
+            get_single_mat_layout(DYNAMIC_CONF_MAT, DYNAMIC_SHOW_DIFF_BTN),
         ]
     )
 
@@ -248,14 +248,16 @@ def get_dynamic_conf_mat(meta_data_filters, tables, population, main_dump, secon
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
     column_to_compare = dynamic_col
+    extra_columns = [column_to_compare]
+    graph_title = f"{column_to_compare.title()} Classification"
     fig = get_conf_mat_fig(
         main_tables,
         column_to_compare,
-        [column_to_compare],
+        extra_columns,
         main_dump,
         secondary_dump,
         population,
-        f"{column_to_compare.title()} Classification",
+        graph_title,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )
