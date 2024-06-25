@@ -164,7 +164,7 @@ def get_average_error_graph(role, source, meta_data_filters, nets, effective_sam
     data, _ = run_query_with_nets_names_processing(query)
     data = data.sort_values(by="net_id")
     for bin in Z_BINS[:-1]:
-        data[f'score_{bin}'] = data[f'score_{bin}'] / data[f'count_{bin}']
+        data[f"score_{bin}"] = data[f"score_{bin}"] / data[f"count_{bin}"]
     fig = draw_meta_data_filters(
         data,
         list(labels_to_preds.keys()),
@@ -197,7 +197,17 @@ def get_none_dist_graph(meta_data_filters, role, source, nets, effective_samples
     labels, preds = get_labels_and_preds(source)
     title = f"Success Rate By Role {role.capitalize()}"
     fig = get_width_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, filter_name, 'Success Rate', labels, preds, role=role
+        meta_data_filters,
+        nets,
+        interesting_filters,
+        effective_samples,
+        filter_name,
+        title,
+        filter_name,
+        "Success Rate",
+        labels,
+        preds,
+        role=role,
     )
     return fig
 
@@ -221,7 +231,17 @@ def get_dist_graph(meta_data_filters, role, source, sort_by_dist, nets, effectiv
     labels, preds = get_labels_and_preds(source)
     title = f"Success Rate By Role {role.capitalize()}"
     fig = get_width_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, filter_name, 'Success Rate', labels, preds, role=role
+        meta_data_filters,
+        nets,
+        interesting_filters,
+        effective_samples,
+        filter_name,
+        title,
+        filter_name,
+        "Success Rate",
+        labels,
+        preds,
+        role=role,
     )
     return fig
 
@@ -291,8 +311,8 @@ def get_width_fig(
     effective_samples,
     filter_name,
     title,
-        xaxis,
-        yaxis,
+    xaxis,
+    yaxis,
     labels,
     preds,
     role="",
