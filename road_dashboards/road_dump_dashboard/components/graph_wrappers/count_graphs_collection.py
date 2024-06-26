@@ -147,11 +147,11 @@ def get_single_graph_layout(
         graph_row = dbc.Row(graph)
 
     if filter_ignores_button is not None and include_filter_ignores is True:
-        buttons_row = dbc.Row(dbc.Stack([percentage_button, filter_ignores_button], direction="horizontal", gap=1))
+        buttons_row = dbc.Row([dbc.Col(percentage_button), dbc.Col(filter_ignores_button)])
     elif filter_ignores_button is not None:
-        buttons_row = dbc.Row([percentage_button, html.Div(filter_ignores_button, hidden=True)])
+        buttons_row = dbc.Row([dbc.Col([percentage_button, html.Div(filter_ignores_button, hidden=True)])])
     else:
-        buttons_row = dbc.Row(percentage_button)
+        buttons_row = dbc.Row(dbc.Col(percentage_button))
 
     single_graph_layout = html.Div([graph_row, buttons_row])
     return single_graph_layout

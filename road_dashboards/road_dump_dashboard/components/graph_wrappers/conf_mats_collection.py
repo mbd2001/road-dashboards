@@ -133,11 +133,11 @@ def get_single_mat_layout(mat_id, diff_btn_id, filter_ignores_id=None, include_f
     )
 
     if filter_ignores_button is not None and include_filter_ignores is True:
-        buttons_row = dbc.Row(dbc.Stack([draw_diff_button, filter_ignores_button], direction="horizontal", gap=1))
+        buttons_row = dbc.Row([dbc.Col(draw_diff_button), dbc.Col(filter_ignores_button)])
     elif filter_ignores_button is not None:
-        buttons_row = dbc.Row([draw_diff_button, html.Div(filter_ignores_button, hidden=True)])
+        buttons_row = dbc.Row([dbc.Col([draw_diff_button, html.Div(filter_ignores_button, hidden=True)])])
     else:
-        buttons_row = dbc.Row(draw_diff_button)
+        buttons_row = dbc.Row(dbc.Col(draw_diff_button))
 
     single_mat_layout = html.Div([mat_row, buttons_row])
     return single_mat_layout
@@ -190,7 +190,7 @@ def init_dumps_dropdown(tables):
 def get_generic_conf_mat(
     meta_data_filters, tables, population, main_dump, secondary_dump, col_to_compare, filter_ignores, pathname
 ):
-    if not population or not tables or not main_dump or not secondary_dump:
+    if not population or not tables or not main_dump or not secondary_dump or main_dump == secondary_dump:
         return no_update
 
     page_name = pathname.strip("/")
@@ -241,7 +241,14 @@ def init_dynamic_conf_dropdown(tables, pathname):
     State(URL, "pathname"),
 )
 def get_dynamic_conf_mat(meta_data_filters, tables, population, main_dump, secondary_dump, dynamic_col, pathname):
-    if not population or not tables or not main_dump or not secondary_dump or not dynamic_col:
+    if (
+        not population
+        or not tables
+        or not main_dump
+        or not secondary_dump
+        or not dynamic_col
+        or main_dump == secondary_dump
+    ):
         return no_update
 
     page_properties = page_registry[f"pages.{pathname.strip('/')}"]
