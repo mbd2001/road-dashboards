@@ -48,7 +48,7 @@ def get_frame_count(meta_data_filters, nets, role, Z_source, threshold):
         nets["gt_tables"],
         nets["meta_data"],
         label_col=label,
-        ignore_value=999,
+        ignore_value=-3,
         unavailable_value=-1,
         threshold=threshold,
         role=role,
