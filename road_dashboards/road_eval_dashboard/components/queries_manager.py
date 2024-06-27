@@ -118,7 +118,7 @@ MD_FILTER_COUNT = """
 
 DIST_METRIC = """
     CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
-    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) AND ("{base_dist_column_name}_{dist}" < 999) {extra_filters} THEN 1 ELSE NULL END)
+    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) {extra_filters} THEN 1 ELSE NULL END)
     AS "score_{ind}"
     """
 
