@@ -42,8 +42,8 @@ def get_settings_layout(tab):
                     dcc.Slider(
                         id={"rem_type": REM_TYPE, "out": REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "tab": tab},
                         min=0,
-                        max=2,
-                        step=0.2,
+                        max=1,
+                        step=0.1,
                         value=0.2,
                     ),
                 ],

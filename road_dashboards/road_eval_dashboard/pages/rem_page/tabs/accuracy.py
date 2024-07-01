@@ -41,7 +41,7 @@ layout = get_accuracy_layout(TAB, extra_layout_after_setting=get_overall_layout(
 )
 def get_frame_count(meta_data_filters, nets, role, Z_source, threshold):
     if not nets:
-        return no_update, no_update, no_update
+        return no_update
 
     label = f"rem_{TAB}_error_{Z_source}"
     query = generate_overall_stats_query(
