@@ -239,7 +239,7 @@ post:reload-eval-dashboard:
     - road-algo-sm
   script:
     - echo "Reloading the Dynamic Stats container."
-    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007-restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007 --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
     - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
     - echo "Dynamic Stats container reloaded."
   rules:
