@@ -36,19 +36,20 @@ from road_dashboards.road_dump_dashboard.components.logical_components.tables_pr
     get_value_from_tables_property_union,
 )
 from road_dashboards.road_dump_dashboard.graphs.histogram_plot import basic_histogram_plot
-from road_dashboards.road_dump_dashboard.graphs.pie_or_line_wrapper import pie_or_line_wrapper
+from road_dashboards.road_dump_dashboard.graphs.line_graph import draw_line_graph
+from road_dashboards.road_dump_dashboard.graphs.pie_chart import basic_pie_chart
 
 
 def exponent_transform(value, base=10):
     return base**value
 
 
-def layout(meta_data_table, graphs_properties):
+def layout(graphs_properties, draw_obj_count=False):
     graphs_layout = html.Div(
         [
             dynamic_chart_layout(),
             get_grid_layout(graphs_properties, generic_chart_layout),
-            obj_count_layout() if meta_data_table else None,
+            obj_count_layout() if draw_obj_count is True else None,
         ]
     )
     return graphs_layout
@@ -132,7 +133,7 @@ def get_single_graph_layout(
     filter_ignores_button = (
         daq.BooleanSwitch(
             id=filter_ignores_id,
-            on=False,
+            on=True,
             label="Show All <-> Filter Ignores",
             labelPosition="top",
         )
@@ -330,7 +331,16 @@ def get_group_by_chart(
     if data[col_id].nunique() > 16:
         fig = basic_histogram_plot(data, col_id, y_col, title=graph_title)
     else:
-        fig = pie_or_line_wrapper(data, col_id, y_col, title=graph_title)
+        fig = pie_or_line_graph(data, col_id, y_col, title=graph_title)
+    return fig
+
+
+def pie_or_line_graph(data, names, values, title="", hover=None, color="dump_name"):
+    if data[color].nunique() == 1:
+        fig = basic_pie_chart(data, names, values, title=title, hover=hover)
+    else:
+        fig = draw_line_graph(data, names, values, title=title, hover=hover, color=color)
+
     return fig
 
 

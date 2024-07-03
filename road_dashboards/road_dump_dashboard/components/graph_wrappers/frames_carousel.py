@@ -233,7 +233,7 @@ def draw_diffs(
     page_properties = page_registry[f"pages.{page_name}"]
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
-    lables_table = tables[page_properties["labels_table"]]
+    lables_table = tables[page_properties["main_table"]]
     query = generate_diff_with_labels_query(
         main_dump,
         secondary_dump,
