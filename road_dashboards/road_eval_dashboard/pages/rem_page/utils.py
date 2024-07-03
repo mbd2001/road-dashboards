@@ -17,9 +17,9 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 
-Z_BINS = list(range(0, 300, 50)) + [999]
+Z_BINS = [0, 10, 20, 30, 40, 50, 100, 200, 998]
 Z_FILTERS = {f"{z}": f"rem_point_Z BETWEEN {z} AND {Z_BINS[i+1]}" for i, z in enumerate(Z_BINS[:-1])}
-SEC_BINS = [r * 0.5 for r in range(0, 11)] + [999]
+SEC_BINS = [r * 0.5 for r in range(0, 11)] + [998]
 SEC_FILTERS = {f"{sec}": f"rem_point_sec BETWEEN {sec} AND {SEC_BINS[i+1]}" for i, sec in enumerate(SEC_BINS[:-1])}
 REM_TYPE = "rem"
 REM_FILTERS = {
@@ -31,7 +31,7 @@ REM_FILTERS = {
     "weather": {"filters": WEATHER_FILTERS},
     "curve": {"filters": CURVE_BY_RAD_FILTERS, "dist_filters": CURVE_BY_DIST_FILTERS, "sort_by_dist": True},
 }
-IGNORES_FILTER = "{col} != -1 AND {col} < 999"
+IGNORES_FILTER = "{col} >= 0 AND {col} < 999"
 
 
 def get_base_graph_layout(filter_name, tab, sort_by_dist=False, tab_type="regular"):
@@ -86,6 +86,8 @@ def get_rem_fig(
     effective_samples,
     filter_name,
     title,
+    xaxis,
+    yaxis,
     label,
     pred,
     compare_operator="<=",
@@ -112,7 +114,8 @@ def get_rem_fig(
         get_rem_score,
         effective_samples=effective_samples,
         title=f"{title} Per {filter_name_to_display}",
-        yaxis="Score",
+        xaxis=xaxis,
+        yaxis=yaxis,
         hover=True,
     )
     return fig
