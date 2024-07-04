@@ -203,7 +203,7 @@ def draw_diffs_generic_case(
         or main_dump == secondary_dump
         or (
             triggered_id["type"] == GENERIC_FILTER_IGNORES_BTN
-            and (not curr_drawn_graph or json.loads(curr_drawn_graph)["name"] == DYNAMIC_CONF_MAT)
+            and (not curr_drawn_graph or json.loads(curr_drawn_graph)["name"] != triggered_id["index"])
         )
         or not population
         or not tables
