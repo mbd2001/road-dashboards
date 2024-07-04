@@ -215,8 +215,7 @@ def get_generic_conf_mat(
     if not population or not tables or not main_dump or not secondary_dump or main_dump == secondary_dump:
         return no_update
 
-    page_name = pathname.strip("/")
-    page_properties = page_registry[f"pages.{page_name}"]
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
 
