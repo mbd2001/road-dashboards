@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, callback, dcc, html, no_update
+from dash import Input, Output, State, callback, dcc, html, no_update, page_registry
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
@@ -8,6 +8,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     MD_FILTERS,
     POPULATION_DROPDOWN,
     TABLES,
+    URL,
 )
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
@@ -21,22 +22,25 @@ from road_dashboards.road_dump_dashboard.graphs.countries_map import (
     normalize_countries_names,
 )
 
-layout = html.Div(
-    card_wrapper(
-        [
-            dbc.Row(
-                dcc.Dropdown(
-                    id=COUNTRIES_DROPDOWN,
-                    style={"minWidth": "100%"},
-                    multi=False,
-                    placeholder="----",
-                    value="",
+
+def layout():
+    countries_layout = html.Div(
+        card_wrapper(
+            [
+                dbc.Row(
+                    dcc.Dropdown(
+                        id=COUNTRIES_DROPDOWN,
+                        style={"minWidth": "100%"},
+                        multi=False,
+                        placeholder="----",
+                        value="",
+                    ),
                 ),
-            ),
-            dbc.Row(loading_wrapper(dcc.Graph(id=COUNTRIES_HEAT_MAP, config={"displayModeBar": False}))),
-        ]
+                dbc.Row(loading_wrapper(dcc.Graph(id=COUNTRIES_HEAT_MAP, config={"displayModeBar": False}))),
+            ]
+        )
     )
-)
+    return countries_layout
 
 
 @callback(
@@ -59,20 +63,25 @@ def init_countries_dropdown(tables):
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(COUNTRIES_DROPDOWN, "value"),
+    State(URL, "pathname"),
 )
-def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump):
+def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump, pathname):
     if not population or not tables or not chosen_dump:
         return no_update
 
-    main_tables = tables["meta_data"]
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_tables = tables[page_properties["main_table"]]
+    meta_data_tables = tables.get(page_properties["meta_data_table"])
     group_by_column = "mdbi_country"
     query = generate_count_query(
         main_tables,
         population,
         False,
+        meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         main_column=group_by_column,
         dumps_to_include=chosen_dump,
+        extra_columns=[group_by_column],
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data["normalized"] = normalize_countries_count_to_percentiles(data["overall"].to_numpy())

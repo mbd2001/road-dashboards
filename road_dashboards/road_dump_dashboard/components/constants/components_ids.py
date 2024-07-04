@@ -2,13 +2,11 @@
 TABLES = "Tables"
 MD_FILTERS = "md_filters"
 IMAGES_IND = "images_ind"
-FRAMES_COL = "frames_col"
+CURR_DRAWN_GRAPH = "curr_drawn_graph"
 
 
 # meta data filters
 FILTERS = "filters"
-FILTERS_MAIN_TABLE = "filters_main_table"
-FILTERS_MD_TABLE = "filters_md_table"
 
 FILTER_GROUP = "filter_group"
 ADD_FILTER_BTN = "add_filter_btn"
@@ -38,29 +36,27 @@ INTERSECTION_SWITCH = "intersection_switch"
 
 # counters
 OBJS_COUNT = "objs_count"
-OBJS_MAIN_TABLE = "objs_main_table"
-OBJS_MD_TABLE = "objs_md_table"
 
 
 # confusion matrices
-CONF_MATS_MAIN_TABLE = "conf_mats_main_table"
-CONF_MATS_MD_TABLE = "conf_mats_md_table"
-CONF_MATS_LABELS_TABLE = "conf_mats_labels_table"
-
 MAIN_NET_DROPDOWN = "main_net_dropdown"
 SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
 
 GENERIC_CONF_MAT = "generic_conf_mat"
 GENERIC_SHOW_DIFF_BTN = "generic_show_diff_btn"
+GENERIC_FILTER_IGNORES_BTN = "generic_filter_ignores_btn"
+GENERIC_CONF_EXTRA_INFO = "generic_conf_extra_info"
 
 DYNAMIC_CONF_MAT = "dynamic_conf_mat"
 DYNAMIC_CONF_DROPDOWN = "dynamic_conf_dropdown"
-DYNAMIC_SHOW_DIFF_IDX = "dynamic_show_diff_idx"
+DYNAMIC_SHOW_DIFF_BTN = "dynamic_show_diff_btn"
 
 DISPLAY_CONF_MATS = "display_conf_mats"
 
 
 # frame drawer
+FRAMES_LAYOUT = "frames_layout"
+
 MAIN_IMG = "main_img"
 MAIN_WORLD = "main_world"
 
@@ -71,15 +67,12 @@ NEXT_BTN = "next_btn"
 PREV_BTN = "prev_btn"
 
 
-# bar pie charts
-CHARTS_MAIN_TABLE = "charts_main_table"
-CHARTS_MD_TABLE = "charts_md_table"
-
-GENERIC_COLUMNS_CHART = "generic_columns_chart"
-GENERIC_COLUMNS_SLIDER = "generic_columns_slider"
+# count graphs
+GENERIC_COUNT_CHART = "generic_count_chart"
+GENERIC_BINS_SLIDER = "generic_bins_slider"
 GENERIC_PERCENTAGE_SWITCH = "generic_percentage_switch"
-
-GENERIC_FILTERS_CHART = "generic_filters_chart"
+GENERIC_FILTER_IGNORES_SWITCH = "generic_filter_ignores_switch"
+GENERIC_COUNT_EXTRA_INFO = "generic_extra_info"
 
 DYNAMIC_CHART_DROPDOWN = "dynamic_chart_drop_down"
 DYNAMIC_CHART = "dynamic_chart"
