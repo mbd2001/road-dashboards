@@ -23,6 +23,7 @@ page_properties = PageProperties(
 )
 register_page(__name__, **page_properties.__dict__)
 
+
 group_by_graphs = [
     GroupByGraphProperties(
         name="Top View Perfects Exists",
@@ -71,6 +72,7 @@ cases_graphs = [
         ],
     ),
 ]
+
 conf_mat_graphs = [
     ConfMatGraphProperties(name="Top View Perfects Classification", column_to_compare="is_tv_perfect"),
     ConfMatGraphProperties(name="Gtem Classification", column_to_compare="gtem_labels_exist"),

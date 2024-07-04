@@ -40,6 +40,7 @@ group_by_graphs = [
     ),
     GroupByGraphProperties(name="Batch Distribution", group_by_column="batch_num", full_grid_row=True),
 ]
+
 conf_mat_graphs = [
     ConfMatGraphProperties(name="Role Classification", column_to_compare="role"),
     ConfMatGraphProperties(name="Color Classification", column_to_compare="color"),
