@@ -106,17 +106,17 @@ def generate_conf_mat_query(
     column_to_compare,
     extra_columns,
     meta_data_tables=None,
-    meta_data_filters=None,
-    extra_filters=None,
+    meta_data_filters="",
+    extra_filters="",
 ):
     main_data = generate_base_query(
         main_tables,
         population,
         False,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
         dumps_to_include=main_dump,
     )
 
@@ -124,9 +124,9 @@ def generate_conf_mat_query(
         main_tables,
         population,
         False,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
         dumps_to_include=secondary_dump,
     )
 
@@ -146,18 +146,18 @@ def generate_diff_query(
     column_to_compare,
     extra_columns,
     meta_data_tables=None,
-    meta_data_filters=None,
-    extra_filters=None,
+    meta_data_filters="",
+    extra_filters="",
     limit=IMG_LIMIT,
 ):
     main_data = generate_base_query(
         main_tables,
         population,
         False,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
         dumps_to_include=main_dump,
     )
 
@@ -165,10 +165,10 @@ def generate_diff_query(
         main_tables,
         population,
         False,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
         dumps_to_include=secondary_dump,
     )
 
@@ -190,8 +190,8 @@ def generate_diff_with_labels_query(
     column_to_compare,
     extra_columns,
     meta_data_tables=None,
-    meta_data_filters=None,
-    extra_filters=None,
+    meta_data_filters="",
+    extra_filters="",
     limit=IMG_LIMIT,
 ):
     diff_query = generate_diff_query(
@@ -220,13 +220,13 @@ def generate_count_query(
     main_tables,
     population,
     intersection_on,
+    extra_columns,
     meta_data_tables=None,
-    main_column=None,
-    diff_column=None,
+    main_column="",
+    diff_column="",
     interesting_cases=None,
-    meta_data_filters=None,
-    extra_columns=None,
-    extra_filters=None,
+    meta_data_filters="",
+    extra_filters="",
     bins_factor=None,
     dumps_to_include=None,
     compute_percentage=False,
@@ -235,14 +235,14 @@ def generate_count_query(
         main_tables,
         population,
         intersection_on,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns,
         dumps_to_include=dumps_to_include,
     )
     metrics = COUNT_ALL_METRIC.format(count_name="overall")
-    if main_column is None and interesting_cases is None:
+    if not main_column and not interesting_cases:
         query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
         return query
 
@@ -267,9 +267,10 @@ def generate_count_obj_query(
     main_tables,
     population,
     intersection_on,
-    meta_data_tables=None,
-    meta_data_filters=None,
-    extra_filters=None,
+    extra_columns,
+    meta_data_tables="",
+    meta_data_filters="",
+    extra_filters="",
     dumps_to_include=None,
     compute_percentage=False,
 ):
@@ -277,6 +278,7 @@ def generate_count_obj_query(
         main_tables,
         population,
         intersection_on,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
@@ -297,15 +299,12 @@ def generate_base_query(
     main_tables,
     population,
     intersection_on,
+    extra_columns,
     meta_data_tables=None,
     meta_data_filters=None,
     extra_filters=None,
-    extra_columns=None,
     dumps_to_include=None,
 ):
-    if isinstance(extra_columns, str):
-        extra_columns = [extra_columns]
-
     if isinstance(dumps_to_include, str):
         dumps_to_include = [dumps_to_include]
 
@@ -313,7 +312,7 @@ def generate_base_query(
     meta_data_paths = filter_paths(meta_data_tables["tables_dict"], dumps_to_include) if meta_data_tables else None
     agg_cols, extra_columns = get_aggregated_columns(extra_columns, main_tables, meta_data_tables)
     filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on)
-    base_data = generate_base_data(main_paths, filters, meta_data_paths, extra_columns)
+    base_data = generate_base_data(main_paths, filters, extra_columns, meta_data_paths)
     if agg_cols:
         base_data = generate_agg_cols_union(agg_cols, base_data)
 
@@ -362,10 +361,7 @@ def filter_paths(table_dict, dumps_to_include):
     return paths
 
 
-def generate_base_data(main_paths, filters, meta_data_paths=None, extra_columns=None):
-    if extra_columns is None:
-        extra_columns = []
-
+def generate_base_data(main_paths, filters, extra_columns, meta_data_paths=None):
     desired_columns = set(BASE_COLUMNS + extra_columns)
     if meta_data_paths:
         datasets_list = generate_joined_data(main_paths, meta_data_paths, desired_columns, filters)

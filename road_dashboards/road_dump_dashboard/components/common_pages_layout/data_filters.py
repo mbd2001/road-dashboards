@@ -357,13 +357,17 @@ def update_meta_data_values_options(operation, index, col, tables, pathname):
     Output(MD_FILTERS, "data"),
     Input(UPDATE_FILTERS_BTN, "n_clicks"),
     State(FILTERS, "children"),
+    State(MD_FILTERS, "data"),
 )
-def generate_meta_data_filters_string(n_clicks, filters):
+def generate_meta_data_filters_string(n_clicks, filters, curr_filter):
     if not filters:
         return ""
 
     first_group = filters[0]
     filters_str = recursive_build_meta_data_filters(first_group)
+    if curr_filter == filters_str:
+        return no_update
+
     return filters_str
 
 

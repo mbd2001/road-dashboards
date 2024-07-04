@@ -1,3 +1,5 @@
+import json
+
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, dcc, html, no_update, page_registry
@@ -8,6 +10,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     DYNAMIC_CONF_DROPDOWN,
     DYNAMIC_CONF_MAT,
     DYNAMIC_SHOW_DIFF_BTN,
+    GENERIC_CONF_EXTRA_INFO,
     GENERIC_CONF_MAT,
     GENERIC_FILTER_IGNORES_BTN,
     GENERIC_SHOW_DIFF_BTN,
@@ -18,7 +21,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     TABLES,
     URL,
 )
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import GRAPHS_PER_PAGE
+from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import ConfMatGraphProperties
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
@@ -40,7 +43,7 @@ def layout(graphs_properties):
                 [
                     nets_selection_layout(),
                     dynamic_conf_mat_layout(),
-                    get_grid_layout(graphs_properties, generic_conf_mat_layout),
+                    get_grid_layout(graphs_properties, conf_mat_graph_generator),
                 ]
             ),
             frames_carousel.layout(),
@@ -77,15 +80,24 @@ def nets_selection_layout():
     return nets_selection
 
 
-def generic_conf_mat_layout(graph_properties):
-    index = graph_properties["name"]
-    include_filter_ignores = bool(graph_properties["ignore_filter"])
+def conf_mat_graph_generator(graph_properties: ConfMatGraphProperties):
+    index = graph_properties.name
+    include_filter_ignores = bool(graph_properties.ignore_filter)
     conf_mat_layout = (
         get_single_mat_layout(
             {"type": GENERIC_CONF_MAT, "index": index},
             {"type": GENERIC_SHOW_DIFF_BTN, "index": index},
             filter_ignores_id={"type": GENERIC_FILTER_IGNORES_BTN, "index": index},
             include_filter_ignores=include_filter_ignores,
+            additional_info_id={"type": GENERIC_CONF_EXTRA_INFO, "index": index},
+            additional_info=json.dumps(
+                {
+                    "name": graph_properties.name,
+                    "column_to_compare": graph_properties.column_to_compare,
+                    "extra_columns": graph_properties.extra_columns,
+                    "ignore_filter": graph_properties.ignore_filter,
+                }
+            ),
         ),
     )
     return conf_mat_layout
@@ -107,7 +119,14 @@ def dynamic_conf_mat_layout():
     return dynamic_conf_mat
 
 
-def get_single_mat_layout(mat_id, diff_btn_id, filter_ignores_id=None, include_filter_ignores=True):
+def get_single_mat_layout(
+    mat_id,
+    diff_btn_id,
+    filter_ignores_id=None,
+    include_filter_ignores=True,
+    additional_info_id=None,
+    additional_info=None,
+):
     mat_row = dbc.Row(
         loading_wrapper(
             dcc.Graph(
@@ -139,7 +158,10 @@ def get_single_mat_layout(mat_id, diff_btn_id, filter_ignores_id=None, include_f
     else:
         buttons_row = dbc.Row(dbc.Col(draw_diff_button))
 
-    single_mat_layout = html.Div([mat_row, buttons_row])
+    extra_info = (
+        html.Div(id=additional_info_id, hidden=True, **{"data-graph": additional_info}) if additional_info_id else None
+    )
+    single_mat_layout = html.Div([mat_row, buttons_row, extra_info])
     return single_mat_layout
 
 
@@ -183,12 +205,12 @@ def init_dumps_dropdown(tables):
     Input(POPULATION_DROPDOWN, "value"),
     Input(MAIN_NET_DROPDOWN, "value"),
     Input(SECONDARY_NET_DROPDOWN, "value"),
-    State({"type": GENERIC_CONF_MAT, "index": MATCH}, "id"),
+    State({"type": GENERIC_CONF_EXTRA_INFO, "index": MATCH}, "data-graph"),
     Input({"type": GENERIC_FILTER_IGNORES_BTN, "index": MATCH}, "on"),
     State(URL, "pathname"),
 )
 def get_generic_conf_mat(
-    meta_data_filters, tables, population, main_dump, secondary_dump, col_to_compare, filter_ignores, pathname
+    meta_data_filters, tables, population, main_dump, secondary_dump, graph_properties, filter_ignores, pathname
 ):
     if not population or not tables or not main_dump or not secondary_dump or main_dump == secondary_dump:
         return no_update
@@ -198,8 +220,7 @@ def get_generic_conf_mat(
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
 
-    graph_name = col_to_compare["index"]
-    graph_properties = GRAPHS_PER_PAGE[page_name]["conf_mat_graphs"][graph_name]
+    graph_properties = json.loads(graph_properties)
     fig = get_conf_mat_fig(
         main_tables,
         graph_properties["column_to_compare"],

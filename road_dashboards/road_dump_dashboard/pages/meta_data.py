@@ -2,7 +2,11 @@ from dash import html, register_page
 
 from road_dashboards.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
 from road_dashboards.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import GRAPHS_PER_PAGE
+from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import (
+    CasesGraphProperties,
+    ConfMatGraphProperties,
+    GroupByGraphProperties,
+)
 from road_dashboards.road_dump_dashboard.components.graph_wrappers import (
     conf_mats_collection,
     count_graphs_collection,
@@ -19,15 +23,66 @@ page_properties = PageProperties(
 )
 register_page(__name__, **page_properties.__dict__)
 
-page_graphs = GRAPHS_PER_PAGE.get(page_properties.path.strip("/"))
-count_graphs = page_graphs.get("count_graphs")
-conf_mat_graphs = page_graphs.get("conf_mat_graphs")
+group_by_graphs = [
+    GroupByGraphProperties(
+        name="Top View Perfects Exists",
+        group_by_column="is_tv_perfect",
+    ),
+    GroupByGraphProperties(
+        name="Gtem Exists",
+        group_by_column="gtem_labels_exist",
+    ),
+    GroupByGraphProperties(
+        name="Curve Rad Distribution",
+        group_by_column="curve_rad_ahead",
+        full_grid_row=True,
+        include_slider=True,
+        slider_default_value=2,
+        ignore_filter="curve_rad_ahead <> 99999",
+    ),
+    GroupByGraphProperties(name="Batch Distribution", group_by_column="batch_num", full_grid_row=True),
+]
+
+cases_graphs = [
+    CasesGraphProperties(
+        name="Road Type Distribution",
+        interesting_cases={
+            "highway": "mdbi_road_highway = TRUE",
+            "country": "mdbi_road_country = TRUE",
+            "urban": "mdbi_road_city = TRUE",
+            "freeway": "mdbi_road_freeway = TRUE",
+        },
+        extra_columns=["mdbi_road_highway", "mdbi_road_country", "mdbi_road_city", "mdbi_road_freeway"],
+    ),
+    CasesGraphProperties(
+        name="Lane Mark Color Distribution",
+        interesting_cases={
+            "yellow": "rightColor_yellow = TRUE OR leftColor_yellow = TRUE",
+            "white": "rightColor_white = TRUE OR leftColor_white = TRUE",
+            "blue": "rightColor_blue = TRUE OR leftColor_blue = TRUE",
+        },
+        extra_columns=[
+            "rightColor_yellow",
+            "leftColor_yellow",
+            "rightColor_white",
+            "leftColor_white",
+            "rightColor_blue",
+            "leftColor_blue",
+        ],
+    ),
+]
+conf_mat_graphs = [
+    ConfMatGraphProperties(name="Top View Perfects Classification", column_to_compare="is_tv_perfect"),
+    ConfMatGraphProperties(name="Gtem Classification", column_to_compare="gtem_labels_exist"),
+]
+
+
 layout = html.Div(
     [
         html.H1(page_properties.title, className="mb-5"),
         data_filters.layout,
         base_dataset_statistics.layout(page_properties.objs_name),
-        count_graphs_collection.layout(count_graphs),
+        count_graphs_collection.layout(group_by_graphs, cases_graphs, draw_obj_count=False),
         conf_mats_collection.layout(conf_mat_graphs),
         countries_heatmap.layout(),
     ]

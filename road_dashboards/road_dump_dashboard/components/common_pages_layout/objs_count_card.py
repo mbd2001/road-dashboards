@@ -46,6 +46,7 @@ def get_frame_count(meta_data_filters, tables, population, intersection_on, path
         main_tables,
         population,
         intersection_on,
+        [],
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
     )

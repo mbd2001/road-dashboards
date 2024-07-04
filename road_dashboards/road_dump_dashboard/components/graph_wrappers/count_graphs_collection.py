@@ -1,3 +1,5 @@
+import json
+
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, page_registry
@@ -10,6 +12,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     DYNAMIC_PERCENTAGE_SWITCH,
     GENERIC_BINS_SLIDER,
     GENERIC_COUNT_CHART,
+    GENERIC_COUNT_EXTRA_INFO,
     GENERIC_FILTER_IGNORES_SWITCH,
     GENERIC_PERCENTAGE_SWITCH,
     INTERSECTION_SWITCH,
@@ -20,7 +23,10 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     TABLES,
     URL,
 )
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import GRAPHS_PER_PAGE
+from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import (
+    CasesGraphProperties,
+    GroupByGraphProperties,
+)
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
@@ -44,11 +50,12 @@ def exponent_transform(value, base=10):
     return base**value
 
 
-def layout(graphs_properties, draw_obj_count=False):
+def layout(group_by_graphs, cases_graphs=None, draw_obj_count=False):
     graphs_layout = html.Div(
         [
             dynamic_chart_layout(),
-            get_grid_layout(graphs_properties, generic_chart_layout),
+            get_grid_layout(group_by_graphs, group_by_chart_generator),
+            get_grid_layout(cases_graphs, cases_chart_generator) if cases_graphs else None,
             obj_count_layout() if draw_obj_count is True else None,
         ]
     )
@@ -72,26 +79,74 @@ def dynamic_chart_layout():
                     value="",
                 )
             ),
-            dbc.Row(get_single_graph_layout(DYNAMIC_CHART, DYNAMIC_PERCENTAGE_SWITCH, DYNAMIC_CHART_SLIDER)),
+            dbc.Row(
+                get_single_graph_layout(
+                    DYNAMIC_CHART, DYNAMIC_PERCENTAGE_SWITCH, DYNAMIC_CHART_SLIDER, include_slider=True
+                )
+            ),
         ]
     )
 
     return dynamic_chart
 
 
-def generic_chart_layout(graph_properties):
-    index = graph_properties["name"]
-    include_slider = graph_properties["include_slider"]
-    slider_default_value = graph_properties["slider_default_value"]
-    include_filter_ignores = bool(graph_properties["ignore_filter"])
+def group_by_chart_generator(graph_properties: GroupByGraphProperties):
+    index = graph_properties.name
+    include_slider = graph_properties.include_slider
+    slider_default_value = graph_properties.slider_default_value
+    include_filter_ignores = bool(graph_properties.ignore_filter)
     chart_layout = get_single_graph_layout(
-        {"type": GENERIC_COUNT_CHART, "index": index},
+        {
+            "type": GENERIC_COUNT_CHART,
+            "index": index,
+        },
         {"type": GENERIC_PERCENTAGE_SWITCH, "index": index},
         slider_id={"type": GENERIC_BINS_SLIDER, "index": index},
-        filter_ignores_id={"type": GENERIC_FILTER_IGNORES_SWITCH, "index": index},
+        filter_ignores_id={
+            "type": GENERIC_FILTER_IGNORES_SWITCH,
+            "index": index,
+        },
         include_slider=include_slider,
         include_filter_ignores=include_filter_ignores,
         slider_default_value=slider_default_value,
+        additional_info_id={"type": GENERIC_COUNT_EXTRA_INFO, "index": index},
+        additional_info=json.dumps(
+            {
+                "name": graph_properties.name,
+                "group_by_column": graph_properties.group_by_column,
+                "diff_column": graph_properties.diff_column,
+                "extra_columns": graph_properties.extra_columns,
+                "ignore_filter": graph_properties.ignore_filter,
+            }
+        ),
+    )
+    return chart_layout
+
+
+def cases_chart_generator(graph_properties: CasesGraphProperties):
+    index = graph_properties.name
+    include_filter_ignores = bool(graph_properties.ignore_filter)
+    chart_layout = get_single_graph_layout(
+        graph_id={
+            "type": GENERIC_COUNT_CHART,
+            "index": index,
+        },
+        percentage_button_id={"type": GENERIC_PERCENTAGE_SWITCH, "index": index},
+        slider_id={"type": GENERIC_BINS_SLIDER, "index": index},
+        filter_ignores_id={
+            "type": GENERIC_FILTER_IGNORES_SWITCH,
+            "index": index,
+        },
+        include_filter_ignores=include_filter_ignores,
+        additional_info_id={"type": GENERIC_COUNT_EXTRA_INFO, "index": index},
+        additional_info=json.dumps(
+            {
+                "name": graph_properties.name,
+                "extra_columns": graph_properties.extra_columns,
+                "interesting_cases": graph_properties.interesting_cases,
+                "ignore_filter": graph_properties.ignore_filter,
+            }
+        ),
     )
     return chart_layout
 
@@ -101,9 +156,11 @@ def get_single_graph_layout(
     percentage_button_id,
     slider_id=None,
     filter_ignores_id=None,
-    include_slider=True,
+    include_slider=False,
     include_filter_ignores=True,
     slider_default_value=0,
+    additional_info_id=None,
+    additional_info=None,
 ):
     graph = loading_wrapper(
         dcc.Graph(
@@ -154,7 +211,10 @@ def get_single_graph_layout(
     else:
         buttons_row = dbc.Row(dbc.Col(percentage_button))
 
-    single_graph_layout = html.Div([graph_row, buttons_row])
+    extra_info = (
+        html.Div(id=additional_info_id, hidden=True, **{"data-graph": additional_info}) if additional_info_id else None
+    )
+    single_graph_layout = html.Div([graph_row, buttons_row, extra_info])
     return single_graph_layout
 
 
@@ -212,18 +272,18 @@ def get_dynamic_chart(
     State(TABLES, "data"),
     Input(POPULATION_DROPDOWN, "value"),
     Input(INTERSECTION_SWITCH, "on"),
-    State({"type": GENERIC_COUNT_CHART, "index": MATCH}, "id"),
+    State({"type": GENERIC_COUNT_EXTRA_INFO, "index": MATCH}, "data-graph"),
     Input({"type": GENERIC_BINS_SLIDER, "index": MATCH}, "value"),
     Input({"type": GENERIC_PERCENTAGE_SWITCH, "index": MATCH}, "on"),
     Input({"type": GENERIC_FILTER_IGNORES_SWITCH, "index": MATCH}, "on"),
     State(URL, "pathname"),
 )
-def get_generic_column_chart(
+def get_generic_count_chart(
     meta_data_filters,
     tables,
     population,
     intersection_on,
-    column,
+    graph_properties,
     slider_value,
     compute_percentage,
     filter_ignores,
@@ -237,18 +297,17 @@ def get_generic_column_chart(
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
 
-    graph_name = column["index"]
-    graph_properties = GRAPHS_PER_PAGE[page_name]["count_graphs"][graph_name]
     bins_factor = get_bins_factor(slider_value)
+    graph_properties = json.loads(graph_properties)
     fig = get_group_by_chart(
         main_tables,
         population,
         intersection_on,
         graph_properties["name"],
         graph_properties["extra_columns"],
-        group_by_column=graph_properties["group_by_column"],
-        diff_column=graph_properties["diff_column"],
-        interesting_cases=graph_properties["interesting_cases"],
+        group_by_column=graph_properties.get("group_by_column"),
+        diff_column=graph_properties.get("diff_column"),
+        interesting_cases=graph_properties.get("interesting_cases"),
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         bins_factor=bins_factor,
@@ -285,6 +344,7 @@ def get_obj_column_chart(
         main_tables,
         population,
         intersection_on,
+        ["clip_name", "grabindex"],
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         compute_percentage=compute_percentage,
