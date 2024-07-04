@@ -118,7 +118,7 @@ MD_FILTER_COUNT = """
 
 DIST_METRIC = """
     CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
-    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) AND ("{base_dist_column_name}_{dist}" < 999) {extra_filters} THEN 1 ELSE NULL END)
+    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) {extra_filters} THEN 1 ELSE NULL END)
     AS "score_{ind}"
     """
 
@@ -415,6 +415,60 @@ def generate_compare_metric_query(
     )
 
 
+def generate_overall_stats_query(
+    data_tables,
+    meta_data,
+    label_col,
+    unavailable_value,
+    ignore_value,
+    threshold,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    COUNT_METRIC = """
+        CAST(COUNT(CASE WHEN ({label_col} {operator} {pred_col}) {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) as count_{ind}"""
+    metrics_list = []
+    for metric in [COUNT_METRIC, COMPARE_METRIC]:
+        metrics_list += [
+            metric.format(
+                label_col=label_col,
+                operator="=",
+                pred_col=unavailable_value,
+                extra_filters=extra_filters,
+                ind="unavailable",
+            ),
+            metric.format(
+                label_col=label_col,
+                operator="<=",
+                pred_col=f"{threshold} AND {label_col} >= 0",
+                extra_filters=f"OR {label_col} = -2 " + extra_filters,
+                ind="accurate",
+            ),
+            metric.format(
+                label_col=label_col,
+                operator=">",
+                pred_col=f"{threshold}",
+                extra_filters=extra_filters,
+                ind="inaccurate",
+            ),
+            metric.format(
+                label_col=label_col, operator="=", pred_col=ignore_value, extra_filters=extra_filters, ind="ignore"
+            ),
+        ]
+    metrics = ", ".join(metrics_list)
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics=metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        extra_columns=[label_col] + extra_columns,
+        role=role,
+    )
+
+
 def generate_sum_success_rate_metric_query(
     data_tables,
     meta_data,
@@ -476,7 +530,7 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
         """
     metrics = ", ".join(
         [
-            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1")
+            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} >= 0")
             for name, (label, pred) in labels_to_preds.items()
         ]
     )
@@ -742,6 +796,7 @@ def generate_lm_3d_query(
         base_extra_filters="confidence > 0 AND match <> -1",
         is_add_filters_count=True,
         intresting_filters=intresting_filters,
+        extra_filters=f'AND ("{base_column_name}_{{dist}}" < 999)',
     )
     return query
 
@@ -758,6 +813,7 @@ def get_dist_query(
     is_add_filters_count=False,
     intresting_filters=None,
     extra_columns=None,
+    extra_filters="",
 ):
     if intresting_filters is None:
         intresting_filters = {"": ""}
@@ -765,12 +821,16 @@ def get_dist_query(
         DIST_METRIC.format(
             thresh_filter=f"{operator} {thresh}",
             dist=sec,
-            extra_filters=f"AND {extra_filter}" if extra_filter_name else "",
+            extra_filters=(
+                f"{extra_filters.format(dist=sec)} AND {intresting_filter}"
+                if intresting_filter_name
+                else extra_filters.format(dist=sec)
+            ),
             base_dist_column_name=base_dist_column_name,
-            ind=extra_filter_name if extra_filter_name else sec,
+            ind=intresting_filter_name if intresting_filter_name else sec,
         )
         for sec, thresh in distances_dict.items()
-        for extra_filter_name, extra_filter in intresting_filters.items()
+        for intresting_filter_name, intresting_filter in intresting_filters.items()
     )
     count_metrics = (
         get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)

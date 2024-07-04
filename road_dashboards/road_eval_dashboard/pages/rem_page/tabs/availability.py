@@ -5,6 +5,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
     REM_ROLES_DROPDOWN,
+    REM_SOURCE_DROPDOWN,
 )
 from road_dashboards.road_eval_dashboard.pages.rem_page.utils import (
     REM_FILTERS,
@@ -37,6 +38,7 @@ layout = html.Div(
     ),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
+    Input({"rem_type": REM_TYPE, "out": REM_SOURCE_DROPDOWN}, "value"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
     State(
@@ -51,7 +53,7 @@ layout = html.Div(
         "id",
     ),
 )
-def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_id):
+def get_none_dist_graph(meta_data_filters, role, Z_source, nets, effective_samples, graph_id):
     if not nets:
         return no_update
     filter_name = graph_id["filter"]
@@ -64,6 +66,7 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
         effective_samples=effective_samples,
         filter_name=filter_name,
         role=role,
+        Z_source=Z_source,
     )
     return fig
 
@@ -82,6 +85,7 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
     ),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
+    Input({"rem_type": REM_TYPE, "out": REM_SOURCE_DROPDOWN}, "value"),
     Input(
         {
             "out": "sort_by_dist",
@@ -107,7 +111,7 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
         "id",
     ),
 )
-def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_samples, graph_id):
+def get_dist_graph(meta_data_filters, role, Z_source, sort_by_dist, nets, effective_samples, graph_id):
     if not nets:
         return no_update
     filter_name = graph_id["filter"]
@@ -120,12 +124,15 @@ def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_sample
         effective_samples=effective_samples,
         filter_name=filter_name,
         role=role,
+        Z_source=Z_source,
     )
     return fig
 
 
-def get_availability_fig(meta_data_filters, nets, interesting_filters, effective_samples, filter_name, role=""):
-    label = f"rem_availability"
+def get_availability_fig(
+    meta_data_filters, nets, interesting_filters, effective_samples, filter_name, Z_source, role=""
+):
+    label = f"rem_availability_{Z_source}"
     pred = 1
     title = f"Availability"
     fig = get_rem_fig(
@@ -135,6 +142,8 @@ def get_availability_fig(meta_data_filters, nets, interesting_filters, effective
         effective_samples,
         filter_name,
         title,
+        filter_name,
+        "Success Rate",
         label,
         pred,
         compare_operator="=",

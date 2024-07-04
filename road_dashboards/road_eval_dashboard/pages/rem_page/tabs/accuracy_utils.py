@@ -6,16 +6,15 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     MD_FILTERS,
     NETS,
-    REM_ACCURACY_3D_SOURCE_DROPDOWN,
     REM_ACCURACY_ERROR_THRESHOLD_SLIDER,
-    REM_ERROR_HISTOGRAM,
-    REM_ERROR_HISTOGRAM_Z_OR_SEC,
+    REM_AVERAGE_ERROR,
+    REM_AVERAGE_ERROR_Z_OR_SEC,
     REM_ROLES_DROPDOWN,
+    REM_SOURCE_DROPDOWN,
 )
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
-from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
+from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
-    ZSources,
     generate_sum_bins_metric_query,
     run_query_with_nets_names_processing,
 )
@@ -24,7 +23,9 @@ from road_dashboards.road_eval_dashboard.pages.rem_page.utils import (
     IGNORES_FILTER,
     REM_FILTERS,
     REM_TYPE,
+    SEC_BINS,
     SEC_FILTERS,
+    Z_BINS,
     Z_FILTERS,
     get_base_graph_layout,
     get_rem_fig,
@@ -33,21 +34,16 @@ from road_dashboards.road_eval_dashboard.pages.rem_page.utils import (
 
 
 def get_settings_layout(tab):
-    options = [s.value for s in ZSources]
     return card_wrapper(
         [
-            html.H6("Choose 3d source"),
-            dcc.Dropdown(
-                options, ZSources.FUSION, id={"rem_type": REM_TYPE, "out": REM_ACCURACY_3D_SOURCE_DROPDOWN, "tab": tab}
-            ),
             html.H6("Choose Error Threshold", style={"margin-top": 10}),
             html.Div(
                 [
                     dcc.Slider(
                         id={"rem_type": REM_TYPE, "out": REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "tab": tab},
                         min=0,
-                        max=2,
-                        step=0.2,
+                        max=1,
+                        step=0.1,
                         value=0.2,
                     ),
                 ],
@@ -62,13 +58,13 @@ def get_error_histogram_layout(tab):
         [
             dbc.Row(
                 graph_wrapper(
-                    {"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM, "tab": tab},
+                    {"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR, "tab": tab},
                 )
             ),
             dbc.Stack(
                 [
                     daq.BooleanSwitch(
-                        id={"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM_Z_OR_SEC, "tab": tab},
+                        id={"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR_Z_OR_SEC, "tab": tab},
                         on=False,
                         label="Sec/Z",
                         labelPosition="top",
@@ -83,9 +79,13 @@ def get_error_histogram_layout(tab):
     )
 
 
-def get_accuracy_layout(tab):
+def get_accuracy_layout(tab, extra_layout_after_setting=None):
+    layout_children = [get_settings_layout(tab)]
+    if extra_layout_after_setting is not None:
+        layout_children += [extra_layout_after_setting]
+    layout_children += [get_error_histogram_layout(tab)]
     return html.Div(
-        [get_settings_layout(tab), get_error_histogram_layout(tab)]
+        layout_children
         + [
             get_base_graph_layout(
                 filter_name, tab, sort_by_dist=filter_props.get("sort_by_dist", False), tab_type="accuracy"
@@ -96,19 +96,20 @@ def get_accuracy_layout(tab):
 
 
 @callback(
-    Output({"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM, "tab": MATCH}, "figure"),
+    Output({"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR, "tab": MATCH}, "figure"),
     Input(REM_ROLES_DROPDOWN, "value"),
-    Input({"rem_type": REM_TYPE, "out": REM_ACCURACY_3D_SOURCE_DROPDOWN, "tab": MATCH}, "value"),
-    Input({"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM_Z_OR_SEC, "tab": MATCH}, "on"),
+    Input({"rem_type": REM_TYPE, "out": REM_SOURCE_DROPDOWN}, "value"),
+    Input({"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR_Z_OR_SEC, "tab": MATCH}, "on"),
     Input(MD_FILTERS, "data"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State({"rem_type": REM_TYPE, "out": REM_ERROR_HISTOGRAM, "tab": MATCH}, "id"),
+    State({"rem_type": REM_TYPE, "out": REM_AVERAGE_ERROR, "tab": MATCH}, "id"),
 )
-def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, effective_samples, graph_id):
+def get_average_error_graph(role, source, z_or_sec, meta_data_filters, nets, effective_samples, graph_id):
     tab = graph_id["tab"]
-    sum_col = f"rem_{tab}_{source}"
+    sum_col = f"rem_{tab}_error_{source}"
     interesting_filters = Z_FILTERS if z_or_sec else SEC_FILTERS
+    filter_name = "Z Bins" if z_or_sec else "Seconds"
     query = generate_sum_bins_metric_query(
         nets["gt_tables"],
         nets["meta_data"],
@@ -120,14 +121,18 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
         role=role,
     )
     data, _ = run_query_with_nets_names_processing(query)
+    bins = Z_BINS if z_or_sec else SEC_BINS
+    for bin in bins[:-1]:
+        data[f"score_{bin}"] = data[f"score_{bin}"] / data[f"count_{bin}"]
     data = data.sort_values(by="net_id")
     fig = draw_meta_data_filters(
         data,
         list(interesting_filters.keys()),
         get_rem_score,
         effective_samples=effective_samples,
-        title=f"Error Histogram By {source}",
-        yaxis="Score",
+        title=f"Average Error By {source}",
+        xaxis=filter_name,
+        yaxis="Avg Error",
         hover=True,
     )
     return fig
@@ -147,7 +152,7 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
     ),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
-    Input({"rem_type": REM_TYPE, "out": REM_ACCURACY_3D_SOURCE_DROPDOWN, "tab": ALL}, "value"),
+    Input({"rem_type": REM_TYPE, "out": REM_SOURCE_DROPDOWN}, "value"),
     Input({"rem_type": REM_TYPE, "out": REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "tab": ALL}, "value"),
     Input(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
@@ -166,7 +171,7 @@ def get_error_histogram_graph(role, source, z_or_sec, meta_data_filters, nets, e
 def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, effective_samples, graph_id):
     if not nets:
         return no_update
-    source = source[0]
+    source = source
     error_threshold = error_threshold[0]
     graph_id = graph_id[0]
     filter_name = graph_id["filter"]
@@ -201,7 +206,7 @@ def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, 
     ),
     Input(MD_FILTERS, "data"),
     Input(REM_ROLES_DROPDOWN, "value"),
-    Input({"rem_type": REM_TYPE, "out": REM_ACCURACY_3D_SOURCE_DROPDOWN, "tab": ALL}, "value"),
+    Input({"rem_type": REM_TYPE, "out": REM_SOURCE_DROPDOWN}, "value"),
     Input({"rem_type": REM_TYPE, "out": REM_ACCURACY_ERROR_THRESHOLD_SLIDER, "tab": ALL}, "value"),
     Input(
         {
@@ -232,7 +237,7 @@ def get_dist_graph(meta_data_filters, role, source, error_threshold, sort_by_dis
     if not nets:
         return no_update
     graph_id = graph_id[0]
-    source = source[0]
+    source = source
     error_threshold = error_threshold[0]
     filter_name = graph_id["filter"]
     tab = graph_id["tab"]
@@ -255,10 +260,20 @@ def get_dist_graph(meta_data_filters, role, source, error_threshold, sort_by_dis
 def get_accuracy_fig(
     meta_data_filters, nets, interesting_filters, effective_samples, filter_name, source, error_threshold, tab, role=""
 ):
-    label = f"rem_{tab}_{source}"
+    label = f"rem_{tab}_error_{source}"
     pred = error_threshold
     title = f"Accuracy By {source} With Threshold {error_threshold}"
     fig = get_rem_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, label, pred, role=role
+        meta_data_filters,
+        nets,
+        interesting_filters,
+        effective_samples,
+        filter_name,
+        title,
+        filter_name,
+        "Success Rate",
+        label,
+        pred,
+        role=role,
     )
     return fig

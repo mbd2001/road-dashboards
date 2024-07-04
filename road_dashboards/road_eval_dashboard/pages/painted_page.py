@@ -176,7 +176,17 @@ def get_none_dist_graph(meta_data_filters, role, nets, effective_samples, graph_
     labels, preds = get_labels_and_preds_by_tab(tab)
     title = f"{tab.upper()} Rate By Role {role.capitalize()}"
     fig = get_painted_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, labels, preds, role=role
+        meta_data_filters,
+        nets,
+        interesting_filters,
+        effective_samples,
+        filter_name,
+        title,
+        filter_name,
+        f"{tab.upper()} Rate",
+        labels,
+        preds,
+        role=role,
     )
     return [fig]
 
@@ -203,7 +213,17 @@ def get_dist_graph(meta_data_filters, role, sort_by_dist, nets, effective_sample
     labels, preds = get_labels_and_preds_by_tab(tab)
     title = f"{tab.upper()} Rate By Role {role.capitalize()}"
     fig = get_painted_fig(
-        meta_data_filters, nets, interesting_filters, effective_samples, filter_name, title, labels, preds, role=role
+        meta_data_filters,
+        nets,
+        interesting_filters,
+        effective_samples,
+        filter_name,
+        title,
+        filter_name,
+        f"{tab.upper()} Rate",
+        labels,
+        preds,
+        role=role,
     )
     return [fig]
 
@@ -238,7 +258,8 @@ def get_Z_graph(meta_data_filters, role, nets, effective_samples, graph_id):
         get_painted_score,
         effective_samples=effective_samples,
         title=title,
-        yaxis="Score",
+        xaxis="Z Bins",
+        yaxis=f"{tab.upper()} Rate",
         hover=True,
         count_items_name="num of gt points",
     )
@@ -274,6 +295,8 @@ def get_painted_fig(
     effective_samples,
     filter_name,
     title,
+    xaxis,
+    yaxis,
     labels,
     preds,
     role="",
@@ -298,7 +321,8 @@ def get_painted_fig(
         get_painted_score,
         effective_samples=effective_samples,
         title=f"{title} Per {filter_name_to_display}",
-        yaxis="Score",
+        xaxis=xaxis,
+        yaxis=yaxis,
         hover=True,
     )
     return fig
