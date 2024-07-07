@@ -51,7 +51,7 @@ def melt_df_by_metric(df: pd.DataFrame, metric: str):
         value_name=metric,
         value_vars=[c for c in df.columns if c.startswith(metric)],
     )
-    df_melted["Z_sample"] = df_melted["Z_sample"].str.extract("(\d+)").astype(int)
+    df_melted["Z_sample"] = df_melted["Z_sample"].str.extract(r"(\d+)").astype(int)
     return df_melted
 
 

@@ -97,8 +97,8 @@ def redirect_to_home(pathname):
 def init_run(state, nets, query):
     if not state or (nets and get_state(state, NETS_STATE_KEY) == nets):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
-    nets = get_state(state, NETS_STATE_KEY)
 
+    nets = get_state(state, NETS_STATE_KEY)
     (
         effective_samples_per_batch,
         md_columns_options,

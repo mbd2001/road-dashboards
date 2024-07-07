@@ -21,7 +21,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     URL,
 )
 from road_dashboards.road_eval_dashboard.components.init_threads import (
-    generate_effective_samples_per_batch,
+    generate_effective_samples_per_filter,
     generate_meta_data_dicts,
     get_best_fb_per_net,
     get_list_of_scene_signals,
@@ -109,7 +109,6 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     nets = init_nets(rows, derived_virtual_selected_rows)
-    new_state = add_state(NETS_STATE_KEY, nets)
     (
         effective_samples_per_batch,
         md_columns_options,
@@ -118,7 +117,9 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         net_id_to_best_thresh,
         scene_signals_list,
     ) = update_state_by_nets(nets)
+    nets = update_nets_md_according_to_population(nets, md_columns_to_distinguish_values)
 
+    new_state = add_state(NETS_STATE_KEY, nets)
     notification = dbc.Alert("Nets data loaded successfully!", color="success", dismissable=True)
     return (
         nets,
@@ -133,10 +134,20 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     )
 
 
+def update_nets_md_according_to_population(nets, md_columns_to_distinguish_values):
+    if "population" not in md_columns_to_distinguish_values:
+        return nets
+
+    md_table = nets["meta_data"]
+    population = md_columns_to_distinguish_values["population"][0]
+    nets["meta_data"] = f"SELECT * FROM {md_table} WHERE population = '{population}'"
+    return nets
+
+
 def update_state_by_nets(nets):
     q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
     Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
-    Thread(target=wrapper, args=(generate_effective_samples_per_batch, nets, q2)).start()
+    Thread(target=wrapper, args=(generate_effective_samples_per_filter, nets, q2)).start()
     Thread(target=wrapper, args=(get_best_fb_per_net, nets, q3)).start()
     Thread(target=wrapper, args=(get_list_of_scene_signals, nets, q4)).start()
     md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = q1.get()
