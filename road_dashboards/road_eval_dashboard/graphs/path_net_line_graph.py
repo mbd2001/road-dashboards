@@ -13,7 +13,7 @@ def draw_path_net_graph(
     score_func=lambda row, score_filter: row[f"score_{score_filter}"],
 ):
     fig = go.Figure()
-    if all(f"sum_{col}" in effective_samples for col in cols):
+    if all(f"overall_{col}" in effective_samples for col in cols):
         greens, reds = get_greens_reds(data, cols, effective_samples, score_func)
     else:
         greens, reds = {}, {}

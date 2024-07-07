@@ -148,11 +148,6 @@ COUNT_ALL_METRIC = """
     AS {count_name}
     """
 
-CORRELATION_SUM_METRIC = """
-    SUM("{col}" - POWER("{col}" - 1, 2) / "{col}")
-    AS "sum_{ind}"
-    """
-
 EXTRACT_EVENT_METRIC = """
     {dist_column} IS NOT NULL AND 
     {dist_column} {operator} {dist_thresh} AND 
