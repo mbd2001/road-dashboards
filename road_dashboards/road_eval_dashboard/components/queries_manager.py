@@ -1185,6 +1185,12 @@ def get_roc_group_by(label_col, pred_col, input_thresh={}):
     return group_by
 
 
+def generate_cols_query(data_tables, search_string):
+    paths = ",".join(f"'{path}'" for path in data_tables["paths"])
+    cols_query = COLS_QUERY.format(paths=paths, search_string=search_string)
+    return cols_query
+
+
 def generate_base_query(
     data_tables,
     meta_data,
@@ -1210,12 +1216,6 @@ def generate_base_query(
         stats_filters=stats_filters,
     )
     return base_query
-
-
-def generate_cols_query(data_tables, search_string):
-    paths = ",".join(f"'{path}'" for path in data_tables["paths"])
-    cols_query = COLS_QUERY.format(paths=paths, search_string=search_string)
-    return cols_query
 
 
 def generate_base_data(data_paths, base_columns, extra_columns=[]):

@@ -13,14 +13,17 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
+    NET_ID_TO_FB_BEST_THRESH,
     NETS,
     RUN_EVAL_CATALOG,
+    SCENE_SIGNALS_LIST,
     UPDATE_RUNS_BTN,
     URL,
 )
 from road_dashboards.road_eval_dashboard.components.init_threads import (
     generate_effective_samples_per_filter,
     generate_meta_data_dicts,
+    get_best_fb_per_net,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import loading_wrapper
 from road_dashboards.road_eval_dashboard.components.net_properties import Nets
@@ -92,6 +95,7 @@ def generate_catalog_layout():
     Output(MD_COLUMNS_OPTION, "data", allow_duplicate=True),
     Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data", allow_duplicate=True),
     Output(EFFECTIVE_SAMPLES_PER_BATCH, "data", allow_duplicate=True),
+    Output(NET_ID_TO_FB_BEST_THRESH, "data", allow_duplicate=True),
     Output(LOAD_NETS_DATA_NOTIFICATION, "children", allow_duplicate=True),
     Output(URL, "hash", allow_duplicate=True),
     Input(UPDATE_RUNS_BTN, "n_clicks"),
@@ -101,7 +105,7 @@ def generate_catalog_layout():
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
-        return no_update, no_update, no_update, no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
     nets = init_nets(rows)
@@ -110,6 +114,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         md_columns_to_distinguish_values,
         md_columns_to_type,
         effective_samples_per_batch,
+        net_id_to_best_thresh,
     ) = update_state_by_nets(nets)
     nets = update_nets_md_according_to_population(
         nets, md_columns_to_distinguish_values
@@ -123,6 +128,7 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         md_columns_options,
         md_columns_to_distinguish_values,
         effective_samples_per_batch,
+        net_id_to_best_thresh,
         notification,
         new_state,
     )
@@ -139,16 +145,19 @@ def update_nets_md_according_to_population(nets, md_columns_to_distinguish_value
 
 
 def update_state_by_nets(nets):
-    q1, q2 = Queue(), Queue()
+    q1, q2, q3 = Queue(), Queue(), Queue()
     Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
     Thread(target=wrapper, args=(generate_effective_samples_per_filter, nets, q2)).start()
+    Thread(target=wrapper, args=(get_best_fb_per_net, nets, q3)).start()
     md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = q1.get()
     effective_samples_per_batch = q2.get()
+    net_id_to_best_thresh = q3.get()
     return (
         md_columns_options,
         md_columns_to_distinguish_values,
         md_columns_to_type,
         effective_samples_per_batch,
+        net_id_to_best_thresh,
     )
 
 

@@ -91,6 +91,7 @@ def redirect_to_home(pathname):
     Output(MD_COLUMNS_OPTION, "data", allow_duplicate=True),
     Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data", allow_duplicate=True),
     Output(EFFECTIVE_SAMPLES_PER_BATCH, "data", allow_duplicate=True),
+    Output(NET_ID_TO_FB_BEST_THRESH, "data", allow_duplicate=True),
     Output(STATE_NOTIFICATION, "children"),
     Input(URL, "hash"),
     State(NETS, "data"),
@@ -99,7 +100,7 @@ def redirect_to_home(pathname):
 def init_run(state, nets):
     nets_ids = get_state(state, NETS_STATE_KEY)
     if not nets_ids or (nets and compare_existing_nets_to_hashed_nets(nets, nets_ids)):
-        return no_update, no_update, no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     rows = [run_eval_db_manager.get_item(net_id) for net_id in nets_ids]
     nets = init_nets(pd.DataFrame(rows))
@@ -108,6 +109,7 @@ def init_run(state, nets):
         md_columns_to_distinguish_values,
         md_columns_to_type,
         effective_samples_per_batch,
+        net_id_to_best_thresh,
     ) = update_state_by_nets(nets)
     nets = update_nets_md_according_to_population(
         nets, md_columns_to_distinguish_values
@@ -120,6 +122,7 @@ def init_run(state, nets):
         md_columns_options,
         md_columns_to_distinguish_values,
         effective_samples_per_batch,
+        net_id_to_best_thresh,
         notification,
     )
 

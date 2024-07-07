@@ -3,8 +3,11 @@ from road_database_toolkit.athena.athena_utils import query_athena
 from road_dashboards.road_eval_dashboard.components.common_filters import ALL_FILTERS
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_base_query,
+    generate_cols_query,
+    generate_fb_query,
     generate_grab_index_hist_query,
 )
+from road_dashboards.road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
 
 
 def generate_meta_data_dicts(nets):
@@ -57,3 +60,18 @@ def get_distinct_values_dict(nets, md_columns_to_type, max_distinct_values=30):
     data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
     distinct_dict = data.to_dict("list")
     return distinct_dict
+
+
+def get_best_fb_per_net(nets):
+    if not nets or not nets["gt_tables"] or not nets["pred_tables"]:
+        return None
+
+    query = generate_fb_query(
+        nets["gt_tables"],
+        nets["pred_tables"],
+        nets["meta_data"],
+    )
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
+    data = data.fillna(1)
+    net_id_to_best_thresh = calc_best_thresh(data)
+    return net_id_to_best_thresh
