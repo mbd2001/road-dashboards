@@ -1,6 +1,3 @@
-import os
-from uuid import uuid4
-
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Dash, Input, Output, State, dcc, html, no_update
@@ -18,15 +15,12 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
-    MD_FILTERS,
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
-    SCENE_SIGNALS_LIST,
     STATE_NOTIFICATION,
     URL,
 )
 from road_dashboards.road_eval_dashboard.components.dcc_stores import init_dcc_stores
-from road_dashboards.road_eval_dashboard.components.net_properties import NetInfo
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, NETS_STATE_KEY, get_state
 
 app = Dash(

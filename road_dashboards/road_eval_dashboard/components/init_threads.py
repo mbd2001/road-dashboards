@@ -3,11 +3,12 @@ from road_database_toolkit.athena.athena_utils import query_athena
 from road_dashboards.road_eval_dashboard.components.common_filters import ALL_FILTERS
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_base_query,
-    generate_cols_query,
     generate_fb_query,
     generate_grab_index_hist_query,
 )
 from road_dashboards.road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
+
+THREE_DAYS = 60 * 24 * 3
 
 
 def generate_meta_data_dicts(nets):
@@ -27,7 +28,7 @@ def generate_effective_samples_per_filter(nets):
     meta_data = nets["meta_data"]
     query = generate_grab_index_hist_query(tables_lists, meta_data, ALL_FILTERS)
     try:
-        data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
+        data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
         effective_samples_per_batch = data.to_dict("records")[0]
         return effective_samples_per_batch
     except:
@@ -37,7 +38,7 @@ def generate_effective_samples_per_filter(nets):
 
 def get_meta_data_columns(nets):
     query = f"SELECT * FROM {nets['meta_data']} LIMIT 1"
-    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     md_columns_to_type = dict(data.dtypes.apply(lambda x: x.name))
     return md_columns_to_type
 
@@ -57,7 +58,7 @@ def get_distinct_values_dict(nets, md_columns_to_type, max_distinct_values=30):
     meta_data = nets["meta_data"]
     base_query = generate_base_query(tables_lists, meta_data)
     query = f"SELECT {distinct_select} FROM ({base_query})"
-    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     distinct_dict = data.to_dict("list")
     return distinct_dict
 
@@ -71,7 +72,7 @@ def get_best_fb_per_net(nets):
         nets["pred_tables"],
         nets["meta_data"],
     )
-    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     data = data.fillna(1)
     net_id_to_best_thresh = calc_best_thresh(data)
     return net_id_to_best_thresh
