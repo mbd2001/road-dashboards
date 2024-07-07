@@ -101,10 +101,10 @@ def generate_meta_data_dicts(table, columns_data_types_list):
     return columns_distinguish_values
 
 
-def get_distinct_values_dict(table, columns_data_types_list):
+def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values=30):
     distinct_select = ",".join(
         [
-            f' array_agg(DISTINCT "{col}") AS "{col}" '
+            f' slice(array_agg(DISTINCT "{col}"), 1, {max_distinct_values}) AS "{col}" '
             for col, dtype in columns_data_types_list.items()
             if dtype == "object"
         ]
@@ -118,12 +118,9 @@ def get_distinct_values_dict(table, columns_data_types_list):
     return distinct_dict
 
 
-def parse_distinct_dict(distinct_dict, max_distinct_values=30):
+def parse_distinct_dict(distinct_dict):
     columns_to_distinguish_values = {
-        col: [
-            {"label": val.strip(" "), "value": f"'{val.strip(' ')}'"}
-            for val in val_list[0].strip("[]").split(",")[:max_distinct_values]
-        ]
+        col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")]
         for col, val_list in distinct_dict.items()
     }
     return columns_to_distinguish_values

@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, State, callback, html, no_update
+from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_eval_dashboard.components.common_filters import (
     CURVE_BY_DIST_FILTERS,
@@ -37,6 +38,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import calc_fb_per_row, draw_meta_data_filters
+from road_dashboards.road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
 
 
 def get_base_graph_layout(graph_id, host_button_id, sort_by_dist_id=None):
@@ -85,15 +87,34 @@ layout = html.Div(
 
 
 @callback(
+    Output(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Input(NETS, "data"),
+)
+def get_best_fb_per_net(nets):
+    if not nets or not nets["gt_tables"] or not nets["pred_tables"]:
+        return no_update
+
+    query = generate_fb_query(
+        nets["gt_tables"],
+        nets["pred_tables"],
+        nets["meta_data"],
+    )
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
+    data = data.fillna(1)
+    net_id_to_best_thresh = calc_best_thresh(data)
+    return net_id_to_best_thresh
+
+
+@callback(
     Output(FB_PER_ROAD_TYPE_GRAPH, "figure"),
     Input(MD_FILTERS, "data"),
     Input(FB_PER_ROAD_TYPE_HOST, "on"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Input(NET_ID_TO_FB_BEST_THRESH, "data"),
 )
 def fb_per_road_type(meta_data_filters, is_host, nets, effective_samples, thresh):
-    if not nets:
+    if not nets or thresh is None:
         return no_update
 
     fig = get_fb_fig(
@@ -112,12 +133,12 @@ def fb_per_road_type(meta_data_filters, is_host, nets, effective_samples, thresh
     Output(FB_PER_LANE_MARK_TYPE_GRAPH, "figure"),
     Input(MD_FILTERS, "data"),
     Input(FB_PER_LANE_MARK_TYPE_HOST, "on"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Input(NET_ID_TO_FB_BEST_THRESH, "data"),
 )
 def fb_per_lane_mark_type(meta_data_filters, is_host, nets, effective_samples, thresh):
-    if not nets:
+    if not nets or thresh is None:
         return no_update
 
     fig = get_fb_fig(
@@ -136,12 +157,12 @@ def fb_per_lane_mark_type(meta_data_filters, is_host, nets, effective_samples, t
     Output(FB_PER_LANE_MARK_COLOR_GRAPH, "figure"),
     Input(MD_FILTERS, "data"),
     Input(FB_PER_LANE_MARK_COLOR_HOST, "on"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Input(NET_ID_TO_FB_BEST_THRESH, "data"),
 )
 def fb_per_lane_mark_color(meta_data_filters, is_host, nets, effective_samples, thresh):
-    if not nets:
+    if not nets or thresh is None:
         return no_update
 
     fig = get_fb_fig(
@@ -161,12 +182,12 @@ def fb_per_lane_mark_color(meta_data_filters, is_host, nets, effective_samples, 
     Input(MD_FILTERS, "data"),
     Input(FB_PER_CURVE_HOST, "on"),
     Input(FB_PER_CURVE_BY_DIST, "on"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Input(NET_ID_TO_FB_BEST_THRESH, "data"),
 )
 def fb_per_curve(meta_data_filters, is_host, by_dist, nets, effective_samples, thresh):
-    if not nets:
+    if not nets or thresh is None:
         return no_update
 
     interesting_filters = CURVE_BY_DIST_FILTERS if by_dist else CURVE_BY_RAD_FILTERS
@@ -186,12 +207,12 @@ def fb_per_curve(meta_data_filters, is_host, by_dist, nets, effective_samples, t
     Output(FB_PER_EVENT_GRAPH, "figure"),
     Input(MD_FILTERS, "data"),
     Input(FB_PER_EVENT_HOST, "on"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Input(NET_ID_TO_FB_BEST_THRESH, "data"),
 )
 def fb_per_event(meta_data_filters, is_host, nets, effective_samples, thresh):
-    if not nets:
+    if not nets or thresh is None:
         return no_update
 
     fig = get_fb_fig(
@@ -210,12 +231,12 @@ def fb_per_event(meta_data_filters, is_host, nets, effective_samples, thresh):
     Output(FB_PER_WEATHER_GRAPH, "figure"),
     Input(MD_FILTERS, "data"),
     Input(FB_PER_WEATHER_HOST, "on"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
-    State(NET_ID_TO_FB_BEST_THRESH, "data"),
+    Input(NET_ID_TO_FB_BEST_THRESH, "data"),
 )
 def fb_per_weather_type(meta_data_filters, is_host, nets, effective_samples, thresh):
-    if not nets:
+    if not nets or thresh is None:
         return no_update
 
     fig = get_fb_fig(

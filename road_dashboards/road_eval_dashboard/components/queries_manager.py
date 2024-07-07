@@ -15,6 +15,13 @@ BASE_QUERY = """
     WHERE TRUE {meta_data_filters}
     """
 
+COLS_QUERY = """
+    SELECT TABLE_NAME, COLUMN_NAME
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_NAME IN ({paths}) AND COLUMN_NAME LIKE '%{search_string}%'
+    ORDER BY TABLE_NAME, COLUMN_NAME
+    """
+
 JOIN_QUERY = """
     SELECT * FROM
     ({t1})
@@ -46,16 +53,6 @@ DYNAMIC_METRICS_QUERY = """
     {metrics}
     FROM ({base_query})
     GROUP BY ({group_by})
-    """
-
-GRAB_INDEX_HISTOGRAM_QUERY = """
-    SELECT
-    {second_metrics_layer}
-    FROM
-    (SELECT clip_name,
-    {metrics}
-    FROM ({base_query})
-    GROUP BY clip_name)
     """
 
 COMPARE_QUERY = """
@@ -251,14 +248,7 @@ def generate_grab_index_hist_query(
             for name, filter in interesting_filters.items()
         ]
     )
-    second_metrics_layer = ", ".join(
-        [CORRELATION_SUM_METRIC.format(col=f"overall_{name}", ind=name) for name, filter in interesting_filters.items()]
-    )
-    query = GRAB_INDEX_HISTOGRAM_QUERY.format(
-        metrics=metrics,
-        second_metrics_layer=second_metrics_layer,
-        base_query=base_query,
-    )
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
 
 
@@ -1225,6 +1215,12 @@ def generate_base_query(
         stats_filters=stats_filters,
     )
     return base_query
+
+
+def generate_cols_query(data_tables, search_string):
+    paths = ",".join(f"'{path}'" for path in data_tables["paths"])
+    cols_query = COLS_QUERY.format(paths=paths, search_string=search_string)
+    return cols_query
 
 
 def generate_base_data(data_paths, base_columns, extra_columns=[]):

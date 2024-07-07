@@ -3,10 +3,8 @@ from road_database_toolkit.athena.athena_utils import query_athena
 from road_dashboards.road_eval_dashboard.components.common_filters import ALL_FILTERS
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_base_query,
-    generate_fb_query,
     generate_grab_index_hist_query,
 )
-from road_dashboards.road_eval_dashboard.graphs.precision_recall_curve import calc_best_thresh
 
 
 def generate_meta_data_dicts(nets):
@@ -18,7 +16,6 @@ def generate_meta_data_dicts(nets):
         col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")]
         for col, val_list in distinct_dict.items()
     }
-
     return md_columns_to_type, md_columns_options, md_columns_to_distinguish_values
 
 
@@ -27,7 +24,7 @@ def generate_effective_samples_per_filter(nets):
     meta_data = nets["meta_data"]
     query = generate_grab_index_hist_query(tables_lists, meta_data, ALL_FILTERS)
     try:
-        data, _ = query_athena(database="run_eval_db", query=query)
+        data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
         effective_samples_per_batch = data.to_dict("records")[0]
         return effective_samples_per_batch
     except:
@@ -37,57 +34,26 @@ def generate_effective_samples_per_filter(nets):
 
 def get_meta_data_columns(nets):
     query = f"SELECT * FROM {nets['meta_data']} LIMIT 1"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
     md_columns_to_type = dict(data.dtypes.apply(lambda x: x.name))
     return md_columns_to_type
 
 
-def get_distinct_values_dict(nets, md_columns_to_type):
+def get_distinct_values_dict(nets, md_columns_to_type, max_distinct_values=30):
     distinct_select = ",".join(
         [
-            f' array_agg(DISTINCT "{col}") AS "{col}" '
+            f' slice(array_agg(DISTINCT "{col}"), 1, {max_distinct_values}) AS "{col}" '
             for col in md_columns_to_type.keys()
             if md_columns_to_type[col] == "object"
         ]
     )
+    if not distinct_select:
+        return {}
+
     tables_lists = nets["frame_tables"]
     meta_data = nets["meta_data"]
     base_query = generate_base_query(tables_lists, meta_data)
     query = f"SELECT {distinct_select} FROM ({base_query})"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=60 * 24 * 3)
     distinct_dict = data.to_dict("list")
     return distinct_dict
-
-
-def get_best_fb_per_net(nets):
-    if not nets["gt_tables"] or not nets["pred_tables"]:
-        return None
-
-    query = generate_fb_query(
-        nets["gt_tables"],
-        nets["pred_tables"],
-        nets["meta_data"],
-    )
-    data, _ = query_athena(database="run_eval_db", query=query)
-    data = data.fillna(1)
-    net_id_to_best_thresh = calc_best_thresh(data)
-    return net_id_to_best_thresh
-
-
-def get_list_of_scene_signals(nets):
-    query = f"SELECT * FROM {nets["frame_tables"]["paths"][0]} LIMIT 1"
-    data, _ = query_athena(database="run_eval_db", query=query)
-    frame_columns = list(data.columns)
-    cols_mest_names = set(
-        name.replace("scene_signals_", "").replace("_mest_pred", "")
-        for name in frame_columns
-        if name.endswith("_mest_pred")
-    )
-    cols_pred_names = set(
-        name.replace("scene_signals_", "").replace("_pred", "")
-        for name in frame_columns
-        if not name.endswith("_mest_pred") and name.endswith("_pred")
-    )
-
-    list_of_scene_signals = {"pred": sorted(cols_pred_names), "mest": sorted(cols_mest_names)}
-    return list_of_scene_signals

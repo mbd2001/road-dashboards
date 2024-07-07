@@ -2,10 +2,16 @@ import os
 from uuid import uuid4
 
 import dash_bootstrap_components as dbc
+import pandas as pd
 from dash import Dash, Input, Output, State, dcc, html, no_update
 
 from road_dashboards.road_eval_dashboard.components import page_content, sidebar
-from road_dashboards.road_eval_dashboard.components.catalog_table import update_state_by_nets
+from road_dashboards.road_eval_dashboard.components.catalog_table import (
+    init_nets,
+    run_eval_db_manager,
+    update_nets_md_according_to_population,
+    update_state_by_nets,
+)
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
     GRAPH_TO_COPY,
@@ -20,7 +26,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     URL,
 )
 from road_dashboards.road_eval_dashboard.components.dcc_stores import init_dcc_stores
-from road_dashboards.road_eval_dashboard.components.meta_data_filter import recursive_build_meta_data_filters
+from road_dashboards.road_eval_dashboard.components.net_properties import NetInfo
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, NETS_STATE_KEY, get_state
 
 app = Dash(
@@ -85,34 +91,27 @@ def redirect_to_home(pathname):
     Output(MD_COLUMNS_OPTION, "data", allow_duplicate=True),
     Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data", allow_duplicate=True),
     Output(EFFECTIVE_SAMPLES_PER_BATCH, "data", allow_duplicate=True),
-    Output(NET_ID_TO_FB_BEST_THRESH, "data", allow_duplicate=True),
-    Output(SCENE_SIGNALS_LIST, "data", allow_duplicate=True),
-    Output(MD_FILTERS, "data", allow_duplicate=True),
     Output(STATE_NOTIFICATION, "children"),
     Input(URL, "hash"),
     State(NETS, "data"),
-    State(MD_FILTERS, "data"),
     prevent_initial_call=True,
 )
-def init_run(state, nets, query):
-    if not state or (nets and get_state(state, NETS_STATE_KEY) == nets):
-        return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
+def init_run(state, nets):
+    nets_ids = get_state(state, NETS_STATE_KEY)
+    if not nets_ids or (nets and compare_existing_nets_to_hashed_nets(nets, nets_ids)):
+        return no_update, no_update, no_update, no_update, no_update, no_update
 
-    nets = get_state(state, NETS_STATE_KEY)
+    rows = [run_eval_db_manager.get_item(net_id) for net_id in nets_ids]
+    nets = init_nets(pd.DataFrame(rows))
     (
-        effective_samples_per_batch,
         md_columns_options,
         md_columns_to_distinguish_values,
         md_columns_to_type,
-        net_id_to_best_thresh,
-        scene_signals_list,
+        effective_samples_per_batch,
     ) = update_state_by_nets(nets)
-
-    meta_data_filters_state = get_state(state, META_DATA_STATE_KEY)
-    filters_str = (
-        recursive_build_meta_data_filters(meta_data_filters_state[0]) if meta_data_filters_state else no_update
-    )
-    meta_data_filters_query = no_update if filters_str == query else filters_str
+    nets = update_nets_md_according_to_population(
+        nets, md_columns_to_distinguish_values
+    )  # TODO: backward compatibility, will be removed later
 
     notification = dbc.Alert("State loaded successfully!", color="success", dismissable=True, duration=2500, fade=True)
     return (
@@ -121,11 +120,12 @@ def init_run(state, nets, query):
         md_columns_options,
         md_columns_to_distinguish_values,
         effective_samples_per_batch,
-        net_id_to_best_thresh,
-        scene_signals_list,
-        meta_data_filters_query,
         notification,
     )
+
+
+def compare_existing_nets_to_hashed_nets(nets: dict, run_ids: list):
+    return nets["run_names"] == run_ids
 
 
 if __name__ == "__main__":

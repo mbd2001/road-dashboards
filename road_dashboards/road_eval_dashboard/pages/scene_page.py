@@ -4,6 +4,7 @@ from operator import iconcat
 import dash_bootstrap_components as dbc
 import numpy as np
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
+from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -31,6 +32,7 @@ from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_w
 from road_dashboards.road_eval_dashboard.components.page_properties import PageProperties
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     ROC_THRESHOLDS,
+    generate_cols_query,
     generate_compare_query,
     generate_roc_query,
     process_net_names_list,
@@ -170,7 +172,7 @@ def _generate_charts(chart_type, nets, scene_signals_list, per_net=False):
     return children
 
 
-@callback(Output(ALL_SCENE_SCORES, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+@callback(Output(ALL_SCENE_SCORES, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_score_charts(nets, scene_signals_list):
     return _generate_charts(SCENE_SCORE, nets, scene_signals_list)
 
@@ -196,11 +198,47 @@ def _generate_matrices_per_signal(nets, meta_data_filters, signal):
 
 
 @callback(
+    Output(SCENE_SIGNALS_LIST, "data"),
+    Input(NETS, "data"),
+)
+def get_scene_signal_list(nets):
+    if not nets or not nets["frame_tables"]:
+        return no_update
+
+    cols_query = generate_cols_query(nets["frame_tables"], search_string="scene_signals_")
+    cols_data, _ = query_athena(database="run_eval_db", query=cols_query)
+    if cols_data.empty:
+        return None
+    cols_mest_names = set.intersection(
+        *[
+            set(
+                name.replace("scene_signals_", "").replace("_mest_pred", "")
+                for name in cols_data[cols_data["TABLE_NAME"] == table_name]["COLUMN_NAME"]
+                if name.endswith("_mest_pred")
+            )
+            for table_name in cols_data["TABLE_NAME"]
+        ]
+    )
+    cols_pred_names = set.intersection(
+        *[
+            set(
+                name.replace("scene_signals_", "").replace("_pred", "")
+                for name in cols_data[cols_data["TABLE_NAME"] == table_name]["COLUMN_NAME"]
+                if not name.endswith("_mest_pred") and name.endswith("_pred")
+            )
+            for table_name in cols_data["TABLE_NAME"]
+        ]
+    )
+    list_of_scene_signals = {"pred": sorted(cols_pred_names), "mest": sorted(cols_mest_names)}
+    return list_of_scene_signals
+
+
+@callback(
     Output(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
     Output(SCENE_SIGNALS_DATA_READY, "children"),
     Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
-    State(SCENE_SIGNALS_LIST, "data"),
+    State(NETS, "data"),
+    Input(SCENE_SIGNALS_LIST, "data"),
 )
 def _generate_matrices(meta_data_filters, nets, signals):
     if not nets or not signals:
@@ -219,7 +257,7 @@ def _generate_matrices(meta_data_filters, nets, signals):
     Output({"type": SCENE_SCORE, "signal": MATCH}, "figure"),
     Input({"type": SCENE_SCORE, "signal": MATCH}, "id"),
     Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
 )
 def get_scene_score(id, meta_data_filters, nets):
     if not nets:
@@ -244,7 +282,7 @@ def get_scene_score(id, meta_data_filters, nets):
 
 @callback(
     Output(ALL_SCENE_ROC_CURVES, "children"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
     Input(SCENE_SIGNALS_LIST, "data"),
 )
 def generate_roc_curves(nets, scene_signals_list):
@@ -255,7 +293,7 @@ def generate_roc_curves(nets, scene_signals_list):
     Output({"type": SCENE_ROC_CURVE, "signal": MATCH}, "figure"),
     Input({"type": SCENE_ROC_CURVE, "signal": MATCH}, "id"),
     Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
+    State(NETS, "data"),
 )
 def get_scene_roc_curve(id, meta_data_filters, nets):
     if not nets:
@@ -277,12 +315,12 @@ def get_scene_roc_curve(id, meta_data_filters, nets):
     return draw_roc_curve(data, _name2title(signal), thresholds=ROC_THRESHOLDS)
 
 
-@callback(Output(ALL_SCENE_CONF_DIAGONALS, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+@callback(Output(ALL_SCENE_CONF_DIAGONALS, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_scene_conf_diagonals(nets, scene_signals_list):
     return _generate_charts(SCENE_CONF_DIAGONALS, nets, scene_signals_list)
 
 
-@callback(Output(ALL_SCENE_CONF_MATS, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+@callback(Output(ALL_SCENE_CONF_MATS, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_scene_conf_mats(nets, scene_signals_list):
     return _generate_charts(SCENE_CONF_MAT, nets, scene_signals_list, per_net=True)
 
@@ -294,13 +332,13 @@ def _get_mest_scene_signals(scene_signals_list):
     return scene_signals
 
 
-@callback(Output(ALL_SCENE_CONF_DIAGONALS_MEST, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+@callback(Output(ALL_SCENE_CONF_DIAGONALS_MEST, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_scene_conf_diagonals_mest(nets, scene_signals_list):
     scene_signals = _get_mest_scene_signals(scene_signals_list)
     return _generate_charts(SCENE_CONF_DIAGONALS_MEST, nets, scene_signals)
 
 
-@callback(Output(ALL_SCENE_CONF_MATS_MEST, "children"), Input(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
+@callback(Output(ALL_SCENE_CONF_MATS_MEST, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_scene_conf_mats_mest(nets, scene_signals_list):
     scene_signals = _get_mest_scene_signals(scene_signals_list)
     return _generate_charts(SCENE_CONF_MAT_MEST, nets, scene_signals)
