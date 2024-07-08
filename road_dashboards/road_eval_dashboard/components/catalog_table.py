@@ -3,7 +3,7 @@ from threading import Thread
 
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import ALL, Input, Output, State, callback, ctx, dash_table, html, no_update
+from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -16,21 +16,19 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
     RUN_EVAL_CATALOG,
-    SCENE_SIGNALS_LIST,
     UPDATE_RUNS_BTN,
     URL,
 )
 from road_dashboards.road_eval_dashboard.components.init_threads import (
-    generate_effective_samples_per_batch,
+    generate_effective_samples_per_filter,
     generate_meta_data_dicts,
     get_best_fb_per_net,
-    get_list_of_scene_signals,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import loading_wrapper
 from road_dashboards.road_eval_dashboard.components.net_properties import Nets
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, add_state
 
-run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
+run_eval_db_manager = DBManager(table_name="algoroad_run_eval", primary_key="run_name")
 
 
 def generate_catalog_layout():
@@ -96,7 +94,6 @@ def generate_catalog_layout():
     Output(MD_COLUMNS_TO_DISTINCT_VALUES, "data", allow_duplicate=True),
     Output(EFFECTIVE_SAMPLES_PER_BATCH, "data", allow_duplicate=True),
     Output(NET_ID_TO_FB_BEST_THRESH, "data", allow_duplicate=True),
-    Output(SCENE_SIGNALS_LIST, "data", allow_duplicate=True),
     Output(LOAD_NETS_DATA_NOTIFICATION, "children", allow_duplicate=True),
     Output(URL, "hash", allow_duplicate=True),
     Input(UPDATE_RUNS_BTN, "n_clicks"),
@@ -106,19 +103,22 @@ def generate_catalog_layout():
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
-        return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
+        return no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
-    nets = init_nets(rows, derived_virtual_selected_rows)
-    new_state = add_state(NETS_STATE_KEY, nets)
+    rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
+    nets = init_nets(rows)
     (
-        effective_samples_per_batch,
         md_columns_options,
         md_columns_to_distinguish_values,
         md_columns_to_type,
+        effective_samples_per_batch,
         net_id_to_best_thresh,
-        scene_signals_list,
     ) = update_state_by_nets(nets)
+    nets = update_nets_md_according_to_population(
+        nets, md_columns_to_distinguish_values
+    )  # TODO: backward compatibility, will be removed later
 
+    new_state = add_state(NETS_STATE_KEY, nets["run_names"])
     notification = dbc.Alert("Nets data loaded successfully!", color="success", dismissable=True)
     return (
         nets,
@@ -127,29 +127,35 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         md_columns_to_distinguish_values,
         effective_samples_per_batch,
         net_id_to_best_thresh,
-        scene_signals_list,
         notification,
         new_state,
     )
 
 
+def update_nets_md_according_to_population(nets, md_columns_to_distinguish_values):
+    if "population" not in md_columns_to_distinguish_values:
+        return nets
+
+    md_table = nets["meta_data"]
+    population = md_columns_to_distinguish_values["population"][0]["value"]
+    nets["meta_data"] = f"SELECT * FROM {md_table} WHERE population = {population}"
+    return nets
+
+
 def update_state_by_nets(nets):
-    q1, q2, q3, q4 = Queue(), Queue(), Queue(), Queue()
+    q1, q2, q3 = Queue(), Queue(), Queue()
     Thread(target=wrapper, args=(generate_meta_data_dicts, nets, q1)).start()
-    Thread(target=wrapper, args=(generate_effective_samples_per_batch, nets, q2)).start()
+    Thread(target=wrapper, args=(generate_effective_samples_per_filter, nets, q2)).start()
     Thread(target=wrapper, args=(get_best_fb_per_net, nets, q3)).start()
-    Thread(target=wrapper, args=(get_list_of_scene_signals, nets, q4)).start()
     md_columns_to_type, md_columns_options, md_columns_to_distinguish_values = q1.get()
     effective_samples_per_batch = q2.get()
     net_id_to_best_thresh = q3.get()
-    scene_signals_list = q4.get()
     return (
-        effective_samples_per_batch,
         md_columns_options,
         md_columns_to_distinguish_values,
         md_columns_to_type,
+        effective_samples_per_batch,
         net_id_to_best_thresh,
-        scene_signals_list,
     )
 
 
@@ -157,9 +163,9 @@ def wrapper(func, arg, queue):
     queue.put(func(arg))
 
 
-def init_nets(rows, derived_virtual_selected_rows):
-    rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
+def init_nets(rows):
     nets = Nets(
+        rows["run_name"],
         rows["net"],
         rows["checkpoint"],
         rows["use_case"],

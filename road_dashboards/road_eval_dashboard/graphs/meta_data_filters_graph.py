@@ -26,8 +26,8 @@ def get_greens_reds(data, interesting_columns, effective_samples, score_func):
     greens = {net: set() for net in data.net_id}
     reds = {net: set() for net in data.net_id}
     for col in interesting_columns:
-        n1 = effective_samples[f"sum_{col}"]
-        n2 = effective_samples[f"sum_{col}"]
+        n1 = effective_samples[f"overall_{col}"]
+        n2 = effective_samples[f"overall_{col}"]
         for (ind1, row1), (ind2, row2) in itertools.combinations(data.iterrows(), r=2):
             stat_value1 = score_func(row1, col)
             stat_value2 = score_func(row2, col)
@@ -54,7 +54,7 @@ def draw_meta_data_filters(
     yaxis="Fb Score",
     count_items_name="lane marks",
 ):
-    if all(f"sum_{col}" in effective_samples for col in interesting_columns):
+    if all(f"overall_{col}" in effective_samples for col in interesting_columns):
         greens, reds = get_greens_reds(data, interesting_columns, effective_samples, score_func)
     else:
         greens, reds = {}, {}

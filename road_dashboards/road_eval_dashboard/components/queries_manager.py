@@ -11,7 +11,7 @@ BASE_QUERY = """
     ({base_data})
     {intersect_filter}
     {stats_filters})
-    INNER JOIN {meta_data} USING (clip_name, grabIndex)
+    INNER JOIN ({meta_data}) USING (clip_name, grabIndex)
     WHERE TRUE {meta_data_filters}
     """
 
@@ -53,20 +53,6 @@ DYNAMIC_METRICS_QUERY = """
     {metrics}
     FROM ({base_query})
     GROUP BY ({group_by})
-    """
-
-GRAB_INDEX_HISTOGRAM_QUERY = """
-    SELECT
-    {third_metrics_layer}
-    FROM
-    (SELECT clip_name,
-    {second_metrics_layer}
-    FROM
-    (SELECT clip_name, grabIndex,
-    {metrics}
-    FROM ({base_query})
-    GROUP BY clip_name, grabIndex)
-    GROUP BY clip_name)
     """
 
 COMPARE_QUERY = """
@@ -157,24 +143,9 @@ COUNT_FILTER_METRIC = """
     AS "overall_{ind}"
     """
 
-LOG_COUNT_METRIC = """
-    LOG(2, COUNT(CASE WHEN {extra_filters} THEN 1 ELSE NULL END) + 1)
-    AS "overall_{ind}"
-    """
-
 COUNT_ALL_METRIC = """
     COUNT(*)
     AS {count_name}
-    """
-
-SUM_METRIC = """
-    SUM("{col}")
-    AS "sum_{ind}"
-    """
-
-CORRELATION_SUM_METRIC = """
-    SUM("{col}") - (POWER(SUM("{col}") - 1, 2)) / (SUM("{col}") + ((MAX(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END) - MIN(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END)) / 20))
-    AS "sum_{ind}"
     """
 
 EXTRACT_EVENT_METRIC = """
@@ -196,7 +167,7 @@ SUM_SUCCESS_RATE_METRIC = """
     """
 
 THRESHOLDS = np.concatenate(
-    (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
+    (np.array([-1000]), np.linspace(-5, -1, 5), np.linspace(-1, 2, 16), np.linspace(2, 6, 5), np.array([1000]))
 )
 
 ROC_THRESHOLDS = np.concatenate(
@@ -267,20 +238,12 @@ def generate_grab_index_hist_query(
 ):
     base_query = generate_base_query(data_tables, meta_data)
     metrics = ", ".join(
-        [LOG_COUNT_METRIC.format(extra_filters=f"({filter})", ind=name) for name, filter in interesting_filters.items()]
+        [
+            COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name)
+            for name, filter in interesting_filters.items()
+        ]
     )
-    second_metrics_layer = ", ".join(
-        [CORRELATION_SUM_METRIC.format(col=f"overall_{name}", ind=name) for name, filter in interesting_filters.items()]
-    )
-    third_metrics_layer = ", ".join(
-        [SUM_METRIC.format(col=f"sum_{name}", ind=name) for name, filter in interesting_filters.items()]
-    )
-    query = GRAB_INDEX_HISTOGRAM_QUERY.format(
-        metrics=metrics,
-        second_metrics_layer=second_metrics_layer,
-        third_metrics_layer=third_metrics_layer,
-        base_query=base_query,
-    )
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
 
 

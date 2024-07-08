@@ -16,6 +16,8 @@ POSITION_COLUMNS = [
     "dv_dp_points",
 ]
 
+THREE_DAYS = 60 * 24 * 3
+
 
 @dataclass
 class Table:
@@ -88,7 +90,7 @@ def get_columns_data_types(table):
     ]
 
     query = f"SELECT * FROM ({table}) LIMIT 1"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     columns_type = {
         k.lower(): v for k, v in data.dtypes.apply(lambda x: x.name).to_dict().items() if k not in uninteresting_columns
     }
@@ -101,10 +103,10 @@ def generate_meta_data_dicts(table, columns_data_types_list):
     return columns_distinguish_values
 
 
-def get_distinct_values_dict(table, columns_data_types_list):
+def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values=30):
     distinct_select = ",".join(
         [
-            f' array_agg(DISTINCT "{col}") AS "{col}" '
+            f' slice(array_agg(DISTINCT "{col}"), 1, {max_distinct_values}) AS "{col}" '
             for col, dtype in columns_data_types_list.items()
             if dtype == "object"
         ]
@@ -113,17 +115,14 @@ def get_distinct_values_dict(table, columns_data_types_list):
         return {}
 
     query = f"SELECT {distinct_select} FROM {table}"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     distinct_dict = data.to_dict("list")
     return distinct_dict
 
 
-def parse_distinct_dict(distinct_dict, max_distinct_values=30):
+def parse_distinct_dict(distinct_dict):
     columns_to_distinguish_values = {
-        col: [
-            {"label": val.strip(" "), "value": f"'{val.strip(' ')}'"}
-            for val in val_list[0].strip("[]").split(",")[:max_distinct_values]
-        ]
+        col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")]
         for col, val_list in distinct_dict.items()
     }
     return columns_to_distinguish_values
