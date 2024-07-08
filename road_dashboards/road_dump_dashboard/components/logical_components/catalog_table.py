@@ -21,20 +21,43 @@ from road_dashboards.road_dump_dashboard.components.logical_components.tables_pr
 
 run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
+all_columns = ["dump_name", "use_case", "user", "total_frames", "last_change", "hfov", "jira"]  # Define globally
 
 def layout():
-    shown_columns = ["dump_name", "use_case", "user", "total_frames", "last_change"]
-    catalog_data = pd.DataFrame(run_eval_db_manager.scan())[shown_columns]
+    default_unchecked = ["hfov", "jira"]
+    default_checked = [col for col in all_columns if col not in default_unchecked]
+
+    catalog_data = pd.DataFrame(run_eval_db_manager.scan())[all_columns]
     catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
     catalog_data_dict = catalog_data.to_dict("records")
+
+    column_selector = dbc.DropdownMenu(
+        label="Select Columns",
+        children=[
+            dbc.Checklist(
+                options=[{"label": col, "value": col} for col in all_columns],
+                value=default_checked,
+                id='column-selector',
+                inline=True,
+                switch=True,
+                className='dropdown-item',
+                inputClassName='me-2'
+            )
+        ],
+        right=True,
+        color="secondary",
+        style={"position": "absolute", "right": "10px", "top": "10px"}
+    )
+
     layout = html.Div(
         card_wrapper(
             [
                 dbc.Row(html.H2("Datasets Catalog", className="mb-5")),
+                dbc.Row(dbc.Col(column_selector, width={"size": 12})),
                 dbc.Row(
                     dash_table.DataTable(
                         id=DUMP_CATALOG,
-                        columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in shown_columns],
+                        columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in default_checked],
                         data=catalog_data_dict,
                         filter_action="native",
                         sort_action="native",
@@ -70,6 +93,13 @@ def layout():
     )
     return layout
 
+@callback(
+    Output(DUMP_CATALOG, 'columns'),
+    Input('column-selector', 'value')
+)
+def update_columns(selected_columns):
+    # Filter the original list of columns to maintain the order
+    return [{"name": col, "id": col} for col in all_columns if col in selected_columns]
 
 @callback(
     Output(TABLES, "data"),
@@ -91,14 +121,12 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
     return dumps, notification, dump_list_hash
 
-
 def init_tables(rows):
     tables = Tables(
         rows["dump_name"],
         **{table: rows[table].tolist() for table in rows.columns if table.endswith("_table") and any(rows[table])},
     ).__dict__
     return tables
-
 
 def parse_catalog_rows(rows, derived_virtual_selected_rows):
     rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
