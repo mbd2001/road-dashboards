@@ -3,7 +3,7 @@ from threading import Thread
 
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import Input, Output, State, callback, ctx, dash_table, html, no_update
+from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -16,7 +16,6 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
     RUN_EVAL_CATALOG,
-    SCENE_SIGNALS_LIST,
     UPDATE_RUNS_BTN,
     URL,
 )
@@ -29,8 +28,7 @@ from road_dashboards.road_eval_dashboard.components.layout_wrapper import loadin
 from road_dashboards.road_eval_dashboard.components.net_properties import Nets
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, add_state
 
-run_eval_db_manager = DBManager(table_name="algoroad_run_eval")
-run_eval_db_manager.primary_key = "run_name"
+run_eval_db_manager = DBManager(table_name="algoroad_run_eval", primary_key="run_name")
 
 
 def generate_catalog_layout():
