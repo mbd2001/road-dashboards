@@ -19,12 +19,12 @@ from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrap
 )
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Tables
 
-run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
+dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
 
 def layout():
     shown_columns = ["dump_name", "use_case", "user", "total_frames", "last_change"]
-    catalog_data = pd.DataFrame(run_eval_db_manager.scan())[shown_columns]
+    catalog_data = pd.DataFrame(dump_db_manager.scan())[shown_columns]
     catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
     catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(
@@ -83,19 +83,26 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     if not n_clicks or not derived_virtual_selected_rows:
         return no_update, no_update, no_update
 
-    rows = parse_catalog_rows(rows, derived_virtual_selected_rows)
-    dumps = init_tables(rows)
+    datasets_ids = parse_catalog_rows(rows, derived_virtual_selected_rows)["dump_name"]
+    datasets = [dump_db_manager.get_item(dataset_id) for dataset_id in datasets_ids]
+    datasets = pd.DataFrame(datasets)
+    dumps = init_tables(datasets)
+
     notification = dbc.Alert("Datasets loaded successfully!", color="success", dismissable=True)
 
-    dumps_list = list(rows["dump_name"])
+    dumps_list = list(datasets["dump_name"])
     dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
     return dumps, notification, dump_list_hash
 
 
-def init_tables(rows):
+def init_tables(datasets):
     tables = Tables(
-        rows["dump_name"],
-        **{table: rows[table].tolist() for table in rows.columns if table.endswith("_table") and any(rows[table])},
+        datasets["dump_name"],
+        **{
+            table: datasets[table].tolist()
+            for table in datasets.columns
+            if table.endswith("_table") and any(datasets[table])
+        },
     ).__dict__
     return tables
 

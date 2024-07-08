@@ -7,10 +7,7 @@ from dash import Dash, Input, Output, State, callback, dcc, html, no_update
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import TABLES, URL
 from road_dashboards.road_dump_dashboard.components.dashboard_layout import page_content, sidebar
-from road_dashboards.road_dump_dashboard.components.logical_components.catalog_table import (
-    init_tables,
-    run_eval_db_manager,
-)
+from road_dashboards.road_dump_dashboard.components.logical_components.catalog_table import dump_db_manager, init_tables
 from road_dashboards.road_dump_dashboard.components.logical_components.dcc_stores import init_dcc_stores
 
 app = Dash(
@@ -49,10 +46,10 @@ def init_run(tables_list, existing_tables):
     if not tables_list or existing_tables:
         return no_update
 
-    tables_list = json.loads(base64.b64decode(tables_list))
-    rows = [run_eval_db_manager.get_item(table) for table in tables_list]
-    rows = pd.DataFrame(rows)
-    tables = init_tables(rows)
+    datasets_ids = json.loads(base64.b64decode(tables_list))
+    datasets = [dump_db_manager.get_item(datasets_id) for datasets_id in datasets_ids]
+    datasets = pd.DataFrame(datasets)
+    tables = init_tables(datasets)
     return tables
 
 
