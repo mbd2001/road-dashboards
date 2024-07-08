@@ -23,7 +23,8 @@ run_eval_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key=
 
 
 def layout():
-    catalog_data = pd.DataFrame(run_eval_db_manager.scan()).drop(["batches", "populations", "split_conditions"], axis=1)
+    shown_columns = ["dump_name", "use_case", "user", "total_frames", "last_change"]
+    catalog_data = pd.DataFrame(run_eval_db_manager.scan())[shown_columns]
     catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
     catalog_data_dict = catalog_data.to_dict("records")
     layout = html.Div(
@@ -33,10 +34,7 @@ def layout():
                 dbc.Row(
                     dash_table.DataTable(
                         id=DUMP_CATALOG,
-                        columns=[
-                            {"name": i, "id": i, "deletable": False, "selectable": True}
-                            for i in ["dump_name", "use_case", "user", "total_frames", "last_change"]
-                        ],
+                        columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in shown_columns],
                         data=catalog_data_dict,
                         filter_action="native",
                         sort_action="native",
