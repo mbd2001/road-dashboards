@@ -16,6 +16,8 @@ POSITION_COLUMNS = [
     "dv_dp_points",
 ]
 
+THREE_DAYS = 60 * 24 * 3
+
 
 @dataclass
 class Table:
@@ -88,7 +90,7 @@ def get_columns_data_types(table):
     ]
 
     query = f"SELECT * FROM ({table}) LIMIT 1"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     columns_type = {
         k.lower(): v for k, v in data.dtypes.apply(lambda x: x.name).to_dict().items() if k not in uninteresting_columns
     }
@@ -113,7 +115,7 @@ def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values
         return {}
 
     query = f"SELECT {distinct_select} FROM {table}"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     distinct_dict = data.to_dict("list")
     return distinct_dict
 
