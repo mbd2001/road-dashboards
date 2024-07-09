@@ -33,7 +33,7 @@ from road_dashboards.road_eval_dashboard.pages.rem_page.utils import (
 )
 
 
-def get_settings_layout(tab):
+def get_settings_layout(tab, slider_value=0.3):
     return card_wrapper(
         [
             html.H6("Choose Error Threshold", style={"margin-top": 10}),
@@ -44,7 +44,7 @@ def get_settings_layout(tab):
                         min=0,
                         max=1,
                         step=0.1,
-                        value=0.3,
+                        value=slider_value,
                     ),
                 ],
                 style={"margin-top": 5},
@@ -79,8 +79,8 @@ def get_error_histogram_layout(tab):
     )
 
 
-def get_accuracy_layout(tab, extra_layout_after_setting=None):
-    layout_children = [get_settings_layout(tab)]
+def get_accuracy_layout(tab, extra_layout_after_setting=None, slider_value=0.3):
+    layout_children = [get_settings_layout(tab, slider_value)]
     if extra_layout_after_setting is not None:
         layout_children += [extra_layout_after_setting]
     return html.Div(
