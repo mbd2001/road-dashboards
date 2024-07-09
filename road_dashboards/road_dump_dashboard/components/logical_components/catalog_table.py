@@ -22,11 +22,7 @@ from road_dashboards.road_dump_dashboard.components.logical_components.tables_pr
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
-all_columns = ["dump_name", "use_case", "user", "total_frames", "last_change", "hfov", "jira"]  # Define globally
-default_unchecked = ["hfov", "jira"]
-default_checked = [col for col in all_columns if col not in default_unchecked]
-
-column_names = {
+table_columns = {
     "dump_name": "Dataset Name",
     "use_case": "Use Case",
     "user": "User",
@@ -35,6 +31,7 @@ column_names = {
     "hfov": "HFOV",
     "jira": "JIRA",
 }
+default_unchecked_columns = ["hfov", "jira"]
 
 
 def get_column_selector():
@@ -42,9 +39,9 @@ def get_column_selector():
         label="Select Columns",
         children=[
             dbc.Checklist(
-                options=[{"label": column_names[col], "value": col} for col in all_columns],
-                value=default_checked,
-                id="column-selector",
+                options=table_columns,
+                value=[col for col in table_columns if col not in default_unchecked_columns],
+                id=COLUMN_SELECTOR,
                 inline=False,
                 className="dropdown-item",
                 inputClassName="me-2",
@@ -57,11 +54,11 @@ def get_column_selector():
 
 
 def get_data_table():
-    catalog_data = pd.DataFrame(dump_db_manager.scan())[all_columns]
+    catalog_data = pd.DataFrame(dump_db_manager.scan(), columns=table_columns.keys())
     catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
     catalog_data_dict = catalog_data.to_dict("records")
 
-    columns = [{"name": column_names[col], "id": col} for col in all_columns if col in default_checked]
+    columns = [{"name": name, "id": col} for col, name in table_columns.items() if col not in default_unchecked_columns]
 
     return dash_table.DataTable(
         id=DUMP_CATALOG,
@@ -112,8 +109,7 @@ def layout():
 
 @callback(Output(DUMP_CATALOG, "columns"), Input(COLUMN_SELECTOR, "value"))
 def update_columns(selected_columns):
-    # Filter the original list of columns to maintain the order
-    return [{"name": column_names.get(col, col), "id": col} for col in all_columns if col in selected_columns]
+    return [{"name": name, "id": col} for col, name in table_columns.items() if col in selected_columns]
 
 
 @callback(
