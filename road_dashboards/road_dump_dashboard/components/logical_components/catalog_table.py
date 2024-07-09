@@ -18,6 +18,7 @@ from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrap
     card_wrapper,
     loading_wrapper,
 )
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Tables
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
