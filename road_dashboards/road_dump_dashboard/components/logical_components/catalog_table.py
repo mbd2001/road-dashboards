@@ -40,7 +40,7 @@ def get_column_selector():
         children=[
             dbc.Checklist(
                 options=table_columns,
-                value=[col for col in table_columns if col not in default_unchecked_columns],
+                value=[col for col in table_columns.keys() if col not in default_unchecked_columns],
                 id=COLUMN_SELECTOR,
                 inline=False,
                 className="dropdown-item",
@@ -59,7 +59,6 @@ def get_data_table():
     catalog_data_dict = catalog_data.to_dict("records")
 
     columns = [{"name": name, "id": col} for col, name in table_columns.items() if col not in default_unchecked_columns]
-
     return dash_table.DataTable(
         id=DUMP_CATALOG,
         columns=columns,
