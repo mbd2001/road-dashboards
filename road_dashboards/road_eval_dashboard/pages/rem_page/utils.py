@@ -23,8 +23,8 @@ SEC_BINS = [r * 0.5 for r in range(0, 11)] + [998]
 SEC_FILTERS = {f"{sec}": f"rem_point_sec BETWEEN {sec} AND {SEC_BINS[i+1]}" for i, sec in enumerate(SEC_BINS[:-1])}
 REM_TYPE = "rem"
 REM_FILTERS = {
-    "Z": {"filters": Z_FILTERS},
-    "sec": {"filters": SEC_FILTERS},
+    "gt_first_painted_point_z": {"filters": Z_FILTERS},
+    "gt_first_painted_point_sec": {"filters": SEC_FILTERS},
     "road_type": {"filters": ROAD_TYPE_FILTERS},
     "lane_mark_type": {"filters": LANE_MARK_TYPE_FILTERS},
     "event": {"filters": EVENT_FILTERS},
@@ -106,7 +106,7 @@ def get_rem_fig(
         role=role,
     )
     data, _ = run_query_with_nets_names_processing(query)
-    filter_name_to_display = filter_name.replace("_", " ").capitalize()
+    filter_name_to_display = filter_name.replace("_", " ").title()
     data = data.sort_values(by="net_id")
     fig = draw_meta_data_filters(
         data,
