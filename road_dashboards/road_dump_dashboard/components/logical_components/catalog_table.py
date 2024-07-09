@@ -7,8 +7,8 @@ from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
-    DUMP_CATALOG,
     COLUMN_SELECTOR,
+    DUMP_CATALOG,
     LOAD_NETS_DATA_NOTIFICATION,
     TABLES,
     UPDATE_RUNS_BTN,
@@ -32,8 +32,9 @@ column_names = {
     "total_frames": "Total Frames",
     "last_change": "Last Change",
     "hfov": "HFOV",
-    "jira": "JIRA"
+    "jira": "JIRA",
 }
+
 
 def get_column_selector():
     return dbc.DropdownMenu(
@@ -42,16 +43,17 @@ def get_column_selector():
             dbc.Checklist(
                 options=[{"label": column_names[col], "value": col} for col in all_columns],
                 value=default_checked,
-                id='column-selector',
+                id="column-selector",
                 inline=False,
-                className='dropdown-item',
-                inputClassName='me-2'
+                className="dropdown-item",
+                inputClassName="me-2",
             )
         ],
         right=True,
         color="secondary",
-        style={"position": "absolute", "right": "10px", "top": "10px"}
+        style={"position": "absolute", "right": "10px", "top": "10px"},
     )
+
 
 def get_data_table():
     catalog_data = pd.DataFrame(dump_db_manager.scan())[all_columns]
@@ -89,6 +91,7 @@ def get_data_table():
         },
     )
 
+
 def layout():
     layout = html.Div(
         card_wrapper(
@@ -105,13 +108,12 @@ def layout():
     )
     return layout
 
-@callback(
-    Output(DUMP_CATALOG, 'columns'),
-    Input(COLUMN_SELECTOR, 'value')
-)
+
+@callback(Output(DUMP_CATALOG, "columns"), Input(COLUMN_SELECTOR, "value"))
 def update_columns(selected_columns):
     # Filter the original list of columns to maintain the order
     return [{"name": column_names.get(col, col), "id": col} for col in all_columns if col in selected_columns]
+
 
 @callback(
     Output(TABLES, "data"),
