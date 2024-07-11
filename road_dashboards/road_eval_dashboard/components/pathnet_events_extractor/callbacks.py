@@ -34,7 +34,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_alert_message, create_dropdown_options_list
 
-BOOKMARKS_COLUMNS = ["batch_num", "sample_index"]
+BOOKMARKS_COLUMNS = ["batch_num", "clip_name", "grabindex"]
 EXPLORER_PARAMS = """ 
     --dataset_names {dataset} 
     --population {population} 
@@ -100,8 +100,8 @@ def check_build_events_input(n_clicks, meta_data_columns, mandatory_args):
     if not n_clicks:
         return False, ""
 
-    if not all(mandatory_column in meta_data_columns for mandatory_column in ["sample_index", "batch_num"]):
-        return False, "This eval's meta-data is missing of (sample_index, batch_num) columns"
+    if not all(mandatory_column in meta_data_columns for mandatory_column in BOOKMARKS_COLUMNS):
+        return False, f"meta-data is missing one of {BOOKMARKS_COLUMNS} columns"
 
     if not all(mandatory_args):
         return False, "Please specify an option for each dropdown."
@@ -121,12 +121,9 @@ def check_events_df_sanity(events_df):
 
 
 def converts_events_df_to_bookmarks_json(events_df):
+    df_as_bookmarks = events_df[BOOKMARKS_COLUMNS]
+
     comment_columns = [col for col in events_df.columns if col not in BOOKMARKS_COLUMNS]
-
-    df_as_bookmarks = pd.DataFrame()
-
-    for bookmark_col in BOOKMARKS_COLUMNS:
-        df_as_bookmarks[bookmark_col] = events_df[bookmark_col].astype(int)
 
     df_as_bookmarks["comment"] = events_df[comment_columns].apply(
         lambda row: "; ".join(f"{col}={val}" for col, val in row.items()), axis=1
@@ -163,6 +160,7 @@ def get_events_df(dist, dp_source, meta_data_cols, meta_data_filters, metric, ne
         meta_data=net["meta_data"],
         meta_data_filters=meta_data_filters,
         meta_data_columns=meta_data_cols,
+        bookmarks_columns=BOOKMARKS_COLUMNS,
         dp_source=dp_source,
         role=([f"'{role}'", f"'unmatched-{role}'"] if metric == "false" else role),
         dist=float(dist),
@@ -170,6 +168,7 @@ def get_events_df(dist, dp_source, meta_data_cols, meta_data_filters, metric, ne
         order=order,
     )
     df, _ = run_query_with_nets_names_processing(query)
+    df = df.drop_duplicates(subset=BOOKMARKS_COLUMNS + ["dp_id", "matched_dp_id"])
     df = df.head(samples_num if samples_num else DEFAULT_SAMPLES_NUM)
     return df
 
