@@ -643,6 +643,7 @@ def generate_pathnet_events_query(
     meta_data,
     meta_data_filters,
     meta_data_columns,
+    bookmarks_columns,
     dp_source,
     role,
     dist,
@@ -651,7 +652,7 @@ def generate_pathnet_events_query(
 ):
     if "frame_has_labels_mf" in meta_data_columns:
         meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
-    extra_columns = ["dp_id", "matched_dp_id", "match_score"]  # "batch_num"
+    extra_columns = ["dp_id", "matched_dp_id", "match_score"]
     base_query = generate_base_query(
         data_tables, meta_data, meta_data_filters=meta_data_filters, role=role, extra_columns=extra_columns
     )
@@ -664,7 +665,7 @@ def generate_pathnet_events_query(
         dist_column=dist_column, operator=operator, dist_thresh=dist_thresh, dp_source=dp_source
     )
 
-    selected_columns = f"clip_name, grabIndex, {dist_column}, batch_num, sample_index, " + ", ".join(extra_columns)
+    selected_columns = ", ".join(bookmarks_columns + extra_columns + [dist_column])
     query = EXTRACT_EVENT_QUERY.format(
         selected_columns=selected_columns, base_query=base_query, metrics_cmd=metrics_cmd, order_cmd=order_cmd
     )
