@@ -137,13 +137,11 @@ layout = html.Div(
 
 
 def get_tab_layout(tab):
-    return html.Div(
-        [get_painted_by_Z_layout(tab)]
-        + [
-            get_base_graph_layout(filter_name, tab, sort_by_dist=filter_props.get("sort_by_dist", False))
-            for filter_name, filter_props in PAINTED_FILTERS.items()
-        ]
-    )
+    filter_graphs = [
+        get_base_graph_layout(filter_name, tab, sort_by_dist=filter_props.get("sort_by_dist", False))
+        for filter_name, filter_props in PAINTED_FILTERS.items()
+    ]
+    return html.Div([get_painted_by_Z_layout(tab)] + filter_graphs)
 
 
 @callback(Output(PAINTED_TABS_CONTENT, "children"), Input(PAINTED_TABS, "value"))
