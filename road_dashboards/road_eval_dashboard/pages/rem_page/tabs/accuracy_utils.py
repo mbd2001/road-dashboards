@@ -33,7 +33,7 @@ from road_dashboards.road_eval_dashboard.pages.rem_page.utils import (
 )
 
 
-def get_settings_layout(tab):
+def get_settings_layout(tab, slider_value=0.3):
     return card_wrapper(
         [
             html.H6("Choose Error Threshold", style={"margin-top": 10}),
@@ -44,7 +44,7 @@ def get_settings_layout(tab):
                         min=0,
                         max=1,
                         step=0.1,
-                        value=0.2,
+                        value=slider_value,
                     ),
                 ],
                 style={"margin-top": 5},
@@ -79,11 +79,10 @@ def get_error_histogram_layout(tab):
     )
 
 
-def get_accuracy_layout(tab, extra_layout_after_setting=None):
-    layout_children = [get_settings_layout(tab)]
+def get_accuracy_layout(tab, extra_layout_after_setting=None, slider_value=0.3):
+    layout_children = [get_settings_layout(tab, slider_value)]
     if extra_layout_after_setting is not None:
         layout_children += [extra_layout_after_setting]
-    layout_children += [get_error_histogram_layout(tab)]
     return html.Div(
         layout_children
         + [
@@ -92,6 +91,7 @@ def get_accuracy_layout(tab, extra_layout_after_setting=None):
             )
             for filter_name, filter_props in REM_FILTERS.items()
         ]
+        + [get_error_histogram_layout(tab)]
     )
 
 
@@ -183,7 +183,7 @@ def get_none_dist_graph(meta_data_filters, role, source, error_threshold, nets, 
         nets=nets,
         interesting_filters=interesting_filters,
         effective_samples=effective_samples,
-        filter_name=filter_name,
+        filter_name=filter_name.replace("_", " ").title(),
         source=source,
         error_threshold=error_threshold,
         role=role,
@@ -248,7 +248,7 @@ def get_dist_graph(meta_data_filters, role, source, error_threshold, sort_by_dis
         nets=nets,
         interesting_filters=interesting_filters,
         effective_samples=effective_samples,
-        filter_name=filter_name,
+        filter_name=filter_name.replace("_", " ").title(),
         source=source,
         error_threshold=error_threshold,
         role=role,
