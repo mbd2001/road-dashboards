@@ -28,10 +28,10 @@ table_columns = {
     "user": "User",
     "total_frames": "Total Frames",
     "last_change": "Last Change",
-    "hfov": "HFOV",
+    "brain": "Brain",
     "jira": "JIRA",
 }
-default_unchecked_columns = ["hfov", "jira"]
+default_unchecked_columns = ["brain", "jira"]
 
 
 def get_column_selector():
