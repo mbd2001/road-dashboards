@@ -89,13 +89,15 @@ EMDP_VIEW_RANGE_HISTOGRAM_NORM = "emdp_view_range_histogram_norm"
 EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC = "emdp_view_range_histogram_by_sec"
 
 # rem page
-REM_ACCURACY_3D_SOURCE_DROPDOWN = "rem-accuracy-3d-source-dropdown"
+REM_SOURCE_DROPDOWN = "rem-source-dropdown"
 REM_ACCURACY_ERROR_THRESHOLD_SLIDER = "rem-accuracy-error-threshold-slider"
 REM_TABS_CONTENT = "rem-tabs-content"
 REM_TABS = "rem-tabs"
-REM_ERROR_HISTOGRAM = "rem_error_histogram"
-REM_ERROR_HISTOGRAM_Z_OR_SEC = "rem_error_histogram_z_or_sec"
+REM_AVERAGE_ERROR = "rem_error_histogram"
+REM_AVERAGE_ERROR_Z_OR_SEC = "rem_error_histogram_z_or_sec"
 REM_ROLES_DROPDOWN = "rem-roles-dropdown"
+REM_OVERALL_ACCURATE = "rem-overall-accurate"
+REM_IGNORE_COUNT = "rem-ignore-count"
 
 # painted
 PAINTED_ROLES_DROPDOWN = "painted-roles-dropdown"
@@ -105,7 +107,7 @@ PAINTED_TABS = "painted-tabs"
 # width page
 WIDTH_ROLES_DROPDOWN = "width-roles-dropdown"
 WIDTH_3D_SOURCE_DROPDOWN = "width-3d-source-dropdown"
-WIDTH_ERROR_HISTOGRAM = "width_error_histogram"
+WIDTH_AVERAGE_ERROR = "width_error_histogram"
 
 # counters
 POPULATION_STATE = "population_state"

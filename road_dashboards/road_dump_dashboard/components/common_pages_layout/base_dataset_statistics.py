@@ -8,13 +8,13 @@ from road_dashboards.road_dump_dashboard.components.common_pages_layout import (
 )
 
 
-def layout(objs_name, main_table, meta_data_table=None):
+def layout(objs_name):
     objs_layout = html.Div(
         dbc.Row(
             [
                 dbc.Col(population_card.layout),
                 dbc.Col(intersection_data_switch.layout),
-                dbc.Col(objs_count_card.layout(objs_name, main_table, meta_data_table)),
+                dbc.Col(objs_count_card.layout(objs_name)),
             ]
         )
     )

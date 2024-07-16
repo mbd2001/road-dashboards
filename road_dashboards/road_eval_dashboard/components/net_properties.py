@@ -29,7 +29,8 @@ class NetInfo:
 
 @dataclass
 class Nets:
-    def __init__(self, net_names, checkpoints, use_cases, populations, datasets, **kwargs):
+    def __init__(self, run_names, net_names, checkpoints, use_cases, populations, datasets, **kwargs):
+        self.run_names = run_names.tolist()
         self.names = [
             f"{net_name}_{checkpoint}_{use_case}"
             for net_name, checkpoint, use_case in zip(net_names, checkpoints, use_cases)

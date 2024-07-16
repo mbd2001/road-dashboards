@@ -15,7 +15,6 @@ LANE_MARK_TYPE_FILTERS = {
     "solid_dashed": "rightType_soliddashed = TRUE OR leftType_soliddashed = TRUE",
     "bottsdots": "rightType_botsdots = TRUE OR leftType_botsdots = TRUE",
     "deceleration": "rightType_deceleration = TRUE OR rightType_decelerationsolid = TRUE OR rightType_decelerationdashed = TRUE OR leftType_deceleration = TRUE OR leftType_decelerationsolid = TRUE OR leftType_decelerationdashed = TRUE",
-    "wide_dlm": "max_dlm_width > 0.32",
 }
 
 LANE_MARK_COLOR_FILTERS = {
@@ -92,11 +91,6 @@ DIST_FROM_CURVE_VMAX_15_FILTERS = get_dist_from_curve_filters("15", dist_from_cu
 DIST_FROM_CURVE_VMAX_25_FILTERS = get_dist_from_curve_filters("25", dist_from_curve_vmax_filters[1])
 DIST_FROM_CURVE_VMAX_35_FILTERS = get_dist_from_curve_filters("35", dist_from_curve_vmax_filters[2])
 
-VMAX_BINS_FILTERS = {
-    "vmax_ignore": "vmax_full_range = -1",
-    **VMAX_BINS_FILTERS,
-    f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35",
-}
 
 EVENT_FILTERS = {
     "junction": "dist_to_intersection BETWEEN 0 AND 30",
@@ -144,9 +138,5 @@ ALL_FILTERS = {
     **EVENT_FILTERS,
     **WEATHER_FILTERS,
     **MAX_SPEED_FILTERS,
-    **VMAX_BINS_FILTERS,
-    **DIST_FROM_CURVE_VMAX_35_FILTERS,
-    **DIST_FROM_CURVE_VMAX_25_FILTERS,
-    **DIST_FROM_CURVE_VMAX_15_FILTERS,
     **LM_3D_INTRESTING_FILTERS,
 }

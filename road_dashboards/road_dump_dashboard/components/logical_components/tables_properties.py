@@ -1,10 +1,22 @@
-import re
 from dataclasses import dataclass, field
 from itertools import zip_longest
 from queue import Queue
 from threading import Thread
 
 from road_database_toolkit.athena.athena_utils import query_athena
+
+POSITION_COLUMNS = [
+    "half_width",
+    "pos",
+    "pos_X",
+    "pos_Z",
+    "ds_y_off",
+    "de_y_off",
+    "dp_points",
+    "dv_dp_points",
+]
+
+THREE_DAYS = 60 * 24 * 3
 
 
 @dataclass
@@ -56,7 +68,11 @@ def generate_table_instance(name, tables, dump_names):
         return Table(name, tables_dict)
 
     columns_type = get_columns_data_types(table)
-    relevant_columns_type = {col: dtype for col, dtype in columns_type.items() if not re.search(r"(_|.)\d+$", col)}
+    relevant_columns_type = {
+        col: dtype
+        for col, dtype in columns_type.items()
+        if not any(col.startswith(pos_col) for pos_col in POSITION_COLUMNS)
+    }
 
     columns_options = parse_columns_options(relevant_columns_type)
     columns_distinguish_values = generate_meta_data_dicts(table, relevant_columns_type)
@@ -74,7 +90,7 @@ def get_columns_data_types(table):
     ]
 
     query = f"SELECT * FROM ({table}) LIMIT 1"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     columns_type = {
         k.lower(): v for k, v in data.dtypes.apply(lambda x: x.name).to_dict().items() if k not in uninteresting_columns
     }
@@ -87,10 +103,10 @@ def generate_meta_data_dicts(table, columns_data_types_list):
     return columns_distinguish_values
 
 
-def get_distinct_values_dict(table, columns_data_types_list):
+def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values=30):
     distinct_select = ",".join(
         [
-            f' array_agg(DISTINCT "{col}") AS "{col}" '
+            f' slice(array_agg(DISTINCT "{col}"), 1, {max_distinct_values}) AS "{col}" '
             for col, dtype in columns_data_types_list.items()
             if dtype == "object"
         ]
@@ -99,17 +115,14 @@ def get_distinct_values_dict(table, columns_data_types_list):
         return {}
 
     query = f"SELECT {distinct_select} FROM {table}"
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     distinct_dict = data.to_dict("list")
     return distinct_dict
 
 
-def parse_distinct_dict(distinct_dict, max_distinct_values=30):
+def parse_distinct_dict(distinct_dict):
     columns_to_distinguish_values = {
-        col: [
-            {"label": val.strip(" "), "value": f"'{val.strip(' ')}'"}
-            for val in val_list[0].strip("[]").split(",")[:max_distinct_values]
-        ]
+        col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")]
         for col, val_list in distinct_dict.items()
     }
     return columns_to_distinguish_values
@@ -120,20 +133,12 @@ def parse_columns_options(columns_to_type):
     return columns_options
 
 
-def get_value_from_tables_property_union(
-    key, main_tables, meta_data_tables=None, prop="columns_to_type", key_as_prefix=False
-):
+def get_value_from_tables_property_union(key, main_tables, meta_data_tables=None, prop="columns_to_type"):
     val = main_tables[prop].get(key)
     if val is None and meta_data_tables is not None:
         val = meta_data_tables[prop].get(key)
-    if val is not None or key_as_prefix is False:
-        return val
 
-    union_dicts = get_tables_property_union(main_tables, meta_data_tables, prop)
-    for dict_key, dict_val in union_dicts.items():
-        if dict_key.startswith(key):
-            return dict_val
-    return None
+    return val
 
 
 def get_tables_property_union(main_tables, meta_data_tables=None, prop="columns_options"):

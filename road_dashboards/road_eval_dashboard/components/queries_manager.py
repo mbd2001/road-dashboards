@@ -11,7 +11,7 @@ BASE_QUERY = """
     ({base_data})
     {intersect_filter}
     {stats_filters})
-    INNER JOIN {meta_data} USING (clip_name, grabIndex)
+    INNER JOIN ({meta_data}) USING (clip_name, grabIndex)
     WHERE TRUE {meta_data_filters}
     """
 
@@ -53,20 +53,6 @@ DYNAMIC_METRICS_QUERY = """
     {metrics}
     FROM ({base_query})
     GROUP BY ({group_by})
-    """
-
-GRAB_INDEX_HISTOGRAM_QUERY = """
-    SELECT
-    {third_metrics_layer}
-    FROM
-    (SELECT clip_name,
-    {second_metrics_layer}
-    FROM
-    (SELECT clip_name, grabIndex,
-    {metrics}
-    FROM ({base_query})
-    GROUP BY clip_name, grabIndex)
-    GROUP BY clip_name)
     """
 
 COMPARE_QUERY = """
@@ -157,24 +143,9 @@ COUNT_FILTER_METRIC = """
     AS "overall_{ind}"
     """
 
-LOG_COUNT_METRIC = """
-    LOG(2, COUNT(CASE WHEN {extra_filters} THEN 1 ELSE NULL END) + 1)
-    AS "overall_{ind}"
-    """
-
 COUNT_ALL_METRIC = """
     COUNT(*)
     AS {count_name}
-    """
-
-SUM_METRIC = """
-    SUM("{col}")
-    AS "sum_{ind}"
-    """
-
-CORRELATION_SUM_METRIC = """
-    SUM("{col}") - (POWER(SUM("{col}") - 1, 2)) / (SUM("{col}") + ((MAX(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END) - MIN(CASE WHEN "{col}" > 0 THEN grabIndex ELSE NULL END)) / 20))
-    AS "sum_{ind}"
     """
 
 EXTRACT_EVENT_METRIC = """
@@ -196,7 +167,7 @@ SUM_SUCCESS_RATE_METRIC = """
     """
 
 THRESHOLDS = np.concatenate(
-    (np.array([-1000]), np.linspace(-10, -1, 10), np.linspace(-1, 2, 31), np.linspace(2, 10, 9), np.array([1000]))
+    (np.array([-1000]), np.linspace(-5, -1, 5), np.linspace(-1, 2, 16), np.linspace(2, 6, 5), np.array([1000]))
 )
 
 ROC_THRESHOLDS = np.concatenate(
@@ -267,20 +238,12 @@ def generate_grab_index_hist_query(
 ):
     base_query = generate_base_query(data_tables, meta_data)
     metrics = ", ".join(
-        [LOG_COUNT_METRIC.format(extra_filters=f"({filter})", ind=name) for name, filter in interesting_filters.items()]
+        [
+            COUNT_FILTER_METRIC.format(extra_filters=f"({filter})", ind=name)
+            for name, filter in interesting_filters.items()
+        ]
     )
-    second_metrics_layer = ", ".join(
-        [CORRELATION_SUM_METRIC.format(col=f"overall_{name}", ind=name) for name, filter in interesting_filters.items()]
-    )
-    third_metrics_layer = ", ".join(
-        [SUM_METRIC.format(col=f"sum_{name}", ind=name) for name, filter in interesting_filters.items()]
-    )
-    query = GRAB_INDEX_HISTOGRAM_QUERY.format(
-        metrics=metrics,
-        second_metrics_layer=second_metrics_layer,
-        third_metrics_layer=third_metrics_layer,
-        base_query=base_query,
-    )
+    query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return query
 
 
@@ -415,6 +378,57 @@ def generate_compare_metric_query(
     )
 
 
+def generate_overall_stats_query(
+    data_tables,
+    meta_data,
+    label_col,
+    unavailable_value,
+    threshold,
+    meta_data_filters="",
+    extra_filters="",
+    base_extra_filters="",
+    extra_columns=[],
+    role="",
+):
+    COUNT_METRIC = """
+        CAST(COUNT(CASE WHEN ({label_col} {operator} {pred_col}) {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) as count_{ind}"""
+    metrics_list = []
+    for metric in [COUNT_METRIC, COMPARE_METRIC]:
+        metrics_list += [
+            metric.format(
+                label_col=label_col,
+                operator="=",
+                pred_col=unavailable_value,
+                extra_filters=extra_filters,
+                ind="unavailable",
+            ),
+            metric.format(
+                label_col=label_col,
+                operator="<=",
+                pred_col=f"{threshold} AND {label_col} >= 0",
+                extra_filters=f"OR {label_col} = -2 " + extra_filters,
+                ind="accurate",
+            ),
+            metric.format(
+                label_col=label_col,
+                operator=">",
+                pred_col=f"{threshold}",
+                extra_filters=extra_filters,
+                ind="inaccurate",
+            ),
+        ]
+    metrics = ", ".join(metrics_list)
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics=metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=base_extra_filters,
+        extra_columns=[label_col] + extra_columns,
+        role=role,
+    )
+
+
 def generate_sum_success_rate_metric_query(
     data_tables,
     meta_data,
@@ -456,7 +470,9 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
     role="",
 ):
     metrics = ", ".join(
-        SUM_SUCCESS_RATE_METRIC.format(label=label, pred=pred, extra_filters=f"{label} >= 0", ind=name)
+        SUM_SUCCESS_RATE_METRIC.format(
+            label=label, pred=pred, extra_filters=" AND ".join([f"{l} >= 0" for l in label.split("+")]), ind=name
+        )
         for name, (label, pred) in labels_to_preds.items()
     )
     base_query = generate_base_query(
@@ -464,19 +480,25 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns + [col for name, label_to_pred in labels_to_preds.items() for col in label_to_pred],
+        extra_columns=extra_columns
+        + [
+            col
+            for name, label_to_pred in labels_to_preds.items()
+            for cols_sum in label_to_pred
+            for col in cols_sum.split("+")
+        ],
         role=role,
     )
 
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
     SUM_METRIC = """
-        CAST(SUM(CASE WHEN {extra_filters} THEN "{col}" ELSE 0 END) AS DOUBLE)
+        CAST(SUM(CASE WHEN {extra_filters} THEN {col} ELSE 0 END) AS DOUBLE)
         AS "count_{ind}"
         """
     metrics = ", ".join(
         [
-            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} != -1")
+            SUM_METRIC.format(col=label, ind=name, extra_filters=" AND ".join([f"{l} >= 0" for l in label.split("+")]))
             for name, (label, pred) in labels_to_preds.items()
         ]
     )
@@ -621,6 +643,7 @@ def generate_pathnet_events_query(
     meta_data,
     meta_data_filters,
     meta_data_columns,
+    bookmarks_columns,
     dp_source,
     role,
     dist,
@@ -629,7 +652,7 @@ def generate_pathnet_events_query(
 ):
     if "frame_has_labels_mf" in meta_data_columns:
         meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
-    extra_columns = ["dp_id", "matched_dp_id", "match_score"]  # "batch_num"
+    extra_columns = ["dp_id", "matched_dp_id", "match_score"]
     base_query = generate_base_query(
         data_tables, meta_data, meta_data_filters=meta_data_filters, role=role, extra_columns=extra_columns
     )
@@ -642,7 +665,7 @@ def generate_pathnet_events_query(
         dist_column=dist_column, operator=operator, dist_thresh=dist_thresh, dp_source=dp_source
     )
 
-    selected_columns = f"clip_name, grabIndex, {dist_column}, batch_num, sample_index, " + ", ".join(extra_columns)
+    selected_columns = ", ".join(bookmarks_columns + extra_columns + [dist_column])
     query = EXTRACT_EVENT_QUERY.format(
         selected_columns=selected_columns, base_query=base_query, metrics_cmd=metrics_cmd, order_cmd=order_cmd
     )
@@ -742,6 +765,7 @@ def generate_lm_3d_query(
         base_extra_filters="confidence > 0 AND match <> -1",
         is_add_filters_count=True,
         intresting_filters=intresting_filters,
+        extra_filters=f'AND ("{base_column_name}_{{dist}}" < 999)',
     )
     return query
 
@@ -758,6 +782,7 @@ def get_dist_query(
     is_add_filters_count=False,
     intresting_filters=None,
     extra_columns=None,
+    extra_filters="",
 ):
     if intresting_filters is None:
         intresting_filters = {"": ""}
@@ -765,12 +790,16 @@ def get_dist_query(
         DIST_METRIC.format(
             thresh_filter=f"{operator} {thresh}",
             dist=sec,
-            extra_filters=f"AND {extra_filter}" if extra_filter_name else "",
+            extra_filters=(
+                f"{extra_filters.format(dist=sec)} AND {intresting_filter}"
+                if intresting_filter_name
+                else extra_filters.format(dist=sec)
+            ),
             base_dist_column_name=base_dist_column_name,
-            ind=extra_filter_name if extra_filter_name else sec,
+            ind=intresting_filter_name if intresting_filter_name else sec,
         )
         for sec, thresh in distances_dict.items()
-        for extra_filter_name, extra_filter in intresting_filters.items()
+        for intresting_filter_name, intresting_filter in intresting_filters.items()
     )
     count_metrics = (
         get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
