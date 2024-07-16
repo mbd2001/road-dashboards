@@ -383,10 +383,10 @@ def generate_overall_stats_query(
     meta_data,
     label_col,
     unavailable_value,
-    ignore_value,
     threshold,
     meta_data_filters="",
     extra_filters="",
+    base_extra_filters="",
     extra_columns=[],
     role="",
 ):
@@ -416,9 +416,6 @@ def generate_overall_stats_query(
                 extra_filters=extra_filters,
                 ind="inaccurate",
             ),
-            metric.format(
-                label_col=label_col, operator="=", pred_col=ignore_value, extra_filters=extra_filters, ind="ignore"
-            ),
         ]
     metrics = ", ".join(metrics_list)
     return get_query_by_metrics(
@@ -426,7 +423,7 @@ def generate_overall_stats_query(
         meta_data,
         metrics=metrics,
         meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
+        extra_filters=base_extra_filters,
         extra_columns=[label_col] + extra_columns,
         role=role,
     )
@@ -473,7 +470,9 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
     role="",
 ):
     metrics = ", ".join(
-        SUM_SUCCESS_RATE_METRIC.format(label=label, pred=pred, extra_filters=f"{label} >= 0", ind=name)
+        SUM_SUCCESS_RATE_METRIC.format(
+            label=label, pred=pred, extra_filters=" AND ".join([f"{l} >= 0" for l in label.split("+")]), ind=name
+        )
         for name, (label, pred) in labels_to_preds.items()
     )
     base_query = generate_base_query(
@@ -481,19 +480,25 @@ def generate_sum_success_rate_metric_by_Z_bins_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns + [col for name, label_to_pred in labels_to_preds.items() for col in label_to_pred],
+        extra_columns=extra_columns
+        + [
+            col
+            for name, label_to_pred in labels_to_preds.items()
+            for cols_sum in label_to_pred
+            for col in cols_sum.split("+")
+        ],
         role=role,
     )
 
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
     SUM_METRIC = """
-        CAST(SUM(CASE WHEN {extra_filters} THEN "{col}" ELSE 0 END) AS DOUBLE)
+        CAST(SUM(CASE WHEN {extra_filters} THEN {col} ELSE 0 END) AS DOUBLE)
         AS "count_{ind}"
         """
     metrics = ", ".join(
         [
-            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} >= 0")
+            SUM_METRIC.format(col=label, ind=name, extra_filters=" AND ".join([f"{l} >= 0" for l in label.split("+")]))
             for name, (label, pred) in labels_to_preds.items()
         ]
     )

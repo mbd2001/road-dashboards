@@ -34,6 +34,7 @@ extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/painted", name="Painted", order=10, **extra_properties.__dict__)
 Z_BINS = [0, 25, 50, 75, 100, 125, 150, 175, 200, 250, 300, 350, 999]
 TP_TAB = "tp"
+OVERALL_TAB = "overall"
 TN_TAB = "tn"
 PAINTED_TYPE = "painted"
 PAINTED_FILTERS = {
@@ -122,8 +123,9 @@ layout = html.Div(
         get_settings_layout(),
         dcc.Tabs(
             id=PAINTED_TABS,
-            value=TP_TAB,
+            value=OVERALL_TAB,
             children=[
+                dcc.Tab(label="Overall", value=OVERALL_TAB),
                 dcc.Tab(label="TP Rate", value=TP_TAB),
                 dcc.Tab(label="TN Rate", value=TN_TAB),
             ],
@@ -133,26 +135,18 @@ layout = html.Div(
     ]
 )
 
-tp_layout = html.Div(
-    [get_painted_by_Z_layout(TP_TAB)]
-    + [
-        get_base_graph_layout(filter_name, TP_TAB, sort_by_dist=filter_props.get("sort_by_dist", False))
-        for filter_name, filter_props in PAINTED_FILTERS.items()
-    ]
-)
 
-fp_layout = html.Div(
-    [get_painted_by_Z_layout(TN_TAB)]
-    + [
-        get_base_graph_layout(filter_name, TN_TAB, sort_by_dist=filter_props.get("sort_by_dist", False))
+def get_tab_layout(tab):
+    filter_graphs = [
+        get_base_graph_layout(filter_name, tab, sort_by_dist=filter_props.get("sort_by_dist", False))
         for filter_name, filter_props in PAINTED_FILTERS.items()
     ]
-)
+    return html.Div([get_painted_by_Z_layout(tab)] + filter_graphs)
 
 
 @callback(Output(PAINTED_TABS_CONTENT, "children"), Input(PAINTED_TABS, "value"))
 def render_content(tab):
-    return tp_layout if tab == TP_TAB else fp_layout
+    return get_tab_layout(tab)
 
 
 @callback(
@@ -267,24 +261,32 @@ def get_Z_graph(meta_data_filters, role, nets, effective_samples, graph_id):
 
 
 def get_labels_and_preds_by_tab(tab):
-    base_label_name = "gt_painted_count" if tab == TP_TAB else "gt_not_painted_count"
-    base_pred_name = "pred_true_positive" if tab == TP_TAB else "pred_true_negative"
     labels = []
     preds = []
-    for i, Z in enumerate(Z_BINS[:-1]):
-        next_Z = Z_BINS[i + 1]
-        labels.append(f"{base_label_name}_{Z}_{next_Z}")
-        preds.append(f"{base_pred_name}_{Z}_{next_Z}")
+    tabs = [tab] if tab != OVERALL_TAB else [TP_TAB, TN_TAB]
+    for t in tabs:
+        base_label_name = "gt_painted_count" if t == TP_TAB else "gt_not_painted_count"
+        base_pred_name = "pred_true_positive" if t == TP_TAB else "pred_true_negative"
+        for i, Z in enumerate(Z_BINS[:-1]):
+            next_Z = Z_BINS[i + 1]
+            labels.append(f"{base_label_name}_{Z}_{next_Z}")
+            preds.append(f"{base_pred_name}_{Z}_{next_Z}")
     return labels, preds
 
 
 def get_labels_to_preds_with_names_by_tab(tab):
-    base_label_name = "gt_painted_count" if tab == TP_TAB else "gt_not_painted_count"
-    base_pred_name = "pred_true_positive" if tab == TP_TAB else "pred_true_negative"
     labels_to_pred = {}
+    tabs = [tab] if tab != OVERALL_TAB else [TP_TAB, TN_TAB]
     for i, Z in enumerate(Z_BINS[:-1]):
         next_Z = Z_BINS[i + 1]
-        labels_to_pred[f"{Z}"] = (f"{base_label_name}_{Z}_{next_Z}", f"{base_pred_name}_{Z}_{next_Z}")
+        label_names = []
+        pred_names = []
+        for t in tabs:
+            base_label_name = "gt_painted_count" if t == TP_TAB else "gt_not_painted_count"
+            base_pred_name = "pred_true_positive" if t == TP_TAB else "pred_true_negative"
+            label_names.append(f"{base_label_name}_{Z}_{next_Z}")
+            pred_names.append(f"{base_pred_name}_{Z}_{next_Z}")
+        labels_to_pred[f"{Z}"] = ("+".join(label_names), "+".join(pred_names))
     return labels_to_pred
 
 

@@ -97,6 +97,7 @@ REM_AVERAGE_ERROR = "rem_error_histogram"
 REM_AVERAGE_ERROR_Z_OR_SEC = "rem_error_histogram_z_or_sec"
 REM_ROLES_DROPDOWN = "rem-roles-dropdown"
 REM_OVERALL_ACCURATE = "rem-overall-accurate"
+REM_IGNORE_COUNT = "rem-ignore-count"
 
 # painted
 PAINTED_ROLES_DROPDOWN = "painted-roles-dropdown"
