@@ -10,6 +10,7 @@ def draw_path_net_graph(
     role="non-host",
     hover=False,
     effective_samples={},
+    xaxis="Time (s)",
     score_func=lambda row, score_filter: row[f"score_{score_filter}"],
 ):
     fig = go.Figure()
@@ -39,7 +40,7 @@ def draw_path_net_graph(
         )
     fig.update_layout(
         title=f"<b>{role.title()} {title.title()}<b>",
-        xaxis_title="Time (s)",
+        xaxis_title=xaxis,
         yaxis_title=title.title(),
         xaxis=dict(constrain="domain"),
         yaxis=dict(range=[0, 1]),
