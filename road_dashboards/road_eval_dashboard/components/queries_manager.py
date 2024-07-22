@@ -177,7 +177,7 @@ THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-5, -1, 5), np.linspace(-1, 2, 16), np.linspace(2, 6, 5), np.array([1000]))
 )
 
-PATHNET_ACC_THRESHOLDS = np.arange(0.2, 2, .05)
+PATHNET_ACC_THRESHOLDS = np.arange(0.2, 2, 0.05)
 
 ROC_THRESHOLDS = np.concatenate(
     (
@@ -646,6 +646,7 @@ def generate_path_net_query(
     )
     return query
 
+
 def generate_path_net_miss_false_query(
     data_tables,
     meta_data,
@@ -986,7 +987,8 @@ def generate_pathnet_cummulative_query(
     role="",
 ):
     metrics = ", ".join(
-        PATHNET_THRESHOLD_METRIC.format(column=column, threshold=thresh, ind=ind) for ind, thresh in enumerate(PATHNET_ACC_THRESHOLDS)
+        PATHNET_THRESHOLD_METRIC.format(column=column, threshold=thresh, ind=ind)
+        for ind, thresh in enumerate(PATHNET_ACC_THRESHOLDS)
     )
     base_query = generate_base_query(
         data_tables,
@@ -996,9 +998,7 @@ def generate_pathnet_cummulative_query(
         role=role,
     )
 
-    final_query = DYNAMIC_METRICS_QUERY.format(
-        metrics=metrics, base_query=base_query, group_by="net_id"
-    )
+    final_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return final_query
 
 

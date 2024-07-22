@@ -1,13 +1,13 @@
 import dash_bootstrap_components as dbc
 import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
-
-from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_ROAD_FILTERS, \
-    PATHNET_MISS_FALSE_FILTERS
-from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
+from road_dashboards.road_eval_dashboard.components.common_filters import (
+    PATHNET_MISS_FALSE_FILTERS,
+    PATHNET_ROAD_FILTERS,
+)
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
@@ -24,13 +24,15 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_HOST_TPR,
     PATH_NET_MISSES_HOST,
     PATH_NET_MISSES_NEXT,
+    PATH_NET_MONOTONE_ACC_HOST,
+    PATH_NET_MONOTONE_ACC_NEXT,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_FILTERS,
     PATHNET_GT,
     PATHNET_PRED,
     ROLE_POPULATION_VALUE,
-    SPLIT_ROLE_POPULATION_DROPDOWN, PATH_NET_MONOTONE_ACC_HOST, PATH_NET_MONOTONE_ACC_NEXT,
+    SPLIT_ROLE_POPULATION_DROPDOWN,
 )
 from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import (
     generate_matrices_graphs,
@@ -43,13 +45,16 @@ from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.lay
     layout as events_extractor_card,
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
+    PATHNET_ACC_THRESHOLDS,
     distances,
     generate_avail_query,
     generate_count_query,
+    generate_path_net_miss_false_query,
     generate_path_net_query,
-    run_query_with_nets_names_processing, generate_path_net_miss_false_query, generate_pathnet_cummulative_query,
-    PATHNET_ACC_THRESHOLDS,
+    generate_pathnet_cummulative_query,
+    run_query_with_nets_names_processing,
 )
+from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
@@ -60,69 +65,76 @@ basic_operations = create_dropdown_options_list(
 
 IGNORE_OPTIONS = {0, 1}
 
+
 def get_cumulative_acc_layout():
     layout = []
     for i in range(2):
         layout.append(
             card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            graph_wrapper({"id": PATH_NET_MONOTONE_ACC_HOST, "ind": i}),
-                            width=6,
-                        ),
-                        dbc.Col(
-                            graph_wrapper({"id": PATH_NET_MONOTONE_ACC_NEXT, "ind": i}),
-                            width=6,
-                        ),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        html.Label(id={"id": f"acc threshold", "ind": i}, style={"text-align": "center", "fontSize": "20px"}),
-                        dcc.RangeSlider(
-                            id={"id": f"dist-column-slider", "ind": i}, min=0.5, max=5, step=0.5, value=[0.5]
-                        ),
-                    ]
-                ),
-            ]
-        )
+                [
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_MONOTONE_ACC_HOST, "ind": i}),
+                                width=6,
+                            ),
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_MONOTONE_ACC_NEXT, "ind": i}),
+                                width=6,
+                            ),
+                        ]
+                    ),
+                    dbc.Row(
+                        [
+                            html.Label(
+                                id={"id": f"acc threshold", "ind": i},
+                                style={"text-align": "center", "fontSize": "20px"},
+                            ),
+                            dcc.RangeSlider(
+                                id={"id": f"dist-column-slider", "ind": i}, min=0.5, max=5, step=0.5, value=[0.5]
+                            ),
+                        ]
+                    ),
+                ]
+            )
         )
     return layout
+
 
 def get_miss_false_layout():
     layout = []
     for p_filter in PATHNET_MISS_FALSE_FILTERS:
 
-        layout += [card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
-                            width=6,
-                        ),
-                    ]
-                ),
-            ]
-        ),
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            graph_wrapper({"id": PATH_NET_MISSES_HOST, "filter": p_filter}),
-                            width=6,
-                        ),
-                        dbc.Col(
-                            graph_wrapper({"id": PATH_NET_MISSES_NEXT, "filter": p_filter}),
-                            width=6,
-                        ),
-                    ]
-                ),
-            ]
-        )]
+        layout += [
+            card_wrapper(
+                [
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
+                                width=6,
+                            ),
+                        ]
+                    ),
+                ]
+            ),
+            card_wrapper(
+                [
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_MISSES_HOST, "filter": p_filter}),
+                                width=6,
+                            ),
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_MISSES_NEXT, "filter": p_filter}),
+                                width=6,
+                            ),
+                        ]
+                    ),
+                ]
+            ),
+        ]
         return layout
 
 
@@ -155,13 +167,11 @@ pos_layout = html.Div(
                     ]
                 ),
             ]
-        )]
-    +
-        get_cumulative_acc_layout()
-    +
-        get_miss_false_layout()
-        +
-        [
+        )
+    ]
+    + get_cumulative_acc_layout()
+    + get_miss_false_layout()
+    + [
         card_wrapper(
             [
                 dbc.Row(
@@ -354,13 +364,16 @@ def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, sli
         role="host",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    rename_dict = {'precision_' + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
+    rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
-    return draw_path_net_graph(df, list(df.columns)[1:],  "cummulative accuracy host", score_func=score_func, xaxis="Thresholds")
+    return draw_path_net_graph(
+        df, list(df.columns)[1:], "cummulative accuracy host", score_func=score_func, xaxis="Thresholds"
+    )
 
 
 def score_func(row, score_filter):
     return row[score_filter]
+
 
 @callback(
     Output({"id": PATH_NET_MONOTONE_ACC_NEXT, "ind": MATCH}, "figure"),
@@ -381,9 +394,12 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
         role="non-host",
     )
     df, _ = run_query_with_nets_names_processing(query)
-    rename_dict = {'precision_' + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
+    rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
-    return draw_path_net_graph(df, list(df.columns)[1:], "cummulative accuracy next", score_func=score_func, xaxis="Thresholds")
+    return draw_path_net_graph(
+        df, list(df.columns)[1:], "cummulative accuracy next", score_func=score_func, xaxis="Thresholds"
+    )
+
 
 @callback(
     Output(PATH_NET_ACC_NEXT, "figure"),
@@ -408,8 +424,6 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_value
     return draw_path_net_graph(df, distances, "accuracy")
 
 
-
-
 @callback(
     Output({"id": PATH_NET_FALSES_NEXT, "filter": MATCH}, "figure"),
     Input(MD_FILTERS, "data"),
@@ -430,11 +444,13 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         role=["'non-host'", "'unmatched-non-host'"],
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_meta_data_filters(df,
-                                  title="<b>False Next<b>",
-                                  interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
-                                  score_func=lambda row, score_filter: row[f"score_{score_filter}"],
-                                  hover=False)
+    return draw_meta_data_filters(
+        df,
+        title="<b>False Next<b>",
+        interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+        hover=False,
+    )
 
 
 @callback(
@@ -457,11 +473,13 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
         role=["'host'", "'unmatched-host'"],
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_meta_data_filters(df,
-                                  title=f"<b>Miss Host {filter_name}<b>",
-                                  interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
-                                  score_func=lambda row, score_filter: row[f"score_{score_filter}"],
-                                  hover=False)
+    return draw_meta_data_filters(
+        df,
+        title=f"<b>Miss Host {filter_name}<b>",
+        interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+        hover=False,
+    )
 
 
 @callback(
@@ -484,12 +502,13 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         role=["'non-host'", "'unmatched-non-host'"],
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_meta_data_filters(df,
-                                  title=f"<b>Miss Next {filter_name}<b>",
-                                  interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
-                                  score_func=lambda row, score_filter: row[f"score_{score_filter}"],
-                                  hover=False)
-
+    return draw_meta_data_filters(
+        df,
+        title=f"<b>Miss Next {filter_name}<b>",
+        interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+        hover=False,
+    )
 
 
 @callback(

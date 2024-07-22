@@ -11,7 +11,7 @@ PATHNET_ROAD_FILTERS = {
     "country": "country = TRUE",
     "urban": "urban = TRUE",
     "other": "(highway OR country OR urban) = FALSE",
-    "all": "(urban = TRUE or urban = FALSE)"
+    "all": "(urban = TRUE or urban = FALSE)",
 }
 
 LANE_MARK_TYPE_FILTERS = {
@@ -133,9 +133,7 @@ LM_3D_FILTERS = {
     "camh": CAM_HEIGHT_FILTERS,
 }
 
-PATHNET_MISS_FALSE_FILTERS = {
-    "road_type": PATHNET_ROAD_FILTERS
-}
+PATHNET_MISS_FALSE_FILTERS = {"road_type": PATHNET_ROAD_FILTERS}
 LM_3D_INTRESTING_FILTERS = {
     extra_filter_name: f"({extra_filter})"
     for filters_names, filters in LM_3D_FILTERS.items()
