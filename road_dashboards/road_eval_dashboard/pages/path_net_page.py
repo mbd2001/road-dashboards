@@ -451,6 +451,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, graph_id)
     return draw_meta_data_filters(
         df,
         title="<b>Falses<b>",
+        yaxis="False rate",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=False,
@@ -480,6 +481,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
     return draw_meta_data_filters(
         df,
         title=f"<b>Miss Host {filter_name}<b>",
+        yaxis="Miss rate host",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=False,
@@ -509,6 +511,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
     return draw_meta_data_filters(
         df,
         title=f"<b>Miss Next {filter_name}<b>",
+        yaxis="Miss rate non-host",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=False,
