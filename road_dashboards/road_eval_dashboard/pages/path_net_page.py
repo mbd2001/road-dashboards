@@ -58,6 +58,8 @@ basic_operations = create_dropdown_options_list(
     values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
 )
 
+IGNORE_OPTIONS = {0, 1}
+
 def get_cumulative_acc_layout():
     layout = []
     for i in range(2):
@@ -306,7 +308,7 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
         extra_columns=[split_role_population_values],
     )
     df, _ = run_query_with_nets_names_processing(query)
-    values = set(df[split_role_population_values]) + {0, 1}
+    values = set(df[split_role_population_values]) + IGNORE_OPTIONS
     return create_dropdown_options_list(labels=values)
 
 
