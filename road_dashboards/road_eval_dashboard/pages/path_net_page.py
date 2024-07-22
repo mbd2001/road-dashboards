@@ -61,7 +61,8 @@ basic_operations = create_dropdown_options_list(
 def get_cumulative_acc_layout():
     layout = []
     for i in range(2):
-        card_wrapper(
+        layout.append(
+            card_wrapper(
             [
                 dbc.Row(
                     [
@@ -77,13 +78,14 @@ def get_cumulative_acc_layout():
                 ),
                 dbc.Row(
                     [
-                        html.Label("acc-threshold", style={"text-align": "center", "fontSize": "20px"}),
+                        html.Label(id={"id": f"acc threshold", "ind": i}, style={"text-align": "center", "fontSize": "20px"}),
                         dcc.RangeSlider(
-                            f"dist-column-slider_{i}", min=0.5, max=5, step=0.5, value=[0.5]
+                            id={"id": f"dist-column-slider", "ind": i}, min=0.5, max=5, step=0.5, value=[0.5]
                         ),
                     ]
                 ),
             ]
+        )
         )
     return layout
 
@@ -336,7 +338,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_value
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input("dist-column-slider", "value"),
+    Input({"id": f"dist-column-slider", "ind": MATCH}, "value"),
 )
 def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -363,7 +365,7 @@ def score_func(row, score_filter):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input("dist-column-slider", "value"),
+    Input({"id": f"dist-column-slider", "ind": MATCH}, "value"),
 )
 def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
