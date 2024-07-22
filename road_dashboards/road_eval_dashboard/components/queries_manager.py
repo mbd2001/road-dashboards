@@ -5,6 +5,9 @@ import numpy as np
 import pandas as pd
 from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
+PATHNET_IGNORE = 990
+PATHNET_BASE_DIST = 0.5
+
 BASE_QUERY = """
     SELECT * FROM
     (SELECT * FROM
@@ -78,6 +81,13 @@ FB_PRECISION_METRIC = """
     COUNT(CASE WHEN TRUE {extra_filters} THEN 1 ELSE NULL END)
     AS precision_{ind}
     """
+
+PATHNET_THRESHOLD_METRIC = """
+    CAST(COUNT(CASE WHEN "{column}" < {threshold} THEN 1 ELSE NULL END) AS DOUBLE) /
+    COUNT(*)
+    AS precision_{ind}
+    """
+
 
 ROC_STATS_METRIC = """
     CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tp_{ind},
@@ -169,6 +179,8 @@ SUM_SUCCESS_RATE_METRIC = """
 THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-5, -1, 5), np.linspace(-1, 2, 16), np.linspace(2, 6, 5), np.array([1000]))
 )
+
+PATHNET_ACC_THRESHOLDS = np.arange(0.2, 2, 0.05)
 
 ROC_THRESHOLDS = np.concatenate(
     (
@@ -615,7 +627,7 @@ def generate_path_net_query(
     meta_data,
     state,
     meta_data_filters="",
-    extra_columns=["split_role", "matched_split_role"],
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
     base_dists=[0.2, 0.5],
@@ -632,6 +644,30 @@ def generate_path_net_query(
         meta_data_filters,
         operator,
         role,
+        extra_columns=extra_columns,
+        base_extra_filters=extra_filters,
+    )
+    return query
+
+
+def generate_path_net_miss_false_query(
+    data_tables,
+    meta_data,
+    interesting_filters,
+    meta_data_filters="",
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
+    role="",
+    extra_filters="",
+):
+    query = get_dist_query(
+        "dist",
+        data_tables,
+        {PATHNET_BASE_DIST: PATHNET_IGNORE},
+        meta_data,
+        meta_data_filters,
+        ">",
+        role,
+        intresting_filters=interesting_filters,
         extra_columns=extra_columns,
         base_extra_filters=extra_filters,
     )
@@ -942,6 +978,32 @@ def generate_precision_query(
     final_query = DYNAMIC_METRICS_QUERY.format(
         metrics=metrics, base_query=base_query, group_by=group_by if interesting_filters else "net_id"
     )
+    return final_query
+
+
+def generate_pathnet_cummulative_query(
+    data_tables,
+    meta_data,
+    column,
+    meta_data_filters="",
+    extra_filters="",
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
+    role="",
+):
+    metrics = ", ".join(
+        PATHNET_THRESHOLD_METRIC.format(column=column, threshold=thresh, ind=ind)
+        for ind, thresh in enumerate(PATHNET_ACC_THRESHOLDS)
+    )
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        extra_columns=extra_columns,
+        extra_filters=extra_filters,
+        role=role,
+    )
+
+    final_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
     return final_query
 
 
