@@ -63,12 +63,13 @@ basic_operations = create_dropdown_options_list(
     values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
 )
 
-IGNORE_OPTIONS = {0, 1}
+PATHNET_IGNORE = 990
+PATHNET_BASE_DIST = 0.5
 
 
 def get_cumulative_acc_layout():
     layout = []
-    default_sec = [0.5, 3]
+    default_sec = [0.5, 2.5]
     for i in range(2):
         layout.append(
             card_wrapper(
@@ -93,7 +94,11 @@ def get_cumulative_acc_layout():
                                 style={"text-align": "center", "fontSize": "20px"},
                             ),
                             dcc.RangeSlider(
-                                id={"id": f"dist-column-slider", "ind": i}, min=0.5, max=5, step=0.5, value=[default_sec[i]]
+                                id={"id": f"dist-column-slider", "ind": i},
+                                min=0.5,
+                                max=5,
+                                step=0.5,
+                                value=[default_sec[i]],
                             ),
                         ]
                     ),
@@ -320,7 +325,7 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
         extra_columns=[split_role_population_values],
     )
     df, _ = run_query_with_nets_names_processing(query)
-    values = set(df[split_role_population_values]).join(IGNORE_OPTIONS)
+    values = set(df[split_role_population_values])
     return create_dropdown_options_list(labels=values)
 
 

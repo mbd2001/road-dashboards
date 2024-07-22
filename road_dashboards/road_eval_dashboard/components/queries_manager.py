@@ -5,6 +5,8 @@ import numpy as np
 import pandas as pd
 from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
+from road_dashboards.road_eval_dashboard.pages.path_net_page import PATHNET_BASE_DIST, PATHNET_IGNORE
+
 BASE_QUERY = """
     SELECT * FROM
     (SELECT * FROM
@@ -659,7 +661,7 @@ def generate_path_net_miss_false_query(
     query = get_dist_query(
         "dist",
         data_tables,
-        {0.5: 990},
+        {PATHNET_BASE_DIST: PATHNET_IGNORE},
         meta_data,
         meta_data_filters,
         ">",
@@ -983,7 +985,7 @@ def generate_pathnet_cummulative_query(
     meta_data,
     column,
     meta_data_filters="",
-    extra_filters="",
+    extra_filters=["split_role", "matched_split_role", "ignore_role"],
     role="",
 ):
     metrics = ", ".join(
