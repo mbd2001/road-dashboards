@@ -986,7 +986,8 @@ def generate_pathnet_cummulative_query(
     meta_data,
     column,
     meta_data_filters="",
-    extra_filters=["split_role", "matched_split_role", "ignore_role"],
+    extra_filters="",
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
 ):
     metrics = ", ".join(
@@ -997,6 +998,7 @@ def generate_pathnet_cummulative_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
+        extra_columns=extra_columns,
         extra_filters=extra_filters,
         role=role,
     )
