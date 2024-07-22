@@ -68,6 +68,7 @@ IGNORE_OPTIONS = {0, 1}
 
 def get_cumulative_acc_layout():
     layout = []
+    default_sec = [0.5, 3]
     for i in range(2):
         layout.append(
             card_wrapper(
@@ -87,11 +88,12 @@ def get_cumulative_acc_layout():
                     dbc.Row(
                         [
                             html.Label(
+                                "dist column (sec)",
                                 id={"id": f"acc threshold", "ind": i},
                                 style={"text-align": "center", "fontSize": "20px"},
                             ),
                             dcc.RangeSlider(
-                                id={"id": f"dist-column-slider", "ind": i}, min=0.5, max=5, step=0.5, value=[0.5]
+                                id={"id": f"dist-column-slider", "ind": i}, min=0.5, max=5, step=0.5, value=[default_sec[i]]
                             ),
                         ]
                     ),
@@ -160,7 +162,7 @@ pos_layout = html.Div(
                 ),
                 dbc.Row(
                     [
-                        html.Label("acc-threshold", style={"text-align": "center", "fontSize": "20px"}),
+                        html.Label("acc-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
                         dcc.RangeSlider(
                             id="acc-threshold-slider", min=0, max=2, step=0.1, value=[0.2, 0.5], allowCross=False
                         ),
@@ -318,7 +320,7 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
         extra_columns=[split_role_population_values],
     )
     df, _ = run_query_with_nets_names_processing(query)
-    values = set(df[split_role_population_values]) + IGNORE_OPTIONS
+    values = set(df[split_role_population_values]).join(IGNORE_OPTIONS)
     return create_dropdown_options_list(labels=values)
 
 
@@ -367,7 +369,7 @@ def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, sli
     rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
     return draw_path_net_graph(
-        df, list(df.columns)[1:], "cummulative accuracy host", score_func=score_func, xaxis="Thresholds"
+        df, list(df.columns)[1:], "cummulative accuracy host", score_func=score_func, xaxis="Thresholds (m)"
     )
 
 
@@ -397,7 +399,7 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
     rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
     return draw_path_net_graph(
-        df, list(df.columns)[1:], "cummulative accuracy next", score_func=score_func, xaxis="Thresholds"
+        df, list(df.columns)[1:], "cummulative accuracy next", score_func=score_func, xaxis="Thresholds (m)"
     )
 
 
@@ -446,7 +448,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, graph_id)
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title="<b>False Next<b>",
+        title="<b>Falses<b>",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=False,

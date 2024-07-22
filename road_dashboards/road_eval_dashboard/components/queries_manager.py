@@ -624,7 +624,7 @@ def generate_path_net_query(
     meta_data,
     state,
     meta_data_filters="",
-    extra_columns=["split_role", "matched_split_role"],
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
     base_dists=[0.2, 0.5],
@@ -652,7 +652,7 @@ def generate_path_net_miss_false_query(
     meta_data,
     interesting_filters,
     meta_data_filters="",
-    extra_columns=["split_role", "matched_split_role"],
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
 ):
