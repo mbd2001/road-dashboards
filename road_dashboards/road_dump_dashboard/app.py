@@ -54,4 +54,4 @@ def init_run(tables_list, existing_tables):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6013", debug=True)
+    app.run_server(host="0.0.0.0", port="6008", debug=True)
