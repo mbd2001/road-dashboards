@@ -5,7 +5,8 @@ import numpy as np
 import pandas as pd
 from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
-from road_dashboards.road_eval_dashboard.pages.path_net_page import PATHNET_BASE_DIST, PATHNET_IGNORE
+PATHNET_IGNORE = 990
+PATHNET_BASE_DIST = 0.5
 
 BASE_QUERY = """
     SELECT * FROM

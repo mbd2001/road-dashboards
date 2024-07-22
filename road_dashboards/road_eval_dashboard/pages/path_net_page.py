@@ -63,9 +63,6 @@ basic_operations = create_dropdown_options_list(
     values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
 )
 
-PATHNET_IGNORE = 990
-PATHNET_BASE_DIST = 0.5
-
 
 def get_cumulative_acc_layout():
     layout = []
