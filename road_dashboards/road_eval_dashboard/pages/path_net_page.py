@@ -66,7 +66,7 @@ basic_operations = create_dropdown_options_list(
 
 def get_cumulative_acc_layout():
     layout = []
-    default_sec = [0.5, 2.5]
+    default_sec = [0.5, 3.5]
     for i in range(2):
         layout.append(
             card_wrapper(
@@ -86,7 +86,7 @@ def get_cumulative_acc_layout():
                     dbc.Row(
                         [
                             html.Label(
-                                "dist column (sec)",
+                                "dist sec",
                                 id={"id": f"acc threshold", "ind": i},
                                 style={"text-align": "center", "fontSize": "20px"},
                             ),
@@ -114,10 +114,8 @@ def get_miss_false_layout():
                 [
                     dbc.Row(
                         [
-                            dbc.Col(
                                 graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
-                                width=6,
-                            ),
+
                         ]
                     ),
                 ]
@@ -346,7 +344,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_value
         base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy host", role="host")
+    return draw_path_net_graph(df, distances, "accuracy", role="host")
 
 
 @callback(
@@ -371,7 +369,7 @@ def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, sli
     rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
     return draw_path_net_graph(
-        df, list(df.columns)[1:], "cummulative accuracy host", score_func=score_func, xaxis="Thresholds (m)"
+        df, list(df.columns)[1:], "Accuracy Cummulative", score_func=score_func, xaxis="Thresholds (m)", role="host"
     )
 
 
@@ -401,7 +399,7 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
     rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
     return draw_path_net_graph(
-        df, list(df.columns)[1:], "cummulative accuracy next", score_func=score_func, xaxis="Thresholds (m)"
+        df, list(df.columns)[1:], "Accuracy Cummulative", score_func=score_func, xaxis="Thresholds (m)"
     )
 
 
@@ -452,6 +450,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         df,
         title="<b>Falses<b>",
         yaxis="False rate",
+        xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=False,
@@ -480,8 +479,9 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title=f"<b>Miss Host {filter_name}<b>",
-        yaxis="Miss rate host",
+        title=f"<b>Miss Host<b>",
+        yaxis="Miss rate",
+        xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=False,
@@ -510,8 +510,9 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title=f"<b>Miss Next {filter_name}<b>",
-        yaxis="Miss rate non-host",
+        title=f"<b>Miss non-host<b>",
+        yaxis="Miss rate",
+        xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=False,
