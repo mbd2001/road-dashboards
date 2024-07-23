@@ -114,8 +114,7 @@ def get_miss_false_layout():
                 [
                     dbc.Row(
                         [
-                                graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
-
+                            graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
                         ]
                     ),
                 ]
