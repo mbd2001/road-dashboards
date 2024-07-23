@@ -33,14 +33,14 @@ def get_overall_layout():
         [
             card_wrapper(
                 [
-                    dbc.Row(
-                        [graph_wrapper(REM_IGNORE_COUNT)],
-                    )
+                    dbc.Row(graph_wrapper(REM_OVERALL_ACCURATE)),
                 ]
             ),
             card_wrapper(
                 [
-                    dbc.Row(graph_wrapper(REM_OVERALL_ACCURATE)),
+                    dbc.Row(
+                        [graph_wrapper(REM_IGNORE_COUNT)],
+                    )
                 ]
             ),
         ]

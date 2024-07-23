@@ -10,7 +10,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.road_eval_dashboard.components.page_properties import PageProperties
 from road_dashboards.road_eval_dashboard.components.queries_manager import Roles, ZSources
-from road_dashboards.road_eval_dashboard.pages.rem_page.tabs import accuracy, availability, falses, painted, width
+from road_dashboards.road_eval_dashboard.pages.rem_page.tabs import accuracy, availability, painted, width
+from road_dashboards.road_eval_dashboard.pages.rem_page.tabs.falses import layout as falses
 from road_dashboards.road_eval_dashboard.pages.rem_page.utils import REM_TYPE
 
 extra_properties = PageProperties("line-chart")
