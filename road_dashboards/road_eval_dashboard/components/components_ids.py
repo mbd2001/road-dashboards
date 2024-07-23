@@ -123,6 +123,8 @@ PATH_NET_FALSES_NEXT = "path_net_losses_next"
 
 PATH_NET_ACC_HOST = "path_net_accuracy_host"
 PATH_NET_ACC_NEXT = "path_net_accuracy_next"
+PATH_NET_MONOTONE_ACC_HOST = "path_net_monotone_accuracy_host"
+PATH_NET_MONOTONE_ACC_NEXT = "path_net_monotone_accuracy_next"
 PATH_NET_MISSES_HOST = "path_net_misses_host"
 PATH_NET_MISSES_NEXT = "path_net_misses_next"
 
