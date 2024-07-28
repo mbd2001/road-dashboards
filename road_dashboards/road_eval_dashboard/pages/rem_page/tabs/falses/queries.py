@@ -1,5 +1,8 @@
-from road_dashboards.road_eval_dashboard.components.queries_manager import generate_base_data, \
-    generate_intersect_filter, DYNAMIC_METRICS_QUERY
+from road_dashboards.road_eval_dashboard.components.queries_manager import (
+    DYNAMIC_METRICS_QUERY,
+    generate_base_data,
+    generate_intersect_filter,
+)
 
 
 def get_falses_query(

@@ -7,9 +7,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     REM_ROLES_DROPDOWN,
     REM_SOURCE_DROPDOWN,
 )
-from road_dashboards.road_eval_dashboard.components.queries_manager import (
-    run_query_with_nets_names_processing,
-)
+from road_dashboards.road_eval_dashboard.components.queries_manager import run_query_with_nets_names_processing
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.pages.rem_page.tabs.falses.queries import get_falses_query
 from road_dashboards.road_eval_dashboard.pages.rem_page.utils import REM_FILTERS, REM_TYPE, get_base_graph_layout
@@ -158,7 +156,8 @@ def get_falses_fig(meta_data_filters, nets, interesting_filters, effective_sampl
 
 def get_falses_score(row, intresting_filter):
     score = (
-        (row[f"score_gt_{intresting_filter}"] + row[f"score_none_gt_{intresting_filter}"]) / row[f"count_{intresting_filter}"]
+        (row[f"score_gt_{intresting_filter}"] + row[f"score_none_gt_{intresting_filter}"])
+        / row[f"count_{intresting_filter}"]
         if row[f"count_{intresting_filter}"] != 0
         else 0
     )
