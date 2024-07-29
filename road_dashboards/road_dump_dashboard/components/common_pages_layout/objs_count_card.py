@@ -51,14 +51,8 @@ def get_frame_count(meta_data_filters, tables, population, intersection_on, path
         meta_data_filters=meta_data_filters,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
-    if len(tables["names"]) == 1:
-        frame_count_str = human_format_int(data.overall[0])
-    else:
-        frame_count_str = "\n".join(
-            [
-                f"{dump_name.title()}: {human_format_int(amount)}"
-                for dump_name, amount in zip(data.dump_name, data.overall)
-            ]
-        )
+    frame_count_str = "\n".join(
+        [f"{dump_name.title()}: {human_format_int(amount)}" for dump_name, amount in zip(data.dump_name, data.overall)]
+    )
 
     return frame_count_str
