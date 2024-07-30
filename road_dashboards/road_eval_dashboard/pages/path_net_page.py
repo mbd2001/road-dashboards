@@ -51,7 +51,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_count_query,
     generate_path_net_miss_false_query,
     generate_path_net_query,
-    generate_pathnet_cummulative_query,
+    generate_pathnet_cumulative_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
@@ -86,7 +86,7 @@ def get_cumulative_acc_layout():
                     dbc.Row(
                         [
                             html.Label(
-                                "dist sec",
+                                "dist (sec)",
                                 id={"id": f"acc threshold", "ind": i},
                                 style={"text-align": "center", "fontSize": "20px"},
                             ),
@@ -114,22 +114,17 @@ def get_miss_false_layout():
                 [
                     dbc.Row(
                         [
-                            graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
-                        ]
-                    ),
-                ]
-            ),
-            card_wrapper(
-                [
-                    dbc.Row(
-                        [
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
+                                width=4,
+                            ),
                             dbc.Col(
                                 graph_wrapper({"id": PATH_NET_MISSES_HOST, "filter": p_filter}),
-                                width=6,
+                                width=4,
                             ),
                             dbc.Col(
                                 graph_wrapper({"id": PATH_NET_MISSES_NEXT, "filter": p_filter}),
-                                width=6,
+                                width=4,
                             ),
                         ]
                     ),
@@ -343,7 +338,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_value
         base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy", role="host")
+    return draw_path_net_graph(df, distances, "accuracy", role="host", yaxis="% accurate dps")
 
 
 @callback(
@@ -356,7 +351,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_value
 def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
-    query = generate_pathnet_cummulative_query(
+    query = generate_pathnet_cumulative_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
         f"dist_{slider_values[0]}",
@@ -368,7 +363,13 @@ def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, sli
     rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
     return draw_path_net_graph(
-        df, list(df.columns)[1:], "Accuracy Cummulative", score_func=score_func, xaxis="Thresholds (m)", role="host"
+        df,
+        list(df.columns)[1:],
+        "Accuracy cumulative",
+        score_func=score_func,
+        xaxis="Thresholds (m)",
+        role="host",
+        yaxis="% accurate dps",
     )
 
 
@@ -386,7 +387,7 @@ def score_func(row, score_filter):
 def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
         return no_update
-    query = generate_pathnet_cummulative_query(
+    query = generate_pathnet_cumulative_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
         f"dist_{slider_values[0]}",
@@ -398,7 +399,12 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
     rename_dict = {"precision_" + str(i): PATHNET_ACC_THRESHOLDS[i] for i in range(len(PATHNET_ACC_THRESHOLDS))}
     df.rename(columns=rename_dict, inplace=True)
     return draw_path_net_graph(
-        df, list(df.columns)[1:], "Accuracy Cummulative", score_func=score_func, xaxis="Thresholds (m)"
+        df,
+        list(df.columns)[1:],
+        "Accuracy cumulative",
+        score_func=score_func,
+        xaxis="Thresholds (m)",
+        yaxis="% accurate dps",
     )
 
 
@@ -422,7 +428,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_value
         base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy")
+    return draw_path_net_graph(df, distances, "accuracy", yaxis="% accurate dps")
 
 
 @callback(
