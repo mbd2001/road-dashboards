@@ -90,6 +90,7 @@ def draw_meta_data_filters(
         yaxis_title=yaxis,
         xaxis=dict(constrain="domain"),
         font=dict(size=16),
+        legend=dict(orientation="h", yanchor="bottom", y=-1, xanchor="center", x=0.5),
     )
     return fig
 

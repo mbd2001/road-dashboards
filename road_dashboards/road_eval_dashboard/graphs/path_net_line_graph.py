@@ -11,6 +11,7 @@ def draw_path_net_graph(
     hover=False,
     effective_samples={},
     xaxis="Time (s)",
+    yaxis=None,
     score_func=lambda row, score_filter: row[f"score_{score_filter}"],
 ):
     fig = go.Figure()
@@ -38,15 +39,15 @@ def draw_path_net_graph(
                 ),
             )
         )
+    yaxis_title = yaxis or title
     fig.update_layout(
         title=f"<b>{role.title()} {title.title()}<b>",
         xaxis_title=xaxis,
-        yaxis_title=title.title(),
+        yaxis_title=yaxis_title.title(),
         xaxis=dict(constrain="domain"),
         yaxis=dict(range=[0, 1]),
         font=dict(size=16),
         legend_xanchor="center",
-        legend_x=0.5,
-        legend_y=-1,
+        legend=dict(orientation="h", yanchor="bottom", y=-1, xanchor="center", x=0.5),
     )
     return fig

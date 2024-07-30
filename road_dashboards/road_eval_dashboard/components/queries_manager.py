@@ -981,7 +981,7 @@ def generate_precision_query(
     return final_query
 
 
-def generate_pathnet_cummulative_query(
+def generate_pathnet_cumulative_query(
     data_tables,
     meta_data,
     column,
