@@ -354,7 +354,7 @@ def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, sli
     query = generate_pathnet_cumulative_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
-        f"dist_{slider_values[0]}",
+        f"dist_{float(slider_values[0])}",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="host",
@@ -390,7 +390,7 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
     query = generate_pathnet_cumulative_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
-        f"dist_{slider_values[0]}",
+        f"dist_{float(slider_values[0])}",
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
         role="non-host",
