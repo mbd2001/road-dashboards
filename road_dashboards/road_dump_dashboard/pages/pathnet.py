@@ -25,6 +25,12 @@ group_by_graphs = [
         name="Split Role Distribution", group_by_column="dp_split_role", ignore_filter="dp_split_role <> 'IGNORE'"
     ),
     GroupByGraphProperties(
+        name="left_boundary", group_by_column="left_boundary", ignore_filter="left_boundary <> 'IGNORE'"
+    ),
+    GroupByGraphProperties(
+        name="right_boundary", group_by_column="right_boundary", ignore_filter="right_boundary <> 'IGNORE'"
+    ),
+    GroupByGraphProperties(
         name="Primary Role Distribution",
         group_by_column="dp_primary_role",
         ignore_filter="dp_primary_role <> 'IGNORE'",
