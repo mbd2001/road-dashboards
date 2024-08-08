@@ -22,6 +22,11 @@ register_page(__name__, **page_properties.__dict__)
 
 group_by_graphs = [
     GroupByGraphProperties(
+        name="Type Distribution",
+        group_by_column="type",
+        full_grid_row=True,
+    ),
+    GroupByGraphProperties(
         name="Role Distribution",
         group_by_column="role",
     ),
@@ -30,13 +35,34 @@ group_by_graphs = [
         group_by_column="color",
     ),
     GroupByGraphProperties(
-        name="Type Distribution",
-        group_by_column="type",
+        name="Max View Range Distribution (m)",
+        group_by_column="max_view_range",
+        include_slider=True,
+        slider_default_value=0,
+        full_grid_row=True,
+        ignore_filter="max_view_range < 250",
     ),
     GroupByGraphProperties(
-        name="View Range Distribution",
-        group_by_column="view_range",
-        ignore_filter="view_range <> 0",
+        name="Dashed Length Distribution",
+        group_by_column="dashed_length",
+        include_slider=True,
+        slider_default_value=0,
+        ignore_filter="type LIKE '%ashed%'",
+    ),
+    GroupByGraphProperties(
+        name="Dashed Gap Distribution",
+        group_by_column="dashed_gap",
+        include_slider=True,
+        slider_default_value=0,
+        ignore_filter="type LIKE '%ashed%'",
+    ),
+    GroupByGraphProperties(
+        name="Lane Mark Width Distribution (m)",
+        group_by_column="avg_lm_width",
+        include_slider=True,
+        slider_default_value=-2,
+        ignore_filter="avg_lm_width BETWEEN 0 AND 1.5",
+        full_grid_row=True,
     ),
     GroupByGraphProperties(name="Batch Distribution", group_by_column="batch_num", full_grid_row=True),
 ]
