@@ -14,6 +14,8 @@ POSITION_COLUMNS = [
     "de_y_off",
     "dp_points",
     "dv_dp_points",
+    "dashed_length",
+    "dashed_gap",
 ]
 
 THREE_DAYS = 60 * 24 * 3
