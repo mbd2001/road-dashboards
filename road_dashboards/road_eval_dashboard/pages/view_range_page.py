@@ -217,8 +217,8 @@ def get_view_range_histogram_plot(
     df.loc[pd.isna(df[f"{max_Z_col}_pred"]), "overall"] = 0
     if cumulative_graph:
         cumsum_df = df.groupby(["net_id", f"{max_Z_col}_pred"]).sum()[::-1].groupby(level=0).cumsum().reset_index()
-        cumsum_df = cumsum_df.sort_values(["net_id", f"{max_Z_col}_pred"], ascending=False).reset_index()
-        df = df.sort_values(["net_id", f"{max_Z_col}_pred"], ascending=False).reset_index()
+        cumsum_df = cumsum_df.sort_values(["net_id", f"{max_Z_col}_pred"]).reset_index()
+        df = df.sort_values(["net_id", f"{max_Z_col}_pred"]).reset_index()
         cumsum_df["score"] = cumsum_df["overall"] / df.groupby(["net_id"])["overall"].transform("sum")
         df = cumsum_df
         xaxis_direction = "reversed"
