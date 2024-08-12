@@ -1332,7 +1332,7 @@ def run_query_with_nets_names_processing(query, database="run_eval_db"):
 def process_df_net_names(df, nets_names_col="net_id"):
     if nets_names_col in df.columns:
         df[nets_names_col] = df[nets_names_col].apply(process_net_name)
-        df = df.sort_values(nets_names_col, ascending=False)
+        df = df.sort_values(nets_names_col)
     return df
 
 
