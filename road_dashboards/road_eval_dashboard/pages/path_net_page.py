@@ -458,7 +458,8 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
-        hover=False,
+        hover=True,
+        count_items_name="dps",
     )
 
 
@@ -489,7 +490,8 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
-        hover=False,
+        hover=True,
+        count_items_name="dps",
     )
 
 
@@ -520,7 +522,8 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
-        hover=False,
+        hover=True,
+        count_items_name="dps",
     )
 
 
