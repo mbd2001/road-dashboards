@@ -669,6 +669,7 @@ def generate_path_net_miss_false_query(
         role,
         intresting_filters=interesting_filters,
         extra_columns=extra_columns,
+        is_add_filters_count=True,
         base_extra_filters=extra_filters,
     )
     return query
