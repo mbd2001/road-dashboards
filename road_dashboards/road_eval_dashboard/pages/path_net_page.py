@@ -26,6 +26,14 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
     PATH_NET_MONOTONE_ACC_NEXT,
+    PATH_NET_QUALITY_HOST_FN,
+    PATH_NET_QUALITY_HOST_FP,
+    PATH_NET_QUALITY_HOST_TN,
+    PATH_NET_QUALITY_HOST_TP,
+    PATH_NET_QUALITY_NEXT_FN,
+    PATH_NET_QUALITY_NEXT_FP,
+    PATH_NET_QUALITY_NEXT_TN,
+    PATH_NET_QUALITY_NEXT_TP,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_FILTERS,
@@ -49,6 +57,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     distances,
     generate_avail_query,
     generate_count_query,
+    generate_path_net_dp_quality_query,
     generate_path_net_miss_false_query,
     generate_path_net_query,
     generate_pathnet_cumulative_query,
@@ -62,6 +71,9 @@ basic_operations = create_dropdown_options_list(
     labels=["Greater", "Greater or equal", "Less", "Less or equal", "Equal", "Not Equal", "Is NULL", "Is not NULL"],
     values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
 )
+
+GREEN = "#e6fae8"
+RED = "#fae6e6"
 
 
 def get_cumulative_acc_layout():
@@ -198,7 +210,49 @@ pos_layout = html.Div(
         ),
     ]
 )
-TABS_LAYOUTS = {"positional": pos_layout, "roles": role_layout}
+
+quality_layout = html.Div(
+    [
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_HOST_TP), width=6),
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_NEXT_TP), width=6),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_HOST_TN), width=6),
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_NEXT_TN), width=6),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_HOST_FP), width=6),
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_NEXT_FP), width=6),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_HOST_FN), width=6),
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_NEXT_FN), width=6),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label("quality-threshold (score)", style={"text-align": "center", "fontSize": "20px"}),
+                        dcc.RangeSlider(
+                            id="quality-threshold-slider", min=-3, max=3, step=0.1, value=[0], allowCross=False
+                        ),
+                    ]
+                ),
+            ]
+        )
+    ]
+)
+
+TABS_LAYOUTS = {"positional": pos_layout, "roles": role_layout, "pathnet-quality-score": quality_layout}
 
 layout = html.Div(
     [
@@ -214,6 +268,7 @@ layout = html.Div(
                     children=[
                         dcc.Tab(label="pathnet-metrics-positional", value="positional"),
                         dcc.Tab(label="pathnet-metrics-roles", value="roles"),
+                        dcc.Tab(label="DPs Quality", value="pathnet-quality-score"),
                     ],
                 ),
             ]
@@ -696,3 +751,269 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
         max_val=10,
         bins_factor=0.1,
     )
+
+
+@callback(
+    Output(PATH_NET_QUALITY_HOST_TP, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_host_tp(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = "<"
+    quality_operator = ">"
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        role="host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df, cols=distances, title="DPs Quality Score - TP", role="host", yaxis="% hit", plot_bgcolor=GREEN
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_NEXT_TP, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_next_tp(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = "<"
+    quality_operator = ">"
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role="non-host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df, cols=distances, title="DPs Quality Score - TP", role="non-host", yaxis="% hit", plot_bgcolor=GREEN
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_HOST_TN, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_host_tn(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+    acc_dist_operator = ">"
+    quality_operator = "<="
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role="host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df,
+        cols=distances,
+        title="DPs Quality Score - TN",
+        role="host",
+        yaxis="% correct rejection",
+        plot_bgcolor=GREEN,
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_NEXT_TN, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_next_tn(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+    acc_dist_operator = ">"
+    quality_operator = "<="
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role="non-host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df,
+        cols=distances,
+        title="DPs Quality Score - TN",
+        role="non-host",
+        yaxis="% correct rejection",
+        plot_bgcolor=GREEN,
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_HOST_FP, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_host_fp(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = "<"
+    quality_operator = "<="
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        role="host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df, cols=distances, title="DPs Quality Score - FP", role="host", yaxis="% false alarm", plot_bgcolor=RED
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_NEXT_FP, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_next_fp(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = "<"
+    quality_operator = "<="
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role="non-host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df,
+        cols=distances,
+        title="DPs Quality Score - FP",
+        role="non-host",
+        yaxis="% false alarm",
+        plot_bgcolor=RED,
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_HOST_FN, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_host_fn(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = ">"
+    quality_operator = ">"
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        role="host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df, cols=distances, title="DPs Quality Score - FN", role="host", yaxis="% miss", plot_bgcolor=RED
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_NEXT_FN, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_next_fp(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = ">"
+    quality_operator = ">"
+
+    query = generate_path_net_dp_quality_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role="non-host",
+        base_dists=[0.2, 0.5],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df, cols=distances, title="DPs Quality Score - FN", role="non-host", yaxis="% miss", plot_bgcolor=RED
+    )
+    return fig
