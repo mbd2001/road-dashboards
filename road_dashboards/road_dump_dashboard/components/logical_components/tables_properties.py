@@ -16,6 +16,8 @@ POSITION_COLUMNS = [
     "dv_dp_points",
     "dashed_length",
     "dashed_gap",
+    "dashed_start_y",
+    "dashed_end_y",
 ]
 
 THREE_DAYS = 60 * 24 * 3
@@ -85,7 +87,6 @@ def generate_table_instance(name, tables, dump_names):
 
 def get_columns_data_types(table):
     uninteresting_columns = [
-        "s3_path",
         "pred_name",
         "dump_name",
         "population",

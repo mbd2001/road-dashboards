@@ -2,6 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, page_registry
 
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     ADD_FILTER_BTN,
     ADD_SUB_GROUP,
@@ -20,9 +21,6 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     URL,
 )
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
-from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import (
-    manipulate_column_to_avoid_ambiguities,
-)
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
     get_tables_property_union,
     get_value_from_tables_property_union,
@@ -402,7 +400,7 @@ def parse_one_filter(column, operation, value):
     else:
         parsed_val = str(value)
 
-    column = manipulate_column_to_avoid_ambiguities(column)
+    column = BaseColumn(column).get_column_string()
     filter_components = [column, operation, parsed_val]
     single_filter = " ".join(component for component in filter_components if component)
     return single_filter

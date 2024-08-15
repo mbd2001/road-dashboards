@@ -1,4 +1,4 @@
-import json
+import pickle as pkl
 
 import dash_bootstrap_components as dbc
 import dash_daq as daq
@@ -90,14 +90,7 @@ def conf_mat_graph_generator(graph_properties: ConfMatGraphProperties):
             filter_ignores_id={"type": GENERIC_FILTER_IGNORES_BTN, "index": index},
             include_filter_ignores=include_filter_ignores,
             additional_info_id={"type": GENERIC_CONF_EXTRA_INFO, "index": index},
-            additional_info=json.dumps(
-                {
-                    "name": graph_properties.name,
-                    "column_to_compare": graph_properties.column_to_compare,
-                    "extra_columns": graph_properties.extra_columns,
-                    "ignore_filter": graph_properties.ignore_filter,
-                }
-            ),
+            additional_info=graph_properties,
         ),
     )
     return conf_mat_layout
@@ -159,7 +152,9 @@ def get_single_mat_layout(
         buttons_row = dbc.Row(dbc.Col(draw_diff_button))
 
     extra_info = (
-        html.Div(id=additional_info_id, hidden=True, **{"data-graph": additional_info}) if additional_info_id else None
+        html.Div(id=additional_info_id, hidden=True, **{"data-graph": pkl.dumps(additional_info).hex()})
+        if additional_info_id
+        else None
     )
     single_mat_layout = html.Div([mat_row, buttons_row, extra_info])
     return single_mat_layout
@@ -219,7 +214,6 @@ def get_generic_conf_mat(
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
 
-    graph_properties = json.loads(graph_properties)
     fig = get_conf_mat_fig(
         main_tables,
         graph_properties["column_to_compare"],

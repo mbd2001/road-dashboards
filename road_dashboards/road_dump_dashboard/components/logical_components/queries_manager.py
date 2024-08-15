@@ -1,34 +1,20 @@
-from natsort import natsorted
-from road_database_toolkit.athena.athena_utils import create_athena_table_from_query
+from typing import List
 
-from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
-    get_tables_property_union,
-    get_value_from_tables_property_union,
-)
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BASE_COLUMNS, BaseColumn
 
-COMMON_COLUMNS = {
-    "population",
-    "batch_num",
-    "dump_name",
-    "clip_name",
-    "grabindex",
-    "obj_id",
-    "pred_name",
-}
-
-BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id"]
+BASE_COLUMNS = [BaseColumn(col) for col in BASE_COLUMNS]
 
 DIFF_COL = "difference"
 
 SELECT_QUERY = """
     (SELECT {columns_to_select} 
-    FROM {main_data} A
+    FROM {main_data} A {unnest_arrays}
     {filters})
     """
 
 JOIN_QUERY = """
     (SELECT {columns_to_select} 
-    FROM {main_data} A INNER JOIN {secondary_data} B
+    FROM {main_data} A {unnest_arrays} INNER JOIN {secondary_data} B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex)) 
     {filters})
     """
@@ -99,15 +85,15 @@ IMG_LIMIT = 25
 
 
 def generate_conf_mat_query(
-    main_dump,
-    secondary_dump,
+    main_dump: str,
+    secondary_dump: str,
     main_tables,
-    population,
-    column_to_compare,
-    extra_columns,
+    population: str,
+    column_to_compare: BaseColumn,
+    extra_columns: List[BaseColumn],
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
+    meta_data_filters: str = "",
+    extra_filters: str = "",
 ):
     main_data = generate_base_query(
         main_tables,
@@ -133,22 +119,22 @@ def generate_conf_mat_query(
     query = CONF_QUERY.format(
         main_data=main_data,
         secondary_data=secondary_data,
-        column_to_compare=column_to_compare,
+        column_to_compare=column_to_compare.name,
     )
     return query
 
 
 def generate_diff_query(
-    main_dump,
-    secondary_dump,
+    main_dump: str,
+    secondary_dump: str,
     main_tables,
-    population,
-    column_to_compare,
-    extra_columns,
+    population: str,
+    column_to_compare: BaseColumn,
+    extra_columns: List[BaseColumn],
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
-    limit=IMG_LIMIT,
+    meta_data_filters: str = "",
+    extra_filters: str = "",
+    limit: int = IMG_LIMIT,
 ):
     main_data = generate_base_query(
         main_tables,
@@ -175,24 +161,24 @@ def generate_diff_query(
     query = DIFF_IDS_QUERY.format(
         main_data=main_data,
         secondary_data=secondary_data,
-        column_to_compare=column_to_compare,
+        column_to_compare=column_to_compare.name,
         limit=limit,
     )
     return query
 
 
 def generate_diff_with_labels_query(
-    main_dump,
-    secondary_dump,
+    main_dump: str,
+    secondary_dump: str,
     main_tables,
     labels_tables,
-    population,
-    column_to_compare,
-    extra_columns,
+    population: str,
+    column_to_compare: BaseColumn,
+    extra_columns: List[BaseColumn],
     meta_data_tables=None,
-    meta_data_filters="",
-    extra_filters="",
-    limit=IMG_LIMIT,
+    meta_data_filters: str = "",
+    extra_filters: str = "",
+    limit: int = IMG_LIMIT,
 ):
     diff_query = generate_diff_query(
         main_dump,
@@ -218,18 +204,18 @@ def generate_diff_with_labels_query(
 
 def generate_count_query(
     main_tables,
-    population,
-    intersection_on,
-    extra_columns,
+    population: str,
+    intersection_on: bool,
+    extra_columns: List[BaseColumn],
     meta_data_tables=None,
-    main_column="",
-    diff_column="",
-    interesting_cases=None,
-    meta_data_filters="",
-    extra_filters="",
-    bins_factor=None,
-    dumps_to_include=None,
-    compute_percentage=False,
+    main_column: BaseColumn = None,
+    diff_column: BaseColumn = None,
+    interesting_cases: dict = None,
+    meta_data_filters: str = "",
+    extra_filters: str = "",
+    bins_factor: float = None,
+    dumps_to_include: list[str] = None,
+    compute_percentage: bool = False,
 ):
     base_query = generate_base_query(
         main_tables,
@@ -251,9 +237,9 @@ def generate_count_query(
         base_query = CASES_DESCRIPTION.format(cases=cases, base_query=base_query)
         group_by = group_name = "cases"
     else:
-        col_metric = f"ABS({main_column} - {diff_column})" if diff_column else main_column
+        col_metric = f"ABS({main_column.name} - {diff_column.name})" if diff_column else main_column.name
         group_by = f"FLOOR({col_metric} / {bins_factor}) * {bins_factor}" if bins_factor else col_metric
-        group_name = DIFF_COL if diff_column else main_column
+        group_name = DIFF_COL if diff_column else main_column.name
 
     query = COUNT_QUERY.format(
         base_query=base_query, count_metric=metrics, group_by=group_by, group_name=f" AS {group_name}"
@@ -265,20 +251,19 @@ def generate_count_query(
 
 def generate_count_obj_query(
     main_tables,
-    population,
-    intersection_on,
-    extra_columns,
-    meta_data_tables="",
-    meta_data_filters="",
-    extra_filters="",
-    dumps_to_include=None,
-    compute_percentage=False,
+    population: str,
+    intersection_on: bool,
+    meta_data_tables=None,
+    meta_data_filters: str = "",
+    extra_filters: str = "",
+    dumps_to_include: str | List[str] = None,
+    compute_percentage: bool = False,
 ):
     base_query = generate_base_query(
         main_tables,
         population,
         intersection_on,
-        extra_columns,
+        [],
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
@@ -297,60 +282,22 @@ def generate_count_obj_query(
 
 def generate_base_query(
     main_tables,
-    population,
-    intersection_on,
-    extra_columns,
+    population: str,
+    intersection_on: bool,
+    extra_columns: List[BaseColumn],
     meta_data_tables=None,
-    meta_data_filters=None,
-    extra_filters=None,
-    dumps_to_include=None,
+    meta_data_filters: str = None,
+    extra_filters: str = None,
+    dumps_to_include: str | List[str] = None,
 ):
     if isinstance(dumps_to_include, str):
         dumps_to_include = [dumps_to_include]
 
     main_paths = filter_paths(main_tables["tables_dict"], dumps_to_include)
     meta_data_paths = filter_paths(meta_data_tables["tables_dict"], dumps_to_include) if meta_data_tables else None
-    agg_cols, extra_columns = get_aggregated_columns(extra_columns, main_tables, meta_data_tables)
     filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on)
     base_data = generate_base_data(main_paths, filters, extra_columns, meta_data_paths)
-    if agg_cols:
-        base_data = generate_agg_cols_union(agg_cols, base_data)
-
     return base_data
-
-
-def get_aggregated_columns(extra_columns, main_tables, meta_data_tables=None):
-    if not extra_columns:
-        return {}, extra_columns
-
-    existing_cols = get_tables_property_union(main_tables, meta_data_tables, "columns_to_type")
-    matching_columns = {
-        agg_col: natsorted([col for col in existing_cols.keys() if col.startswith(agg_col)])
-        for agg_col in extra_columns
-        if not get_value_from_tables_property_union(agg_col, main_tables, meta_data_tables, "columns_to_type")
-    }
-    matching_columns = {agg_col: matching for agg_col, matching in matching_columns.items() if len(matching) > 1}
-    if not matching_columns:
-        return {}, extra_columns
-
-    extra_columns = extra_columns.copy()
-    for key, val in matching_columns.items():
-        extra_columns.remove(key)
-        extra_columns.extend(val)
-    return matching_columns, extra_columns
-
-
-def generate_agg_cols_union(agg_cols, base_query):
-    base_query = create_athena_table_from_query(base_query, database="run_eval_db")
-    base_columns = ", ".join(BASE_COLUMNS)
-    select_strings = [
-        ", ".join(f"{col} AS {agg_col}" for col, agg_col in zip(col_list, agg_cols.keys()))
-        for col_list in zip(*agg_cols.values())
-    ]
-    final_query = " UNION ALL ".join(
-        f"SELECT {select_str}, {base_columns} FROM {base_query} " for select_str in select_strings
-    )
-    return final_query
 
 
 def filter_paths(table_dict, dumps_to_include):
@@ -361,51 +308,34 @@ def filter_paths(table_dict, dumps_to_include):
     return paths
 
 
-def generate_base_data(main_paths, filters, extra_columns, meta_data_paths=None):
-    desired_columns = set(BASE_COLUMNS + extra_columns)
-    if meta_data_paths:
-        datasets_list = generate_joined_data(main_paths, meta_data_paths, desired_columns, filters)
-    else:
-        datasets_list = generate_single_data(main_paths, desired_columns, filters)
+def generate_base_data(main_paths, filters: str, extra_columns: List[BaseColumn], meta_data_paths=None):
+    reg_columns = [col for col in extra_columns if not getattr(col, "unnest", False)]
+    columns_to_unnest = [col for col in extra_columns if getattr(col, "unnest", False)]
 
-    if len(datasets_list) == 1:
-        return datasets_list[0]
-
-    union_str = f" UNION ALL SELECT * FROM ".join(datasets_list)
-    return union_str
-
-
-def generate_joined_data(main_paths, meta_data_paths, desired_columns, filters):
-    data_columns_str = ", ".join(
-        manipulate_column_to_avoid_ambiguities(col, as_original_col=True) for col in desired_columns
+    select_columns = ", ".join(
+        [col.get_column_as_original_name() for col in set(BASE_COLUMNS + reg_columns)]
+        + [f"T.{col.name}" for col in columns_to_unnest]
     )
-    join_strings = [
-        JOIN_QUERY.format(
-            columns_to_select=data_columns_str,
+    unnest_arrays = ", ".join(f"{col.get_column_string()} AS T({col.name})" for col in columns_to_unnest)
+    unnest_arrays = f"CROSS JOIN {unnest_arrays}" if unnest_arrays else ""
+    relevant_query = JOIN_QUERY if meta_data_paths else SELECT_QUERY
+    datasets_list = [
+        relevant_query.format(
+            columns_to_select=select_columns,
             main_data=main_table,
+            unnest_arrays=unnest_arrays,
             secondary_data=md_table,
             filters=filters,
         )
         for main_table, md_table in zip(main_paths, meta_data_paths)
         if main_table
     ]
-    return join_strings
 
+    if len(datasets_list) == 1:
+        return datasets_list[0]
 
-def manipulate_column_to_avoid_ambiguities(col, as_original_col=False):
-    manipulated_column = f"A.{col}" if col in COMMON_COLUMNS else col
-    manipulated_column = f"{manipulated_column} AS {col}" if as_original_col else manipulated_column
-    return manipulated_column
-
-
-def generate_single_data(main_paths, desired_columns, filters):
-    data_columns_str = ", ".join(desired_columns)
-    datasets_strings = [
-        SELECT_QUERY.format(columns_to_select=data_columns_str, main_data=main_table, filters=filters)
-        for main_table in main_paths
-        if main_table
-    ]
-    return datasets_strings
+    union_str = f" UNION ALL SELECT * FROM ".join(datasets_list)
+    return union_str
 
 
 def generate_intersect_filter(main_paths, intersection_on):

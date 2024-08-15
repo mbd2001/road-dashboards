@@ -41,7 +41,6 @@ requirements:
     - road-database-toolkit
     - jira
     - python-kaleido
-    - natsort
     - scipy
 
 about:

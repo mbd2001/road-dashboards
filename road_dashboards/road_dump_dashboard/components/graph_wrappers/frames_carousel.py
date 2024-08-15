@@ -1,9 +1,9 @@
-import json
 import re
 from dataclasses import dataclass
 
 import dash_bootstrap_components as dbc
 import numpy as np
+import orjson
 from dash import (
     MATCH,
     Input,
@@ -18,7 +18,6 @@ from dash import (
     page_registry,
     set_props,
 )
-from natsort import natsorted
 from road_database_toolkit.athena.athena_utils import query_athena
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
@@ -203,7 +202,7 @@ def draw_diffs_generic_case(
         or main_dump == secondary_dump
         or (
             triggered_id["type"] == GENERIC_FILTER_IGNORES_BTN
-            and (not curr_drawn_graph or json.loads(curr_drawn_graph)["name"] != triggered_id["index"])
+            and (not curr_drawn_graph or orjson.loads(curr_drawn_graph)["name"] != triggered_id["index"])
         )
         or not population
         or not tables
@@ -216,7 +215,7 @@ def draw_diffs_generic_case(
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
 
-    parsed_properties = json.loads(graph_properties)
+    parsed_properties = orjson.loads(graph_properties)
     query = generate_diff_with_labels_query(
         main_dump,
         secondary_dump,
@@ -280,7 +279,7 @@ def draw_diffs_dynamic_case(
         or main_dump == secondary_dump
         or (
             triggered_id == DYNAMIC_CONF_DROPDOWN
-            and (not curr_drawn_graph or json.loads(curr_drawn_graph)["name"] != DYNAMIC_CONF_MAT)
+            and (not curr_drawn_graph or orjson.loads(curr_drawn_graph)["name"] != DYNAMIC_CONF_MAT)
         )
         or not population
         or not tables
@@ -323,7 +322,7 @@ def draw_diffs_dynamic_case(
         secondary_world_figs,
         0,
         False,
-        json.dumps(graph_properties),
+        orjson.dumps(graph_properties),
     )
 
 
@@ -364,7 +363,7 @@ def draw_diffs_general_buttons_case(
     main_tables = tables[page_properties["main_table"]]
     meta_data_tables = tables.get(page_properties["meta_data_table"])
 
-    curr_drawn_graph = json.loads(curr_drawn_graph)
+    curr_drawn_graph = orjson.loads(curr_drawn_graph)
     query = generate_diff_with_labels_query(
         main_dump,
         secondary_dump,
@@ -451,7 +450,7 @@ def merge_partitioned_columns(labels_dict):
             continue
 
         if isinstance(col_val, str):
-            col_val = json.loads(col_val)
+            col_val = orjson.loads(col_val)
         new_col = re.sub(r"_\d+$", "", col)
         if new_col not in merged_labels_dict:
             merged_labels_dict[new_col] = np.array(col_val)

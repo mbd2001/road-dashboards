@@ -1,4 +1,7 @@
 from dataclasses import dataclass
+from typing import List
+
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 
 
 @dataclass(kw_only=True)
@@ -27,7 +30,7 @@ class CasesGraphProperties(BaseGraphProperties):
     """
 
     interesting_cases: dict
-    extra_columns: list
+    extra_columns: List[BaseColumn]
     ignore_filter: str = ""
 
 
@@ -44,17 +47,13 @@ class GroupByGraphProperties(BaseGraphProperties):
             ignore_filter (str): optional. which rows to ignore when computing the query. can be turned off by the user
     """
 
-    group_by_column: str
-    diff_column: str = ""
+    group_by_column: BaseColumn
+    diff_column: BaseColumn = None
     include_slider: bool = False
     slider_default_value: int = 0
     ignore_filter: str = ""
 
     def __post_init__(self):
-        assert not (
-            self.diff_column and not self.group_by_column
-        ), "you can't pass diff column without groupby column to compare to"
-
         self.extra_columns = [col for col in [self.group_by_column, self.diff_column] if col]
 
 
@@ -68,7 +67,7 @@ class ConfMatGraphProperties(BaseGraphProperties):
             ignore_filter (str): optional. which rows to ignore when computing the query. can be turned off by the user
     """
 
-    column_to_compare: str
+    column_to_compare: BaseColumn
     ignore_filter: str = ""
 
     def __post_init__(self):

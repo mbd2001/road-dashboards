@@ -2,6 +2,7 @@ from dash import html, register_page
 
 from road_dashboards.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
 from road_dashboards.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import (
     CasesGraphProperties,
     ConfMatGraphProperties,
@@ -27,21 +28,21 @@ register_page(__name__, **page_properties.__dict__)
 group_by_graphs = [
     GroupByGraphProperties(
         name="Top View Perfects Exists",
-        group_by_column="is_tv_perfect",
+        group_by_column=BaseColumn("is_tv_perfect"),
     ),
     GroupByGraphProperties(
         name="Gtem Exists",
-        group_by_column="gtem_labels_exist",
+        group_by_column=BaseColumn("gtem_labels_exist"),
     ),
     GroupByGraphProperties(
         name="Curve Rad Distribution",
-        group_by_column="curve_rad_ahead",
+        group_by_column=BaseColumn("curve_rad_ahead"),
         full_grid_row=True,
         include_slider=True,
         slider_default_value=2,
         ignore_filter="curve_rad_ahead <> 99999",
     ),
-    GroupByGraphProperties(name="Batch Distribution", group_by_column="batch_num", full_grid_row=True),
+    GroupByGraphProperties(name="Batch Distribution", group_by_column=BaseColumn("batch_num"), full_grid_row=True),
 ]
 
 cases_graphs = [
@@ -53,7 +54,12 @@ cases_graphs = [
             "urban": "mdbi_road_city = TRUE",
             "freeway": "mdbi_road_freeway = TRUE",
         },
-        extra_columns=["mdbi_road_highway", "mdbi_road_country", "mdbi_road_city", "mdbi_road_freeway"],
+        extra_columns=[
+            BaseColumn("mdbi_road_highway"),
+            BaseColumn("mdbi_road_country"),
+            BaseColumn("mdbi_road_city"),
+            BaseColumn("mdbi_road_freeway"),
+        ],
     ),
     CasesGraphProperties(
         name="Lane Mark Color Distribution",
@@ -63,19 +69,19 @@ cases_graphs = [
             "blue": "rightColor_blue = TRUE OR leftColor_blue = TRUE",
         },
         extra_columns=[
-            "rightColor_yellow",
-            "leftColor_yellow",
-            "rightColor_white",
-            "leftColor_white",
-            "rightColor_blue",
-            "leftColor_blue",
+            BaseColumn("rightColor_yellow"),
+            BaseColumn("leftColor_yellow"),
+            BaseColumn("rightColor_white"),
+            BaseColumn("leftColor_white"),
+            BaseColumn("rightColor_blue"),
+            BaseColumn("leftColor_blue"),
         ],
     ),
 ]
 
 conf_mat_graphs = [
-    ConfMatGraphProperties(name="Top View Perfects Classification", column_to_compare="is_tv_perfect"),
-    ConfMatGraphProperties(name="Gtem Classification", column_to_compare="gtem_labels_exist"),
+    ConfMatGraphProperties(name="Top View Perfects Classification", column_to_compare=BaseColumn("is_tv_perfect")),
+    ConfMatGraphProperties(name="Gtem Classification", column_to_compare=BaseColumn("gtem_labels_exist")),
 ]
 
 
