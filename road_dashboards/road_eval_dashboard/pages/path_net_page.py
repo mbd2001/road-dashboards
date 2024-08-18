@@ -26,6 +26,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
     PATH_NET_MONOTONE_ACC_NEXT,
+    PATH_NET_QUALITY_FALSE_HOST_CORRECT_REJECTION,
+    PATH_NET_QUALITY_FALSE_NEXT_CORRECT_REJECTION,
     PATH_NET_QUALITY_HOST_FN,
     PATH_NET_QUALITY_HOST_FP,
     PATH_NET_QUALITY_HOST_TN,
@@ -58,6 +60,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
     generate_count_query,
     generate_path_net_dp_quality_query,
+    generate_path_net_dp_quality_true_rejection_query,
     generate_path_net_miss_false_query,
     generate_path_net_query,
     generate_pathnet_cumulative_query,
@@ -215,6 +218,12 @@ quality_layout = html.Div(
     [
         card_wrapper(
             [
+                dbc.Row(
+                    [
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_FALSE_HOST_CORRECT_REJECTION), width=6),
+                        dbc.Col(graph_wrapper(PATH_NET_QUALITY_FALSE_NEXT_CORRECT_REJECTION), width=6),
+                    ]
+                ),
                 dbc.Row(
                     [
                         dbc.Col(graph_wrapper(PATH_NET_QUALITY_HOST_TP), width=6),
@@ -1015,5 +1024,76 @@ def get_path_net_quality_score_next_fp(meta_data_filters, pathnet_filters, nets,
     df, _ = run_query_with_nets_names_processing(query)
     fig = draw_path_net_graph(
         data=df, cols=distances, title="DPs Quality Score - FN", role="non-host", yaxis="% miss", plot_bgcolor=RED
+    )
+    return fig
+
+
+@callback(
+    Output(PATH_NET_QUALITY_FALSE_HOST_CORRECT_REJECTION, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_host_unmatched_correct_rejection(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = ">"
+    quality_operator = "<"
+
+    query = generate_path_net_dp_quality_true_rejection_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role=["'host'", "'unmatched-host'"],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df,
+        cols=distances,
+        title="DPs Quality - Unmatched Corrcert Rejection",
+        role="host",
+        yaxis="% correct rejection",
+        plot_bgcolor=GREEN,
+    )
+    return fig
+
+@callback(
+    Output(PATH_NET_QUALITY_FALSE_NEXT_CORRECT_REJECTION, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input("quality-threshold-slider", "value"),
+)
+def get_path_net_quality_score_next_unmatched_correct_rejection(meta_data_filters, pathnet_filters, nets, slider_values):
+    if not nets:
+        return no_update
+
+    acc_dist_operator = ">"
+    quality_operator = "<"
+
+    query = generate_path_net_dp_quality_true_rejection_query(
+        nets[PATHNET_PRED],
+        nets["meta_data"],
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role=["'non-host'", "'unmatched-non-host'"],
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=slider_values[0],
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    fig = draw_path_net_graph(
+        data=df,
+        cols=distances,
+        title="DPs Quality - Unmatched Corrcert Rejection",
+        role="non-host",
+        yaxis="% correct rejection",
+        plot_bgcolor=GREEN,
     )
     return fig

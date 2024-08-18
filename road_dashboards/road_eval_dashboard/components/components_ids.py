@@ -135,6 +135,8 @@ PATH_NET_QUALITY_HOST_FP = "path_net_quality_host_fp"
 PATH_NET_QUALITY_NEXT_FP = "path_net_quality_next_fp"
 PATH_NET_QUALITY_HOST_TN = "path_net_quality_host_tn"
 PATH_NET_QUALITY_NEXT_TN = "path_net_quality_next_tn"
+PATH_NET_QUALITY_FALSE_HOST_CORRECT_REJECTION = "path_net_quality_false_host_correct_rejection"
+PATH_NET_QUALITY_FALSE_NEXT_CORRECT_REJECTION = "path_net_quality_false_next_correct_rejection"
 
 
 PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"
