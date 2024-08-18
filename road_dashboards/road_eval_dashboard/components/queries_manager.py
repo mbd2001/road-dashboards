@@ -1486,6 +1486,7 @@ def get_quality_score_query(
         extra_columns=extra_columns,
     )
 
+
 def get_quality_score_query_true_rejection(
     base_dist_column_name,
     base_dp_quality_col_name,

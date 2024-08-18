@@ -68,15 +68,13 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
+from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
 basic_operations = create_dropdown_options_list(
     labels=["Greater", "Greater or equal", "Less", "Less or equal", "Equal", "Not Equal", "Is NULL", "Is not NULL"],
     values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
 )
-
-GREEN = "#e6fae8"
-RED = "#fae6e6"
 
 
 def get_cumulative_acc_layout():
@@ -1035,7 +1033,9 @@ def get_path_net_quality_score_next_fp(meta_data_filters, pathnet_filters, nets,
     Input(NETS, "data"),
     Input("quality-threshold-slider", "value"),
 )
-def get_path_net_quality_score_host_unmatched_correct_rejection(meta_data_filters, pathnet_filters, nets, slider_values):
+def get_path_net_quality_score_host_unmatched_correct_rejection(
+    meta_data_filters, pathnet_filters, nets, slider_values
+):
     if not nets:
         return no_update
 
@@ -1063,6 +1063,7 @@ def get_path_net_quality_score_host_unmatched_correct_rejection(meta_data_filter
     )
     return fig
 
+
 @callback(
     Output(PATH_NET_QUALITY_FALSE_NEXT_CORRECT_REJECTION, "figure"),
     Input(MD_FILTERS, "data"),
@@ -1070,7 +1071,9 @@ def get_path_net_quality_score_host_unmatched_correct_rejection(meta_data_filter
     Input(NETS, "data"),
     Input("quality-threshold-slider", "value"),
 )
-def get_path_net_quality_score_next_unmatched_correct_rejection(meta_data_filters, pathnet_filters, nets, slider_values):
+def get_path_net_quality_score_next_unmatched_correct_rejection(
+    meta_data_filters, pathnet_filters, nets, slider_values
+):
     if not nets:
         return no_update
 
