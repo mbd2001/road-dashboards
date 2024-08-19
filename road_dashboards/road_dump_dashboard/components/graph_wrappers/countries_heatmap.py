@@ -59,8 +59,8 @@ def init_countries_dropdown(tables):
         return no_update, no_update, no_update
 
     tables = load_object(tables)
-    options = {name.title(): name for name in tables.names}
-    return options, options[0]["label"], options[0]["value"]
+    options = {name: name.title() for name in tables.names}
+    return options, tables.names[0].title(), tables.names[0]
 
 
 @callback(
@@ -76,7 +76,8 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump, p
         return no_update
 
     main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
-    group_by_column = get_existing_column("mdbi_country", main_tables, meta_data_tables)
+    col_name = "mdbi_country"
+    group_by_column = get_existing_column(col_name, main_tables, meta_data_tables)
     query = generate_count_query(
         main_tables,
         population,
@@ -89,9 +90,9 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump, p
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data["normalized"] = normalize_countries_count_to_percentiles(data["overall"].to_numpy())
-    data[group_by_column] = data[group_by_column].apply(normalize_countries_names)
-    data["iso_alpha"] = data[group_by_column].apply(iso_alpha_from_name)
+    data[col_name] = data[col_name].apply(normalize_countries_names)
+    data["iso_alpha"] = data[col_name].apply(iso_alpha_from_name)
     fig = generate_world_map(
-        countries_data=data, locations="iso_alpha", color="normalized", hover_data=["overall", group_by_column]
+        countries_data=data, locations="iso_alpha", color="normalized", hover_data=["overall", col_name]
     )
     return fig

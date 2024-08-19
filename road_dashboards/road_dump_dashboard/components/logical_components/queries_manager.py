@@ -279,18 +279,29 @@ def generate_base_data(
     )
     unnest_arrays = ", ".join(f"{col.get_column_string()} AS T({col.name})" for col in columns_to_unnest)
     unnest_arrays = f"CROSS JOIN {unnest_arrays}" if unnest_arrays else ""
-    relevant_query = JOIN_QUERY if meta_data_paths else SELECT_QUERY
-    datasets_list = [
-        relevant_query.format(
-            columns_to_select=select_columns,
-            main_data=main_table,
-            unnest_arrays=unnest_arrays,
-            secondary_data=md_table,
-            filters=filters,
-        )
-        for main_table, md_table in zip(main_paths, meta_data_paths)
-        if main_table
-    ]
+    if meta_data_paths:
+        datasets_list = [
+            JOIN_QUERY.format(
+                columns_to_select=select_columns,
+                main_data=main_table,
+                unnest_arrays=unnest_arrays,
+                secondary_data=md_table,
+                filters=filters,
+            )
+            for main_table, md_table in zip(main_paths, meta_data_paths)
+            if main_table
+        ]
+    else:
+        datasets_list = [
+            SELECT_QUERY.format(
+                columns_to_select=select_columns,
+                main_data=main_table,
+                unnest_arrays=unnest_arrays,
+                filters=filters,
+            )
+            for main_table in main_paths
+            if main_table
+        ]
 
     if len(datasets_list) == 1:
         return datasets_list[0]

@@ -194,11 +194,11 @@ def init_dumps_dropdown(tables):
         return no_update, no_update, no_update, no_update, no_update, no_update
 
     tables = load_object(tables)
-    options = [{"label": name.title(), "value": name} for name in tables.names]
-    if len(options) < 2:
-        return options, options[0]["label"], options[0]["value"], no_update, no_update, no_update
+    options = {name: name.title() for name in tables.names}
+    if len(tables.names) < 2:
+        return options, tables.names[0].title(), tables.names[0], no_update, no_update, no_update
 
-    return options, options[0]["label"], options[0]["value"], options, options[1]["label"], options[1]["value"]
+    return options, tables.names[0].title(), tables.names[0], options, tables.names[1].title(), tables.names[1]
 
 
 @callback(
