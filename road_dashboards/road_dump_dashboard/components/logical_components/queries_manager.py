@@ -1,6 +1,7 @@
 from typing import List
 
 from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BASE_COLUMNS, BaseColumn
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Table
 
 BASE_COLUMNS = [BaseColumn(col) for col in BASE_COLUMNS]
 
@@ -34,19 +35,12 @@ CONF_QUERY = """
     """
 
 DIFF_IDS_QUERY = """
-    SELECT A.clip_name as clip_name, A.grabindex as grabindex
+    SELECT *
     FROM ({main_data}) A INNER JOIN ({secondary_data}) B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id))
     WHERE A.{column_to_compare} != B.{column_to_compare}
     GROUP BY A.clip_name, A.grabindex
     LIMIT {limit}
-    """
-
-JOIN_LABELS_QUERY = """
-    SELECT '' AS main_start, {main_columns}, '' AS secondary_start, {secondary_columns}
-    FROM ({main_labels}) LABELS_A FULL JOIN ({secondary_labels}) LABELS_B 
-    ON ((LABELS_A.clip_name = LABELS_B.clip_name) AND (LABELS_A.grabindex = LABELS_B.grabindex) AND (LABELS_A.obj_id = LABELS_B.obj_id)) 
-    WHERE (LABELS_A.clip_name, LABELS_A.grabindex) IN ({ids_data})
     """
 
 COUNT_QUERY = """
@@ -87,11 +81,11 @@ IMG_LIMIT = 25
 def generate_conf_mat_query(
     main_dump: str,
     secondary_dump: str,
-    main_tables,
+    main_tables: Table,
     population: str,
     column_to_compare: BaseColumn,
     extra_columns: List[BaseColumn],
-    meta_data_tables=None,
+    meta_data_tables: Table = None,
     meta_data_filters: str = "",
     extra_filters: str = "",
 ):
@@ -127,11 +121,11 @@ def generate_conf_mat_query(
 def generate_diff_query(
     main_dump: str,
     secondary_dump: str,
-    main_tables,
+    main_tables: Table,
     population: str,
     column_to_compare: BaseColumn,
     extra_columns: List[BaseColumn],
-    meta_data_tables=None,
+    meta_data_tables: Table = None,
     meta_data_filters: str = "",
     extra_filters: str = "",
     limit: int = IMG_LIMIT,
@@ -167,47 +161,12 @@ def generate_diff_query(
     return query
 
 
-def generate_diff_with_labels_query(
-    main_dump: str,
-    secondary_dump: str,
-    main_tables,
-    labels_tables,
-    population: str,
-    column_to_compare: BaseColumn,
-    extra_columns: List[BaseColumn],
-    meta_data_tables=None,
-    meta_data_filters: str = "",
-    extra_filters: str = "",
-    limit: int = IMG_LIMIT,
-):
-    diff_query = generate_diff_query(
-        main_dump,
-        secondary_dump,
-        main_tables,
-        population,
-        column_to_compare,
-        extra_columns,
-        meta_data_tables=meta_data_tables,
-        meta_data_filters=meta_data_filters,
-        extra_filters=extra_filters,
-        limit=limit,
-    )
-    query = JOIN_LABELS_QUERY.format(
-        main_columns=", ".join(f"LABELS_A.{col}" for col in labels_tables["columns_to_type"].keys()),
-        secondary_columns=", ".join(f"LABELS_B.{col}" for col in labels_tables["columns_to_type"].keys()),
-        main_labels=labels_tables["tables_dict"][main_dump],
-        secondary_labels=labels_tables["tables_dict"][secondary_dump],
-        ids_data=diff_query,
-    )
-    return query
-
-
 def generate_count_query(
-    main_tables,
+    main_tables: Table,
     population: str,
     intersection_on: bool,
     extra_columns: List[BaseColumn],
-    meta_data_tables=None,
+    meta_data_tables: Table = None,
     main_column: BaseColumn = None,
     diff_column: BaseColumn = None,
     interesting_cases: dict = None,
@@ -250,10 +209,10 @@ def generate_count_query(
 
 
 def generate_count_obj_query(
-    main_tables,
+    main_tables: Table,
     population: str,
     intersection_on: bool,
-    meta_data_tables=None,
+    meta_data_tables: Table = None,
     meta_data_filters: str = "",
     extra_filters: str = "",
     dumps_to_include: str | List[str] = None,
@@ -281,11 +240,11 @@ def generate_count_obj_query(
 
 
 def generate_base_query(
-    main_tables,
+    main_tables: Table,
     population: str,
     intersection_on: bool,
     extra_columns: List[BaseColumn],
-    meta_data_tables=None,
+    meta_data_tables: Table = None,
     meta_data_filters: str = None,
     extra_filters: str = None,
     dumps_to_include: str | List[str] = None,
@@ -293,14 +252,14 @@ def generate_base_query(
     if isinstance(dumps_to_include, str):
         dumps_to_include = [dumps_to_include]
 
-    main_paths = filter_paths(main_tables["tables_dict"], dumps_to_include)
-    meta_data_paths = filter_paths(meta_data_tables["tables_dict"], dumps_to_include) if meta_data_tables else None
+    main_paths = filter_paths(main_tables.tables_dict, dumps_to_include)
+    meta_data_paths = filter_paths(meta_data_tables.tables_dict, dumps_to_include) if meta_data_tables else None
     filters = generate_filters(extra_filters, meta_data_filters, population, main_paths, intersection_on)
     base_data = generate_base_data(main_paths, filters, extra_columns, meta_data_paths)
     return base_data
 
 
-def filter_paths(table_dict, dumps_to_include):
+def filter_paths(table_dict: dict, dumps_to_include: List[str] = None):
     if not dumps_to_include:
         return table_dict.values()
 
@@ -308,7 +267,9 @@ def filter_paths(table_dict, dumps_to_include):
     return paths
 
 
-def generate_base_data(main_paths, filters: str, extra_columns: List[BaseColumn], meta_data_paths=None):
+def generate_base_data(
+    main_paths: List[str], filters: str, extra_columns: List[BaseColumn], meta_data_paths: List[str] = None
+):
     reg_columns = [col for col in extra_columns if not getattr(col, "unnest", False)]
     columns_to_unnest = [col for col in extra_columns if getattr(col, "unnest", False)]
 

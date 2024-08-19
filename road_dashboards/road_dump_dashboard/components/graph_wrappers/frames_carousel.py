@@ -1,8 +1,8 @@
+import pickle as pkl
 import re
 from dataclasses import dataclass
 
 import dash_bootstrap_components as dbc
-import numpy as np
 import orjson
 from dash import (
     MATCH,
@@ -51,7 +51,11 @@ from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrap
 from road_dashboards.road_dump_dashboard.components.logical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import (
     IMG_LIMIT,
-    generate_diff_with_labels_query,
+    generate_diff_query,
+)
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
+    get_curr_page_tables,
+    load_object,
 )
 
 
@@ -211,22 +215,18 @@ def draw_diffs_generic_case(
     ):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-
-    parsed_properties = orjson.loads(graph_properties)
-    query = generate_diff_with_labels_query(
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    parsed_properties = load_object(graph_properties)
+    query = generate_diff_query(
         main_dump,
         secondary_dump,
         main_tables,
-        main_tables,
         population,
-        parsed_properties["column_to_compare"],
-        parsed_properties["extra_columns"],
+        parsed_properties.column_to_compare,
+        parsed_properties.extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
-        extra_filters=parsed_properties["ignore_filter"] if filter_ignores else "",
+        extra_filters=parsed_properties.ignore_filter if filter_ignores else "",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
@@ -299,10 +299,9 @@ def draw_diffs_dynamic_case(
         "extra_columns": [dynamic_column],
         "ignore_filter": "",
     }
-    query = generate_diff_with_labels_query(
+    query = generate_diff_query(
         main_dump,
         secondary_dump,
-        main_tables,
         main_tables,
         population,
         graph_properties["column_to_compare"],
@@ -359,15 +358,11 @@ def draw_diffs_general_buttons_case(
     ):
         return no_update, no_update, no_update, no_update, no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
     curr_drawn_graph = orjson.loads(curr_drawn_graph)
-    query = generate_diff_with_labels_query(
+    query = generate_diff_query(
         main_dump,
         secondary_dump,
-        main_tables,
         main_tables,
         population,
         curr_drawn_graph["column_to_compare"],
@@ -430,31 +425,6 @@ def parse_labels_df(labels_df):
         return {}
 
     labels_df = labels_df.rename(columns=lambda x: re.sub(r"\.\d+$", "", x))
-    labels_df = labels_df[labels_df["obj_id"].notna()]
-    labels_dict = {
-        x: y.to_dict("records") for x, y in labels_df.sort_values("obj_id").groupby(["clip_name", "grabindex"])
-    }
-    labels_dict = {
-        frame_id: [merge_partitioned_columns(cand) for cand in frame_cands]
-        for frame_id, frame_cands in labels_dict.items()
-    }
+    sorted_df = labels_df.sort_values("obj_id")
+    labels_dict = {x: y.to_dict("records") for x, y in sorted_df.groupby(["clip_name", "grabindex"])}
     return labels_dict
-
-
-def merge_partitioned_columns(labels_dict):
-    merged_labels_dict = {}
-    for col in natsorted(labels_dict.keys()):
-        col_val = labels_dict[col]
-        if re.search(r"_\d+$", col) is None:
-            merged_labels_dict[col] = col_val
-            continue
-
-        if isinstance(col_val, str):
-            col_val = orjson.loads(col_val)
-        new_col = re.sub(r"_\d+$", "", col)
-        if new_col not in merged_labels_dict:
-            merged_labels_dict[new_col] = np.array(col_val)
-        else:
-            merged_labels_dict[new_col] = np.vstack((merged_labels_dict[new_col], col_val))
-
-    return merged_labels_dict

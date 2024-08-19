@@ -1,4 +1,5 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from typing import List
 
 BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id"]
 
@@ -18,6 +19,9 @@ class BaseColumn:
     """
 
     name: str
+    dtype: str = None
+    distinct_values: List[str] = field(default_factory=list)
+    drawable: bool = False
 
     def __eq__(self, other):
         return self.name == other.name
@@ -36,6 +40,9 @@ class BaseColumn:
         column_string = self.get_column_string()
         as_original = f"{column_string} AS {self.name}"
         return as_original
+
+    def title(self):
+        return self.name.replace("_", " ").title()
 
 
 @dataclass

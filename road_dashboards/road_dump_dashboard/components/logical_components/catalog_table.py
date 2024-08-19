@@ -18,7 +18,7 @@ from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrap
     card_wrapper,
     loading_wrapper,
 )
-from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Tables
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Tables, dump_object
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
@@ -126,13 +126,13 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     datasets_ids = parse_catalog_rows(rows, derived_virtual_selected_rows)["dump_name"]
     datasets = [dump_db_manager.get_item(dataset_id) for dataset_id in datasets_ids]
     datasets = pd.DataFrame(datasets)
-    dumps = init_tables(datasets)
+    tables = init_tables(datasets)
 
     notification = dbc.Alert("Datasets loaded successfully!", color="success", dismissable=True)
 
     dumps_list = list(datasets["dump_name"])
     dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
-    return dumps, notification, dump_list_hash
+    return dump_object(tables), notification, dump_list_hash
 
 
 def init_tables(datasets):
@@ -143,7 +143,7 @@ def init_tables(datasets):
             for table in datasets.columns
             if table.endswith("_table") and any(datasets[table])
         },
-    ).__dict__
+    )
     return tables
 
 

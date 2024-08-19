@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, callback, dcc, html, no_update, page_registry
+from dash import Input, Output, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
@@ -15,6 +15,11 @@ from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrap
     loading_wrapper,
 )
 from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
+    get_curr_page_tables,
+    get_existing_column,
+    load_object,
+)
 from road_dashboards.road_dump_dashboard.graphs.countries_map import (
     generate_world_map,
     iso_alpha_from_name,
@@ -53,7 +58,8 @@ def init_countries_dropdown(tables):
     if not tables:
         return no_update, no_update, no_update
 
-    options = [{"label": name.title(), "value": name} for name in tables["names"]]
+    tables = load_object(tables)
+    options = {name.title(): name for name in tables.names}
     return options, options[0]["label"], options[0]["value"]
 
 
@@ -69,10 +75,8 @@ def get_countries_heat_map(meta_data_filters, tables, population, chosen_dump, p
     if not population or not tables or not chosen_dump:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-    group_by_column = "mdbi_country"
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    group_by_column = get_existing_column("mdbi_country", main_tables, meta_data_tables)
     query = generate_count_query(
         main_tables,
         population,

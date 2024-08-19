@@ -9,6 +9,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
 from road_dashboards.road_dump_dashboard.components.dashboard_layout import page_content, sidebar
 from road_dashboards.road_dump_dashboard.components.logical_components.catalog_table import dump_db_manager, init_tables
 from road_dashboards.road_dump_dashboard.components.logical_components.dcc_stores import init_dcc_stores
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import dump_object
 
 app = Dash(
     __name__,
@@ -50,7 +51,7 @@ def init_run(tables_list, existing_tables):
     datasets = [dump_db_manager.get_item(datasets_id) for datasets_id in datasets_ids]
     datasets = pd.DataFrame(datasets)
     tables = init_tables(datasets)
-    return tables
+    return dump_object(tables)
 
 
 if __name__ == "__main__":

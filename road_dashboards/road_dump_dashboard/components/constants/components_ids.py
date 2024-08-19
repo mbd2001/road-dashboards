@@ -21,6 +21,8 @@ MD_VAL_COL = "meta_data_val_col"
 MD_VAL = "meta_data_val"
 
 UPDATE_FILTERS_BTN = "update_filters_btn"
+SHOW_N_FRAMES_BTN = "show_n_frames_btn"
+OUT_TO_JUMP_BTN = "out_to_jump_btn"
 
 
 # logical components

@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, page_registry
+from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
 
 from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
@@ -15,15 +15,19 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     MD_OPERATION,
     MD_VAL,
     MD_VAL_COL,
+    OUT_TO_JUMP_BTN,
     REMOVE_SUB_GROUP,
+    SHOW_N_FRAMES_BTN,
     TABLES,
     UPDATE_FILTERS_BTN,
     URL,
 )
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
-    get_tables_property_union,
-    get_value_from_tables_property_union,
+    get_columns_dict,
+    get_curr_page_tables,
+    get_existing_column,
+    load_object,
 )
 
 NUM_FILTERS_PER_GROUP = 10
@@ -123,7 +127,11 @@ layout = html.Div(
             html.H3("Filters"),
             html.Div(id=FILTERS),
             dbc.Stack(
-                dbc.Button("Update Filters", id=UPDATE_FILTERS_BTN, color="success", style={"margin": "10px"}),
+                [
+                    dbc.Button("Update Filters", id=UPDATE_FILTERS_BTN, color="success", style={"margin": "10px"}),
+                    dbc.Button("Draw Frames", id=SHOW_N_FRAMES_BTN, color="primary", style={"margin": "10px"}),
+                    dbc.Button("Save Jump File", id=OUT_TO_JUMP_BTN, color="primary", style={"margin": "10px"}),
+                ],
                 direction="horizontal",
                 gap=1,
             ),
@@ -137,10 +145,8 @@ def init_layout(tables, pathname):
     if not tables:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-    columns_options = get_tables_property_union(main_tables, meta_data_tables)
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    columns_options = get_columns_dict(main_tables, meta_data_tables)
     return [get_group_layout(1, columns_options)]
 
 
@@ -169,11 +175,9 @@ def add_filters(add_clicks, add_group, filters_list, tables, pathname):
         base_ind = group_ind * NUM_FILTERS_PER_GROUP
         empty_index = get_empty_index(base_ind, filters_list)
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
     button_type = callback_context.triggered_id["type"]
-    columns_options = get_tables_property_union(main_tables, meta_data_tables)
+    columns_options = get_columns_dict(main_tables, meta_data_tables)
     if button_type == ADD_FILTER_BTN and empty_index:
         patched_children.append(get_filter_row_initial_layout(empty_index, columns_options))
     elif button_type == ADD_SUB_GROUP and empty_index:
@@ -233,10 +237,8 @@ def update_operation_dropdown_options(meta_data_col, tables, pathname):
     if not callback_context.triggered_id:
         return no_update, no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-    column_type = get_value_from_tables_property_union(meta_data_col, main_tables, meta_data_tables)
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    column_type = get_existing_column(meta_data_col, main_tables, meta_data_tables).dtype
     if column_type.startswith(("int", "float", "double")):
         options = [
             {"label": "Greater", "value": ">"},
@@ -294,13 +296,10 @@ def update_meta_data_values_options(operation, index, col, tables, pathname):
     if not callback_context.triggered_id:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-    distinguish_values = get_value_from_tables_property_union(
-        col, main_tables, meta_data_tables, "columns_distinguish_values"
-    )
-    column_type = get_value_from_tables_property_union(col, main_tables, meta_data_tables)
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    column = get_existing_column(col, main_tables, meta_data_tables)
+    distinguish_values = column.distinct_values
+    column_type = column.dtype
     if operation in ["IS NULL", "IS NOT NULL"]:
         return dcc.Input(
             id={"type": MD_VAL, "index": curr_index},
@@ -311,11 +310,7 @@ def update_meta_data_values_options(operation, index, col, tables, pathname):
         )
     elif operation in ["IN", "NOT IN"]:
         if column_type in ["object", "bool"]:
-            distinguish_values = (
-                distinguish_values
-                if column_type == "object"
-                else [{"label": "True", "value": "True"}, {"label": "False", "value": "False"}]
-            )
+            distinguish_values = distinguish_values if column_type == "object" else {"TRUE": "True", "FALSE": "False"}
             return dcc.Dropdown(
                 id={"type": MD_VAL, "index": curr_index},
                 style={"minWidth": "100%", "display": "block"},
@@ -326,11 +321,7 @@ def update_meta_data_values_options(operation, index, col, tables, pathname):
                 options=distinguish_values,
             )
     elif operation in ["=", "<>"] and column_type in ["object", "bool"]:
-        distinguish_values = (
-            distinguish_values
-            if column_type == "object"
-            else [{"label": "True", "value": "TRUE"}, {"label": "False", "value": "FALSE"}]
-        )
+        distinguish_values = distinguish_values if column_type == "object" else {"TRUE": "True", "FALSE": "False"}
         return dcc.Dropdown(
             id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "display": "block"},
@@ -380,7 +371,7 @@ def recursive_build_meta_data_filters(filters):
         column = row["children"][0]["props"]["children"]["props"]["value"]
         operation = row["children"][1]["props"]["children"]["props"]["value"]
         value = row["children"][2]["props"]["children"]["props"]["value"]
-        single_filter = parse_one_filter(column, operation, value)
+        single_filter = parse_one_filter(BaseColumn(column), operation, value)
         return single_filter
 
     # group case
@@ -392,7 +383,7 @@ def recursive_build_meta_data_filters(filters):
     return filters_str
 
 
-def parse_one_filter(column, operation, value):
+def parse_one_filter(column: BaseColumn, operation: str, value: str | int):
     if operation == "LIKE":
         parsed_val = f"'{value}'"
     elif operation == "IN":
@@ -400,7 +391,6 @@ def parse_one_filter(column, operation, value):
     else:
         parsed_val = str(value)
 
-    column = BaseColumn(column).get_column_string()
-    filter_components = [column, operation, parsed_val]
+    filter_components = [column.get_column_string(), operation, parsed_val]
     single_filter = " ".join(component for component in filter_components if component)
     return single_filter

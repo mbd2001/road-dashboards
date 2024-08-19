@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 
 from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
@@ -48,13 +48,15 @@ class GroupByGraphProperties(BaseGraphProperties):
     """
 
     group_by_column: BaseColumn
+    extra_columns: List[BaseColumn] = field(default_factory=list)
     diff_column: BaseColumn = None
     include_slider: bool = False
     slider_default_value: int = 0
     ignore_filter: str = ""
 
     def __post_init__(self):
-        self.extra_columns = [col for col in [self.group_by_column, self.diff_column] if col]
+        if not self.extra_columns:
+            self.extra_columns = [col for col in [self.group_by_column, self.diff_column] if col]
 
 
 @dataclass
@@ -68,7 +70,9 @@ class ConfMatGraphProperties(BaseGraphProperties):
     """
 
     column_to_compare: BaseColumn
+    extra_columns: List[BaseColumn] = field(default_factory=list)
     ignore_filter: str = ""
 
     def __post_init__(self):
-        self.extra_columns = [self.column_to_compare]
+        if not self.extra_columns:
+            self.extra_columns = [self.column_to_compare]

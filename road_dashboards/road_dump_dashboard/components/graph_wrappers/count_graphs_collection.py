@@ -1,11 +1,8 @@
-import pickle as pkl
-
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, page_registry
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     DYNAMIC_CHART,
     DYNAMIC_CHART_DROPDOWN,
@@ -39,8 +36,11 @@ from road_dashboards.road_dump_dashboard.components.logical_components.queries_m
     generate_count_query,
 )
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
-    get_tables_property_union,
-    get_value_from_tables_property_union,
+    dump_object,
+    get_columns_dict,
+    get_curr_page_tables,
+    get_existing_column,
+    load_object,
 )
 from road_dashboards.road_dump_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_dashboards.road_dump_dashboard.graphs.line_graph import draw_line_graph
@@ -198,7 +198,7 @@ def get_single_graph_layout(
         buttons_row = dbc.Row(dbc.Col(percentage_button))
 
     extra_info = (
-        html.Div(id=additional_info_id, hidden=True, **{"data-graph": pkl.dumps(additional_info).hex()})
+        html.Div(id=additional_info_id, hidden=True, **{"data-graph": dump_object(additional_info)})
         if additional_info_id
         else None
     )
@@ -211,9 +211,8 @@ def init_dynamic_chart_dropdown(tables, pathname):
     if not tables:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    columns_options = get_tables_property_union(main_tables)
+    main_tables, _ = get_curr_page_tables(tables, pathname)
+    columns_options = get_columns_dict(main_tables)
     return columns_options
 
 
@@ -234,18 +233,15 @@ def get_dynamic_chart(
     if not population or not tables or not main_column:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-
-    main_column = BaseColumn(main_column)
-    column_type = get_column_type(main_column, main_tables, meta_data_tables=meta_data_tables)
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    main_column = get_existing_column(main_column, main_tables, meta_data_tables)
+    column_type = main_column.dtype
     bins_factor = get_bins_factor(slider_value, column_type=column_type)
     fig = get_group_by_chart(
         main_tables,
         population,
         intersection_on,
-        f"{main_column.name.title()} Distribution",
+        f"{main_column.title()} Distribution",
         [main_column],
         group_by_column=main_column,
         meta_data_tables=meta_data_tables,
@@ -282,12 +278,9 @@ def get_generic_count_chart(
     if not population or not tables:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
     bins_factor = get_bins_factor(slider_value)
-    graph_properties = pkl.loads(bytes.fromhex(graph_properties))
+    graph_properties = load_object(graph_properties)
     for col in graph_properties.extra_columns:
         if getattr(col, "filter", None) is None:
             continue
@@ -332,9 +325,7 @@ def get_obj_column_chart(
     if not population or not tables:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
     query = generate_count_obj_query(
         main_tables,
         population,
@@ -405,8 +396,3 @@ def get_bins_factor(slider_value, column_type=None):
 
     bins_factor = exponent_transform(slider_value)
     return bins_factor
-
-
-def get_column_type(column: BaseColumn, main_tables, meta_data_tables=None):
-    column_type = get_value_from_tables_property_union(column.name, main_tables, meta_data_tables)
-    return column_type

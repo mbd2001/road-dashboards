@@ -1,15 +1,21 @@
+import base64
+import pickle as pkl
 from dataclasses import dataclass, field
 from itertools import zip_longest
 from queue import Queue
 from threading import Thread
+from typing import Any, Dict, Optional
 
+from dash import page_registry
 from road_database_toolkit.athena.athena_utils import query_athena
 
-POSITION_COLUMNS = [
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
+
+POSITION_COLUMNS = {
     "half_width",
     "pos",
-    "pos_X",
-    "pos_Z",
+    "pos_x",
+    "pos_z",
     "ds_y_off",
     "de_y_off",
     "dp_points",
@@ -18,7 +24,7 @@ POSITION_COLUMNS = [
     "dashed_gap",
     "dashed_start_y",
     "dashed_end_y",
-]
+}
 
 THREE_DAYS = 60 * 24 * 3
 
@@ -27,9 +33,10 @@ THREE_DAYS = 60 * 24 * 3
 class Table:
     name: str
     tables_dict: dict
-    columns_to_type: dict = field(default_factory=dict)
-    columns_distinguish_values: dict = field(default_factory=dict)
-    columns_options: list = field(default_factory=list)
+    columns: Dict[str, BaseColumn] = field(default_factory=dict)
+
+    def get_drawable_columns(self):
+        return [col for col in self.columns if col.drawable is True]
 
 
 class Tables:
@@ -71,52 +78,49 @@ def generate_table_instance(name, tables, dump_names):
     if not table:
         return Table(name, tables_dict)
 
-    columns_type = get_columns_data_types(table)
-    relevant_columns_type = {
-        col: dtype
-        for col, dtype in columns_type.items()
-        if not any(col.startswith(pos_col) for pos_col in POSITION_COLUMNS)
-    }
-
-    columns_options = parse_columns_options(relevant_columns_type)
-    columns_distinguish_values = generate_meta_data_dicts(table, relevant_columns_type)
-
-    table_data = Table(name, tables_dict, columns_type, columns_distinguish_values, columns_options)
+    columns = get_table_columns(table)
+    table_data = Table(name=name, tables_dict=tables_dict, columns=columns)
     return table_data
 
 
-def get_columns_data_types(table):
-    uninteresting_columns = [
-        "pred_name",
-        "dump_name",
-        "population",
-    ]
+def get_table_columns(table):
+    uninteresting_columns = ["pred_name", "dump_name", "population", "attributes"]
 
     query = f"SELECT * FROM ({table}) LIMIT 1"
     data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
-    columns_type = {
-        k.lower(): v for k, v in data.dtypes.apply(lambda x: x.name).to_dict().items() if k not in uninteresting_columns
+    data = data.drop(columns=uninteresting_columns, errors="ignore", axis=1)
+
+    existing_columns = data.columns.str.lower()
+    dtypes = list(data.dtypes.apply(lambda x: x.name))
+    drawables = [bool(col in POSITION_COLUMNS) for col in existing_columns]
+
+    obj_cols = [
+        col for col, dtype in zip(existing_columns, dtypes) if (dtype == "object") and (col not in POSITION_COLUMNS)
+    ]
+    distinct_dict = generate_distinct_dict(table, obj_cols)
+    columns = {
+        name: BaseColumn(name=name, dtype=dtype, distinct_values=distinct_dict.get(name, []), drawable=drawable)
+        for name, dtype, drawable in zip(existing_columns, dtypes, drawables)
     }
-    return columns_type
+    return columns
 
 
-def generate_meta_data_dicts(table, columns_data_types_list):
-    distinct_dict = get_distinct_values_dict(table, columns_data_types_list)
-    columns_distinguish_values = parse_distinct_dict(distinct_dict)
-    return columns_distinguish_values
+def generate_distinct_dict(table, columns_list):
+    distinct_dict = get_distinct_values_dict(table, columns_list)
+    parsed_distinct_dict = parse_distinct_dict(distinct_dict)
+    return parsed_distinct_dict
 
 
-def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values=30):
+def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values=20):
+    if not columns_data_types_list:
+        return {}
+
     distinct_select = ",".join(
         [
             f' slice(array_agg(DISTINCT "{col}"), 1, {max_distinct_values}) AS "{col}" '
-            for col, dtype in columns_data_types_list.items()
-            if dtype == "object"
+            for col in columns_data_types_list
         ]
     )
-    if not distinct_select:
-        return {}
-
     query = f"SELECT {distinct_select} FROM {table}"
     data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
     distinct_dict = data.to_dict("list")
@@ -125,28 +129,44 @@ def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values
 
 def parse_distinct_dict(distinct_dict):
     columns_to_distinguish_values = {
-        col: [{"label": val.strip(" "), "value": f"'{val.strip(' ')}'"} for val in val_list[0].strip("[]").split(",")]
+        col: {f"'{val.strip(' ')}'": val.strip(" ") for val in val_list[0].strip("[]").split(",")}
         for col, val_list in distinct_dict.items()
     }
     return columns_to_distinguish_values
 
 
-def parse_columns_options(columns_to_type):
-    columns_options = [{"label": col.replace("_", " ").title(), "value": col} for col in columns_to_type.keys()]
-    return columns_options
+def get_tables_columns_union(main_tables: Table, meta_data_tables: Table = None):
+    columns = main_tables.columns | (meta_data_tables.columns if meta_data_tables else {})
+    return columns.values()
 
 
-def get_value_from_tables_property_union(key, main_tables, meta_data_tables=None, prop="columns_to_type"):
-    val = main_tables[prop].get(key)
+def get_columns_dict(main_tables: Table, meta_data_tables=None):
+    columns = get_tables_columns_union(main_tables, meta_data_tables)
+    columns_dict = {col.name: col.title() for col in columns if col.drawable is False}
+    return columns_dict
+
+
+def get_existing_column(name: str, main_tables: Table, meta_data_tables: Table = None):
+    val = main_tables.columns.get(name)
     if val is None and meta_data_tables is not None:
-        val = meta_data_tables[prop].get(key)
+        val = meta_data_tables.columns.get(name)
 
     return val
 
 
-def get_tables_property_union(main_tables, meta_data_tables=None, prop="columns_options"):
-    main_dict = main_tables[prop]
-    meta_data_dict = meta_data_tables[prop] if meta_data_tables else None
-    if isinstance(main_dict, list):
-        return main_dict + (meta_data_dict if meta_data_dict is not None else [])
-    return {**main_dict, **(meta_data_dict if meta_data_dict is not None else {})}
+def get_curr_page_tables(tables: str, pathname: str) -> (Table, Optional[Table]):
+    tables = load_object(tables)
+    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
+    main_table_name = page_properties["main_table"]
+    meta_data_table_name = page_properties["meta_data_table"]
+    main_tables = getattr(tables, main_table_name)
+    meta_data_tables = getattr(tables, meta_data_table_name) if meta_data_table_name else None
+    return main_tables, meta_data_tables
+
+
+def dump_object(obj: Any) -> str:
+    return base64.b64encode(pkl.dumps(obj)).decode("utf-8")
+
+
+def load_object(dump_obj: str) -> Any:
+    return pkl.loads(base64.b64decode(dump_obj))

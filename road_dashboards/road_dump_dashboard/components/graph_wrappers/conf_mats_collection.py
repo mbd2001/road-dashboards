@@ -1,10 +1,9 @@
-import pickle as pkl
-
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import MATCH, Input, Output, Patch, State, callback, dcc, html, no_update, page_registry
+from dash import MATCH, Input, Output, Patch, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     DISPLAY_CONF_MATS,
     DYNAMIC_CONF_DROPDOWN,
@@ -30,7 +29,11 @@ from road_dashboards.road_dump_dashboard.components.graph_wrappers import frames
 from road_dashboards.road_dump_dashboard.components.graph_wrappers.generic_grid import get_grid_layout
 from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import generate_conf_mat_query
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
-    get_tables_property_union,
+    dump_object,
+    get_columns_dict,
+    get_curr_page_tables,
+    get_existing_column,
+    load_object,
 )
 from road_dashboards.road_dump_dashboard.graphs.confusion_matrix import get_confusion_matrix
 
@@ -152,7 +155,7 @@ def get_single_mat_layout(
         buttons_row = dbc.Row(dbc.Col(draw_diff_button))
 
     extra_info = (
-        html.Div(id=additional_info_id, hidden=True, **{"data-graph": pkl.dumps(additional_info).hex()})
+        html.Div(id=additional_info_id, hidden=True, **{"data-graph": dump_object(additional_info)})
         if additional_info_id
         else None
     )
@@ -165,7 +168,11 @@ def get_single_mat_layout(
     Input(TABLES, "data"),
 )
 def init_dumps_dropdown(tables):
-    if not tables or len(tables["names"]) <= 1:
+    if not tables:
+        return no_update
+
+    tables = load_object(tables)
+    if len(tables.names) <= 1:
         return no_update
 
     patched_style = Patch()
@@ -186,7 +193,8 @@ def init_dumps_dropdown(tables):
     if not tables:
         return no_update, no_update, no_update, no_update, no_update, no_update
 
-    options = [{"label": name.title(), "value": name} for name in tables["names"]]
+    tables = load_object(tables)
+    options = [{"label": name.title(), "value": name} for name in tables.names]
     if len(options) < 2:
         return options, options[0]["label"], options[0]["value"], no_update, no_update, no_update
 
@@ -210,21 +218,19 @@ def get_generic_conf_mat(
     if not population or not tables or not main_dump or not secondary_dump or main_dump == secondary_dump:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    graph_properties = load_object(graph_properties)
     fig = get_conf_mat_fig(
         main_tables,
-        graph_properties["column_to_compare"],
-        graph_properties["extra_columns"],
+        graph_properties.column_to_compare,
+        graph_properties.extra_columns,
         main_dump,
         secondary_dump,
         population,
-        graph_properties["name"],
+        graph_properties.name,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
-        extra_filters=graph_properties["ignore_filter"] if filter_ignores else None,
+        extra_filters=graph_properties.ignore_filter if filter_ignores else None,
     )
     return fig
 
@@ -238,9 +244,8 @@ def init_dynamic_conf_dropdown(tables, pathname):
     if not tables:
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    columns_options = get_tables_property_union(main_tables)
+    main_tables, _ = get_curr_page_tables(tables, pathname)
+    columns_options = get_columns_dict(main_tables)
     return columns_options
 
 
@@ -265,12 +270,10 @@ def get_dynamic_conf_mat(meta_data_filters, tables, population, main_dump, secon
     ):
         return no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-    column_to_compare = dynamic_col
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    column_to_compare = get_existing_column(dynamic_col, main_tables, meta_data_tables)
     extra_columns = [column_to_compare]
-    graph_title = f"{column_to_compare.title()} Classification"
+    graph_title = f"{column_to_compare.name.title()} Classification"
     fig = get_conf_mat_fig(
         main_tables,
         column_to_compare,

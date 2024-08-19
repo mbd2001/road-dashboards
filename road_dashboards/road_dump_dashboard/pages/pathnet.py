@@ -65,7 +65,7 @@ layout = html.Div(
     [
         html.H1(page_properties.title, className="mb-5"),
         data_filters.layout,
-        base_dataset_statistics.layout(page_properties.objs_name),
+        base_dataset_statistics.layout(),
         count_graphs_collection.layout(group_by_graphs, draw_obj_count=True),
         conf_mats_collection.layout(conf_mat_graphs),
     ]
