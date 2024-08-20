@@ -27,31 +27,46 @@ WITH_QUERY = """
     """
 
 CONF_QUERY = """
-    SELECT main_val, secondary_val, COUNT(*) AS overall FROM
-    (SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val
-    FROM ({main_data}) A INNER JOIN ({secondary_data}) B
-    ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id)))
+    SELECT main_val, secondary_val, COUNT(*) AS overall FROM (
+        SELECT A.{column_to_compare} AS main_val, B.{column_to_compare} AS secondary_val
+        FROM ({main_data}) A INNER JOIN ({secondary_data}) B
+        ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id))
+    )
     GROUP BY main_val, secondary_val
     """
 
 DIFF_IDS_QUERY = """
-    SELECT *
+    SELECT A.clip_name, A.grabindex
     FROM ({main_data}) A INNER JOIN ({secondary_data}) B
     ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id))
     WHERE A.{column_to_compare} != B.{column_to_compare}
-    GROUP BY A.clip_name, A.grabindex
+    GROUP BY A.clip_name, A.grabindex   
     LIMIT {limit}
+    """
+
+DIFF_LABELS_QUERY = """
+    WITH t1 AS (
+        {diff_ids_query}
+    )
+    SELECT t2.clip_name, t2.grabindex, t2.dump_name, {agg_columns}
+    FROM (SELECT clip_name, grabindex, dump_name, {label_columns} FROM {main_data} UNION ALL SELECT clip_name, grabindex, dump_name, {label_columns} FROM {secondary_data}) t2
+    INNER JOIN t1 ON t1.clip_name = t2.clip_name AND t1.grabindex = t2.grabindex
+    GROUP BY t2.clip_name, t2.grabindex, t2.dump_name
     """
 
 COUNT_QUERY = """
     SELECT dump_name, {group_by} {group_name}, {count_metric}
-    FROM ({base_query})
+    FROM (
+        {base_query}
+    )
     GROUP BY dump_name, {group_by} ORDER BY dump_name
     """
 
 DYNAMIC_QUERY = """
     SELECT dump_name, {metrics}
-    FROM ({base_query})
+    FROM (
+        {base_query}
+    )
     GROUP BY dump_name ORDER BY dump_name
     """
 
@@ -61,7 +76,9 @@ CASES_DESCRIPTION = """
         {cases}
         ELSE 'other'
     END AS cases
-    FROM ({base_query})
+    FROM (
+        {base_query}
+    )
     """
 
 COUNT_ALL_METRIC = """
@@ -69,8 +86,15 @@ COUNT_ALL_METRIC = """
     AS {count_name}
     """
 
+COUNT_ALL_PRETTY_METRIC = """
+    format_number(COUNT(*)) 
+    AS {count_name}
+    """
+
 COUNT_PERCENTAGE = """
-    WITH t1 AS ({query})
+    WITH t1 AS (
+        {query}
+    )
     SELECT dump_name, {group_name}, (100.0 * overall) / (SUM(overall) OVER (PARTITION BY dump_name)) as percentage
     FROM t1
     """
@@ -118,13 +142,12 @@ def generate_conf_mat_query(
     return query
 
 
-def generate_diff_query(
+def generate_diff_ids_query(
     main_dump: str,
     secondary_dump: str,
     main_tables: Table,
     population: str,
     column_to_compare: BaseColumn,
-    extra_columns: List[BaseColumn],
     meta_data_tables: Table = None,
     meta_data_filters: str = "",
     extra_filters: str = "",
@@ -134,18 +157,17 @@ def generate_diff_query(
         main_tables,
         population,
         False,
-        extra_columns,
+        [column_to_compare],
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         dumps_to_include=main_dump,
     )
-
     secondary_data = generate_base_query(
         main_tables,
         population,
         False,
-        extra_columns,
+        [column_to_compare],
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
@@ -157,6 +179,42 @@ def generate_diff_query(
         secondary_data=secondary_data,
         column_to_compare=column_to_compare.name,
         limit=limit,
+    )
+    return query
+
+
+def generate_diff_labels_query(
+    main_dump: str,
+    secondary_dump: str,
+    main_tables: Table,
+    population: str,
+    column_to_compare: BaseColumn,
+    extra_columns: List[BaseColumn],
+    meta_data_tables: Table = None,
+    meta_data_filters: str = "",
+    extra_filters: str = "",
+    limit: int = IMG_LIMIT,
+):
+    diff_ids_query = generate_diff_ids_query(
+        main_dump,
+        secondary_dump,
+        main_tables,
+        population,
+        column_to_compare,
+        meta_data_tables,
+        meta_data_filters,
+        extra_filters,
+        limit,
+    )
+
+    agg_columns = ", ".join(f"array_agg({col.name}) as {col.name}" for col in extra_columns)
+    label_columns = ", ".join(col.name for col in extra_columns)
+    query = DIFF_LABELS_QUERY.format(
+        diff_ids_query=diff_ids_query,
+        agg_columns=agg_columns,
+        label_columns=label_columns,
+        main_data=filter_paths(main_tables.tables_dict, [main_dump])[0],
+        secondary_data=filter_paths(main_tables.tables_dict, [secondary_dump])[0],
     )
     return query
 
@@ -186,11 +244,12 @@ def generate_count_query(
         extra_filters=extra_filters,
         dumps_to_include=dumps_to_include,
     )
-    metrics = COUNT_ALL_METRIC.format(count_name="overall")
     if not main_column and not interesting_cases:
+        metrics = COUNT_ALL_PRETTY_METRIC.format(count_name="overall")
         query = DYNAMIC_QUERY.format(metrics=metrics, base_query=base_query)
         return query
 
+    metrics = COUNT_ALL_METRIC.format(count_name="overall")
     if interesting_cases:
         cases = "\n".join(f"WHEN ({filter}) THEN '{name}'" for name, filter in interesting_cases.items())
         base_query = CASES_DESCRIPTION.format(cases=cases, base_query=base_query)

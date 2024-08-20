@@ -7,7 +7,7 @@ import plotly.graph_objects as go
 from dash import dcc
 from scipy import interpolate
 
-VERT = np.array((range(0, 256, 4))).reshape(-1, 1)
+VERT = np.array(range(0, 256, 4))
 IGNORE_VAL = -999
 IMG_AXIS = {"width": [0, 771], "height": [0, 256]}
 WORLD_AXIS = {"width": [-15, 15], "height": [-1, 150]}
@@ -79,7 +79,7 @@ def get_candidate(cand: dict, is_img: bool = True):
     color = cand.get("color")
     type = cand.get("type")
     role = cand.get("role")
-    view_range = cand.get("view_range")
+    view_range = cand.get("max_view_range")
     max_view_range_idx = cand.get("max_view_range_idx")
     if is_img is True:
         x = cand["dv_dp_points"][:, 0] if "dv_dp_points" in cand.keys() else cand["pos"]

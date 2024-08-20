@@ -3,7 +3,6 @@ import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     DISPLAY_CONF_MATS,
     DYNAMIC_CONF_DROPDOWN,

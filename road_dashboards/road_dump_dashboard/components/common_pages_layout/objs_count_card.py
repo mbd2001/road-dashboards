@@ -16,7 +16,6 @@ from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrap
 )
 from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import get_curr_page_tables
-from road_dashboards.road_dump_dashboard.graphs.big_number import human_format_int
 
 
 def layout():
@@ -53,7 +52,7 @@ def get_frame_count(meta_data_filters, tables, population, intersection_on, path
     data, _ = query_athena(database="run_eval_db", query=query)
     frame_count_accordion = [
         dbc.AccordionItem(
-            html.H5(f"{human_format_int(amount)} {objs_name.title()}"),
+            html.H5(f"{amount} {objs_name.title()}"),
             title=dump_name.title(),
             item_id=dump_name,
         )

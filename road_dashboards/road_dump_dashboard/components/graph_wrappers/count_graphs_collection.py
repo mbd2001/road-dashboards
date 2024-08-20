@@ -370,7 +370,6 @@ def get_group_by_chart(
         extra_filters=extra_filters,
         compute_percentage=compute_percentage,
     )
-    print(query)
     data, _ = query_athena(database="run_eval_db", query=query)
     y_col = "percentage" if compute_percentage else "overall"
     col_id = DIFF_COL if diff_column else (group_by_column.name if group_by_column else "cases")

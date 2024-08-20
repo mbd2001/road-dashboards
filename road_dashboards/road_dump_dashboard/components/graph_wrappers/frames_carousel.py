@@ -1,26 +1,16 @@
-import pickle as pkl
 import re
 from dataclasses import dataclass
+from typing import List
 
 import dash_bootstrap_components as dbc
+import numpy as np
 import orjson
-from dash import (
-    MATCH,
-    Input,
-    Output,
-    Patch,
-    State,
-    callback,
-    callback_context,
-    dcc,
-    html,
-    no_update,
-    page_registry,
-    set_props,
-)
+import pandas as pd
+from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, set_props
 from road_database_toolkit.athena.athena_utils import query_athena
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     CURR_DRAWN_GRAPH,
     DYNAMIC_CONF_DROPDOWN,
@@ -44,6 +34,7 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     TABLES,
     URL,
 )
+from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import ConfMatGraphProperties
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
@@ -51,12 +42,16 @@ from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrap
 from road_dashboards.road_dump_dashboard.components.logical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import (
     IMG_LIMIT,
-    generate_diff_query,
+    generate_diff_labels_query,
 )
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
+    dump_object,
     get_curr_page_tables,
+    get_existing_column,
     load_object,
 )
+
+exclude_columns = ["clip_name", "grabindex", "dump_name"]
 
 
 @dataclass
@@ -206,7 +201,7 @@ def draw_diffs_generic_case(
         or main_dump == secondary_dump
         or (
             triggered_id["type"] == GENERIC_FILTER_IGNORES_BTN
-            and (not curr_drawn_graph or orjson.loads(curr_drawn_graph)["name"] != triggered_id["index"])
+            and (not curr_drawn_graph or load_object(curr_drawn_graph).name != triggered_id["index"])
         )
         or not population
         or not tables
@@ -216,21 +211,22 @@ def draw_diffs_generic_case(
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
     main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    extra_columns = main_tables.get_column_names(exclude_columns=exclude_columns)
     parsed_properties = load_object(graph_properties)
-    query = generate_diff_query(
+    query = generate_diff_labels_query(
         main_dump,
         secondary_dump,
         main_tables,
         population,
         parsed_properties.column_to_compare,
-        parsed_properties.extra_columns,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
         extra_filters=parsed_properties.ignore_filter if filter_ignores else "",
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
-        data, main_dump, secondary_dump
+        data, extra_columns
     )
 
     set_props(MAIN_IMG, {"children": main_img_figs})
@@ -279,7 +275,7 @@ def draw_diffs_dynamic_case(
         or main_dump == secondary_dump
         or (
             triggered_id == DYNAMIC_CONF_DROPDOWN
-            and (not curr_drawn_graph or orjson.loads(curr_drawn_graph)["name"] != DYNAMIC_CONF_MAT)
+            and (not curr_drawn_graph or load_object(curr_drawn_graph).name != DYNAMIC_CONF_MAT)
         )
         or not population
         or not tables
@@ -289,30 +285,24 @@ def draw_diffs_dynamic_case(
     ):
         return no_update, no_update, no_update, no_update, no_update, no_update, no_update
 
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_tables = tables[page_properties["main_table"]]
-    meta_data_tables = tables.get(page_properties["meta_data_table"])
-
-    graph_properties = {
-        "name": DYNAMIC_CONF_MAT,
-        "column_to_compare": dynamic_column,
-        "extra_columns": [dynamic_column],
-        "ignore_filter": "",
-    }
-    query = generate_diff_query(
+    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    extra_columns = main_tables.get_column_names(exclude_columns=exclude_columns)
+    dynamic_column = get_existing_column(dynamic_column, main_tables, meta_data_tables)
+    graph_properties = ConfMatGraphProperties(name=DYNAMIC_CONF_MAT, column_to_compare=dynamic_column)
+    query = generate_diff_labels_query(
         main_dump,
         secondary_dump,
         main_tables,
         population,
-        graph_properties["column_to_compare"],
-        graph_properties["extra_columns"],
+        graph_properties.column_to_compare,
+        extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
-        extra_filters=graph_properties["ignore_filter"],
+        extra_filters=graph_properties.ignore_filter,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
-        data, main_dump, secondary_dump
+        data, extra_columns
     )
     return (
         main_img_figs,
@@ -321,7 +311,7 @@ def draw_diffs_dynamic_case(
         secondary_world_figs,
         0,
         False,
-        orjson.dumps(graph_properties),
+        dump_object(graph_properties),
     )
 
 
@@ -359,72 +349,58 @@ def draw_diffs_general_buttons_case(
         return no_update, no_update, no_update, no_update, no_update
 
     main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
-    curr_drawn_graph = orjson.loads(curr_drawn_graph)
-    query = generate_diff_query(
+    extra_columns = main_tables.get_column_names(exclude_columns=exclude_columns)
+    curr_drawn_graph = load_object(curr_drawn_graph)
+    query = generate_diff_labels_query(
         main_dump,
         secondary_dump,
         main_tables,
         population,
-        curr_drawn_graph["column_to_compare"],
-        curr_drawn_graph["extra_columns"],
+        curr_drawn_graph.column_to_compare,
+        curr_drawn_graph.extra_columns,
         meta_data_tables=meta_data_tables,
         meta_data_filters=meta_data_filters,
-        extra_filters=curr_drawn_graph["ignore_filter"],
+        extra_filters=curr_drawn_graph.ignore_filter,
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = compute_images_from_query_data(
-        data, main_dump, secondary_dump
+        data, extra_columns
     )
     return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0
 
 
-def compute_images_from_query_data(data, main_dump, secondary_dump):
-    main_labels_df = split_df_columns_by_start_and_end(data, "main_start", "secondary_start")
-    secondary_labels_df = split_df_columns_by_start_and_end(data, "secondary_start")
-    main_lables_dict = parse_labels_df(main_labels_df)
-    secondary_label_dict = parse_labels_df(secondary_labels_df)
+def compute_images_from_query_data(data, extra_columns):
+    labels_df = parse_labels_df(data, extra_columns)
+    dumps_df_list = [d for _, d in labels_df.groupby(["dump_name"])]
 
-    clip_names, grab_indexes = list(zip(*main_lables_dict.keys()))
-    grab_indexes = [int(gi) for gi in grab_indexes]
+    clip_names = dumps_df_list[0].clip_name
+    grab_indexes = [int(gi) for gi in dumps_df_list[0].grabindex]
     data_types = ["data"] * len(clip_names)
 
     images = DroneViewDBManager.load_multiple_clips_images(clip_names, grab_indexes, data_types)
-    main_img_figs = []
-    main_world_figs = []
-    secondary_img_figs = []
-    secondary_world_figs = []
-    for clip_name, grab_index in zip(clip_names, grab_indexes):
-        curr_img = images[clip_name]["data"][grab_index][0][0]
-        main_labels = main_lables_dict[(clip_name, grab_index)]
-        secondary_label = secondary_label_dict[(clip_name, grab_index)]
-        main_img_figs.append(draw_img(curr_img, main_labels, main_dump, clip_name, grab_index))
-        main_world_figs.append(draw_top_view(main_labels))
-        secondary_img_figs.append(draw_img(curr_img, secondary_label, secondary_dump, clip_name, grab_index))
-        secondary_world_figs.append(draw_top_view(secondary_label))
+    img_figs = [[]] * len(dumps_df_list)
+    world_figs = [[]] * len(dumps_df_list)
+    for dump_df, img_fig, world_fig in zip(dumps_df_list, img_figs, world_figs):
+        for ind, row in dump_df.iterrows():
+            candidates = [{col: row[col][i] for col in row.drop(exclude_columns).index} for i in range(row.obj_id.size)]
+            curr_img = images[row.clip_name]["data"][row.grabindex][0][0]
+            img_fig.append(draw_img(curr_img, candidates, row.dump_name, row.clip_name, row.grabindex))
+            world_fig.append(draw_top_view(candidates))
 
-    return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs
+    return img_figs[0], world_figs[0], img_figs[1], world_figs[1]
 
 
-def split_df_columns_by_start_and_end(df, start_col, end_col=None):
-    columns_to_return = []
-    is_active = False
-    for col in df.columns:
-        if col == end_col:
-            break
-        if is_active:
-            columns_to_return.append(col)
-            continue
-        if col == start_col:
-            is_active = True
-
-    return df[columns_to_return]
-
-
-def parse_labels_df(labels_df):
+def parse_labels_df(labels_df: pd.DataFrame, extra_columns: List[BaseColumn]):
     if labels_df.empty:
         return {}
 
-    labels_df = labels_df.rename(columns=lambda x: re.sub(r"\.\d+$", "", x))
-    sorted_df = labels_df.sort_values("obj_id")
-    labels_dict = {x: y.to_dict("records") for x, y in sorted_df.groupby(["clip_name", "grabindex"])}
-    return labels_dict
+    arr_columns = [col.name for col in extra_columns]
+    labels_df[arr_columns] = labels_df[arr_columns].map(safe_json).map(np.array)
+    return labels_df
+
+
+def safe_json(x):
+    try:
+        return orjson.loads(x)
+    except orjson.JSONDecodeError:
+        return [x.strip(" ") for x in x.strip("[]").split(",")]

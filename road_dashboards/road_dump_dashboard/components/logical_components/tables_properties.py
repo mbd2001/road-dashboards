@@ -4,12 +4,16 @@ from dataclasses import dataclass, field
 from itertools import zip_longest
 from queue import Queue
 from threading import Thread
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List
 
 from dash import page_registry
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import (
+    BASE_COLUMNS,
+    ArrayColumn,
+    BaseColumn,
+)
 
 POSITION_COLUMNS = {
     "half_width",
@@ -20,8 +24,6 @@ POSITION_COLUMNS = {
     "de_y_off",
     "dp_points",
     "dv_dp_points",
-    "dashed_length",
-    "dashed_gap",
     "dashed_start_y",
     "dashed_end_y",
 }
@@ -35,8 +37,8 @@ class Table:
     tables_dict: dict
     columns: Dict[str, BaseColumn] = field(default_factory=dict)
 
-    def get_drawable_columns(self):
-        return [col for col in self.columns if col.drawable is True]
+    def get_column_names(self, exclude_columns=List[str]):
+        return [col for col in self.columns.values() if col.name not in exclude_columns]
 
 
 class Tables:
@@ -99,7 +101,11 @@ def get_table_columns(table):
     ]
     distinct_dict = generate_distinct_dict(table, obj_cols)
     columns = {
-        name: BaseColumn(name=name, dtype=dtype, distinct_values=distinct_dict.get(name, []), drawable=drawable)
+        name: (
+            ArrayColumn(name=name, dtype=dtype, distinct_values=distinct_dict.get(name, []), drawable=drawable)
+            if drawables
+            else BaseColumn(name=name, dtype=dtype, distinct_values=distinct_dict.get(name, []), drawable=drawable)
+        )
         for name, dtype, drawable in zip(existing_columns, dtypes, drawables)
     }
     return columns
@@ -154,7 +160,7 @@ def get_existing_column(name: str, main_tables: Table, meta_data_tables: Table =
     return val
 
 
-def get_curr_page_tables(tables: str, pathname: str) -> (Table, Optional[Table]):
+def get_curr_page_tables(tables: str, pathname: str) -> tuple[Table, Table]:
     tables = load_object(tables)
     page_properties = page_registry[f"pages.{pathname.strip('/')}"]
     main_table_name = page_properties["main_table"]

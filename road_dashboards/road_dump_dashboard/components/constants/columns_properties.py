@@ -1,12 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List
 
-BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id"]
-
-COMMON_COLUMNS = BASE_COLUMNS + [
-    "batch_num",
-    "pred_name",
-]
+BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id", "batch_num", "is_re"]
 
 
 @dataclass
@@ -23,17 +18,17 @@ class BaseColumn:
     distinct_values: List[str] = field(default_factory=list)
     drawable: bool = False
 
+    def __hash__(self):
+        return hash(self.name)
+
     def __eq__(self, other):
         return self.name == other.name
 
     def __ne__(self, other):
         return self.name != other.name
 
-    def __hash__(self):
-        return hash(self.name)
-
     def get_column_string(self):
-        base_repr = f"A.{self.name}" if self.name in COMMON_COLUMNS else self.name
+        base_repr = f"A.{self.name}" if self.name in BASE_COLUMNS else self.name
         return base_repr
 
     def get_column_as_original_name(self):
@@ -72,6 +67,15 @@ class ArrayColumn(BaseColumn):
     len: bool = False
     avg: bool = False
 
+    def __hash__(self):
+        return hash(self.name)
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def __ne__(self, other):
+        return self.name != other.name
+
     def __post_init__(self):
         is_single_element = any([self.sum, self.max, self.min, self.len, self.avg])
         assert not (self.unnest is True and is_single_element is True), "you can't unnest array with single element"
@@ -102,5 +106,47 @@ class ArrayColumn(BaseColumn):
             base_repr = f"cardinality({base_repr})"
         elif self.avg:
             base_repr = f"array_average({base_repr})"
+
+        return base_repr
+
+
+@dataclass
+class NumericColumn(BaseColumn):
+    """
+    Defines the base properties of a data column which contains floats
+
+    Attributes:
+            abs (bool): absolute value
+            sign (bool): 1 if positive, -1 if negative, 0 else
+            round_n_decimal_place (int): the number of decimal places to round to
+            floor (bool): floor the value to the nearest integer
+            ceil (bool): ceil the value to the nearest integer
+    """
+
+    abs: bool = False
+    sign: bool = False
+    round_n_decimal_place: int = None
+    floor: bool = False
+    ceil: bool = False
+
+    def __post_init__(self):
+        assert [self.round_n_decimal_place is not None, self.floor, self.ceil].count(
+            True
+        ) <= 1, "don't use multiple rounding function"
+
+    def get_column_string(self):
+        base_repr = super().get_column_string()
+        if self.round_n_decimal_place is not None:
+            base_repr = f"round({base_repr}, {self.round_n_decimal_place})"
+        elif self.floor:
+            base_repr = f"floor({base_repr})"
+        elif self.ceil:
+            base_repr = f"ceil({base_repr})"
+
+        if self.abs:
+            base_repr = f"abs({base_repr})"
+
+        if self.sign:
+            base_repr = f"sign({base_repr})"
 
         return base_repr
