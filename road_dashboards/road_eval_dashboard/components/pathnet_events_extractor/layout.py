@@ -9,7 +9,6 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
-    PATHNET_EVENTS_ORDER_DROPDOWN,
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_SUBMIT_BUTTON,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
@@ -59,6 +58,13 @@ def create_filtering_dropdowns_row():
         [
             dbc.Col(
                 dcc.Dropdown(
+                    id=PATHNET_EVENTS_METRIC_DROPDOWN,
+                    options=create_dropdown_options_list(labels=["accuracy", "false", "miss"]),
+                    placeholder="Select Metric",
+                ),
+            ),
+            dbc.Col(
+                dcc.Dropdown(
                     id=PATHNET_EVENTS_ROLE_DROPDOWN,
                     options=create_dropdown_options_list(labels=["host", "non-host"]),
                     placeholder="Select Role",
@@ -69,20 +75,6 @@ def create_filtering_dropdowns_row():
                     id=PATHNET_EVENTS_DIST_DROPDOWN,
                     options=create_dropdown_options_list(labels=distances),
                     placeholder="Select Dist (sec)",
-                ),
-            ),
-            dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_METRIC_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["accuracy", "false", "miss"]),
-                    placeholder="Select Metric",
-                ),
-            ),
-            dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_ORDER_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["Ascending", "Descending"], values=["ASC", "DESC"]),
-                    placeholder="Select Order",
                 ),
             ),
         ],

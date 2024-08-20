@@ -158,17 +158,16 @@ COUNT_ALL_METRIC = """
     AS {count_name}
     """
 
-EXTRACT_EVENT_METRIC = """
+EXTRACT_EVENT_ACC = """
     {dist_column} IS NOT NULL AND 
-    {dist_column} {operator} {dist_thresh} AND 
-    bin_population = '{dp_source}'
+    {dist_column} < {dist_thresh} AND 
+    bin_population = '{chosen_source}'
 """
 
 EXTRACT_EVENT_QUERY = """
-    SELECT {selected_columns} 
+    SELECT {final_columns} 
     FROM ({base_query}) 
-    WHERE {metrics_cmd}
-    ORDER BY {order_cmd}
+    {order_cmd}
 """
 
 SUM_SUCCESS_RATE_METRIC = """
@@ -675,38 +674,51 @@ def generate_path_net_miss_false_query(
     return query
 
 
-def generate_pathnet_events_query(
+def generate_extract_acc_events_query(
     data_tables,
     meta_data,
     meta_data_filters,
-    meta_data_columns,
     bookmarks_columns,
-    dp_source,
+    chosen_source,
     role,
     dist,
-    metric,
-    order,
 ):
-    if "frame_has_labels_mf" in meta_data_columns:
-        meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
-    extra_columns = ["dp_id", "matched_dp_id", "match_score"]
-    base_query = generate_base_query(
-        data_tables, meta_data, meta_data_filters=meta_data_filters, role=role, extra_columns=extra_columns
-    )
-
-    operator = "<" if metric == "accuracy" else ">"
-    dist_thresh = sec_to_dist_acc[dist] if metric == "accuracy" else sec_to_dist_falses[dist]
+    acc_columns = ["dp_id", "matched_dp_id", "match_score"]
     dist_column = f'"dist_{dist}"'
-    order_cmd = f"{dist_column} {order}"
-    metrics_cmd = EXTRACT_EVENT_METRIC.format(
-        dist_column=dist_column, operator=operator, dist_thresh=dist_thresh, dp_source=dp_source
+    acc_cmd = EXTRACT_EVENT_ACC.format(
+        dist_column=f'"dist_{dist}"', dist_thresh=sec_to_dist_acc[dist], chosen_source=chosen_source
     )
-
-    selected_columns = ", ".join(bookmarks_columns + extra_columns + [dist_column])
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=acc_columns,
+        extra_filters=acc_cmd,
+    )
+    final_columns = bookmarks_columns + acc_columns
+    order_cmd = f"ORDER BY {dist_column} DESC"
     query = EXTRACT_EVENT_QUERY.format(
-        selected_columns=selected_columns, base_query=base_query, metrics_cmd=metrics_cmd, order_cmd=order_cmd
+        final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
     )
-    return query
+    return query, final_columns
+
+
+def generate_extract_miss_false_events_query(
+    data_tables, meta_data, meta_data_filters, bookmarks_columns, chosen_source, role
+):
+    metric_columns = ["dp_id"]
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=metric_columns,
+        extra_filters=f"bin_population = '{chosen_source}'",
+    )
+    final_columns = bookmarks_columns + metric_columns
+    query = EXTRACT_EVENT_QUERY.format(final_columns=", ".join(final_columns), base_query=base_query, order_cmd="")
+    return query, final_columns
 
 
 def generate_view_range_success_rate_query(
