@@ -390,7 +390,7 @@ def recursive_build_meta_data_filters(filters):
     and_or_operator = " OR " if and_or_is_on else " AND "
     filters = filters["props"]["children"][1]["props"]["children"]
     sub_filters = [recursive_build_meta_data_filters(flt) for flt in filters]
-    filters_str = and_or_operator.join(sub_filter for sub_filter in sub_filters if sub_filter)
+    filters_str = and_or_operator.join(f"({sub_filter})" for sub_filter in sub_filters if sub_filter)
     return filters_str
 
 
