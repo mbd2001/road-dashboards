@@ -777,8 +777,8 @@ def get_path_net_quality_score_tp(meta_data_filters, nets, slider_values, idx):
 
     role = idx["role"]
     query = generate_path_net_dp_quality_query(
-        nets[PATHNET_PRED],
-        nets["meta_data"],
+        data_tables=nets[PATHNET_PRED],
+        meta_data=nets["meta_data"],
         meta_data_filters=meta_data_filters,
         role=role,
         base_dists=[0.2, 0.5],
@@ -809,10 +809,9 @@ def get_path_net_quality_score_tn(meta_data_filters, nets, slider_values, idx):
     role = idx["role"]
 
     query = generate_path_net_dp_quality_query(
-        nets[PATHNET_PRED],
-        nets["meta_data"],
+        data_tables=nets[PATHNET_PRED],
+        meta_data=nets["meta_data"],
         meta_data_filters=meta_data_filters,
-        extra_filters="",
         role=role,
         base_dists=[0.2, 0.5],
         acc_dist_operator=acc_dist_operator,
@@ -847,8 +846,8 @@ def get_path_net_quality_score_fp(meta_data_filters, nets, slider_values, idx):
     role = idx["role"]
 
     query = generate_path_net_dp_quality_query(
-        nets[PATHNET_PRED],
-        nets["meta_data"],
+        data_tables=nets[PATHNET_PRED],
+        meta_data=nets["meta_data"],
         meta_data_filters=meta_data_filters,
         role=role,
         base_dists=[0.2, 0.5],
@@ -879,8 +878,8 @@ def get_path_net_quality_score_fn(meta_data_filters, nets, slider_values, idx):
     role = idx["role"]
 
     query = generate_path_net_dp_quality_query(
-        nets[PATHNET_PRED],
-        nets["meta_data"],
+        data_tables=nets[PATHNET_PRED],
+        meta_data=nets["meta_data"],
         meta_data_filters=meta_data_filters,
         role=role,
         base_dists=[0.2, 0.5],
@@ -911,10 +910,9 @@ def get_path_net_quality_score_unmatched_correct_rejection(meta_data_filters, ne
     role = idx["role"]
 
     query = generate_path_net_dp_quality_true_rejection_query(
-        nets[PATHNET_PRED],
-        nets["meta_data"],
+        data_tables=nets[PATHNET_PRED],
+        meta_data=nets["meta_data"],
         meta_data_filters=meta_data_filters,
-        extra_filters="",
         role=[f"'{role}'", f"'unmatched-{role}'"],
         acc_dist_operator=acc_dist_operator,
         quality_operator=quality_operator,
