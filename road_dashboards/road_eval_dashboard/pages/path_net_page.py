@@ -71,6 +71,10 @@ basic_operations = create_dropdown_options_list(
     values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
 )
 
+ACC_TAB_NAME = "pathnet-accuracy"
+ROLE_TAB_NAME = "pathnet-roles"
+QUALITY_TAB_NAME = "pathnet-quality-score"
+
 
 def get_cumulative_acc_layout():
     layout = []
@@ -260,7 +264,8 @@ quality_layout = html.Div(
     ]
 )
 
-TABS_LAYOUTS = {"positional": pos_layout, "roles": role_layout, "pathnet-quality-score": quality_layout}
+
+TABS_LAYOUTS = {ACC_TAB_NAME: pos_layout, ROLE_TAB_NAME: role_layout, QUALITY_TAB_NAME: quality_layout}
 
 layout = html.Div(
     [
@@ -272,11 +277,11 @@ layout = html.Div(
             [
                 dcc.Tabs(
                     id="pathnet-metrics-graphs",
-                    value="positional",
+                    value=ACC_TAB_NAME,
                     children=[
-                        dcc.Tab(label="pathnet-metrics-positional", value="positional"),
-                        dcc.Tab(label="pathnet-metrics-roles", value="roles"),
-                        dcc.Tab(label="DPs Quality", value="pathnet-quality-score"),
+                        dcc.Tab(label="pathnet-metrics-positional", value=ACC_TAB_NAME),
+                        dcc.Tab(label="pathnet-metrics-roles", value=ROLE_TAB_NAME),
+                        dcc.Tab(label="DPs Quality", value=QUALITY_TAB_NAME),
                     ],
                 ),
             ]
