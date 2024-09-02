@@ -127,6 +127,11 @@ PATH_NET_MONOTONE_ACC_HOST = "path_net_monotone_accuracy_host"
 PATH_NET_MONOTONE_ACC_NEXT = "path_net_monotone_accuracy_next"
 PATH_NET_MISSES_HOST = "path_net_misses_host"
 PATH_NET_MISSES_NEXT = "path_net_misses_next"
+PATH_NET_QUALITY_TP = "path_net_quality_tp"
+PATH_NET_QUALITY_FN = "path_net_quality_fn"
+PATH_NET_QUALITY_FP = "path_net_quality_fp"
+PATH_NET_QUALITY_TN = "path_net_quality_tn"
+PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION = "path_net_quality_unmathced_correct_rejection"
 
 
 PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"

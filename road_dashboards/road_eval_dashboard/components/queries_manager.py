@@ -118,6 +118,19 @@ DIST_METRIC = """
     AS "score_{ind}"
     """
 
+DP_QUALITY_METRIC = """
+    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {dist_thresh_filter} AND "{base_dp_quality_col_name}_{dist}" IS NOT NULL AND "{base_dp_quality_col_name}_{dist}" {quality_thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) /
+    COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) THEN 1 ELSE NULL END)
+    AS "score_{ind}"
+    """
+
+DP_QUALITY_TRUE_REJECTION_METRIC = """
+    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {dist_thresh_filter} AND "{base_dp_quality_col_name}_{dist}" IS NOT NULL AND "{base_dp_quality_col_name}_{dist}" {quality_thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) /
+    COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {dist_thresh_filter} THEN 1 ELSE NULL END)
+    AS "score_{ind}"
+    """
+
+
 VIEW_RANGE_SUCCESS_RATE_QUERY = """
     SUM(CAST("{max_Z_col}_pred" >= {Z_sample} AND "{max_Z_col}_label" >= {Z_sample} AS DOUBLE)) / 
     SUM(CAST("{max_Z_col}_label" >= {Z_sample} AS DOUBLE))
@@ -645,6 +658,70 @@ def generate_path_net_query(
         role,
         extra_columns=extra_columns,
         base_extra_filters=extra_filters,
+    )
+    return query
+
+
+def generate_path_net_dp_quality_query(
+    data_tables,
+    meta_data,
+    meta_data_filters="",
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
+    role="",
+    base_dists=[0.2, 0.5],
+    acc_dist_operator="<",
+    quality_operator=">",
+    quality_thresh_filter=0.0,
+):
+    coef = np.polyfit([1.3, 3], base_dists, deg=1)
+    threshold_polynomial = np.poly1d(coef)
+    distances_dict = {i / 2: max(threshold_polynomial(i / 2), 0.2) for i in range(1, 11)}
+    quality_cols = [f'"quality_score_{(dist) / 2}"' for dist in range(1, 11)]
+    extra_columns = extra_columns + quality_cols
+
+    query = get_quality_score_query(
+        base_dist_column_name="dist",
+        base_dp_quality_col_name="quality_score",
+        data_tables=data_tables,
+        distances_dict=distances_dict,
+        meta_data=meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=extra_columns,
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=quality_thresh_filter,
+    )
+    return query
+
+
+def generate_path_net_dp_quality_true_rejection_query(
+    data_tables,
+    meta_data,
+    meta_data_filters="",
+    extra_columns=["split_role", "matched_split_role", "ignore_role"],
+    role="",
+    acc_dist_operator=">",
+    quality_operator=">",
+    quality_thresh_filter=0.0,
+):
+
+    distances_dict = {i / 2: PATHNET_IGNORE for i in range(1, 11)}
+    quality_cols = [f'"quality_score_{(dist) / 2}"' for dist in range(1, 11)]
+    extra_columns = extra_columns + quality_cols
+
+    query = get_quality_score_query_true_rejection(
+        base_dist_column_name="dist",
+        base_dp_quality_col_name="quality_score",
+        data_tables=data_tables,
+        distances_dict=distances_dict,
+        meta_data=meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=extra_columns,
+        acc_dist_operator=acc_dist_operator,
+        quality_operator=quality_operator,
+        quality_thresh_filter=quality_thresh_filter,
     )
     return query
 
@@ -1357,3 +1434,80 @@ def process_net_name(net_name):
     if pd.isnull(net_name):
         return net_name
     return re.sub(r"(^\d{18}-)|(_default$)|(_$)", "", net_name)
+
+
+def get_quality_score_query(
+    base_dist_column_name,
+    base_dp_quality_col_name,
+    data_tables,
+    distances_dict,
+    meta_data,
+    meta_data_filters,
+    role,
+    intresting_filters=None,
+    extra_columns=None,
+    quality_thresh_filter=0.0,
+    acc_dist_operator="<",
+    quality_operator=">",
+):
+    if intresting_filters is None:
+        intresting_filters = {"": ""}
+    metrics = ", ".join(
+        DP_QUALITY_METRIC.format(
+            dist_thresh_filter=f"{acc_dist_operator} {thresh}",
+            dist=sec,
+            base_dist_column_name=base_dist_column_name,
+            base_dp_quality_col_name=base_dp_quality_col_name,
+            quality_thresh_filter=f"{quality_operator} {quality_thresh_filter}",
+            ind=intresting_filter_name if intresting_filter_name else sec,
+        )
+        for sec, thresh in distances_dict.items()
+        for intresting_filter_name, intresting_filter in intresting_filters.items()
+    )
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics,
+        count_metrics=None,
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role=role,
+        extra_columns=extra_columns,
+    )
+
+
+def get_quality_score_query_true_rejection(
+    base_dist_column_name,
+    base_dp_quality_col_name,
+    data_tables,
+    distances_dict,
+    meta_data,
+    meta_data_filters,
+    role,
+    extra_columns=None,
+    quality_thresh_filter=0.0,
+    acc_dist_operator="<",
+    quality_operator=">",
+):
+
+    metrics = ", ".join(
+        DP_QUALITY_TRUE_REJECTION_METRIC.format(
+            dist_thresh_filter=f"{acc_dist_operator} {thresh}",
+            dist=sec,
+            base_dist_column_name=base_dist_column_name,
+            base_dp_quality_col_name=base_dp_quality_col_name,
+            quality_thresh_filter=f"{quality_operator} {quality_thresh_filter}",
+            ind=sec,
+        )
+        for sec, thresh in distances_dict.items()
+    )
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics,
+        count_metrics=None,
+        meta_data_filters=meta_data_filters,
+        extra_filters="",
+        role=role,
+        extra_columns=extra_columns,
+    )
