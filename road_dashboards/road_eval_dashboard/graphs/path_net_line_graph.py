@@ -13,6 +13,7 @@ def draw_path_net_graph(
     xaxis="Time (s)",
     yaxis=None,
     score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+    plot_bgcolor=None,
 ):
     fig = go.Figure()
     if all(f"overall_{col}" in effective_samples for col in cols):
@@ -49,5 +50,6 @@ def draw_path_net_graph(
         font=dict(size=16),
         legend_xanchor="center",
         legend=dict(orientation="h", yanchor="bottom", y=-1, xanchor="center", x=0.5),
+        plot_bgcolor=plot_bgcolor,
     )
     return fig

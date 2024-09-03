@@ -1,7 +1,6 @@
 import copy
 import json
 
-import pandas as pd
 from botocore.exceptions import ClientError
 from dash import Input, Output, State, callback, no_update
 from road_database_toolkit.cloud_file_system.file_operations import path_join, write_json
@@ -18,7 +17,6 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
-    PATHNET_EVENTS_ORDER_DROPDOWN,
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_SUBMIT_BUTTON,
     PATHNET_EXPLORER_DATA,
@@ -29,7 +27,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
-    generate_pathnet_events_query,
+    generate_extract_acc_events_query,
+    generate_extract_miss_false_events_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_alert_message, create_dropdown_options_list
@@ -132,14 +131,14 @@ def converts_events_df_to_bookmarks_json(events_df):
     return df_as_bookmarks.to_dict(orient="split")["data"]
 
 
-def create_data_dict_for_explorer(net_info, dp_source, role, dist, metric):
+def create_data_dict_for_explorer(net_info, dp_sources, chosen_source, role, dist, metric):
     s3_dir_path = S3_EVENTS_DIR.format(
         dataset=net_info["dataset"],
         net_id=net_info["net_id"],
         checkpoint=net_info["checkpoint"],
         use_case=net_info["use_case"],
     )
-    bookmarks_file_name = f"{metric}_{dp_source}_{role}_dist{dist}"
+    bookmarks_file_name = f"{metric}_{chosen_source}_{role}_dist{dist}"
     explorer_params = EXPLORER_PARAMS.format(
         dataset=net_info["dataset"],
         net_id=net_info["net_id"],
@@ -148,27 +147,43 @@ def create_data_dict_for_explorer(net_info, dp_source, role, dist, metric):
         population=net_info["population"],
         bookmarks_name=bookmarks_file_name,
     )
-    if dp_source == "mf":
-        explorer_params += " --mf_predictions"
+    dp_sources = {dic["label"] for dic in dp_sources}
+
+    if "mf" in dp_sources:
+        explorer_params += " --net_output_name mf"
+    elif "fusion" in dp_sources:
+        explorer_params += " --net_output_name fusion"
+
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_events_df(dist, dp_source, meta_data_cols, meta_data_filters, metric, net, order, role, samples_num):
-    DEFAULT_SAMPLES_NUM = 200
-    query = generate_pathnet_events_query(
-        data_tables=net[PATHNET_PRED],
-        meta_data=net["meta_data"],
-        meta_data_filters=meta_data_filters,
-        meta_data_columns=meta_data_cols,
-        bookmarks_columns=BOOKMARKS_COLUMNS,
-        dp_source=dp_source,
-        role=([f"'{role}'", f"'unmatched-{role}'"] if metric == "false" else role),
-        dist=float(dist),
-        metric=metric,
-        order=order,
-    )
+def get_events_df(dist, chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num):
+    DEFAULT_SAMPLES_NUM = 100
+    if "frame_has_labels_mf" in meta_data_cols:
+        meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
+
+    if metric == "accuracy":
+        query, final_columns = generate_extract_acc_events_query(
+            data_tables=net[PATHNET_PRED],
+            meta_data=net["meta_data"],
+            meta_data_filters=meta_data_filters,
+            bookmarks_columns=BOOKMARKS_COLUMNS,
+            chosen_source=chosen_source,
+            role=role,
+            dist=float(dist),
+        )
+    else:  # metric is false/miss
+        query, final_columns = generate_extract_miss_false_events_query(
+            data_tables=net[PATHNET_PRED] if metric == "false" else net[PATHNET_GT],
+            meta_data=net["meta_data"],
+            meta_data_filters=meta_data_filters,
+            bookmarks_columns=BOOKMARKS_COLUMNS,
+            chosen_source=chosen_source,
+            role="unmatched-non-host" if metric == "false" else f"unmatched-{role}",
+        )
+
     df, _ = run_query_with_nets_names_processing(query)
-    df = df.drop_duplicates(subset=BOOKMARKS_COLUMNS + ["dp_id", "matched_dp_id"])
+    df = df.drop_duplicates(subset=final_columns)
     df = df.head(samples_num if samples_num else DEFAULT_SAMPLES_NUM)
     return df
 
@@ -181,31 +196,36 @@ def get_events_df(dist, dp_source, meta_data_cols, meta_data_filters, metric, ne
     Output(PATHNET_EXTRACT_EVENTS_LOG_MESSAGE, "children"),
     State(PATHNET_EVENTS_CHOSEN_NET, "data"),
     State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
     Input(PATHNET_EVENTS_SUBMIT_BUTTON, "n_clicks"),
     State(MD_FILTERS, "data"),
     State(MD_COLUMNS_TO_TYPE, "data"),
     State(PATHNET_EVENTS_ROLE_DROPDOWN, "value"),
     State(PATHNET_EVENTS_DIST_DROPDOWN, "value"),
     State(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
-    State(PATHNET_EVENTS_ORDER_DROPDOWN, "value"),
     State(PATHNET_EVENTS_NUM_EVENTS, "value"),
     prevent_initial_call=True,
 )
 def build_events_df(
-    net, dp_source, n_clicks, meta_data_filters, meta_data_cols, role, dist, metric, order, samples_num
+    net, chosen_source, dp_sources, n_clicks, meta_data_filters, meta_data_cols, role, dist, metric, samples_num
 ):
-    dropdown_args = (net, dp_source, role, dist, metric, order)
+    dropdown_args = [net, chosen_source, metric]
+    if metric == "accuracy":
+        dropdown_args += [role, dist]
+    elif metric == "miss":
+        dropdown_args.append(role)
+
     input_valid, input_error_message = check_build_events_input(n_clicks, meta_data_cols, dropdown_args)
     if not input_valid:
         return no_update, no_update, no_update, no_update, create_alert_message(input_error_message, color="warning")
 
-    df = get_events_df(dist, dp_source, meta_data_cols, meta_data_filters, metric, net, order, role, samples_num)
+    df = get_events_df(dist, chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num)
     df_sane, sanity_error_message = check_events_df_sanity(events_df=df)
     if not df_sane:
         return no_update, no_update, no_update, no_update, create_alert_message(sanity_error_message, color="warning")
 
     bookmarks_json = converts_events_df_to_bookmarks_json(events_df=df)
-    data_for_explorer = create_data_dict_for_explorer(net["nets_info"], dp_source, role, dist, metric)
+    data_for_explorer = create_data_dict_for_explorer(net["nets_info"], dp_sources, chosen_source, role, dist, metric)
 
     data_table = df.to_dict("records")
     final_cols = [{"name": col, "id": col, "deletable": False, "selectable": True} for col in df.columns]
