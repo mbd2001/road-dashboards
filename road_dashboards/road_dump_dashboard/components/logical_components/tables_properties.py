@@ -1,19 +1,22 @@
 import base64
 import pickle as pkl
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from itertools import zip_longest
 from queue import Queue
 from threading import Thread
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List
 
-from dash import page_registry
-from road_database_toolkit.athena.athena_utils import query_athena
+from road_database_toolkit.athena.athena_utils import get_table, query_athena
 
 from road_dashboards.road_dump_dashboard.components.constants.columns_properties import (
-    BASE_COLUMNS,
     ArrayColumn,
-    BaseColumn,
+    BoolColumn,
+    Column,
+    NumericColumn,
+    StringColumn,
 )
+
+POTENTIAL_TABLES = ["meta_data", "lm_meta_data", "rpw_meta_data"]
 
 POSITION_COLUMNS = {
     "half_width",
@@ -29,84 +32,89 @@ POSITION_COLUMNS = {
 }
 
 THREE_DAYS = 60 * 24 * 3
+DTYPE_TO_COLUMN = {
+    "int": NumericColumn,
+    "float": NumericColumn,
+    "double": NumericColumn,
+    "boolean": BoolColumn,
+    "string": StringColumn,
+}
 
 
 @dataclass
 class Table:
-    name: str
-    tables_dict: dict
-    columns: Dict[str, BaseColumn] = field(default_factory=dict)
+    dataset_name: str
+    table_name: str
+
+    def __bool__(self):
+        return bool(self.table_name)
+
+
+@dataclass
+class TableType:
+    tables: List[Table]
+    columns: Dict[str, Column]
 
     def get_column_names(self, exclude_columns=List[str]):
         return [col for col in self.columns.values() if col.name not in exclude_columns]
 
+    def __bool__(self):
+        return any(self.tables)
 
-class Tables:
-    POTENTIAL_TABLES = ["meta_data", "lm_meta_data", "re_meta_data", "pw_meta_data", "rpw_meta_data"]
 
-    def __init__(self, dump_names, **kwargs):
-        self.names = dump_names
-        self.meta_data, self.lm_meta_data, self.re_meta_data, self.pw_meta_data, self.rpw_meta_data = self.init_tables(
-            dump_names, **kwargs
-        )
+def init_tables(dump_names: List[str], **kwargs):
+    num_of_dumps = len(kwargs.get("meta_data_table"))
+    tables_list = [get_tables_from_type(table_type, num_of_dumps, **kwargs) for table_type in POTENTIAL_TABLES]
+    queues = [Queue() for _ in POTENTIAL_TABLES]
+    [
+        Thread(target=wrapper, args=(generate_table_instance, queue, tables, dump_names)).start()
+        for queue, table_type, tables in zip(queues, POTENTIAL_TABLES, tables_list)
+    ]
+    table_instances = [queue.get() for queue in queues]
+    return table_instances
 
-    @staticmethod
-    def get_tables_from_type(tables_type, num_of_dumps, **kwargs):
-        tables = kwargs.get(f"{tables_type}_table", [""] * num_of_dumps)
-        tables = [table if table else "" for table in tables]
-        return tables
 
-    def init_tables(self, dump_names, **kwargs):
-        num_of_dumps = len(kwargs.get("meta_data_table"))
-        tables_list = [
-            self.get_tables_from_type(table_type, num_of_dumps, **kwargs) for table_type in self.POTENTIAL_TABLES
-        ]
-        queues = [Queue() for _ in self.POTENTIAL_TABLES]
-        [
-            Thread(target=wrapper, args=(generate_table_instance, queue, table_type, tables, dump_names)).start()
-            for queue, table_type, tables in zip(queues, self.POTENTIAL_TABLES, tables_list)
-        ]
-        table_instances = [queue.get() for queue in queues]
-        return table_instances
+def get_tables_from_type(tables_type, num_of_dumps, **kwargs):
+    tables = kwargs.get(f"{tables_type}_table", [""] * num_of_dumps)
+    tables = [table if table else "" for table in tables]
+    return tables
 
 
 def wrapper(func, queue, *args):
     queue.put(func(*args))
 
 
-def generate_table_instance(name, tables, dump_names):
+def generate_table_instance(tables, dump_names):
     table = tables[0]
-    tables_dict = dict(zip_longest(dump_names, tables))
+    tables_dict = [
+        Table(dataset_name=dump_name, table_name=table) for dump_name, table in zip_longest(dump_names, tables)
+    ]
     if not table:
-        return Table(name, tables_dict)
+        return TableType(tables=tables_dict, columns={})
 
     columns = get_table_columns(table)
-    table_data = Table(name=name, tables_dict=tables_dict, columns=columns)
+    table_data = TableType(tables=tables_dict, columns=columns)
     return table_data
 
 
 def get_table_columns(table):
     uninteresting_columns = ["pred_name", "dump_name", "population", "attributes"]
 
-    query = f"SELECT * FROM ({table}) LIMIT 1"
-    data, _ = query_athena(database="run_eval_db", query=query, cache_duration_minutes=THREE_DAYS)
-    data = data.drop(columns=uninteresting_columns, errors="ignore", axis=1)
-
-    existing_columns = data.columns.str.lower()
-    dtypes = list(data.dtypes.apply(lambda x: x.name))
-    drawables = [bool(col in POSITION_COLUMNS) for col in existing_columns]
+    existing_table = get_table(table_name=table, database="run_eval_db")
+    existing_columns = existing_table["Table"]["StorageDescriptor"]["Columns"]
+    existing_columns = [column for column in existing_columns if column["Name"] not in uninteresting_columns]
 
     obj_cols = [
-        col for col, dtype in zip(existing_columns, dtypes) if (dtype == "object") and (col not in POSITION_COLUMNS)
+        column["Name"]
+        for column in existing_table["Table"]["StorageDescriptor"]["Columns"]
+        if column["Type"] == "string"
     ]
     distinct_dict = generate_distinct_dict(table, obj_cols)
     columns = {
-        name: (
-            ArrayColumn(name=name, dtype=dtype, distinct_values=distinct_dict.get(name, []), drawable=drawable)
-            if drawables
-            else BaseColumn(name=name, dtype=dtype, distinct_values=distinct_dict.get(name, []), drawable=drawable)
+        column["Name"]: DTYPE_TO_COLUMN.get(column["Type"], ArrayColumn)(
+            name=column["Name"], distinct_values=distinct_dict.get(column["Name"], [])
         )
-        for name, dtype, drawable in zip(existing_columns, dtypes, drawables)
+        for column in existing_columns
     }
     return columns
 
@@ -135,39 +143,28 @@ def get_distinct_values_dict(table, columns_data_types_list, max_distinct_values
 
 def parse_distinct_dict(distinct_dict):
     columns_to_distinguish_values = {
-        col: {f"'{val.strip(' ')}'": val.strip(" ") for val in val_list[0].strip("[]").split(",")}
-        for col, val_list in distinct_dict.items()
+        col: [val.strip(" ") for val in val_list[0].strip("[]").split(",")] for col, val_list in distinct_dict.items()
     }
     return columns_to_distinguish_values
 
 
-def get_tables_columns_union(main_tables: Table, meta_data_tables: Table = None):
+def get_tables_columns_union(main_tables: TableType, meta_data_tables: TableType = None) -> Iterable[Column]:
     columns = main_tables.columns | (meta_data_tables.columns if meta_data_tables else {})
     return columns.values()
 
 
-def get_columns_dict(main_tables: Table, meta_data_tables=None):
+def get_columns_dict(main_tables: TableType, meta_data_tables=None) -> Dict[str, str]:
     columns = get_tables_columns_union(main_tables, meta_data_tables)
-    columns_dict = {col.name: col.title() for col in columns if col.drawable is False}
+    columns_dict = {col.name: col.title() for col in columns if not isinstance(col, ArrayColumn)}
     return columns_dict
 
 
-def get_existing_column(name: str, main_tables: Table, meta_data_tables: Table = None):
+def get_existing_column(name: str, main_tables: TableType, meta_data_tables: TableType = None) -> Column:
     val = main_tables.columns.get(name)
     if val is None and meta_data_tables is not None:
         val = meta_data_tables.columns.get(name)
 
     return val
-
-
-def get_curr_page_tables(tables: str, pathname: str) -> tuple[Table, Table]:
-    tables = load_object(tables)
-    page_properties = page_registry[f"pages.{pathname.strip('/')}"]
-    main_table_name = page_properties["main_table"]
-    meta_data_table_name = page_properties["meta_data_table"]
-    main_tables = getattr(tables, main_table_name)
-    meta_data_tables = getattr(tables, meta_data_table_name) if meta_data_table_name else None
-    return main_tables, meta_data_tables
 
 
 def dump_object(obj: Any) -> str:

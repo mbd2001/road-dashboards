@@ -3,13 +3,16 @@ import json
 
 import dash_bootstrap_components as dbc
 import pandas as pd
-from dash import Dash, Input, Output, State, callback, dcc, html, no_update
+from dash import Dash, Input, Output, callback, dcc, html, no_update
 
-from road_dashboards.road_dump_dashboard.components.constants.components_ids import TABLES, URL
-from road_dashboards.road_dump_dashboard.components.dashboard_layout import page_content, sidebar
-from road_dashboards.road_dump_dashboard.components.logical_components.catalog_table import dump_db_manager, init_tables
+from road_dashboards.road_dump_dashboard.components.constants.components_ids import LOAD_NETS_DATA_NOTIFICATION, URL
+from road_dashboards.road_dump_dashboard.components.dashboard_layout import load_datasets_modal, page_content, sidebar
+from road_dashboards.road_dump_dashboard.components.logical_components.catalog_table import dump_db_manager, get_tables
 from road_dashboards.road_dump_dashboard.components.logical_components.dcc_stores import init_dcc_stores
-from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import dump_object
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
+    POTENTIAL_TABLES,
+    dump_object,
+)
 
 app = Dash(
     __name__,
@@ -24,9 +27,28 @@ app.layout = html.Div(
         init_dcc_stores(),
         dcc.Location(id=URL),
         sidebar.sidebar(),
+        load_datasets_modal.layout,
         page_content.layout,
     ]
 )
+
+
+dbc.Modal(
+    [
+        dbc.ModalHeader(dbc.ModalTitle("Header"), close_button=True),
+        dbc.ModalBody("Change the backdrop of this modal with the radio buttons"),
+        dbc.ModalFooter(
+            dbc.Button(
+                "Close",
+                id="close-backdrop",
+                className="ms-auto",
+                n_clicks=0,
+            )
+        ),
+    ],
+    id="modal-backdrop",
+    is_open=False,
+),
 
 
 @app.callback(Output(URL, "pathname"), Input(URL, "pathname"))
@@ -38,20 +60,20 @@ def redirect_to_home(pathname):
 
 
 @callback(
-    Output(TABLES, "data", allow_duplicate=True),
+    [Output(table, "data", allow_duplicate=True) for table in POTENTIAL_TABLES],
+    Output(LOAD_NETS_DATA_NOTIFICATION, "is_open"),
     Input(URL, "hash"),
-    State(TABLES, "data"),
     prevent_initial_call=True,
 )
-def init_run(tables_list, existing_tables):
-    if not tables_list or existing_tables:
-        return no_update
+def init_run(tables_list):
+    if not tables_list:
+        return *([no_update] * len(POTENTIAL_TABLES)), no_update
 
     datasets_ids = json.loads(base64.b64decode(tables_list))
     datasets = [dump_db_manager.get_item(datasets_id) for datasets_id in datasets_ids]
     datasets = pd.DataFrame(datasets)
-    tables = init_tables(datasets)
-    return dump_object(tables)
+    tables = get_tables(datasets)
+    return *(dump_object(table) if table else None for table in tables), True
 
 
 if __name__ == "__main__":

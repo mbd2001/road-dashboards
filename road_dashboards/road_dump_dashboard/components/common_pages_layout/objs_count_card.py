@@ -1,55 +1,59 @@
+from typing import List
+
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, callback, html, no_update, page_registry
-from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     INTERSECTION_SWITCH,
-    MD_FILTERS,
+    MAIN_TABLES,
+    MD_TABLES,
     OBJS_COUNT,
-    POPULATION_DROPDOWN,
-    TABLES,
+    PAGE_FILTERS,
     URL,
+)
+from road_dashboards.road_dump_dashboard.components.constants.queries_properties import (
+    BaseDataQuery,
+    CountMetric,
+    GroupByQuery,
 )
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
 )
-from road_dashboards.road_dump_dashboard.components.logical_components.queries_manager import generate_count_query
-from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import get_curr_page_tables
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import load_object
+from road_dashboards.road_eval_dashboard.components.net_properties import Table
 
-
-def layout():
-    objs_count_layout = card_wrapper(
-        loading_wrapper(dbc.Accordion(id=OBJS_COUNT, always_open=True)),
-    )
-    return objs_count_layout
+layout = card_wrapper(loading_wrapper(dbc.Accordion(id=OBJS_COUNT, always_open=True)))
 
 
 @callback(
     Output(OBJS_COUNT, "children"),
     Output(OBJS_COUNT, "active_item"),
-    Input(MD_FILTERS, "data"),
-    State(TABLES, "data"),
-    Input(POPULATION_DROPDOWN, "value"),
+    Input(PAGE_FILTERS, "data"),
+    Input(MAIN_TABLES, "data"),
+    Input(MD_TABLES, "data"),
     Input(INTERSECTION_SWITCH, "on"),
     State(URL, "pathname"),
 )
-def get_frame_count(meta_data_filters, tables, population, intersection_on, pathname):
-    if not population or not tables:
+def get_frame_count(page_filters, main_tables, md_tables, intersection_on, pathname):
+    if not main_tables:
         return no_update, no_update
 
-    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    main_tables: List[Table] = load_object(main_tables).tables
+    md_tables: List[Table] = load_object(md_tables).tables if md_tables else None
     page_properties = page_registry[f"pages.{pathname.strip('/')}"]
     objs_name = page_properties["objs_name"]
-    query = generate_count_query(
-        main_tables,
-        population,
-        intersection_on,
-        [],
-        meta_data_tables=meta_data_tables,
-        meta_data_filters=meta_data_filters,
+    query = GroupByQuery(
+        group_by_columns=[],
+        sub_query=BaseDataQuery(
+            main_tables=main_tables,
+            meta_data_tables=md_tables,
+            page_filters=page_filters,
+            intersection_on=intersection_on,
+        ),
+        metric=CountMetric(format_number=True),
     )
-    data, _ = query_athena(database="run_eval_db", query=query)
+    data = query.get_results()
     frame_count_accordion = [
         dbc.AccordionItem(
             html.H5(f"{amount} {objs_name.title()}"),

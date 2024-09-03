@@ -1,7 +1,8 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, callback, html, page_registry
+from dash import Input, Output, State, callback, html, page_registry
 
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import SIDEBAR, URL
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import POTENTIAL_TABLES
 
 
 def sidebar():
@@ -13,9 +14,10 @@ def sidebar():
 
 @callback(
     Output(SIDEBAR, "children"),
-    Input(URL, "hash"),
+    State(URL, "hash"),
+    [Input(table, "data") for table in POTENTIAL_TABLES],
 )
-def update_sidebar(url):
+def update_sidebar(url, *args):
     layout = [
         html.Div(
             [html.H2("Statistics")],
@@ -46,6 +48,7 @@ def update_sidebar(url):
                 )
                 for page in page_registry.values()
                 if not page["name"].startswith("Not")
+                and (page["main_table"] is None or args[POTENTIAL_TABLES.index(page["main_table"])] is not None)
             ],
             vertical=True,
             pills=True,

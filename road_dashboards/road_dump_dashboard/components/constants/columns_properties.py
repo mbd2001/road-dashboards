@@ -1,11 +1,11 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import ClassVar, List
 
-BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id", "batch_num", "is_re"]
+BASE_COLUMNS = ["population", "dump_name", "clip_name", "grabindex", "obj_id", "batch_num"]
 
 
 @dataclass
-class BaseColumn:
+class Column:
     """
     Defines the base properties of a data column
 
@@ -14,9 +14,8 @@ class BaseColumn:
     """
 
     name: str
-    dtype: str = None
     distinct_values: List[str] = field(default_factory=list)
-    drawable: bool = False
+    options: ClassVar = {}
 
     def __hash__(self):
         return hash(self.name)
@@ -40,8 +39,8 @@ class BaseColumn:
         return self.name.replace("_", " ").title()
 
 
-@dataclass
-class ArrayColumn(BaseColumn):
+@dataclass(eq=False)
+class ArrayColumn(Column):
     """
     Defines the base properties of a data column which contains arrays
 
@@ -66,32 +65,27 @@ class ArrayColumn(BaseColumn):
     min: bool = False
     len: bool = False
     avg: bool = False
-
-    def __hash__(self):
-        return hash(self.name)
-
-    def __eq__(self, other):
-        return self.name == other.name
-
-    def __ne__(self, other):
-        return self.name != other.name
+    round_n_decimal_place: int = None
 
     def __post_init__(self):
         is_single_element = any([self.sum, self.max, self.min, self.len, self.avg])
-        assert not (self.unnest is True and is_single_element is True), "you can't unnest array with single element"
+        assert not (self.unnest and is_single_element), "you can't unnest array with single element"
         assert [self.element_ind is not None, self.sum, self.max, self.min, self.len, self.avg].count(
             True
         ) <= 1, "you can't apply multiple aggregation functions to single array"
 
     def get_column_string(self):
         base_repr = super().get_column_string()
+        if self.round_n_decimal_place is not None:
+            base_repr = f"transform({base_repr}, x -> round(x, {self.round_n_decimal_place}))"
+
         if self.filter:
             base_repr = f"filter({base_repr}, x -> x {self.filter})"
 
         if self.sorted:
             base_repr = f"array_sort({base_repr})"
 
-        if self.unnest is True:
+        if self.unnest:
             return f"UNNEST({base_repr})"
 
         if self.element_ind:
@@ -110,8 +104,8 @@ class ArrayColumn(BaseColumn):
         return base_repr
 
 
-@dataclass
-class NumericColumn(BaseColumn):
+@dataclass(eq=False)
+class NumericColumn(Column):
     """
     Defines the base properties of a data column which contains floats
 
@@ -128,6 +122,16 @@ class NumericColumn(BaseColumn):
     round_n_decimal_place: int = None
     floor: bool = False
     ceil: bool = False
+    options: ClassVar = {
+        ">": "Greater",
+        ">=": "Greater or equal",
+        "<": "Less",
+        "<=": "Less or equal",
+        "=": "Equal",
+        "<>": "Not Equal",
+        "IS NULL": "Is NULL",
+        "IS NOT NULL": "Is not NULL",
+    }
 
     def __post_init__(self):
         assert [self.round_n_decimal_place is not None, self.floor, self.ceil].count(
@@ -150,3 +154,75 @@ class NumericColumn(BaseColumn):
             base_repr = f"sign({base_repr})"
 
         return base_repr
+
+
+@dataclass(eq=False)
+class StringColumn(Column):
+    """
+    Defines the base properties of a data column which contains floats
+
+    """
+
+    len: bool = False
+    lower: bool = False
+    upper: bool = False
+    options: ClassVar = {
+        "=": "Equal",
+        "<>": "Not Equal",
+        "IS NULL": "Is NULL",
+        "IS NOT NULL": "Is not NULL",
+        "LIKE": "Like",
+        "In": "IN",
+        "Not In": "NOT IN",
+    }
+
+    def __post_init__(self):
+        assert [self.lower, self.upper, self.len].count(True) <= 1, "unclear string manipulation"
+
+    def get_column_string(self):
+        base_repr = super().get_column_string()
+        if self.len:
+            return f"length({base_repr})"
+
+        if self.lower:
+            return f"lower({base_repr})"
+
+        if self.upper:
+            return f"upper({base_repr})"
+
+        return base_repr
+
+
+@dataclass(eq=False)
+class BoolColumn(Column):
+    """
+    Defines the base properties of a data column which contains floats
+
+    """
+
+    distinct_values: List = field(default_factory=list["TRUE", "FALSE"])
+    neg: bool = False
+    options: ClassVar = {
+        "=": "Equal",
+        "<>": "Not Equal",
+        "IS NULL": "Is NULL",
+        "IS NOT NULL": "Is not NULL",
+    }
+
+    def get_column_string(self):
+        base_repr = super().get_column_string()
+        if self.neg:
+            return f"NOT {base_repr}"
+
+        return base_repr
+
+
+@dataclass
+class Case:
+    name: str
+    filter: str
+    extra_columns: List[Column]
+
+    def get_case_string(self):
+        case_string = f"WHEN ({self.filter}) THEN '{self.name}'"
+        return case_string

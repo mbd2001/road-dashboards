@@ -14,7 +14,6 @@ class PageProperties:
             objs_name (str): optional. the name of the objects that the page represent
             main_table (str): optional. main table represents by the page (rpw, lb, or so on)
             meta_data_table (str): optional. the meta data table represents by the page
-
     """
 
     order: int

@@ -1,18 +1,24 @@
-from dash import html, register_page
+from dash import register_page
 
-from road_dashboards.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
+from road_dashboards.road_dump_dashboard.components.common_pages_layout import page_header
 from road_dashboards.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
-from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import (
-    CasesGraphProperties,
-    ConfMatGraphProperties,
-    GroupByGraphProperties,
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import (
+    BoolColumn,
+    Case,
+    NumericColumn,
+    StringColumn,
 )
-from road_dashboards.road_dump_dashboard.components.graph_wrappers import (
-    conf_mats_collection,
-    count_graphs_collection,
-    countries_heatmap,
+from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
+from road_dashboards.road_dump_dashboard.components.graph_wrappers import conf_mats_collection
+from road_dashboards.road_dump_dashboard.components.grid_objects.cases_graph import CasesGraph
+from road_dashboards.road_dump_dashboard.components.grid_objects.conf_mat_graph import ConfMatGraph
+from road_dashboards.road_dump_dashboard.components.grid_objects.conf_mat_with_dropdown import ConfMatGraphWithDropdown
+from road_dashboards.road_dump_dashboard.components.grid_objects.count_graph import GroupByGraph
+from road_dashboards.road_dump_dashboard.components.grid_objects.count_graph_with_dropdown import (
+    GroupByGraphWithDropdown,
 )
+from road_dashboards.road_dump_dashboard.components.grid_objects.countries_heatmap import CountriesHeatMap
+from road_dashboards.road_dump_dashboard.components.grid_objects.grid_generator import grid_layout
 
 page_properties = PageProperties(
     order=1,
@@ -25,73 +31,69 @@ page_properties = PageProperties(
 register_page(__name__, **page_properties.__dict__)
 
 
-group_by_graphs = [
-    GroupByGraphProperties(
-        name="Top View Perfects Exists",
-        group_by_column=BaseColumn("is_tv_perfect"),
+count_graphs = [
+    GroupByGraph(title="Top View Perfects Exists", columns=[BoolColumn("gtem_labels_exist")]),
+    GroupByGraph(
+        title="Gtem Exists",
+        columns=[BoolColumn("gtem_labels_exist")],
     ),
-    GroupByGraphProperties(
-        name="Gtem Exists",
-        group_by_column=BaseColumn("gtem_labels_exist"),
-    ),
-    GroupByGraphProperties(
-        name="Curve Rad Distribution",
-        group_by_column=BaseColumn("curve_rad_ahead"),
+    GroupByGraph(
+        title="Curve Rad Distribution",
+        columns=[NumericColumn("curve_rad_ahead")],
+        slider_value=-2,
+        filter="curve_rad_ahead <> 99999",
         full_grid_row=True,
-        include_slider=True,
-        slider_default_value=2,
-        ignore_filter="curve_rad_ahead <> 99999",
     ),
-    GroupByGraphProperties(name="Batch Distribution", group_by_column=BaseColumn("batch_num"), full_grid_row=True),
-]
-
-cases_graphs = [
-    CasesGraphProperties(
-        name="Road Type Distribution",
-        interesting_cases={
-            "highway": "mdbi_road_highway = TRUE",
-            "country": "mdbi_road_country = TRUE",
-            "urban": "mdbi_road_city = TRUE",
-            "freeway": "mdbi_road_freeway = TRUE",
-        },
-        extra_columns=[
-            BaseColumn("mdbi_road_highway"),
-            BaseColumn("mdbi_road_country"),
-            BaseColumn("mdbi_road_city"),
-            BaseColumn("mdbi_road_freeway"),
+    GroupByGraph(
+        title="Batch Distribution",
+        columns=[NumericColumn("batch_num")],
+        full_grid_row=True,
+    ),
+    CasesGraph(
+        title="Road Type Distribution",
+        cases=[
+            Case(name="highway", filter="mdbi_road_highway = TRUE", extra_columns=[StringColumn("mdbi_road_highway")]),
+            Case(name="country", filter="mdbi_road_country = TRUE", extra_columns=[StringColumn("mdbi_road_country")]),
+            Case(name="urban", filter="mdbi_road_city = TRUE", extra_columns=[StringColumn("mdbi_road_city")]),
+            Case(name="freeway", filter="mdbi_road_freeway = TRUE", extra_columns=[StringColumn("mdbi_road_freeway")]),
         ],
     ),
-    CasesGraphProperties(
-        name="Lane Mark Color Distribution",
-        interesting_cases={
-            "yellow": "rightColor_yellow = TRUE OR leftColor_yellow = TRUE",
-            "white": "rightColor_white = TRUE OR leftColor_white = TRUE",
-            "blue": "rightColor_blue = TRUE OR leftColor_blue = TRUE",
-        },
-        extra_columns=[
-            BaseColumn("rightColor_yellow"),
-            BaseColumn("leftColor_yellow"),
-            BaseColumn("rightColor_white"),
-            BaseColumn("leftColor_white"),
-            BaseColumn("rightColor_blue"),
-            BaseColumn("leftColor_blue"),
+    CasesGraph(
+        title="Lane Mark Color Distribution",
+        cases=[
+            Case(
+                name="yellow",
+                filter="rightColor_yellow = TRUE OR leftColor_yellow = TRUE",
+                extra_columns=[StringColumn("rightColor_yellow"), StringColumn("leftColor_yellow")],
+            ),
+            Case(
+                name="white",
+                filter="rightColor_white = TRUE OR leftColor_white = TRUE",
+                extra_columns=[StringColumn("rightColor_white"), StringColumn("leftColor_white")],
+            ),
+            Case(
+                name="blue",
+                filter="rightColor_blue = TRUE OR leftColor_blue = TRUE",
+                extra_columns=[StringColumn("rightColor_blue"), StringColumn("leftColor_blue")],
+            ),
         ],
     ),
+    GroupByGraphWithDropdown(),
 ]
 
 conf_mat_graphs = [
-    ConfMatGraphProperties(name="Top View Perfects Classification", column_to_compare=BaseColumn("is_tv_perfect")),
-    ConfMatGraphProperties(name="Gtem Classification", column_to_compare=BaseColumn("gtem_labels_exist")),
+    ConfMatGraph(
+        title="Top View Perfects Classification",
+        column=BoolColumn("is_tv_perfect"),
+    ),
+    ConfMatGraph(title="Gtem Classification", column=BoolColumn("gtem_labels_exist")),
+    ConfMatGraphWithDropdown(),
 ]
 
 
-layout = html.Div(
-    [
-        html.H1(page_properties.title, className="mb-5"),
-        data_filters.layout,
-        base_dataset_statistics.layout(),
-        count_graphs_collection.layout(group_by_graphs, cases_graphs, draw_obj_count=False),
-        conf_mats_collection.layout(conf_mat_graphs),
-        countries_heatmap.layout(),
-    ]
-)
+layout = [
+    page_header.layout(page_properties.title),
+    grid_layout(count_graphs),
+    conf_mats_collection.layout(conf_mat_graphs),
+    card_wrapper(CountriesHeatMap().layout()),
+]

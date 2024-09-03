@@ -1,13 +1,16 @@
 from dash import html, register_page
 
-from road_dashboards.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
+from road_dashboards.road_dump_dashboard.components.common_pages_layout import page_header
 from road_dashboards.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
-from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import (
-    ConfMatGraphProperties,
-    GroupByGraphProperties,
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import Column
+from road_dashboards.road_dump_dashboard.components.graph_wrappers import conf_mats_collection
+from road_dashboards.road_dump_dashboard.components.grid_objects.conf_mat_graph import ConfMatGraph
+from road_dashboards.road_dump_dashboard.components.grid_objects.conf_mat_with_dropdown import ConfMatGraphWithDropdown
+from road_dashboards.road_dump_dashboard.components.grid_objects.count_graph import GroupByGraph
+from road_dashboards.road_dump_dashboard.components.grid_objects.count_graph_with_dropdown import (
+    GroupByGraphWithDropdown,
 )
-from road_dashboards.road_dump_dashboard.components.graph_wrappers import conf_mats_collection, count_graphs_collection
+from road_dashboards.road_dump_dashboard.components.grid_objects.grid_generator import grid_layout
 
 page_properties = PageProperties(
     order=3,
@@ -21,52 +24,52 @@ page_properties = PageProperties(
 register_page(__name__, **page_properties.__dict__)
 
 group_by_graphs = [
-    GroupByGraphProperties(name="Role Distribution", group_by_column=BaseColumn("dp_role")),
-    GroupByGraphProperties(
-        name="Split Role Distribution",
-        group_by_column=BaseColumn("dp_split_role"),
-        ignore_filter="dp_split_role <> 'IGNORE'",
+    GroupByGraph(title="Role Distribution", columns=[Column("dp_role")]),
+    GroupByGraph(
+        title="Split Role Distribution",
+        columns=[Column("dp_split_role")],
+        filter="dp_split_role <> 'IGNORE'",
     ),
-    GroupByGraphProperties(
-        name="Primary Role Distribution",
-        group_by_column=BaseColumn("dp_primary_role"),
-        ignore_filter="dp_primary_role <> 'IGNORE'",
+    GroupByGraph(
+        title="Primary Role Distribution",
+        columns=[Column("dp_primary_role")],
+        filter="dp_primary_role <> 'IGNORE'",
     ),
-    GroupByGraphProperties(
-        name="Merge Role Distribution",
-        group_by_column=BaseColumn("dp_merge_role"),
-        ignore_filter="dp_merge_role <> 'IGNORE'",
+    GroupByGraph(
+        title="Merge Role Distribution",
+        columns=[Column("dp_merge_role")],
+        filter="dp_merge_role <> 'IGNORE'",
     ),
-    GroupByGraphProperties(name="Oncoming Distribution", group_by_column=BaseColumn("dp_points_oncoming")),
-    GroupByGraphProperties(name="Batch Distribution", group_by_column=BaseColumn("batch_num"), full_grid_row=True),
+    GroupByGraph(title="Oncoming Distribution", columns=[Column("dp_points_oncoming")]),
+    GroupByGraph(title="Batch Distribution", columns=[Column("batch_num")], full_grid_row=True),
+    GroupByGraphWithDropdown(),
 ]
 
 conf_mat_graphs = [
-    ConfMatGraphProperties(name="Role Classification", column_to_compare=BaseColumn("dp_role"), full_grid_row=True),
-    ConfMatGraphProperties(
-        name="Split Role Classification",
-        column_to_compare=BaseColumn("dp_split_role"),
-        ignore_filter="dp_split_role <> 'IGNORE'",
+    ConfMatGraph(title="Role Classification", column=Column("dp_role"), full_grid_row=True),
+    ConfMatGraph(
+        title="Split Role Classification",
+        column=Column("dp_split_role"),
+        filter="dp_split_role <> 'IGNORE'",
     ),
-    ConfMatGraphProperties(
-        name="Primary Role Classification",
-        column_to_compare=BaseColumn("dp_primary_role"),
-        ignore_filter="dp_primary_role <> 'IGNORE'",
+    ConfMatGraph(
+        title="Primary Role Classification",
+        column=Column("dp_primary_role"),
+        filter="dp_primary_role <> 'IGNORE'",
     ),
-    ConfMatGraphProperties(
-        name="Merge Role Classification",
-        column_to_compare=BaseColumn("dp_merge_role"),
-        ignore_filter="dp_merge_role <> 'IGNORE'",
+    ConfMatGraph(
+        title="Merge Role Classification",
+        column=Column("dp_merge_role"),
+        filter="dp_merge_role <> 'IGNORE'",
     ),
-    ConfMatGraphProperties(name="Oncoming Classification", column_to_compare=BaseColumn("dp_points_oncoming")),
+    ConfMatGraph(title="Oncoming Classification", column=Column("dp_points_oncoming")),
+    ConfMatGraphWithDropdown(),
 ]
 
 layout = html.Div(
     [
-        html.H1(page_properties.title, className="mb-5"),
-        data_filters.layout,
-        base_dataset_statistics.layout(),
-        count_graphs_collection.layout(group_by_graphs, draw_obj_count=True),
+        page_header.layout(page_properties.title),
+        grid_layout(group_by_graphs),
         conf_mats_collection.layout(conf_mat_graphs),
     ]
 )

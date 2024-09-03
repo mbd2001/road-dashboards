@@ -1,28 +1,25 @@
-from typing import Callable, List
+from typing import List
 
 import dash_bootstrap_components as dbc
 from dash import html
 
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import BaseGraphProperties
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
+from road_dashboards.road_dump_dashboard.components.grid_objects.grid_object import GridObject
 
 
-def get_grid_layout(graphs_properties: List[BaseGraphProperties], single_graph_func: Callable):
-    obj_props = generate_obj_grid(graphs_properties)
+def grid_layout(grid_objects: List[GridObject]):
+    rows_objs = generate_obj_grid(grid_objects)
     generic_filters_charts = html.Div(
-        [
-            dbc.Row([dbc.Col(card_wrapper(single_graph_func(obj_prop))) for obj_prop in obj_props_in_row])
-            for obj_props_in_row in obj_props
-        ]
+        [dbc.Row([dbc.Col(card_wrapper(obj.layout())) for obj in single_row_objs]) for single_row_objs in rows_objs]
     )
     return generic_filters_charts
 
 
-def generate_obj_grid(graphs_properties: List[BaseGraphProperties]):
+def generate_obj_grid(graphs_properties: List[GridObject]) -> List[List[GridObject]]:
     obj_props = []
     curr_row = []
     for graph in graphs_properties:
-        if graph.full_grid_row is True:
+        if graph.full_grid_row:
             obj_props.append([graph])
             continue
 

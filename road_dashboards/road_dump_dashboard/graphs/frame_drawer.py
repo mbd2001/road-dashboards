@@ -81,7 +81,7 @@ def get_candidate(cand: dict, is_img: bool = True):
     role = cand.get("role")
     view_range = cand.get("max_view_range")
     max_view_range_idx = cand.get("max_view_range_idx")
-    if is_img is True:
+    if is_img:
         x = cand["dv_dp_points"][:, 0] if "dv_dp_points" in cand.keys() else cand["pos"]
         y = cand["dv_dp_points"][:, 1] if "dv_dp_points" in cand.keys() else VERT
         half_width = cand.get("half_width")

@@ -1,13 +1,21 @@
 from dash import html, register_page
 
-from road_dashboards.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
+from road_dashboards.road_dump_dashboard.components.common_pages_layout import page_header
 from road_dashboards.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
-from road_dashboards.road_dump_dashboard.components.constants.columns_properties import ArrayColumn, BaseColumn
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import (
-    ConfMatGraphProperties,
-    GroupByGraphProperties,
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import (
+    ArrayColumn,
+    NumericColumn,
+    StringColumn,
 )
-from road_dashboards.road_dump_dashboard.components.graph_wrappers import conf_mats_collection, count_graphs_collection
+from road_dashboards.road_dump_dashboard.components.graph_wrappers import conf_mats_collection
+from road_dashboards.road_dump_dashboard.components.grid_objects.conf_mat_graph import ConfMatGraph
+from road_dashboards.road_dump_dashboard.components.grid_objects.conf_mat_with_dropdown import ConfMatGraphWithDropdown
+from road_dashboards.road_dump_dashboard.components.grid_objects.count_graph import GroupByGraph
+from road_dashboards.road_dump_dashboard.components.grid_objects.count_graph_with_dropdown import (
+    GroupByGraphWithDropdown,
+)
+from road_dashboards.road_dump_dashboard.components.grid_objects.grid_generator import grid_layout
+from road_dashboards.road_dump_dashboard.components.grid_objects.obj_count_graph import ObjCountGraph
 
 page_properties = PageProperties(
     order=2,
@@ -20,68 +28,68 @@ page_properties = PageProperties(
 )
 register_page(__name__, **page_properties.__dict__)
 
-
-group_by_graphs = [
-    GroupByGraphProperties(
-        name="Type Distribution",
-        group_by_column=BaseColumn("type"),
+count_graphs = [
+    GroupByGraph(
+        title="Type Distribution",
+        columns=[StringColumn("type")],
         full_grid_row=True,
     ),
-    GroupByGraphProperties(
-        name="Role Distribution",
-        group_by_column=BaseColumn("role"),
+    GroupByGraph(
+        title="Color Distribution",
+        columns=[StringColumn("color")],
     ),
-    GroupByGraphProperties(
-        name="Color Distribution",
-        group_by_column=BaseColumn("color"),
+    GroupByGraph(
+        title="Role Distribution",
+        columns=[StringColumn("role")],
     ),
-    GroupByGraphProperties(
-        name="Max View Range Distribution (m)",
-        group_by_column=BaseColumn("max_view_range"),
-        include_slider=True,
-        slider_default_value=0,
+    GroupByGraph(
+        title="Max View Range Distribution (m)",
+        columns=[NumericColumn("max_view_range")],
+        slider_value=0,
         full_grid_row=True,
-        ignore_filter="max_view_range < 250",
+        filter="max_view_range < 250",
     ),
-    GroupByGraphProperties(
-        name="Dashed Painted Length Distribution",
-        group_by_column=ArrayColumn("dashed_length", filter="BETWEEN 0 AND 20", unnest=True),
-        include_slider=True,
-        slider_default_value=-1,
+    GroupByGraph(
+        title="Dashed Painted Length Distribution",
+        columns=[ArrayColumn("dashed_length", filter="BETWEEN 0 AND 20", unnest=True)],
+        slider_value=1,
         full_grid_row=True,
-        ignore_filter="type = 'dashed'",
+        filter="type = 'dashed'",
     ),
-    GroupByGraphProperties(
-        name="Dashed Gap Length Distribution",
-        group_by_column=ArrayColumn("dashed_gap", filter="BETWEEN 0 AND 25", unnest=True),
-        include_slider=True,
-        slider_default_value=-1,
+    GroupByGraph(
+        title="Dashed Gap Length Distribution",
+        columns=[ArrayColumn("dashed_gap", filter="BETWEEN 0 AND 25", unnest=True)],
+        slider_value=1,
         full_grid_row=True,
-        ignore_filter="type = 'dashed'",
+        filter="type = 'dashed'",
     ),
-    GroupByGraphProperties(
-        name="Lane Mark Width Distribution (m)",
-        group_by_column=BaseColumn("avg_lm_width"),
-        include_slider=True,
-        slider_default_value=-2,
-        ignore_filter="avg_lm_width > 0 AND avg_lm_width < 1.5",
+    GroupByGraph(
+        title="Lane Mark Width Distribution (m)",
+        columns=[NumericColumn("avg_lm_width")],
+        slider_value=2,
+        full_grid_row=True,
+        filter="avg_lm_width > 0 AND avg_lm_width < 1.5",
+    ),
+    GroupByGraph(
+        title="Batch Distribution",
+        columns=[NumericColumn("batch_num")],
         full_grid_row=True,
     ),
-    GroupByGraphProperties(name="Batch Distribution", group_by_column=BaseColumn("batch_num"), full_grid_row=True),
+    ObjCountGraph(),
+    GroupByGraphWithDropdown(),
 ]
 
 conf_mat_graphs = [
-    ConfMatGraphProperties(name="Role Classification", column_to_compare=BaseColumn("role")),
-    ConfMatGraphProperties(name="Color Classification", column_to_compare=BaseColumn("color")),
-    ConfMatGraphProperties(name="Type Classification", column_to_compare=BaseColumn("type")),
+    ConfMatGraph(title="Type Classification", column=StringColumn("type"), full_grid_row=True),
+    ConfMatGraph(title="Role Classification", column=StringColumn("role")),
+    ConfMatGraph(title="Color Classification", column=StringColumn("color")),
+    ConfMatGraphWithDropdown(),
 ]
 
 layout = html.Div(
     [
-        html.H1(page_properties.title, className="mb-5"),
-        data_filters.layout,
-        base_dataset_statistics.layout(),
-        count_graphs_collection.layout(group_by_graphs, draw_obj_count=True),
+        page_header.layout(page_properties.title),
+        grid_layout(count_graphs),
         conf_mats_collection.layout(conf_mat_graphs),
     ]
 )

@@ -1,8 +1,11 @@
+from dataclasses import dataclass
+from typing import List
+
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
 
-from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BaseColumn
+from road_dashboards.road_dump_dashboard.components.constants.columns_properties import BoolColumn, Column, StringColumn
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     ADD_FILTER_BTN,
     ADD_SUB_GROUP,
@@ -10,27 +13,39 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     FILTER_LIST,
     FILTER_ROW,
     FILTERS,
+    MAIN_TABLES,
     MD_COLUMNS,
-    MD_FILTERS,
     MD_OPERATION,
+    MD_TABLES,
     MD_VAL,
     MD_VAL_COL,
     OUT_TO_JUMP_BTN,
     REMOVE_SUB_GROUP,
     SHOW_N_FRAMES_BTN,
-    TABLES,
     UPDATE_FILTERS_BTN,
-    URL,
 )
 from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import (
+    TableType,
     get_columns_dict,
-    get_curr_page_tables,
     get_existing_column,
     load_object,
 )
 
 NUM_FILTERS_PER_GROUP = 10
+
+
+@dataclass
+class Filter:
+    column: Column
+    # TODO: do stuff with it
+
+
+class And:
+    def __init__(self, filters: List[Filter], *args: Filter):
+        pass
+
+    # TODO: do stuff with it
 
 
 def get_filter_row_initial_layout(index, md_columns_options):
@@ -121,7 +136,7 @@ def get_group_layout(index, md_columns_options):
     return group_layout
 
 
-layout = html.Div(
+layout = data_filters_layout = html.Div(
     card_wrapper(
         [
             html.H3("Filters"),
@@ -140,13 +155,14 @@ layout = html.Div(
 )
 
 
-@callback(Output(FILTERS, "children"), Input(TABLES, "data"), State(URL, "pathname"))
-def init_layout(tables, pathname):
-    if not tables:
+@callback(Output(FILTERS, "children"), Input(MAIN_TABLES, "data"), Input(MD_TABLES, "data"))
+def init_layout(main_tables, md_tables):
+    if not main_tables:
         return no_update
 
-    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
-    columns_options = get_columns_dict(main_tables, meta_data_tables)
+    main_tables: TableType = load_object(main_tables)
+    md_tables: TableType = load_object(md_tables) if md_tables else None
+    columns_options = get_columns_dict(main_tables, md_tables)
     return [get_group_layout(1, columns_options)]
 
 
@@ -155,10 +171,10 @@ def init_layout(tables, pathname):
     Input({"type": ADD_FILTER_BTN, "index": MATCH}, "n_clicks"),
     Input({"type": ADD_SUB_GROUP, "index": MATCH}, "n_clicks"),
     State({"type": FILTER_LIST, "index": MATCH}, "children"),
-    State(TABLES, "data"),
-    State(URL, "pathname"),
+    Input(MAIN_TABLES, "data"),
+    Input(MD_TABLES, "data"),
 )
-def add_filters(add_clicks, add_group, filters_list, tables, pathname):
+def add_filters(add_clicks, add_group, filters_list, main_tables, md_tables):
     if not any([add_clicks, add_group]) or not callback_context.triggered_id:
         return no_update
 
@@ -175,9 +191,10 @@ def add_filters(add_clicks, add_group, filters_list, tables, pathname):
         base_ind = group_ind * NUM_FILTERS_PER_GROUP
         empty_index = get_empty_index(base_ind, filters_list)
 
-    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
+    main_tables: TableType = load_object(main_tables)
+    md_tables: TableType = load_object(md_tables) if md_tables else None
     button_type = callback_context.triggered_id["type"]
-    columns_options = get_columns_dict(main_tables, meta_data_tables)
+    columns_options = get_columns_dict(main_tables, md_tables)
     if button_type == ADD_FILTER_BTN and empty_index:
         patched_children.append(get_filter_row_initial_layout(empty_index, columns_options))
     elif button_type == ADD_SUB_GROUP and empty_index:
@@ -227,50 +244,20 @@ def remove_sub_group(remove_clicks):
     Output({"type": MD_OPERATION, "index": MATCH}, "options"),
     Output({"type": MD_OPERATION, "index": MATCH}, "value"),
     Input({"type": MD_COLUMNS, "index": MATCH}, "value"),
-    State(TABLES, "data"),
-    State(URL, "pathname"),
+    Input(MAIN_TABLES, "data"),
+    Input(MD_TABLES, "data"),
 )
-def update_operation_dropdown_options(meta_data_col, tables, pathname):
-    if not meta_data_col or not tables:
-        return [], ""
+def update_operation_dropdown_options(column, main_tables, md_tables):
+    if not column or not main_tables:
+        return {}, ""
 
     if not callback_context.triggered_id:
         return no_update, no_update
 
-    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
-    column_type = get_existing_column(meta_data_col, main_tables, meta_data_tables).dtype
-    if column_type.startswith(("int", "float", "double")):
-        options = [
-            {"label": "Greater", "value": ">"},
-            {"label": "Greater or equal", "value": ">="},
-            {"label": "Less", "value": "<"},
-            {"label": "Less or equal", "value": "<="},
-            {"label": "Equal", "value": "="},
-            {"label": "Not Equal", "value": "<>"},
-            {"label": "Is NULL", "value": "IS NULL"},
-            {"label": "Is not NULL", "value": "IS NOT NULL"},
-        ]
-    elif column_type == "bool":
-        options = [
-            {"label": "Equal", "value": "="},
-            {"label": "Not Equal", "value": "<>"},
-            {"label": "Is NULL", "value": "IS NULL"},
-            {"label": "Is not NULL", "value": "IS NOT NULL"},
-        ]
-    elif column_type == "object":
-        options = [
-            {"label": "Equal", "value": "="},
-            {"label": "Not Equal", "value": "<>"},
-            {"label": "Like", "value": "LIKE"},
-            {"label": "Is NULL", "value": "IS NULL"},
-            {"label": "Is not NULL", "value": "IS NOT NULL"},
-            {"label": "In", "value": "IN"},
-            {"label": "Not In", "value": "NOT IN"},
-        ]
-    else:
-        options = []
-
-    return options, ""
+    main_tables: TableType = load_object(main_tables)
+    md_tables: TableType = load_object(md_tables) if md_tables else None
+    column = get_existing_column(column, main_tables, md_tables)
+    return column.options, ""
 
 
 @callback(
@@ -278,13 +265,12 @@ def update_operation_dropdown_options(meta_data_col, tables, pathname):
     Input({"type": MD_OPERATION, "index": MATCH}, "value"),
     State({"type": MD_OPERATION, "index": MATCH}, "id"),
     State({"type": MD_COLUMNS, "index": MATCH}, "value"),
-    State(TABLES, "data"),
-    State(URL, "pathname"),
+    Input(MAIN_TABLES, "data"),
+    Input(MD_TABLES, "data"),
 )
-def update_meta_data_values_options(operation, index, col, tables, pathname):
-    # TODO: refactor
+def update_meta_data_values_options(operation, index, column, main_tables, md_tables):
     curr_index = index["index"]
-    if not col or not operation:
+    if not column or not operation:
         return dcc.Input(
             id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "display": "block"},
@@ -296,10 +282,9 @@ def update_meta_data_values_options(operation, index, col, tables, pathname):
     if not callback_context.triggered_id:
         return no_update
 
-    main_tables, meta_data_tables = get_curr_page_tables(tables, pathname)
-    column = get_existing_column(col, main_tables, meta_data_tables)
-    distinguish_values = column.distinct_values
-    column_type = column.dtype
+    main_tables: TableType = load_object(main_tables)
+    md_tables: TableType = load_object(md_tables) if md_tables else None
+    column = get_existing_column(column, main_tables, md_tables)
     if operation in ["IS NULL", "IS NOT NULL"]:
         return dcc.Input(
             id={"type": MD_VAL, "index": curr_index},
@@ -308,89 +293,28 @@ def update_meta_data_values_options(operation, index, col, tables, pathname):
             value="",
             type="text",
         )
-    elif operation in ["IN", "NOT IN"]:
-        if column_type in ["object", "bool"]:
-            distinguish_values = distinguish_values if column_type == "object" else {"TRUE": "True", "FALSE": "False"}
-            return dcc.Dropdown(
-                id={"type": MD_VAL, "index": curr_index},
-                style={"minWidth": "100%", "display": "block"},
-                multi=True,
-                clearable=True,
-                placeholder="----",
-                value="",
-                options=distinguish_values,
-            )
-    elif operation in ["=", "<>"] and column_type in ["object", "bool"]:
-        distinguish_values = distinguish_values if column_type == "object" else {"TRUE": "True", "FALSE": "False"}
+    elif operation in ["=", "<>", "IN", "NOT IN"] and isinstance(column, (StringColumn, BoolColumn)):
+        multi = operation in ["IN", "NOT IN"]
+        distinguish_values = (
+            {f"'{val}'": val for val in column.distinct_values}
+            if isinstance(column, StringColumn)
+            else {val.title(): val for val in column.distinct_values}
+        )
         return dcc.Dropdown(
             id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "display": "block"},
-            multi=False,
+            multi=multi,
             clearable=True,
             placeholder="----",
             value="",
             options=distinguish_values,
         )
     else:
-        type = "text" if column_type in ["object", "bool"] else "number"
+        input_type = "text" if isinstance(column, (StringColumn, BoolColumn)) else "number"
         return dcc.Input(
             id={"type": MD_VAL, "index": curr_index},
             style={"minWidth": "100%", "marginBottom": "10px", "display": "block"},
             placeholder="----",
             value="",
-            type=type,
+            type=input_type,
         )
-
-
-@callback(
-    Output(MD_FILTERS, "data"),
-    Input(UPDATE_FILTERS_BTN, "n_clicks"),
-    State(FILTERS, "children"),
-    State(MD_FILTERS, "data"),
-)
-def generate_meta_data_filters_string(n_clicks, filters, curr_filter):
-    if not filters:
-        return ""
-
-    first_group = filters[0]
-    filters_str = recursive_build_meta_data_filters(first_group)
-    if curr_filter == filters_str:
-        return no_update
-
-    return filters_str
-
-
-def recursive_build_meta_data_filters(filters):
-    # removed filter case
-    if filters["props"]["style"].get("display") == "none":
-        return ""
-
-    # single filter case
-    if filters["props"]["id"]["type"] == FILTER_ROW:
-        row = filters["props"]
-        column = row["children"][0]["props"]["children"]["props"]["value"]
-        operation = row["children"][1]["props"]["children"]["props"]["value"]
-        value = row["children"][2]["props"]["children"]["props"]["value"]
-        single_filter = parse_one_filter(BaseColumn(column), operation, value)
-        return single_filter
-
-    # group case
-    and_or_is_on = filters["props"]["children"][0]["props"]["children"][0]["props"]["on"]
-    and_or_operator = " OR " if and_or_is_on else " AND "
-    filters = filters["props"]["children"][1]["props"]["children"]
-    sub_filters = [recursive_build_meta_data_filters(flt) for flt in filters]
-    filters_str = and_or_operator.join(sub_filter for sub_filter in sub_filters if sub_filter)
-    return filters_str
-
-
-def parse_one_filter(column: BaseColumn, operation: str, value: str | int):
-    if operation == "LIKE":
-        parsed_val = f"'{value}'"
-    elif operation == "IN":
-        parsed_val = f"({', '.join(val for val in value)})"
-    else:
-        parsed_val = str(value)
-
-    filter_components = [column.get_column_string(), operation, parsed_val]
-    single_filter = " ".join(component for component in filter_components if component)
-    return single_filter

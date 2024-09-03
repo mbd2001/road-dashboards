@@ -1,6 +1,7 @@
 # stores
-TABLES = "Tables"
-MD_FILTERS = "md_filters"
+MAIN_TABLES = "main_table"
+MD_TABLES = "md_table"
+PAGE_FILTERS = "page_filters"
 IMAGES_IND = "images_ind"
 CURR_DRAWN_GRAPH = "curr_drawn_graph"
 
@@ -41,22 +42,6 @@ INTERSECTION_SWITCH = "intersection_switch"
 OBJS_COUNT = "objs_count"
 
 
-# confusion matrices
-MAIN_NET_DROPDOWN = "main_net_dropdown"
-SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
-
-GENERIC_CONF_MAT = "generic_conf_mat"
-GENERIC_SHOW_DIFF_BTN = "generic_show_diff_btn"
-GENERIC_FILTER_IGNORES_BTN = "generic_filter_ignores_btn"
-GENERIC_CONF_EXTRA_INFO = "generic_conf_extra_info"
-
-DYNAMIC_CONF_MAT = "dynamic_conf_mat"
-DYNAMIC_CONF_DROPDOWN = "dynamic_conf_dropdown"
-DYNAMIC_SHOW_DIFF_BTN = "dynamic_show_diff_btn"
-
-DISPLAY_CONF_MATS = "display_conf_mats"
-
-
 # frame drawer
 FRAMES_LAYOUT = "frames_layout"
 
@@ -70,6 +55,24 @@ NEXT_BTN = "next_btn"
 PREV_BTN = "prev_btn"
 
 
+# confusion matrices
+MAIN_NET_DROPDOWN = "main_net_dropdown"
+SECONDARY_NET_DROPDOWN = "secondary_net_dropdown"
+
+GENERIC_CONF_MAT = "generic_conf_mat"
+GENERIC_SHOW_DIFF_BTN = "generic_show_diff_btn"
+GENERIC_FILTER_IGNORES_BTN = "generic_filter_ignores_btn"
+GENERIC_CONF_EXTRA_INFO = "generic_conf_extra_info"
+
+DISPLAY_CONF_MATS = "display_conf_mats"
+
+
+# dynamic confusion matrix
+DYNAMIC_CONF_MAT = "dynamic_conf_mat"
+DYNAMIC_CONF_MAT_DROPDOWN = "dynamic_conf_mat_dropdown"
+DYNAMIC_SHOW_DIFF_BTN = "dynamic_show_diff_btn"
+
+
 # count graphs
 GENERIC_COUNT_CHART = "generic_count_chart"
 GENERIC_BINS_SLIDER = "generic_bins_slider"
@@ -77,11 +80,19 @@ GENERIC_PERCENTAGE_SWITCH = "generic_percentage_switch"
 GENERIC_FILTER_IGNORES_SWITCH = "generic_filter_ignores_switch"
 GENERIC_COUNT_EXTRA_INFO = "generic_extra_info"
 
-DYNAMIC_CHART_DROPDOWN = "dynamic_chart_drop_down"
+
+# dynamic count graph
 DYNAMIC_CHART = "dynamic_chart"
 DYNAMIC_CHART_SLIDER = "dynamic_chart_slider"
 DYNAMIC_PERCENTAGE_SWITCH = "dynamic_percentage_switch"
+DYNAMIC_CHART_DROPDOWN = "dynamic_chart_dropdown"
 
+
+# cases graphs
+GENERIC_CASES_CHART = "generic_cases_chart"
+
+
+# obj count graph
 OBJ_COUNT_CHART = "obj_count_chart"
 OBJ_COUNT_PERCENTAGE_SWITCH = "obj_count_percentage_switch"
 

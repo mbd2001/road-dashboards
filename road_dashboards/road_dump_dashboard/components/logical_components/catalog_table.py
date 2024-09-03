@@ -9,16 +9,11 @@ from road_database_toolkit.dynamo_db.db_manager import DBManager
 from road_dashboards.road_dump_dashboard.components.constants.components_ids import (
     COLUMN_SELECTOR,
     DUMP_CATALOG,
-    LOAD_NETS_DATA_NOTIFICATION,
-    TABLES,
     UPDATE_RUNS_BTN,
     URL,
 )
-from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import (
-    card_wrapper,
-    loading_wrapper,
-)
-from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Tables, dump_object
+from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
+from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import init_tables
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
@@ -99,7 +94,6 @@ def layout():
                 dbc.Row(
                     dbc.Col(dbc.Button("Choose Datasets to Explore", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
                 ),
-                loading_wrapper(html.Div(id=LOAD_NETS_DATA_NOTIFICATION)),
             ]
         )
     )
@@ -112,31 +106,26 @@ def update_columns(selected_columns):
 
 
 @callback(
-    Output(TABLES, "data"),
-    Output(LOAD_NETS_DATA_NOTIFICATION, "children"),
     Output(URL, "hash"),
     Input(UPDATE_RUNS_BTN, "n_clicks"),
     State(DUMP_CATALOG, "derived_virtual_data"),
     State(DUMP_CATALOG, "derived_virtual_selected_rows"),
 )
 def init_run(n_clicks, rows, derived_virtual_selected_rows):
-    if not n_clicks or not derived_virtual_selected_rows:
-        return no_update, no_update, no_update
+    if not derived_virtual_selected_rows:
+        return no_update
 
     datasets_ids = parse_catalog_rows(rows, derived_virtual_selected_rows)["dump_name"]
     datasets = [dump_db_manager.get_item(dataset_id) for dataset_id in datasets_ids]
     datasets = pd.DataFrame(datasets)
-    tables = init_tables(datasets)
-
-    notification = dbc.Alert("Datasets loaded successfully!", color="success", dismissable=True)
 
     dumps_list = list(datasets["dump_name"])
     dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
-    return dump_object(tables), notification, dump_list_hash
+    return dump_list_hash
 
 
-def init_tables(datasets):
-    tables = Tables(
+def get_tables(datasets):
+    tables = init_tables(
         datasets["dump_name"],
         **{
             table: datasets[table].tolist()
