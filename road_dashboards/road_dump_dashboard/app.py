@@ -1,5 +1,7 @@
 import base64
 import json
+import os
+import sys
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -9,6 +11,10 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
 from road_dashboards.road_dump_dashboard.components.dashboard_layout import page_content, sidebar
 from road_dashboards.road_dump_dashboard.components.logical_components.catalog_table import dump_db_manager, init_tables
 from road_dashboards.road_dump_dashboard.components.logical_components.dcc_stores import init_dcc_stores
+
+debug = False if os.environ.get("DEBUG") == "false" else True
+if not debug:
+    sys.stdout = open(os.devnull, "w")
 
 app = Dash(
     __name__,
@@ -54,4 +60,4 @@ def init_run(tables_list, existing_tables):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6008", debug=True)
+    app.run_server(host="0.0.0.0", port="6008", debug=debug)
