@@ -60,10 +60,9 @@ def redirect_to_home(pathname):
 
 
 @callback(
-    [Output(table, "data", allow_duplicate=True) for table in POTENTIAL_TABLES],
+    [Output(table, "data") for table in POTENTIAL_TABLES],
     Output(LOAD_NETS_DATA_NOTIFICATION, "is_open"),
     Input(URL, "hash"),
-    prevent_initial_call=True,
 )
 def init_run(tables_list):
     if not tables_list:

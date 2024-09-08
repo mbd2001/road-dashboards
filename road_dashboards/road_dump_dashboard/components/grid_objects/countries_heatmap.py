@@ -13,7 +13,6 @@ from road_dashboards.road_dump_dashboard.components.constants.components_ids imp
     PAGE_FILTERS,
 )
 from road_dashboards.road_dump_dashboard.components.constants.queries_properties import BaseDataQuery, GroupByQuery
-from road_dashboards.road_dump_dashboard.components.dashboard_layout.layout_wrappers import card_wrapper
 from road_dashboards.road_dump_dashboard.components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.components.logical_components.tables_properties import Table, load_object
 from road_dashboards.road_dump_dashboard.graphs.countries_map import (
