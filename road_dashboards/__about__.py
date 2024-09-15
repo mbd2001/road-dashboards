@@ -1,2 +1,2 @@
 # DO NOT EDIT, AUTO UPDATED IN THE CI
-__version__ = "0.1.54"
+__version__ = "0.1.55"
