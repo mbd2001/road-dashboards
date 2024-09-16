@@ -1,15 +1,12 @@
 import dash_bootstrap_components as dbc
+import numpy as np
 import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
-from road_dashboards.road_eval_dashboard.components.common_filters import (
-    PATHNET_MISS_FALSE_FILTERS,
-    PATHNET_ROAD_FILTERS,
-)
+from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MISS_FALSE_FILTERS
 from road_dashboards.road_eval_dashboard.components.components_ids import (
-    BIN_POPULATION_DROPDOWN,
     MD_FILTERS,
     NETS,
     PATH_NET_ACC_HOST,
@@ -33,11 +30,10 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
+    PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_FILTERS,
     PATHNET_GT,
     PATHNET_PRED,
-    ROLE_POPULATION_VALUE,
-    SPLIT_ROLE_POPULATION_DROPDOWN,
 )
 from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import (
     generate_matrices_graphs,
@@ -49,10 +45,10 @@ from road_dashboards.road_eval_dashboard.components.page_properties import PageP
 from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.layout import (
     layout as events_extractor_card,
 )
+from road_dashboards.road_eval_dashboard.components.pathnet_filters.layout import layout as pathnet_filters_card
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     PATHNET_ACC_THRESHOLDS,
     distances,
-    generate_avail_query,
     generate_count_query,
     generate_path_net_dp_quality_query,
     generate_path_net_dp_quality_true_rejection_query,
@@ -64,12 +60,6 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
-from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
-
-basic_operations = create_dropdown_options_list(
-    labels=["Greater", "Greater or equal", "Less", "Less or equal", "Equal", "Not Equal", "Is NULL", "Is not NULL"],
-    values=[">", ">=", "<", "<=", "=", "<>", "IS NULL", "IS NOT NULL"],
-)
 
 ACC_TAB_NAME = "pathnet-accuracy"
 ROLE_TAB_NAME = "pathnet-roles"
@@ -152,6 +142,7 @@ register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_prop
 role_layout = html.Div([html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]])
 pos_layout = html.Div(
     [
+        events_extractor_card,
         card_wrapper(
             [
                 dbc.Row(
@@ -175,7 +166,7 @@ pos_layout = html.Div(
                     ]
                 ),
             ]
-        )
+        ),
     ]
     + get_cumulative_acc_layout()
     + get_miss_false_layout()
@@ -266,13 +257,12 @@ quality_layout = html.Div(
 
 
 TABS_LAYOUTS = {ACC_TAB_NAME: pos_layout, ROLE_TAB_NAME: role_layout, QUALITY_TAB_NAME: quality_layout}
-
 layout = html.Div(
     [
         html.H1("Path Net Metrics", className="mb-5"),
         meta_data_filter.layout,
+        pathnet_filters_card,
         base_dataset_statistics.dp_layout,
-        events_extractor_card,
         card_wrapper(
             [
                 dcc.Tabs(
@@ -284,22 +274,6 @@ layout = html.Div(
                         dcc.Tab(label="DPs Quality", value=QUALITY_TAB_NAME),
                     ],
                 ),
-            ]
-        ),
-        card_wrapper(
-            [
-                dbc.Row([dbc.Col(loading_wrapper(dcc.Dropdown(id=BIN_POPULATION_DROPDOWN, value="")), width=4)]),
-                dbc.Row(
-                    [
-                        dbc.Col(loading_wrapper(dcc.Dropdown(id=SPLIT_ROLE_POPULATION_DROPDOWN, value="")), width=4),
-                        dbc.Col(
-                            loading_wrapper(dcc.Dropdown(id="roles_operation", options=basic_operations, value="")),
-                            width=4,
-                        ),
-                        dbc.Col(loading_wrapper(dcc.Dropdown(id=ROLE_POPULATION_VALUE, value="")), width=4),
-                    ]
-                ),
-                dbc.Row([dbc.Col(dbc.Button("Update Filters", id="pathnet_update_filters_btn", color="success"))]),
             ]
         ),
         html.Div(id="pathnet-metrics-content"),
@@ -317,73 +291,12 @@ def render_content(tab):
     return TABS_LAYOUTS[tab]
 
 
-@callback(
-    Output(PATHNET_FILTERS, "data"),
-    State(BIN_POPULATION_DROPDOWN, "value"),
-    State(SPLIT_ROLE_POPULATION_DROPDOWN, "value"),
-    State(ROLE_POPULATION_VALUE, "value"),
-    State("roles_operation", "value"),
-    Input("pathnet_update_filters_btn", "n_clicks"),
-)
-def update_pathnet_filters(bin_population, column, value, roles_operation, n_clicks):
-    if (not bin_population and not column and not value) or not n_clicks:
-        return ""
-    filters = []
-    if bin_population:
-        filters.append(f"bin_population = '{bin_population}'")
-    if column and roles_operation and value is not None:
-        filters.append(f"{column} {roles_operation} {value}")
-
-    return " AND ".join(filters)
-
-
-@callback(
-    Output(BIN_POPULATION_DROPDOWN, "options"),
-    Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
-)
-def create_population_dropdown(meta_data_filters, nets):
-    if not nets:
-        return no_update
-    query = generate_avail_query(
-        nets[PATHNET_PRED],
-        nets["meta_data"],
-        meta_data_filters,
-        column_name="bin_population",
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    return create_dropdown_options_list(labels=df["bin_population"])
-
-
-@callback(
-    Output(SPLIT_ROLE_POPULATION_DROPDOWN, "options"),
-    Input(NETS, "data"),
-)
-def create_dp_split_role_dropdown(nets):
-    if not nets:
-        return no_update
-    return create_dropdown_options_list(labels=["split_role", "matched_split_role", "ignore_role"])
-
-
-@callback(
-    Output(ROLE_POPULATION_VALUE, "options"),
-    Input(SPLIT_ROLE_POPULATION_DROPDOWN, "value"),
-    State(MD_FILTERS, "data"),
-    State(NETS, "data"),
-)
-def create_dp_split_role_dropdown(split_role_population_values, meta_data_filters, nets):
-    if not split_role_population_values or not nets:
-        return no_update
-    query = generate_avail_query(
-        nets[PATHNET_PRED],
-        nets["meta_data"],
-        meta_data_filters,
-        column_name=split_role_population_values,
-        extra_columns=[split_role_population_values],
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    values = set(df[split_role_population_values])
-    return create_dropdown_options_list(labels=values)
+@callback(Output(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"), Input("acc-threshold-slider", "value"))
+def compute_dynamic_distances_dict(slider_values):
+    coeff = np.polyfit([1.3, 3], slider_values, deg=1)
+    threshold_polynomial = np.poly1d(coeff)
+    distances_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in distances}
+    return distances_dict
 
 
 @callback(
@@ -391,19 +304,18 @@ def create_dp_split_role_dropdown(split_role_population_values, meta_data_filter
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input("acc-threshold-slider", "value"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
 )
-def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, slider_values):
+def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, distances_dict):
     if not nets:
         return no_update
     query = generate_path_net_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
-        "accuracy",
-        meta_data_filters=meta_data_filters,
+        distances_dict,
+        meta_data_filters,
         extra_filters=pathnet_filters,
         role="host",
-        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy", role="host", yaxis="% accurate dps")
@@ -481,19 +393,18 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input("acc-threshold-slider", "value"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
 )
-def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, slider_values):
+def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, distances_dict):
     if not nets:
         return no_update
     query = generate_path_net_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
-        "accuracy",
-        meta_data_filters=meta_data_filters,
+        distances_dict,
+        meta_data_filters,
         extra_filters=pathnet_filters,
         role="non-host",
-        base_dists=slider_values,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy", yaxis="% accurate dps")
