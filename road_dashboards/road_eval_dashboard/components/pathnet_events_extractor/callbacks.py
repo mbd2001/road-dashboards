@@ -9,6 +9,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     NETS,
+    PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
     PATHNET_EVENTS_DATA_TABLE,
@@ -27,7 +28,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
-    generate_extract_acc_events_query,
+    generate_extract_inacc_events_query,
     generate_extract_miss_false_events_query,
     run_query_with_nets_names_processing,
 )
@@ -157,13 +158,13 @@ def create_data_dict_for_explorer(net_info, dp_sources, chosen_source, role, dis
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_events_df(dist, chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num):
-    DEFAULT_SAMPLES_NUM = 100
+def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, threshold):
+    DEFAULT_SAMPLES_NUM = 60
     if "frame_has_labels_mf" in meta_data_cols:
         meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
 
-    if metric == "accuracy":
-        query, final_columns = generate_extract_acc_events_query(
+    if metric == "inaccurate":
+        query, final_columns = generate_extract_inacc_events_query(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
@@ -171,6 +172,7 @@ def get_events_df(dist, chosen_source, meta_data_cols, meta_data_filters, metric
             chosen_source=chosen_source,
             role=role,
             dist=float(dist),
+            threshold=threshold,
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -204,13 +206,24 @@ def get_events_df(dist, chosen_source, meta_data_cols, meta_data_filters, metric
     State(PATHNET_EVENTS_DIST_DROPDOWN, "value"),
     State(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
     State(PATHNET_EVENTS_NUM_EVENTS, "value"),
+    State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     prevent_initial_call=True,
 )
 def build_events_df(
-    net, chosen_source, dp_sources, n_clicks, meta_data_filters, meta_data_cols, role, dist, metric, samples_num
+    net,
+    chosen_source,
+    dp_sources,
+    n_clicks,
+    meta_data_filters,
+    meta_data_cols,
+    role,
+    dist,
+    metric,
+    samples_num,
+    thresh_dict,
 ):
     dropdown_args = [net, chosen_source, metric]
-    if metric == "accuracy":
+    if metric == "inaccurate":
         dropdown_args += [role, dist]
     elif metric == "miss":
         dropdown_args.append(role)
@@ -219,7 +232,8 @@ def build_events_df(
     if not input_valid:
         return no_update, no_update, no_update, no_update, create_alert_message(input_error_message, color="warning")
 
-    df = get_events_df(dist, chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num)
+    thresh = thresh_dict[str(dist)] if dist is not None else 0
+    df = get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, thresh)
     df_sane, sanity_error_message = check_events_df_sanity(events_df=df)
     if not df_sane:
         return no_update, no_update, no_update, no_update, create_alert_message(sanity_error_message, color="warning")

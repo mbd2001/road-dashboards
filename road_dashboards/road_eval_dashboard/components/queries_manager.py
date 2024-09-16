@@ -171,9 +171,9 @@ COUNT_ALL_METRIC = """
     AS {count_name}
     """
 
-EXTRACT_EVENT_ACC = """
+EXTRACT_EVENT_INACC = """
     {dist_column} IS NOT NULL AND 
-    {dist_column} < {dist_thresh} AND 
+    {dist_column} > {dist_thresh} AND 
     bin_population = '{chosen_source}'
 """
 
@@ -637,17 +637,13 @@ def generate_avail_query(
 def generate_path_net_query(
     data_tables,
     meta_data,
-    state,
-    meta_data_filters="",
+    distances_dict,
+    meta_data_filters,
     extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
-    base_dists=[0.2, 0.5],
 ):
-    operator = "<" if state == "accuracy" else ">"
-    coef = np.polyfit([1.3, 3], base_dists, deg=1)
-    threshold_polynomial = np.poly1d(coef)
-    distances_dict = {i / 2: max(threshold_polynomial(i / 2), 0.2) for i in range(1, 11)}
+    operator = "<"
     query = get_dist_query(
         "dist",
         data_tables,
@@ -675,8 +671,8 @@ def generate_path_net_dp_quality_query(
 ):
     coef = np.polyfit([1.3, 3], base_dists, deg=1)
     threshold_polynomial = np.poly1d(coef)
-    distances_dict = {i / 2: max(threshold_polynomial(i / 2), 0.2) for i in range(1, 11)}
-    quality_cols = [f'"quality_score_{(dist) / 2}"' for dist in range(1, 11)]
+    distances_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in distances}
+    quality_cols = [f'"quality_score_{sec}"' for sec in distances]
     extra_columns = extra_columns + quality_cols
 
     query = get_quality_score_query(
@@ -706,8 +702,8 @@ def generate_path_net_dp_quality_true_rejection_query(
     quality_thresh_filter=0.0,
 ):
 
-    distances_dict = {i / 2: PATHNET_IGNORE for i in range(1, 11)}
-    quality_cols = [f'"quality_score_{(dist) / 2}"' for dist in range(1, 11)]
+    distances_dict = {sec: PATHNET_IGNORE for sec in distances}
+    quality_cols = [f'"quality_score_{sec}"' for sec in distances]
     extra_columns = extra_columns + quality_cols
 
     query = get_quality_score_query_true_rejection(
@@ -751,7 +747,7 @@ def generate_path_net_miss_false_query(
     return query
 
 
-def generate_extract_acc_events_query(
+def generate_extract_inacc_events_query(
     data_tables,
     meta_data,
     meta_data_filters,
@@ -759,22 +755,23 @@ def generate_extract_acc_events_query(
     chosen_source,
     role,
     dist,
+    threshold,
 ):
-    acc_columns = ["dp_id", "matched_dp_id", "match_score"]
+    inacc_columns = ["dp_id", "matched_dp_id", "match_score"]
     dist_column = f'"dist_{dist}"'
-    acc_cmd = EXTRACT_EVENT_ACC.format(
-        dist_column=f'"dist_{dist}"', dist_thresh=sec_to_dist_acc[dist], chosen_source=chosen_source
+    inacc_cmd = EXTRACT_EVENT_INACC.format(
+        dist_column=f'"dist_{dist}"', dist_thresh=threshold, chosen_source=chosen_source
     )
     base_query = generate_base_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
         role=role,
-        extra_columns=acc_columns,
-        extra_filters=acc_cmd,
+        extra_columns=inacc_columns,
+        extra_filters=inacc_cmd,
     )
-    final_columns = bookmarks_columns + acc_columns
-    order_cmd = f"ORDER BY {dist_column} DESC"
+    final_columns = bookmarks_columns + inacc_columns
+    order_cmd = f"ORDER BY {dist_column} ASC"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
     )

@@ -9,6 +9,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
+    PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
     PATHNET_EXPLORER_DATA,
@@ -33,5 +34,6 @@ def init_dcc_stores():
             dcc.Store(id=PATHNET_EVENTS_CHOSEN_NET, storage_type="session"),
             dcc.Store(id=PATHNET_EVENTS_BOOKMARKS_JSON, storage_type="session"),
             dcc.Store(id=PATHNET_EXPLORER_DATA, storage_type="session"),
+            dcc.Store(id=PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, storage_type="session"),
         ]
     )
