@@ -1,3 +1,6 @@
+import os
+import sys
+
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Dash, Input, Output, State, dcc, html, no_update
@@ -21,7 +24,12 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     URL,
 )
 from road_dashboards.road_eval_dashboard.components.dcc_stores import init_dcc_stores
-from road_dashboards.road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, NETS_STATE_KEY, get_state
+from road_dashboards.road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, get_state
+
+debug = False if os.environ.get("DEBUG") == "false" else True
+if not debug:
+    sys.stdout = open(os.devnull, "w")
+
 
 app = Dash(
     __name__,
@@ -126,4 +134,4 @@ def compare_existing_nets_to_hashed_nets(nets: dict, run_ids: list):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6007", debug=True)
+    app.run_server(host="0.0.0.0", port="6007", debug=debug)

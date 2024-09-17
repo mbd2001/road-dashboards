@@ -23,7 +23,7 @@ from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dro
 def create_header_row():
     return dbc.Row(
         [
-            dbc.Col(html.H2("Extract events", className="mb-5"), width=10),
+            dbc.Col(html.H3("Extract events", className="mb-5"), width=10),
             dbc.Col(
                 dbc.Button(
                     "Export",
@@ -59,7 +59,7 @@ def create_filtering_dropdowns_row():
             dbc.Col(
                 dcc.Dropdown(
                     id=PATHNET_EVENTS_METRIC_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["accuracy", "false", "miss"]),
+                    options=create_dropdown_options_list(labels=["inaccurate", "false", "miss"]),
                     placeholder="Select Metric",
                 ),
             ),
@@ -114,7 +114,7 @@ def create_events_extractor_layout():
 
     log_msg_div = loading_wrapper(html.Div(id=PATHNET_EXTRACT_EVENTS_LOG_MESSAGE))
 
-    events_datatable_div = dash_table.DataTable(id=PATHNET_EVENTS_DATA_TABLE, page_size=40)
+    events_datatable_div = dash_table.DataTable(id=PATHNET_EVENTS_DATA_TABLE, page_size=20)
 
     events_extractor = card_wrapper(
         [

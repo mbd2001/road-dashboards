@@ -106,7 +106,7 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
                             "emdp_type": EMDP_TYPE,
                             "sort_by_dist": sort_by_dist,
                         },
-                        on=False,
+                        on=True,
                         label="Avail <-> Precision",
                         labelPosition="top",
                         persistence=True,

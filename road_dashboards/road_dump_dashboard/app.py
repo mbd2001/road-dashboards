@@ -1,5 +1,7 @@
 import base64
 import json
+import os
+import sys
 
 import dash_bootstrap_components as dbc
 import pandas as pd
@@ -13,6 +15,10 @@ from road_dashboards.road_dump_dashboard.components.logical_components.tables_pr
     POTENTIAL_TABLES,
     dump_object,
 )
+
+debug = False if os.environ.get("DEBUG") == "false" else True
+if not debug:
+    sys.stdout = open(os.devnull, "w")
 
 app = Dash(
     __name__,
@@ -76,4 +82,4 @@ def init_run(tables_list):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6008", debug=True)
+    app.run_server(host="0.0.0.0", port="6008", debug=debug)
