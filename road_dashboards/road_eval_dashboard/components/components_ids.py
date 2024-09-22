@@ -121,6 +121,7 @@ DP_COUNT = "dp_count"
 PATH_NET_FALSES_HOST = "path_net_losses_host"
 PATH_NET_FALSES_NEXT = "path_net_losses_next"
 
+PATH_NET_ACC_ALL_PRED = "path_net_accuracy_all_pred"
 PATH_NET_ACC_HOST = "path_net_accuracy_host"
 PATH_NET_ACC_NEXT = "path_net_accuracy_next"
 PATH_NET_MONOTONE_ACC_HOST = "path_net_monotone_accuracy_host"
@@ -140,7 +141,8 @@ PATH_NET_ALL_TPR = "all_dp_tpr_id"
 PATH_NET_HOST_TPR = "host_dp_tpr_id"
 PATH_NET_HOST_CONF_MAT = "host_dp_conf_mat_id"
 PATH_NET_ALL_CONF_MATS = "all_dps_conf_mat_id"
-
+PATHNET_INCLUDE_MATCHED_HOST = "pathnet_include_match_host"
+PATHNET_INCLUDE_MATCHED_NON_HOST = "pathnet_include_match_non_host"
 
 PATH_NET_BIASES_HOST = "path_net_biases_host"
 PATH_NET_BIASES_NEXT = "path_net_biases_next"
