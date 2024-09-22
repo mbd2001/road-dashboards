@@ -1,4 +1,5 @@
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 import numpy as np
 import plotly.express as px
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
@@ -9,13 +10,13 @@ from road_dashboards.road_eval_dashboard.components.common_filters import PATHNE
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
+    PATH_NET_ACC_ALL_PRED,
     PATH_NET_ACC_HOST,
     PATH_NET_ACC_NEXT,
     PATH_NET_ALL_CONF_MATS,
     PATH_NET_ALL_TPR,
     PATH_NET_BIASES_HOST,
     PATH_NET_BIASES_NEXT,
-    PATH_NET_FALSES_HOST,
     PATH_NET_FALSES_NEXT,
     PATH_NET_HOST_CONF_MAT,
     PATH_NET_HOST_TPR,
@@ -33,6 +34,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_FILTERS,
     PATHNET_GT,
+    PATHNET_INCLUDE_MATCHED_HOST,
+    PATHNET_INCLUDE_MATCHED_NON_HOST,
     PATHNET_PRED,
 )
 from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import (
@@ -149,11 +152,15 @@ pos_layout = html.Div(
                     [
                         dbc.Col(
                             graph_wrapper(PATH_NET_ACC_HOST),
-                            width=6,
+                            width=4,
                         ),
                         dbc.Col(
                             graph_wrapper(PATH_NET_ACC_NEXT),
-                            width=6,
+                            width=4,
+                        ),
+                        dbc.Col(
+                            graph_wrapper(PATH_NET_ACC_ALL_PRED),
+                            width=4,
                         ),
                     ]
                 ),
@@ -162,6 +169,34 @@ pos_layout = html.Div(
                         html.Label("acc-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
                         dcc.RangeSlider(
                             id="acc-threshold-slider", min=0, max=2, step=0.1, value=[0.2, 0.5], allowCross=False
+                        ),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            daq.BooleanSwitch(
+                                id=PATHNET_INCLUDE_MATCHED_HOST,
+                                on=False,
+                                label="Filter Unmatched <-> Show All (include miss)",
+                                labelPosition="top",
+                            )
+                        ),
+                        dbc.Col(
+                            daq.BooleanSwitch(
+                                id=PATHNET_INCLUDE_MATCHED_NON_HOST,
+                                on=False,
+                                label="Filter Unmatched <-> Show All (include miss)",
+                                labelPosition="top",
+                            )
+                        ),
+                        dbc.Col(
+                            daq.BooleanSwitch(
+                                id="include-unmatched-pred",
+                                on=False,
+                                label="Filter Unmatched <-> Show All (include false)",
+                                labelPosition="top",
+                            )
                         ),
                     ]
                 ),
@@ -305,20 +340,52 @@ def compute_dynamic_distances_dict(slider_values):
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input(PATHNET_INCLUDE_MATCHED_HOST, "on"),
 )
-def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, distances_dict):
+def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, distances_dict, include_unmatched):
     if not nets:
         return no_update
+    if include_unmatched:
+        role = ["'host'", "'unmatched-host'"]
+    else:
+        role = "host"
+    query = generate_path_net_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        distances_dict,
+        meta_data_filters,
+        extra_filters=pathnet_filters,
+        role=role,
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_path_net_graph(df, distances, "accuracy", role="host", yaxis="% accurate dps")
+
+
+@callback(
+    Output(PATH_NET_ACC_ALL_PRED, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input("include-unmatched-pred", "on"),
+)
+def get_path_net_acc_pred(meta_data_filters, pathnet_filters, nets, distances_dict, include_unmatched):
+    if not nets:
+        return no_update
+    if include_unmatched:
+        role = ["'host'", "'non-host'", "'unmatched-non-host'", "'unmatched-host'"]
+    else:
+        role = ["'host'", "'non-host'"]
     query = generate_path_net_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
         distances_dict,
         meta_data_filters,
         extra_filters=pathnet_filters,
-        role="host",
+        role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy", role="host", yaxis="% accurate dps")
+    return draw_path_net_graph(df, distances, "accuracy", role="Pred", yaxis="% accurate dps")
 
 
 @callback(
@@ -394,17 +461,22 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input(PATHNET_INCLUDE_MATCHED_NON_HOST, "on"),
 )
-def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, distances_dict):
+def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, distances_dict, include_unmatched):
     if not nets:
         return no_update
+    if include_unmatched:
+        role = ["'non-host'", "'unmatched-non-host'"]
+    else:
+        role = "non-host"
     query = generate_path_net_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
         distances_dict,
         meta_data_filters,
         extra_filters=pathnet_filters,
-        role="non-host",
+        role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy", yaxis="% accurate dps")
