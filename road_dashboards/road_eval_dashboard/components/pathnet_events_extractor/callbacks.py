@@ -1,5 +1,6 @@
 import copy
 import json
+from dataclasses import dataclass
 
 from botocore.exceptions import ClientError
 from dash import Input, Output, State, callback, no_update
@@ -13,11 +14,16 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
     PATHNET_EVENTS_DATA_TABLE,
+    PATHNET_EVENTS_DIST_DROPDOWN_DIV,
     PATHNET_EVENTS_DIST_DROPDOWN,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
+    PATHNET_EVENTS_REF_CHOSEN_NET,
+    PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN,
+    PATHNET_EVENTS_REF_NET_ID_DROPDOWN,
+    PATHNET_EVENTS_ROLE_DROPDOWN_DIV,
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_SUBMIT_BUTTON,
     PATHNET_EXPLORER_DATA,
@@ -25,10 +31,12 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
     PATHNET_GT,
     PATHNET_PRED,
+    PATHNET_EVENTS_UNIQUE_SWITCH,
+    PATHNET_EVENTS_REF_DIV,
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
-    generate_extract_inacc_events_query,
+    generate_extract_acc_events_query,
     generate_extract_miss_false_events_query,
     run_query_with_nets_names_processing,
 )
@@ -46,22 +54,19 @@ EXPLORER_PARAMS = """
 S3_EVENTS_DIR = (
     "s3://mobileye-team-road/roade2e_database/run_eval_catalog/{net_id}/{checkpoint}/{use_case}/{dataset}/events"
 )
+DEFAULT_SAMPLES_NUM = 60
 
 
 @callback(
     Output(PATHNET_EVENTS_NET_ID_DROPDOWN, "options"),
+    Output(PATHNET_EVENTS_REF_NET_ID_DROPDOWN, "options"),
     Input(NETS, "data"),
 )
 def get_eval_name(nets):
-    return create_dropdown_options_list(nets["names"]) if nets else no_update
+    net_options_list = create_dropdown_options_list(nets["names"]) if nets else no_update
+    return net_options_list, net_options_list
 
 
-@callback(
-    Output(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
-    Input(PATHNET_EVENTS_CHOSEN_NET, "data"),
-    State(MD_FILTERS, "data"),
-    prevent_initial_call=True,
-)
 def create_dp_source_dropdown(net, meta_data_filters):
     if not net:
         return no_update
@@ -77,11 +82,25 @@ def create_dp_source_dropdown(net, meta_data_filters):
 
 
 @callback(
-    Output(PATHNET_EVENTS_CHOSEN_NET, "data"),
-    State(NETS, "data"),
-    Input(PATHNET_EVENTS_NET_ID_DROPDOWN, "value"),
+    Output(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
+    Input(PATHNET_EVENTS_CHOSEN_NET, "data"),
+    State(MD_FILTERS, "data"),
     prevent_initial_call=True,
 )
+def create_dp_source_dropdown_main(net, meta_data_filters):
+    return create_dp_source_dropdown(net, meta_data_filters)
+
+
+@callback(
+    Output(PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN, "options"),
+    Input(PATHNET_EVENTS_REF_CHOSEN_NET, "data"),
+    State(MD_FILTERS, "data"),
+    prevent_initial_call=True,
+)
+def create_dp_source_dropdown_ref(net, meta_data_filters):
+    return create_dp_source_dropdown(net, meta_data_filters)
+
+
 def update_chosen_net_data(nets, chosen_net_id):
     if not nets or not chosen_net_id:
         return no_update
@@ -94,6 +113,26 @@ def update_chosen_net_data(nets, chosen_net_id):
     net[PATHNET_GT]["paths"] = net[PATHNET_GT]["paths"][net_id_ind : net_id_ind + 1]
     net["nets_info"] = net["nets_info"][net_id_ind]
     return net
+
+
+@callback(
+    Output(PATHNET_EVENTS_CHOSEN_NET, "data"),
+    State(NETS, "data"),
+    Input(PATHNET_EVENTS_NET_ID_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def update_chosen_net_data_main(nets, chosen_net_id):
+    return update_chosen_net_data(nets, chosen_net_id)
+
+
+@callback(
+    Output(PATHNET_EVENTS_REF_CHOSEN_NET, "data"),
+    State(NETS, "data"),
+    Input(PATHNET_EVENTS_REF_NET_ID_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def update_chosen_net_data_ref(nets, chosen_net_id):
+    return update_chosen_net_data(nets, chosen_net_id)
 
 
 def check_build_events_input(n_clicks, meta_data_columns, mandatory_args):
@@ -158,13 +197,9 @@ def create_data_dict_for_explorer(net_info, dp_sources, chosen_source, role, dis
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, threshold):
-    DEFAULT_SAMPLES_NUM = 60
-    if "frame_has_labels_mf" in meta_data_cols:
-        meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
-
-    if metric == "inaccurate":
-        query, final_columns = generate_extract_inacc_events_query(
+def get_source_events_df(chosen_source, meta_data_filters, metric, net, role, dist, threshold):
+    if metric == "inaccurate" or metric == "accurate":
+        query, final_columns = generate_extract_acc_events_query(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
@@ -173,6 +208,7 @@ def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net,
             role=role,
             dist=float(dist),
             threshold=threshold,
+            is_inaccurate=(metric == "inaccurate")
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -185,9 +221,96 @@ def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net,
         )
 
     df, _ = run_query_with_nets_names_processing(query)
+    return df, final_columns
+
+
+def subtract_events(df_main, df_ref, metric):
+    if metric == "miss":
+        merge_df = df_main.merge(df_ref, how="left", indicator=True)
+        only_in_main_df = merge_df[merge_df["_merge"] == "left_only"]
+        only_in_main_df = only_in_main_df.drop(columns=["_merge"])
+        return only_in_main_df
+
+    elif metric == "false":
+        df_main_grouped = df_main.groupby(BOOKMARKS_COLUMNS).size().reset_index(name="count_main")
+        df_ref_grouped = df_ref.groupby(BOOKMARKS_COLUMNS).size().reset_index(name="count_ref")
+        frames_count_df = df_main_grouped.merge(df_ref_grouped, on=BOOKMARKS_COLUMNS, how="left")
+        frames_count_df["count_ref"].fillna(0, inplace=True)
+        frames_count_higher_in_main_df = frames_count_df[frames_count_df["count_main"] > frames_count_df["count_ref"]]
+        df_main_filtered = df_main.merge(frames_count_higher_in_main_df[BOOKMARKS_COLUMNS], on=BOOKMARKS_COLUMNS)
+        return df_main_filtered
+
+    elif metric == "inaccurate":
+        df_main_filtered = df_main.merge(
+            df_ref, on=BOOKMARKS_COLUMNS + ["matched_dp_id"], how="inner", suffixes=("", "_ref")
+        )
+        return df_main_filtered
+
+    else:
+        return df_main
+
+
+def get_events_df(
+    chosen_source,
+    meta_data_cols,
+    meta_data_filters,
+    metric,
+    net,
+    role,
+    samples_num,
+    dist,
+    threshold,
+    ref_net,
+    ref_chosen_source,
+):
+    if "frame_has_labels_mf" in meta_data_cols:
+        meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
+
+    df, final_columns = get_source_events_df(chosen_source, meta_data_filters, metric, net, role, dist, threshold)
+
+    if ref_net and ref_chosen_source:
+        ref_metric = "accurate" if metric == "inaccurate" else metric
+        df_ref, _ = get_source_events_df(
+            ref_chosen_source, meta_data_filters, ref_metric, ref_net, role, dist, threshold
+        )
+        df = subtract_events(df, df_ref, metric)
     df = df.drop_duplicates(subset=final_columns)
     df = df.head(samples_num if samples_num else DEFAULT_SAMPLES_NUM)
+    df = df.round(3)
     return df
+
+
+@callback(
+    Output(PATHNET_EVENTS_ROLE_DROPDOWN_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_events_role_dropdown(metric):
+    if metric == "miss" or metric == "inaccurate":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_DIST_DROPDOWN_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_events_dist_dropdown(metric):
+    if metric == "inaccurate":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_REF_DIV, "hidden"),
+    Input(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
+    prevent_initial_call=True,
+)
+def show_events_ref_net_choice(is_unique_on):
+    if is_unique_on:
+        return False
+    return True
 
 
 @callback(
@@ -199,6 +322,9 @@ def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net,
     State(PATHNET_EVENTS_CHOSEN_NET, "data"),
     State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "value"),
     State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
+    State(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
+    State(PATHNET_EVENTS_REF_CHOSEN_NET, "data"),
+    State(PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN, "value"),
     Input(PATHNET_EVENTS_SUBMIT_BUTTON, "n_clicks"),
     State(MD_FILTERS, "data"),
     State(MD_COLUMNS_TO_TYPE, "data"),
@@ -213,6 +339,9 @@ def build_events_df(
     net,
     chosen_source,
     dp_sources,
+    is_unique_on,
+    ref_net,
+    ref_chosen_source,
     n_clicks,
     meta_data_filters,
     meta_data_cols,
@@ -227,13 +356,29 @@ def build_events_df(
         dropdown_args += [role, dist]
     elif metric == "miss":
         dropdown_args.append(role)
+    if is_unique_on:
+        dropdown_args += [ref_net, ref_chosen_source]
+        ref_net = None
+        ref_chosen_source = None
 
     input_valid, input_error_message = check_build_events_input(n_clicks, meta_data_cols, dropdown_args)
     if not input_valid:
         return no_update, no_update, no_update, no_update, create_alert_message(input_error_message, color="warning")
 
-    thresh = thresh_dict[str(dist)] if dist is not None else 0
-    df = get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, thresh)
+    thresh = thresh_dict[str(float(dist))] if dist is not None else 0
+    df = get_events_df(
+        chosen_source,
+        meta_data_cols,
+        meta_data_filters,
+        metric,
+        net,
+        role,
+        samples_num,
+        dist,
+        thresh,
+        ref_net,
+        ref_chosen_source,
+    )
     df_sane, sanity_error_message = check_events_df_sanity(events_df=df)
     if not df_sane:
         return no_update, no_update, no_update, no_update, create_alert_message(sanity_error_message, color="warning")
