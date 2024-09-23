@@ -174,6 +174,7 @@ PATHNET_EVENTS_REF_DIV = "pathnet_events_ref_div"
 PATHNET_EVENTS_REF_NET_ID_DROPDOWN = "pathnet_events_ref_net_id_dropdown"
 PATHNET_EVENTS_REF_CHOSEN_NET = "pathnet_events_ref_chosen_net"
 PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN = "pathnet_events_ref_dp_source_dropdown"
+PATHNET_EVENTS_EXTRACTOR_DICT = "pathnet_events_extractor_dict"
 
 LM_3D_SOURCE_DROPDOWN = "3d-source-dropdown"
 LM_3D_ACC_OVERALL = "lm_3d_accuracy_overall"
