@@ -31,6 +31,7 @@ def init_events_extractor_dict():
         "is_unique_on": None,
         "ref_net": None,
         "ref_dp_source": None,
+        "ref_threshold": None,
         "num_events": None,
     }
     return default_dict

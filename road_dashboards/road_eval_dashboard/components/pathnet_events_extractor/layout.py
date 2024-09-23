@@ -14,9 +14,12 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_REF_DIV,
     PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_REF_NET_ID_DROPDOWN,
+    PATHNET_EVENTS_REF_THRESHOLD,
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_ROLE_DROPDOWN_DIV,
     PATHNET_EVENTS_SUBMIT_BUTTON,
+    PATHNET_EVENTS_THRESHOLD,
+    PATHNET_EVENTS_THRESHOLDS_DIV,
     PATHNET_EVENTS_UNIQUE_SWITCH,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
@@ -137,6 +140,35 @@ def create_filtering_dropdowns_row():
     )
 
 
+def create_unique_thresholds_row():
+    return html.Div(
+        id=PATHNET_EVENTS_THRESHOLDS_DIV,
+        children=dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Input(
+                        id=PATHNET_EVENTS_THRESHOLD,
+                        placeholder="Specify acc-threshold in meters (optional)",
+                        type="number",
+                        style={"width": "inherit", "height": "100%", "appearance": "textfield"},
+                    ),
+                ),
+                dbc.Col(
+                    dcc.Input(
+                        id=PATHNET_EVENTS_REF_THRESHOLD,
+                        placeholder="Specify ref acc-threshold in meters (optional)",
+                        type="number",
+                        style={"width": "inherit", "height": "100%", "appearance": "textfield"},
+                    )
+                ),
+                dbc.Col(style={"width": "inherit", "height": "100%"}),
+            ],
+            style={"margin-bottom": "10px"},
+        ),
+        hidden=True,
+    )
+
+
 def create_submit_events_filtering_row():
     return dbc.Row(
         [
@@ -169,6 +201,8 @@ def create_events_extractor_layout():
 
     submit_events_filtering_row = create_submit_events_filtering_row()
 
+    unique_thresholds_row = create_unique_thresholds_row()
+
     log_msg_div = loading_wrapper(html.Div(id=PATHNET_EXTRACT_EVENTS_LOG_MESSAGE))
 
     events_datatable_div = dash_table.DataTable(id=PATHNET_EVENTS_DATA_TABLE, page_size=20)
@@ -179,6 +213,7 @@ def create_events_extractor_layout():
             net_options_dropdowns_row,
             ref_net_options_dropdowns_row,
             filtering_dropdowns_row,
+            unique_thresholds_row,
             submit_events_filtering_row,
             log_msg_div,
             events_datatable_div,
