@@ -39,24 +39,6 @@ app.layout = html.Div(
 )
 
 
-dbc.Modal(
-    [
-        dbc.ModalHeader(dbc.ModalTitle("Header"), close_button=True),
-        dbc.ModalBody("Change the backdrop of this modal with the radio buttons"),
-        dbc.ModalFooter(
-            dbc.Button(
-                "Close",
-                id="close-backdrop",
-                className="ms-auto",
-                n_clicks=0,
-            )
-        ),
-    ],
-    id="modal-backdrop",
-    is_open=False,
-),
-
-
 @app.callback(Output(URL, "pathname"), Input(URL, "pathname"))
 def redirect_to_home(pathname):
     if pathname == "/":
