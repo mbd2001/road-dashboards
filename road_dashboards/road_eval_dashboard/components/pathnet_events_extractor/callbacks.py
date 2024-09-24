@@ -1,9 +1,10 @@
 import copy
 import json
+import os
 
 from botocore.exceptions import ClientError
 from dash import Input, Output, State, callback, no_update
-from road_database_toolkit.cloud_file_system.file_operations import path_join, write_json
+from road_database_toolkit.cloud_file_system.file_operations import write_json
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
@@ -268,7 +269,7 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
     bookmarks_file_name = explorer_data["bookmarks_name"]
     explore_params = explorer_data["explorer_params"]
 
-    s3_full_path = path_join(s3_dir_path, f"{bookmarks_file_name}.json")
+    s3_full_path = os.path.join(s3_dir_path, f"{bookmarks_file_name}.json")
     try:
         write_json(s3_full_path, bookmarks_dict)
         success_message = f"Bookmarks dumped to:\n{s3_full_path}\n\nParams for explorer: {explore_params}"

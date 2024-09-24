@@ -32,7 +32,7 @@ from road_dashboards.road_dump_dashboard.components.logical_components.tables_pr
     load_object,
 )
 
-NUM_FILTERS_PER_GROUP = 10
+MAX_FILTERS_PER_GROUP = 10
 
 
 @dataclass
@@ -128,7 +128,7 @@ def get_group_layout(index, md_columns_options):
             ),
             html.Div(
                 id={"type": FILTER_LIST, "index": index},
-                children=[get_filter_row_initial_layout(index * NUM_FILTERS_PER_GROUP, md_columns_options)],
+                children=[get_filter_row_initial_layout(index * MAX_FILTERS_PER_GROUP, md_columns_options)],
             ),
         ],
         style={"border": "2px lightskyblue solid", "border-radius": "20px", "margin": "20px"},
@@ -136,7 +136,7 @@ def get_group_layout(index, md_columns_options):
     return group_layout
 
 
-layout = data_filters_layout = html.Div(
+layout = html.Div(
     card_wrapper(
         [
             html.H3("Filters"),
@@ -186,9 +186,9 @@ def add_filters(add_clicks, add_group, filters_list, main_tables, md_tables):
             empty_index = single_filter["props"]["id"]["index"]
             del patched_children[ind]
 
-    if not empty_index and len(filters_list) < NUM_FILTERS_PER_GROUP:
+    if (not empty_index) and len(filters_list) < MAX_FILTERS_PER_GROUP:
         group_ind = callback_context.triggered_id["index"]
-        base_ind = group_ind * NUM_FILTERS_PER_GROUP
+        base_ind = group_ind * MAX_FILTERS_PER_GROUP
         empty_index = get_empty_index(base_ind, filters_list)
 
     main_tables: TableType = load_object(main_tables)
@@ -205,7 +205,7 @@ def add_filters(add_clicks, add_group, filters_list, main_tables, md_tables):
 
 def get_empty_index(base_ind, filters_list):
     existing_indexes = set(single_filter["props"]["id"]["index"] for single_filter in filters_list)
-    for ind in range(base_ind, base_ind + NUM_FILTERS_PER_GROUP):
+    for ind in range(base_ind, base_ind + MAX_FILTERS_PER_GROUP):
         if ind not in existing_indexes:
             return ind
     return None
