@@ -62,7 +62,7 @@ def create_net_options_dropdown_row():
                 daq.BooleanSwitch(
                     id=PATHNET_EVENTS_UNIQUE_SWITCH,
                     on=False,
-                    label="Unique events",
+                    label="Unique events - Compare 2 nets / dp-sources",
                     labelPosition="left",
                     style={"margin-left": "0px", "display": "inline-block"},
                 ),

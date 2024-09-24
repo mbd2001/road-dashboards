@@ -24,13 +24,13 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_REF_DIV,
     PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_REF_NET_ID_DROPDOWN,
+    PATHNET_EVENTS_REF_THRESHOLD,
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_ROLE_DROPDOWN_DIV,
     PATHNET_EVENTS_SUBMIT_BUTTON,
-    PATHNET_EVENTS_UNIQUE_SWITCH,
-    PATHNET_EVENTS_THRESHOLDS_DIV,
     PATHNET_EVENTS_THRESHOLD,
-    PATHNET_EVENTS_REF_THRESHOLD,
+    PATHNET_EVENTS_THRESHOLDS_DIV,
+    PATHNET_EVENTS_UNIQUE_SWITCH,
     PATHNET_EXPLORER_DATA,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
@@ -49,10 +49,10 @@ BOOKMARKS_COLUMNS = ["batch_num", "clip_name", "grabindex"]
 EXPLORER_PARAMS = """ 
     --dataset_names {dataset} 
     --population {population} 
+    --bookmarks {bookmarks_name}
     --net_name {net_id} 
     --ckpt {checkpoint} 
-    --use_case {use_case} 
-    --bookmarks {bookmarks_name} 
+    --use_case {use_case}  
 """
 EXPLORER_PARAMS_REF_ADDITION = """--net_name {net_id} 
                                   --ckpt {checkpoint} 
@@ -62,6 +62,7 @@ S3_EVENTS_DIR = (
     "s3://mobileye-team-road/roade2e_database/run_eval_catalog/{net_id}/{checkpoint}/{use_case}/{dataset}/events"
 )
 DEFAULT_NUM_EVENTS = 60
+REF_THRESH_DEFAULT_DIFF = 0.1
 
 
 @callback(
@@ -206,23 +207,20 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
 
     explorer_params = EXPLORER_PARAMS.format(
         dataset=net_info["dataset"],
+        population=net_info["population"],
+        bookmarks_name=bookmarks_file_name,
         net_id=net_info["net_id"],
         checkpoint=net_info["checkpoint"],
         use_case=net_info["use_case"],
-        population=net_info["population"],
-        bookmarks_name=bookmarks_file_name,
     )
 
     if events_extractor_dict["is_unique_on"] and events_extractor_dict["ref_net"] != events_extractor_dict["net"]:
         ref_net_info = events_extractor_dict["ref_net"]["nets_info"]
         explorer_params += EXPLORER_PARAMS_REF_ADDITION.format(
-            net_id=ref_net_info["net_id"],
-            checkpoint=ref_net_info["checkpoint"],
-            use_case=ref_net_info["use_case"]
+            net_id=ref_net_info["net_id"], checkpoint=ref_net_info["checkpoint"], use_case=ref_net_info["use_case"]
         )
 
     dp_sources = {dic["label"] for dic in dp_sources}
-
     if "mf" in dp_sources:
         explorer_params += " --net_output_name mf"
     elif "fusion" in dp_sources:
@@ -407,13 +405,16 @@ def update_extractor_dict(
     events_extractor_dict["ref_dp_source"] = ref_dp_source
     events_extractor_dict["num_events"] = num_events
 
-    if is_unique_on and specified_thresh is not None and ref_specified_thresh is not None:
+    if is_unique_on and specified_thresh is not None:
         events_extractor_dict["threshold"] = specified_thresh
-        events_extractor_dict["ref_threshold"] = ref_specified_thresh
+        if ref_specified_thresh is not None:
+            events_extractor_dict["ref_threshold"] = ref_specified_thresh
+        else:
+            events_extractor_dict["ref_threshold"] = specified_thresh - REF_THRESH_DEFAULT_DIFF
     else:
         thresh = thresh_dict[str(float(dist))] if dist is not None else 0
         events_extractor_dict["threshold"] = thresh
-        events_extractor_dict["ref_threshold"] = thresh
+        events_extractor_dict["ref_threshold"] = thresh - REF_THRESH_DEFAULT_DIFF
     return events_extractor_dict
 
 
