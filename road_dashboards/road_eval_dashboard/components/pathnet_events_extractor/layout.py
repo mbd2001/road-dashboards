@@ -5,6 +5,7 @@ import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.c
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
+    PATHNET_EVENTS_EVENTS_ORDER_BY,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
@@ -12,6 +13,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_SUBMIT_BUTTON,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
+    PATHNET_EXPORT_TO_JUMP_BUTTON,
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
@@ -24,6 +26,15 @@ def create_header_row():
     return dbc.Row(
         [
             dbc.Col(html.H3("Extract events", className="mb-5"), width=10),
+            dbc.Col(
+                dbc.Button(
+                    "Create Jump",
+                    id=PATHNET_EXPORT_TO_JUMP_BUTTON,
+                    color="primary",
+                    className="me-1",
+                ),
+                width=2,
+            ),
             dbc.Col(
                 dbc.Button(
                     "Export",
@@ -75,6 +86,13 @@ def create_filtering_dropdowns_row():
                     id=PATHNET_EVENTS_DIST_DROPDOWN,
                     options=create_dropdown_options_list(labels=distances),
                     placeholder="Select Dist (sec)",
+                ),
+            ),
+            dbc.Col(
+                dcc.Dropdown(
+                    id=PATHNET_EVENTS_EVENTS_ORDER_BY,
+                    options=create_dropdown_options_list(labels=['ASC', 'DESC']),
+                    placeholder="Select Order By",
                 ),
             ),
         ],

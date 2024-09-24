@@ -756,6 +756,7 @@ def generate_extract_inacc_events_query(
     role,
     dist,
     threshold,
+    order_by,
 ):
     inacc_columns = ["dp_id", "matched_dp_id", "match_score"]
     dist_column = f'"dist_{dist}"'
@@ -771,7 +772,7 @@ def generate_extract_inacc_events_query(
         extra_filters=inacc_cmd,
     )
     final_columns = bookmarks_columns + inacc_columns
-    order_cmd = f"ORDER BY {dist_column} ASC"
+    order_cmd = f"ORDER BY {dist_column} {order_by}" #order_by is one of "ASC" or "DESC"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
     )
