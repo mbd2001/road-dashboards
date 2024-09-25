@@ -199,11 +199,14 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
     )
 
     metric = events_extractor_dict["metric"]
-    bookmarks_file_name = f"{metric}_{events_extractor_dict["dp_source"]}"
+    dp_source = events_extractor_dict["dp_source"]
+    role = events_extractor_dict["role"]
+    dist = events_extractor_dict["dist"]
+    bookmarks_file_name = f"{metric}_{dp_source}"
     if metric != "false":
-        bookmarks_file_name += f"_{events_extractor_dict["role"]}"
+        bookmarks_file_name += f"_{role}"
     if metric == "inaccurate":
-        bookmarks_file_name += f"_dist{events_extractor_dict["dist"]}"
+        bookmarks_file_name += f"_dist{dist}"
 
     explorer_params = EXPLORER_PARAMS.format(
         dataset=net_info["dataset"],
@@ -231,6 +234,7 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
 
 def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold):
     if metric == "inaccurate" or metric == "accurate":
+        operator = ">" if metric == "inaccurate" else "<"
         query, final_columns = generate_extract_acc_events_query(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
@@ -240,7 +244,7 @@ def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, 
             role=role,
             dist=float(dist),
             threshold=threshold,
-            is_inaccurate=(metric == "inaccurate"),
+            operator=operator,
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -405,16 +409,19 @@ def update_extractor_dict(
     events_extractor_dict["ref_dp_source"] = ref_dp_source
     events_extractor_dict["num_events"] = num_events
 
-    if is_unique_on and specified_thresh is not None:
+    if specified_thresh is not None:
         events_extractor_dict["threshold"] = specified_thresh
+    elif dist is not None:
+        events_extractor_dict["threshold"] = thresh_dict[str(float(dist))]
+    else:
+        events_extractor_dict["threshold"] = 0
+
+    if is_unique_on:
         if ref_specified_thresh is not None:
             events_extractor_dict["ref_threshold"] = ref_specified_thresh
         else:
-            events_extractor_dict["ref_threshold"] = specified_thresh - REF_THRESH_DEFAULT_DIFF
-    else:
-        thresh = thresh_dict[str(float(dist))] if dist is not None else 0
-        events_extractor_dict["threshold"] = thresh
-        events_extractor_dict["ref_threshold"] = thresh - REF_THRESH_DEFAULT_DIFF
+            events_extractor_dict["ref_threshold"] = events_extractor_dict["threshold"] - REF_THRESH_DEFAULT_DIFF
+
     return events_extractor_dict
 
 

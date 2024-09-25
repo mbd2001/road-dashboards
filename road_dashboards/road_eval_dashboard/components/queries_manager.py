@@ -173,7 +173,7 @@ COUNT_ALL_METRIC = """
 
 EXTRACT_EVENT_ACC = """
     {dist_column} IS NOT NULL AND 
-    {dist_column} {sign} {dist_thresh} AND 
+    {dist_column} {operator} {dist_thresh} AND 
     bin_population = '{chosen_source}'
 """
 
@@ -756,13 +756,12 @@ def generate_extract_acc_events_query(
     role,
     dist,
     threshold,
-    is_inaccurate=False,
+    operator,
 ):
     acc_columns = ["matched_dp_id", "dp_id", "match_score"]
     dist_column = f'"dist_{dist}"'
-    sign = ">" if is_inaccurate else "<"
     acc_cmd = EXTRACT_EVENT_ACC.format(
-        dist_column=f'"dist_{dist}"', sign=sign, dist_thresh=threshold, chosen_source=chosen_source
+        dist_column=f'"dist_{dist}"', operator=operator, dist_thresh=threshold, chosen_source=chosen_source
     )
     base_query = generate_base_query(
         data_tables,
@@ -773,7 +772,7 @@ def generate_extract_acc_events_query(
         extra_filters=acc_cmd,
     )
     final_columns = bookmarks_columns + acc_columns
-    results_order = "ASC" if is_inaccurate else "DESC"
+    results_order = "ASC" if operator == ">" else "DESC"
     order_cmd = f"ORDER BY {dist_column} {results_order}"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
