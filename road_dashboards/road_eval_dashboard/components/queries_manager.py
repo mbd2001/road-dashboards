@@ -772,7 +772,7 @@ def generate_extract_inacc_events_query(
         extra_filters=inacc_cmd,
     )
     final_columns = bookmarks_columns + inacc_columns
-    order_cmd = f"ORDER BY {dist_column} {order_by}" #order_by is one of "ASC" or "DESC"
+    order_cmd = f"ORDER BY {dist_column} {order_by}"  # order_by is one of "ASC" or "DESC"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
     )

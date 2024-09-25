@@ -14,8 +14,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_CHOSEN_NET,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
-    PATHNET_EVENTS_EVENTS_ORDER_BY,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
+    PATHNET_EVENTS_EVENTS_ORDER_BY,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
@@ -23,8 +23,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_SUBMIT_BUTTON,
     PATHNET_EXPLORER_DATA,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
-    PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
     PATHNET_EXPORT_TO_JUMP_BUTTON,
+    PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
     PATHNET_GT,
     PATHNET_PRED,
 )
@@ -160,7 +160,9 @@ def create_data_dict_for_explorer(net_info, dp_sources, chosen_source, role, dis
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, threshold, order_by):
+def get_events_df(
+    chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, threshold, order_by
+):
     DEFAULT_SAMPLES_NUM = 60
     if "frame_has_labels_mf" in meta_data_cols:
         meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
@@ -238,7 +240,9 @@ def build_events_df(
         return no_update, no_update, no_update, no_update, create_alert_message(input_error_message, color="warning")
 
     thresh = thresh_dict[str(float(dist))] if dist is not None else 0
-    df = get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, thresh, order_by)
+    df = get_events_df(
+        chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, thresh, order_by
+    )
     df_sane, sanity_error_message = check_events_df_sanity(events_df=df)
     if not df_sane:
         return no_update, no_update, no_update, no_update, create_alert_message(sanity_error_message, color="warning")
@@ -286,6 +290,7 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
 
     return create_alert_message(error_message, color="warning")
 
+
 @callback(
     Output(PATHNET_EXTRACT_EVENTS_LOG_MESSAGE, "children", allow_duplicate=True),
     Input(PATHNET_EXPORT_TO_JUMP_BUTTON, "n_clicks"),
@@ -294,8 +299,9 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
     prevent_initial_call=True,
 )
 def dump_events_to_jump(n_clicks, data_table, explorer_data):
-    import pandas as pd
     import traceback
+
+    import pandas as pd
 
     if not all([n_clicks, data_table, explorer_data]):
         return no_update
@@ -307,7 +313,7 @@ def dump_events_to_jump(n_clicks, data_table, explorer_data):
     try:
         df = pd.DataFrame(data_table)
         cols_with_dot = [col for col in df.columns if "." in col]
-        df_renamed = df.rename(columns={col: col.replace('.','_') for col in cols_with_dot}, inplace=False)
+        df_renamed = df.rename(columns={col: col.replace(".", "_") for col in cols_with_dot}, inplace=False)
         generate_jump_file(df_renamed, s3_full_path, df_renamed.columns.to_list(), df.size)
         success_message = f"Jump dumped to:\n{s3_full_path}\n"
         return create_alert_message(success_message, color="success")
@@ -317,25 +323,33 @@ def dump_events_to_jump(n_clicks, data_table, explorer_data):
 
     return create_alert_message(error_message, color="warning")
 
+
 def generate_jump_file(df, out_jump_file_path, more_fields, max_lines=300, clipname_to_itrk_location_fn=lambda x: x):
-    from cloud_storage_utils.file_abstraction import open_file
     import numpy as np
+    from cloud_storage_utils.file_abstraction import open_file
+
     def _is_float(val):
-        return (getattr(val, 'dtype', 'int') != np.int64) and (getattr(val, 'dtype', 'int') != np.int32) and (
-                (getattr(val, 'dtype', 'int') == np.float32) or (getattr(val, 'dtype', 'int') == np.float64) or (
-                type(val) == float))
+        return (
+            (getattr(val, "dtype", "int") != np.int64)
+            and (getattr(val, "dtype", "int") != np.int32)
+            and (
+                (getattr(val, "dtype", "int") == np.float32)
+                or (getattr(val, "dtype", "int") == np.float64)
+                or (type(val) == float)
+            )
+        )
 
-    if ('clip_name' in df):
-        _get_clipname = lambda row: getattr(row, 'clip_name')
+    if "clip_name" in df:
+        _get_clipname = lambda row: getattr(row, "clip_name")
     else:
-        assert('no clipname field in df')
+        assert "no clipname field in df"
 
-    if ('grabindex' in df):
-        gi_field = 'grabindex'
-    elif ('gi' in df):
-        gi_field = 'gi'
+    if "grabindex" in df:
+        gi_field = "grabindex"
+    elif "gi" in df:
+        gi_field = "gi"
     else:
-        assert('no grabIndex field in df')
+        assert "no grabIndex field in df"
 
     jump_fields = list(set([gi_field] + more_fields))
     all_clips = []
@@ -345,17 +359,17 @@ def generate_jump_file(df, out_jump_file_path, more_fields, max_lines=300, clipn
             if clipname is None:
                 continue
             all_clips.append(clipname)
-            line = '{}'.format(clipname_to_itrk_location_fn(clipname))
+            line = "{}".format(clipname_to_itrk_location_fn(clipname))
             for field in jump_fields:
                 val = getattr(row, field)
-                if (type(val) == np.ndarray):
+                if type(val) == np.ndarray:
                     val = val.squeeze()
                 if _is_float(val):
                     val = "{:.2f}".format(val)
-                line += f' {val}'
-            f.write(line + '\n')
-        format_line = '\n#format: trackfile startframe ' + ' '.join(jump_fields[1:])
-        f.write(format_line + '\n')
-    # also dump a list of all clips 
-    with open_file(out_jump_file_path + '.list', "w") as f:
-        f.write('\n'.join(list(set(all_clips))))
+                line += f" {val}"
+            f.write(line + "\n")
+        format_line = "\n#format: trackfile startframe " + " ".join(jump_fields[1:])
+        f.write(format_line + "\n")
+    # also dump a list of all clips
+    with open_file(out_jump_file_path + ".list", "w") as f:
+        f.write("\n".join(list(set(all_clips))))
