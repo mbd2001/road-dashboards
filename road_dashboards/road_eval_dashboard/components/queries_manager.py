@@ -171,9 +171,9 @@ COUNT_ALL_METRIC = """
     AS {count_name}
     """
 
-EXTRACT_EVENT_INACC = """
+EXTRACT_EVENT_ACC = """
     {dist_column} IS NOT NULL AND 
-    {dist_column} > {dist_thresh} AND 
+    {dist_column} {operator} {dist_thresh} AND 
     bin_population = '{chosen_source}'
 """
 
@@ -747,7 +747,7 @@ def generate_path_net_miss_false_query(
     return query
 
 
-def generate_extract_inacc_events_query(
+def generate_extract_acc_events_query(
     data_tables,
     meta_data,
     meta_data_filters,
@@ -756,22 +756,24 @@ def generate_extract_inacc_events_query(
     role,
     dist,
     threshold,
+    operator,
 ):
-    inacc_columns = ["dp_id", "matched_dp_id", "match_score"]
+    acc_columns = ["matched_dp_id", "dp_id", "match_score"]
     dist_column = f'"dist_{dist}"'
-    inacc_cmd = EXTRACT_EVENT_INACC.format(
-        dist_column=f'"dist_{dist}"', dist_thresh=threshold, chosen_source=chosen_source
+    acc_cmd = EXTRACT_EVENT_ACC.format(
+        dist_column=f'"dist_{dist}"', operator=operator, dist_thresh=threshold, chosen_source=chosen_source
     )
     base_query = generate_base_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
         role=role,
-        extra_columns=inacc_columns,
-        extra_filters=inacc_cmd,
+        extra_columns=acc_columns,
+        extra_filters=acc_cmd,
     )
-    final_columns = bookmarks_columns + inacc_columns
-    order_cmd = f"ORDER BY {dist_column} ASC"
+    final_columns = bookmarks_columns + acc_columns
+    results_order = "ASC" if operator == ">" else "DESC"
+    order_cmd = f"ORDER BY {dist_column} {results_order}"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
     )
