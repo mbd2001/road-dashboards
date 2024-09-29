@@ -1,7 +1,7 @@
 # tables names
 PATHNET_GT = "pathnet_gt_tables"
 PATHNET_PRED = "pathnet_pred_tables"
-
+PATHNET_BOUNDARIES = "pathnet_boundaries_table"
 
 # stores
 NETS = "nets"
@@ -133,6 +133,8 @@ PATH_NET_QUALITY_FN = "path_net_quality_fn"
 PATH_NET_QUALITY_FP = "path_net_quality_fp"
 PATH_NET_QUALITY_TN = "path_net_quality_tn"
 PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION = "path_net_quality_unmathced_correct_rejection"
+PATHNET_LEFT_BOUNDARY_ACC = "pathnet_left_boundary_acc"
+PATHNET_RIGHT_BOUNDARY_ACC = "pathnet_right_boundary_acc"
 
 
 PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"

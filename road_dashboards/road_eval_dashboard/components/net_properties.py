@@ -46,6 +46,7 @@ class Nets:
         pred_tables = kwargs.get("pred_table")
         gt_tables = kwargs.get("gt_table")
         pathnet_pred_tables = kwargs.get("pathnet_pred_table")
+        pathent_boundaries_tables = kwargs.get("boundaries_table")
         pathnet_gt_tables = kwargs.get("pathnet_gt_table")
         pathnet_host_boundaries = kwargs.get("boundries_df_table")
         assert meta_data_tables is not None and frame_tables is not None, "missing frame_table and meta_data_table"
@@ -78,17 +79,16 @@ class Nets:
             "bin_population",
             "smooth_index",
         ] + [f'"dist_{sec}"' for sec in distances]
-        bounadaries_columns = ["clip_name", "grabIndex", "net_id"] + [
-            f'"{dist}_{side}"' for dist in ["dist_0.5", "dist_1.3", "dist_2.0"] for side in ["left", "right"]
-        ]
+        bounadaries_columns = (["clip_name", "grabIndex", "net_id"] +
+                               [f"dist_{side}_{sec / 2}" for sec in range(1, 11) for side in ["left", "right"]])
         self.pathnet_pred_tables = Table(pathnet_pred_tables, pathnet_columns, "")
+        self.pathnet_boundaries_tables = Table(pathent_boundaries_tables, bounadaries_columns, "")
         self.pathnet_gt_tables = Table(pathnet_gt_tables, pathnet_columns, "")
-        self.pathnet_host_boundaries = Table(pathnet_host_boundaries, bounadaries_columns, "")
+        self.pathnet_host_boundaries = self.pathnet_boundaries_tables.__dict__ if self.pathnet_boundaries_tables else None
         self.pred_tables = self.pred_tables.__dict__ if self.pred_tables else None
         self.gt_tables = self.gt_tables.__dict__ if self.gt_tables else None
         self.pathnet_pred_tables = self.pathnet_pred_tables.__dict__ if self.pathnet_pred_tables else None
         self.pathnet_gt_tables = self.pathnet_gt_tables.__dict__ if self.pathnet_gt_tables else None
-        self.pathnet_host_boundaries = self.pathnet_host_boundaries.__dict__ if self.pathnet_host_boundaries else None
         self.nets_info = [
             NetInfo(net_id, ckpt, use_case, dataset, pop).__dict__
             for net_id, ckpt, use_case, dataset, pop in zip(net_names, checkpoints, use_cases, datasets, populations)
