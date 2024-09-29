@@ -118,6 +118,20 @@ DIST_METRIC = """
     AS "score_{ind}"
     """
 
+BOUNDARY_DIST_METRIC = """
+    CAST(
+        (
+            COUNT(CASE WHEN "{left_dist_column_name}_{dist}" IS NOT NULL AND "{left_dist_column_name}_{dist}" {thresh_filter} THEN 1 ELSE NULL END) +
+            COUNT(CASE WHEN "{right_dist_column_name}_{dist}" IS NOT NULL AND "{right_dist_column_name}_{dist}" {thresh_filter} THEN 1 ELSE NULL END)
+        ) AS DOUBLE
+    ) /
+    (
+        COUNT(CASE WHEN "{left_dist_column_name}_{dist}" IS NOT NULL THEN 1 ELSE NULL END) +
+        COUNT(CASE WHEN "{right_dist_column_name}_{dist}" IS NOT NULL THEN 1 ELSE NULL END)
+    )
+    AS "score_{ind}"
+    """
+
 DP_QUALITY_METRIC = """
     CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {dist_thresh_filter} AND "{base_dp_quality_col_name}_{dist}" IS NOT NULL AND "{base_dp_quality_col_name}_{dist}" {quality_thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) /
     COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) THEN 1 ELSE NULL END)
@@ -642,10 +656,11 @@ def generate_path_net_query(
     extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
+    base_dist_column_name="dist"
 ):
     operator = "<"
     query = get_dist_query(
-        "dist",
+        base_dist_column_name,
         data_tables,
         distances_dict,
         meta_data,
@@ -657,6 +672,29 @@ def generate_path_net_query(
     )
     return query
 
+def generate_path_net_boundary_query(
+    data_tables,
+    meta_data,
+    distances_dict,
+    meta_data_filters,
+    extra_columns=[],
+    role="",
+    extra_filters="",
+    base_dist_column_name="dist"
+):
+    operator = "<"
+    query = get_boundary_dist_query(
+        base_dist_column_name,
+        data_tables,
+        distances_dict,
+        meta_data,
+        meta_data_filters,
+        operator,
+        role,
+        extra_columns=extra_columns,
+        base_extra_filters=extra_filters,
+    )
+    return query
 
 def generate_path_net_dp_quality_query(
     data_tables,
@@ -942,6 +980,55 @@ def get_dist_query(
         extra_columns=extra_columns,
     )
 
+
+
+def get_boundary_dist_query(
+    base_dist_column_name,
+    data_tables,
+    distances_dict,
+    meta_data,
+    meta_data_filters,
+    operator,
+    role,
+    base_extra_filters="",
+    is_add_filters_count=False,
+    intresting_filters=None,
+    extra_columns=None,
+    extra_filters="",
+):
+    if intresting_filters is None:
+        intresting_filters = {"": ""}
+    metrics = ", ".join(
+        BOUNDARY_DIST_METRIC.format(
+            thresh_filter=f"{operator} {thresh}",
+            dist=sec,
+            extra_filters=(
+                f"{extra_filters.format(dist=sec)} AND {intresting_filter}"
+                if intresting_filter_name
+                else extra_filters.format(dist=sec)
+            ),
+            left_dist_column_name=f"{base_dist_column_name}_left",
+            right_dist_column_name=f"{base_dist_column_name}_right",
+            ind=intresting_filter_name if intresting_filter_name else sec,
+        )
+        for sec, thresh in distances_dict.items()
+        for intresting_filter_name, intresting_filter in intresting_filters.items()
+    )
+    count_metrics = (
+        get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
+        if is_add_filters_count
+        else None
+    )
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics,
+        count_metrics=count_metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=base_extra_filters,
+        role=role,
+        extra_columns=extra_columns,
+    )
 
 def get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator):
     count_metrics = {}
