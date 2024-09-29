@@ -30,7 +30,9 @@ def get_pathnet_md_filters_rows():
             dbc.Col(
                 dcc.Dropdown(
                     id=PATHNET_FILTERS_IN_DROPDOWN,
-                    options=create_dropdown_options_list(labels=PATHNET_MD_FILTERS.keys()),
+                    options=create_dropdown_options_list(
+                        labels=PATHNET_MD_FILTERS.keys(), values=PATHNET_MD_FILTERS.values(), do_hover=True
+                    ),
                     placeholder="Select Filters-in",
                     searchable=True,
                     multi=True,
@@ -42,7 +44,9 @@ def get_pathnet_md_filters_rows():
             dbc.Col(
                 dcc.Dropdown(
                     id=PATHNET_FILTERS_OUT_DROPDOWN,
-                    options=create_dropdown_options_list(labels=PATHNET_MD_FILTERS.keys()),
+                    options=create_dropdown_options_list(
+                        labels=PATHNET_MD_FILTERS.keys(), values=PATHNET_MD_FILTERS.values(), do_hover=True
+                    ),
                     placeholder="Select Filters-out",
                     searchable=True,
                     multi=True,

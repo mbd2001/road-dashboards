@@ -257,7 +257,8 @@ def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, 
         )
 
     df, _ = run_query_with_nets_names_processing(query)
-    return df, final_columns
+    df = df.drop_duplicates(subset=final_columns)
+    return df
 
 
 def subtract_events(df_main, df_ref, metric):
@@ -296,7 +297,7 @@ def get_events_df(
     metric = events_extractor_dict["metric"]
     role = events_extractor_dict["role"]
     dist = events_extractor_dict["dist"]
-    df, final_columns = get_source_events_df(
+    df = get_source_events_df(
         events_extractor_dict["net"],
         events_extractor_dict["dp_source"],
         meta_data_filters,
@@ -308,7 +309,7 @@ def get_events_df(
 
     if events_extractor_dict["is_unique_on"]:
         ref_metric = "accurate" if metric == "inaccurate" else metric
-        df_ref, _ = get_source_events_df(
+        df_ref = get_source_events_df(
             events_extractor_dict["ref_net"],
             events_extractor_dict["ref_dp_source"],
             meta_data_filters,
@@ -318,9 +319,7 @@ def get_events_df(
             events_extractor_dict["ref_threshold"],
         )
         df = subtract_events(df, df_ref, metric)
-    df = df.drop_duplicates(subset=final_columns)
-    num_events = events_extractor_dict["num_events"]
-    df = df.head(num_events if num_events else DEFAULT_NUM_EVENTS)
+    df = df.head(events_extractor_dict["num_events"])
     df = df.round(3)
     return df
 
@@ -407,7 +406,8 @@ def update_extractor_dict(
     events_extractor_dict["is_unique_on"] = is_unique_on
     events_extractor_dict["ref_net"] = ref_net
     events_extractor_dict["ref_dp_source"] = ref_dp_source
-    events_extractor_dict["num_events"] = num_events
+
+    events_extractor_dict["num_events"] = num_events if num_events is not None else DEFAULT_NUM_EVENTS
 
     if specified_thresh is not None:
         events_extractor_dict["threshold"] = specified_thresh
