@@ -1,7 +1,10 @@
 import copy
 import json
+import traceback
 
+import pandas as pd
 from botocore.exceptions import ClientError
+from cloud_storage_utils.file_abstraction import open_file
 from dash import Input, Output, State, callback, no_update
 from road_database_toolkit.cloud_file_system.file_operations import path_join, write_json
 
@@ -16,6 +19,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DIST_DROPDOWN,
     PATHNET_EVENTS_DIST_DROPDOWN_DIV,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
+    PATHNET_EVENTS_EVENTS_ORDER_BY,
+    PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
     PATHNET_EVENTS_EXTRACTOR_DICT,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
@@ -33,6 +38,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_UNIQUE_SWITCH,
     PATHNET_EXPLORER_DATA,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
+    PATHNET_EXPORT_TO_JUMP_BUTTON,
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
     PATHNET_GT,
     PATHNET_PRED,
@@ -232,7 +238,7 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold):
+def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold, order_by):
     if metric == "inaccurate" or metric == "accurate":
         operator = ">" if metric == "inaccurate" else "<"
         query, final_columns = generate_extract_acc_events_query(
@@ -245,6 +251,7 @@ def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, 
             dist=float(dist),
             threshold=threshold,
             operator=operator,
+            order_by=order_by,
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -304,6 +311,7 @@ def get_events_df(
         role,
         dist,
         events_extractor_dict["threshold"],
+        events_extractor_dict["order_by"],
     )
 
     if events_extractor_dict["is_unique_on"]:
@@ -316,6 +324,7 @@ def get_events_df(
             role,
             dist,
             events_extractor_dict["ref_threshold"],
+            events_extractor_dict["order_by"],
         )
         df = subtract_events(df, df_ref, metric)
     df = df.drop_duplicates(subset=final_columns)
@@ -342,6 +351,17 @@ def show_events_role_dropdown(metric):
     prevent_initial_call=True,
 )
 def show_events_dist_dropdown(metric):
+    if metric == "inaccurate":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_EVENTS_ORDER_BY_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_events_order_by_dropdown(metric):
     if metric == "inaccurate":
         return False
     return True
@@ -378,6 +398,7 @@ def show_unique_choices(is_unique_on, metric):
     State(PATHNET_EVENTS_THRESHOLD, "value"),
     State(PATHNET_EVENTS_REF_THRESHOLD, "value"),
     State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
@@ -395,6 +416,7 @@ def update_extractor_dict(
     specified_thresh,
     ref_specified_thresh,
     thresh_dict,
+    order_by,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -421,6 +443,8 @@ def update_extractor_dict(
             events_extractor_dict["ref_threshold"] = ref_specified_thresh
         else:
             events_extractor_dict["ref_threshold"] = events_extractor_dict["threshold"] - REF_THRESH_DEFAULT_DIFF
+
+    events_extractor_dict["order_by"] = order_by if order_by is not None else "DESC"
 
     return events_extractor_dict
 
@@ -499,3 +523,57 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
         error_message = f"Error uploading to S3:\n'{s3_full_path}' failed.\nTraceback: {e}"
 
     return create_alert_message(error_message, color="warning")
+
+
+@callback(
+    Output(PATHNET_EXTRACT_EVENTS_LOG_MESSAGE, "children", allow_duplicate=True),
+    Input(PATHNET_EXPORT_TO_JUMP_BUTTON, "n_clicks"),
+    State(PATHNET_EVENTS_DATA_TABLE, "data"),
+    State(PATHNET_EXPLORER_DATA, "data"),
+    prevent_initial_call=True,
+)
+def dump_events_to_jump(n_clicks, data_table, explorer_data):
+
+    if not all([n_clicks, data_table, explorer_data]):
+        return no_update
+
+    s3_dir_path = explorer_data["s3_dir_path"]
+    bookmarks_file_name = explorer_data["bookmarks_name"]
+
+    s3_full_path = path_join(s3_dir_path, f"{bookmarks_file_name}.jump")
+    try:
+        df = pd.DataFrame(data_table)
+        cols_with_dot = [col for col in df.columns if "." in col]
+        df_renamed = df.rename(columns={col: col.replace(".", "_") for col in cols_with_dot}, inplace=False)
+        generate_jump_file(df_renamed, s3_full_path, df_renamed.columns.to_list(), df.size)
+        success_message = f"Jump dumped to:\n{s3_full_path}\n"
+        return create_alert_message(success_message, color="success")
+
+    except Exception as e:
+        error_message = f"Error genereting jump into:\n'{s3_full_path}' failed.\nTraceback: {traceback.format_exc()}"
+
+    return create_alert_message(error_message, color="warning")
+
+
+def generate_jump_file(df, out_jump_file_path, more_fields, max_lines=300, clipname_to_itrk_location_fn=lambda x: x):
+    clip_field, gi_field = "clip_name", "grabindex"
+    jump_fields = [gi_field] + list(set(more_fields) - set([clip_field, gi_field]))  # ordered
+    all_clips = []
+    with open_file(out_jump_file_path, "w") as f:
+        for row in df.head(max_lines).itertuples():
+            clipname = getattr(row, clip_field)
+            if clipname is None:
+                continue
+            all_clips.append(clipname)
+            line = "{}".format(clipname_to_itrk_location_fn(clipname))
+            for field in jump_fields:
+                val = getattr(row, field)
+                if type(val) == float:
+                    val = "{:.2f}".format(val)
+                line += f" {val}"
+            f.write(line + "\n")
+        format_line = "\n#format: trackfile startframe " + " ".join(jump_fields[1:])
+        f.write(format_line + "\n")
+    # also dump a list of all clips
+    with open_file(out_jump_file_path + ".list", "w") as f:
+        f.write("\n".join(list(set(all_clips))))

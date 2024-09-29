@@ -8,6 +8,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DIST_DROPDOWN,
     PATHNET_EVENTS_DIST_DROPDOWN_DIV,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
+    PATHNET_EVENTS_EVENTS_ORDER_BY,
+    PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
@@ -22,6 +24,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_THRESHOLDS_DIV,
     PATHNET_EVENTS_UNIQUE_SWITCH,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
+    PATHNET_EXPORT_TO_JUMP_BUTTON,
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
@@ -34,6 +37,15 @@ def create_header_row():
     return dbc.Row(
         [
             dbc.Col(html.H3("Extract events", className="mb-5"), width=10),
+            dbc.Col(
+                dbc.Button(
+                    "Create Jump",
+                    id=PATHNET_EXPORT_TO_JUMP_BUTTON,
+                    color="primary",
+                    className="me-1",
+                ),
+                width=2,
+            ),
             dbc.Col(
                 dbc.Button(
                     "Export",
@@ -130,6 +142,19 @@ def create_filtering_dropdowns_row():
                             id=PATHNET_EVENTS_DIST_DROPDOWN,
                             options=create_dropdown_options_list(labels=distances),
                             placeholder="Select Dist (sec)",
+                        )
+                    ],
+                    hidden=True,
+                )
+            ),
+            dbc.Col(
+                html.Div(
+                    id=PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
+                    children=[
+                        dcc.Dropdown(
+                            id=PATHNET_EVENTS_EVENTS_ORDER_BY,
+                            options=create_dropdown_options_list(labels=["ASC", "DESC"]),
+                            placeholder="Select Order By",
                         )
                     ],
                     hidden=True,
