@@ -1,10 +1,20 @@
 import dash_bootstrap_components as dbc
-from dash import MATCH, ALL, Input, Output, State, callback, html, no_update
+from dash import ALL, MATCH, Input, Output, State, callback, html, no_update
 
 from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MISS_FALSE_FILTERS
-from road_dashboards.road_eval_dashboard.components.components_ids import MD_FILTERS, PATHNET_FILTERS, NETS, \
-    PATHNET_PRED, PATH_NET_ALL_TPR, PATH_NET_HOST_TPR, PATH_NET_ALL_CONF_MATS, PATH_NET_HOST_CONF_MAT, \
-    PATH_NET_FALSES_NEXT, PATH_NET_MISSES_HOST, PATH_NET_MISSES_NEXT
+from road_dashboards.road_eval_dashboard.components.components_ids import (
+    MD_FILTERS,
+    NETS,
+    PATH_NET_ALL_CONF_MATS,
+    PATH_NET_ALL_TPR,
+    PATH_NET_FALSES_NEXT,
+    PATH_NET_HOST_CONF_MAT,
+    PATH_NET_HOST_TPR,
+    PATH_NET_MISSES_HOST,
+    PATH_NET_MISSES_NEXT,
+    PATHNET_FILTERS,
+    PATHNET_PRED,
+)
 from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_graphs
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper

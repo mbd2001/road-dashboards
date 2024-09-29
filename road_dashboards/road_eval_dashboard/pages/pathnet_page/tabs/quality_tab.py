@@ -1,12 +1,24 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, callback, dcc, html, no_update, MATCH
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 
-from road_dashboards.road_eval_dashboard.components.components_ids import PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION, \
-    PATH_NET_QUALITY_TP, PATH_NET_QUALITY_TN, PATH_NET_QUALITY_FP, PATH_NET_QUALITY_FN, MD_FILTERS, NETS, PATHNET_PRED
+from road_dashboards.road_eval_dashboard.components.components_ids import (
+    MD_FILTERS,
+    NETS,
+    PATH_NET_QUALITY_FN,
+    PATH_NET_QUALITY_FP,
+    PATH_NET_QUALITY_TN,
+    PATH_NET_QUALITY_TP,
+    PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION,
+    PATHNET_PRED,
+)
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_dashboards.road_eval_dashboard.components.queries_manager import generate_path_net_dp_quality_query, \
-    run_query_with_nets_names_processing, distances, generate_path_net_dp_quality_true_rejection_query
+from road_dashboards.road_eval_dashboard.components.queries_manager import (
+    distances,
+    generate_path_net_dp_quality_query,
+    generate_path_net_dp_quality_true_rejection_query,
+    run_query_with_nets_names_processing,
+)
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
 

@@ -79,12 +79,15 @@ class Nets:
             "bin_population",
             "smooth_index",
         ] + [f'"dist_{sec}"' for sec in distances]
-        bounadaries_columns = (["clip_name", "grabIndex", "net_id", "role"] +
-                               [f'"dist_{side}_{sec / 2}"' for sec in range(1, 11) for side in ["left", "right"]])
+        bounadaries_columns = ["clip_name", "grabIndex", "net_id", "role"] + [
+            f'"dist_{side}_{sec / 2}"' for sec in range(1, 11) for side in ["left", "right"]
+        ]
         self.pathnet_pred_tables = Table(pathnet_pred_tables, pathnet_columns, "")
         self.pathnet_boundaries_tables = Table(pathent_boundaries_tables, bounadaries_columns, "")
         self.pathnet_gt_tables = Table(pathnet_gt_tables, pathnet_columns, "")
-        self.pathnet_host_boundaries = self.pathnet_boundaries_tables.__dict__ if self.pathnet_boundaries_tables else None
+        self.pathnet_host_boundaries = (
+            self.pathnet_boundaries_tables.__dict__ if self.pathnet_boundaries_tables else None
+        )
         self.pred_tables = self.pred_tables.__dict__ if self.pred_tables else None
         self.gt_tables = self.gt_tables.__dict__ if self.gt_tables else None
         self.pathnet_pred_tables = self.pathnet_pred_tables.__dict__ if self.pathnet_pred_tables else None

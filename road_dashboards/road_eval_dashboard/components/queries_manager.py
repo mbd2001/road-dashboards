@@ -656,7 +656,7 @@ def generate_path_net_query(
     extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
-    base_dist_column_name="dist"
+    base_dist_column_name="dist",
 ):
     operator = "<"
     query = get_dist_query(
@@ -672,6 +672,7 @@ def generate_path_net_query(
     )
     return query
 
+
 def generate_path_net_boundary_query(
     data_tables,
     meta_data,
@@ -680,7 +681,7 @@ def generate_path_net_boundary_query(
     extra_columns=[],
     role="",
     extra_filters="",
-    base_dist_column_name="dist"
+    base_dist_column_name="dist",
 ):
     operator = "<"
     query = get_boundary_dist_query(
@@ -695,6 +696,7 @@ def generate_path_net_boundary_query(
         base_extra_filters=extra_filters,
     )
     return query
+
 
 def generate_path_net_dp_quality_query(
     data_tables,
@@ -981,7 +983,6 @@ def get_dist_query(
     )
 
 
-
 def get_boundary_dist_query(
     base_dist_column_name,
     data_tables,
@@ -1029,6 +1030,7 @@ def get_boundary_dist_query(
         role=role,
         extra_columns=extra_columns,
     )
+
 
 def get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator):
     count_metrics = {}

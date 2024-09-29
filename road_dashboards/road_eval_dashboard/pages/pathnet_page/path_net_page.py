@@ -4,9 +4,9 @@ from road_dashboards.road_eval_dashboard.components import base_dataset_statisti
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.road_eval_dashboard.components.page_properties import PageProperties
 from road_dashboards.road_eval_dashboard.components.pathnet_filters.layout import layout as pathnet_filters_card
+from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.boundaries_tab import boundaries_layout
 from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.positional_tab import pos_layout
 from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.quality_tab import quality_layout
-from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.boundaries_tab import boundaries_layout
 from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.roles_tab import role_layout
 
 ACC_TAB_NAME = "pathnet-accuracy"
@@ -21,7 +21,7 @@ TABS_LAYOUTS = {
     ACC_TAB_NAME: pos_layout,
     ROLE_TAB_NAME: role_layout,
     QUALITY_TAB_NAME: quality_layout,
-    BOUNDARIES_TAB_NAME: boundaries_layout
+    BOUNDARIES_TAB_NAME: boundaries_layout,
 }
 
 layout = html.Div(
@@ -39,7 +39,7 @@ layout = html.Div(
                         dcc.Tab(label="pathnet-metrics-positional", value=ACC_TAB_NAME),
                         dcc.Tab(label="pathnet-metrics-roles", value=ROLE_TAB_NAME),
                         dcc.Tab(label="DPs Quality", value=QUALITY_TAB_NAME),
-                        dcc.Tab(label="Boundaries metrics", value=BOUNDARIES_TAB_NAME)
+                        dcc.Tab(label="Boundaries metrics", value=BOUNDARIES_TAB_NAME),
                     ],
                 ),
             ]
@@ -49,9 +49,6 @@ layout = html.Div(
 )
 
 
-
 @callback(Output("pathnet-metrics-content", "children"), Input("pathnet-metrics-graphs", "value"))
 def render_content(tab):
     return TABS_LAYOUTS[tab]
-
-

@@ -3,26 +3,53 @@ import dash_daq as daq
 import numpy as np
 import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
+from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MISS_FALSE_FILTERS
-from road_dashboards.road_eval_dashboard.components.components_ids import PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, \
-    PATH_NET_ACC_HOST, MD_FILTERS, PATHNET_FILTERS, NETS, PATHNET_INCLUDE_MATCHED_HOST, PATHNET_GT, \
-    PATH_NET_ACC_ALL_PRED, PATHNET_PRED, PATH_NET_MONOTONE_ACC_HOST, PATH_NET_MONOTONE_ACC_NEXT, PATH_NET_ACC_NEXT, \
-    PATHNET_INCLUDE_MATCHED_NON_HOST, PATH_NET_FALSES_NEXT, PATH_NET_MISSES_HOST, PATH_NET_MISSES_NEXT, \
-    PATH_NET_ALL_TPR, PATH_NET_HOST_TPR, PATH_NET_ALL_CONF_MATS, PATH_NET_HOST_CONF_MAT, PATH_NET_BIASES_HOST, \
-    PATH_NET_BIASES_NEXT, PATH_NET_VIEW_RANGES_HOST, PATH_NET_VIEW_RANGES_NEXT
+from road_dashboards.road_eval_dashboard.components.components_ids import (
+    MD_FILTERS,
+    NETS,
+    PATH_NET_ACC_ALL_PRED,
+    PATH_NET_ACC_HOST,
+    PATH_NET_ACC_NEXT,
+    PATH_NET_ALL_CONF_MATS,
+    PATH_NET_ALL_TPR,
+    PATH_NET_BIASES_HOST,
+    PATH_NET_BIASES_NEXT,
+    PATH_NET_FALSES_NEXT,
+    PATH_NET_HOST_CONF_MAT,
+    PATH_NET_HOST_TPR,
+    PATH_NET_MISSES_HOST,
+    PATH_NET_MISSES_NEXT,
+    PATH_NET_MONOTONE_ACC_HOST,
+    PATH_NET_MONOTONE_ACC_NEXT,
+    PATH_NET_VIEW_RANGES_HOST,
+    PATH_NET_VIEW_RANGES_NEXT,
+    PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
+    PATHNET_FILTERS,
+    PATHNET_GT,
+    PATHNET_INCLUDE_MATCHED_HOST,
+    PATHNET_INCLUDE_MATCHED_NON_HOST,
+    PATHNET_PRED,
+)
 from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.layout import \
-    layout as events_extractor_card
-from road_dashboards.road_eval_dashboard.components.queries_manager import distances, generate_path_net_query, \
-    run_query_with_nets_names_processing, generate_pathnet_cumulative_query, PATHNET_ACC_THRESHOLDS, \
-    generate_path_net_miss_false_query, generate_count_query
+from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.layout import (
+    layout as events_extractor_card,
+)
+from road_dashboards.road_eval_dashboard.components.queries_manager import (
+    PATHNET_ACC_THRESHOLDS,
+    distances,
+    generate_count_query,
+    generate_path_net_miss_false_query,
+    generate_path_net_query,
+    generate_pathnet_cumulative_query,
+    run_query_with_nets_names_processing,
+)
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.roles_tab import get_miss_false_layout
-from road_database_toolkit.athena.athena_utils import query_athena
 
 
 def get_cumulative_acc_layout():
@@ -161,9 +188,7 @@ pos_layout = html.Div(
 )
 
 
-
-@callback(Output(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
-          Input("acc-threshold-slider", "value"))
+@callback(Output(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"), Input("acc-threshold-slider", "value"))
 def compute_dynamic_distances_dict(slider_values):
     coeff = np.polyfit([1.3, 3], slider_values, deg=1)
     threshold_polynomial = np.poly1d(coeff)
@@ -527,5 +552,3 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
         max_val=10,
         bins_factor=0.1,
     )
-
-

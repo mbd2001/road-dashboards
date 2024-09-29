@@ -1,6 +1,7 @@
 from dash import dcc, html
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
+    BOUNDARY_DROP_DOWN,
     EFFECTIVE_SAMPLES_PER_BATCH,
     GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,
@@ -17,7 +18,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_REF_CHOSEN_NET,
     PATHNET_EXPLORER_DATA,
     PATHNET_FILTERS,
-    SCENE_SIGNALS_LIST, BOUNDARY_DROP_DOWN,
+    SCENE_SIGNALS_LIST,
 )
 
 
