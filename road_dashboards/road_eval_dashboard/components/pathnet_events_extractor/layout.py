@@ -1,16 +1,26 @@
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 from dash import dash_table, dcc, html
 
 import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
+    PATHNET_EVENTS_DIST_DROPDOWN_DIV,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
+    PATHNET_EVENTS_REF_DIV,
+    PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN,
+    PATHNET_EVENTS_REF_NET_ID_DROPDOWN,
+    PATHNET_EVENTS_REF_THRESHOLD,
     PATHNET_EVENTS_ROLE_DROPDOWN,
+    PATHNET_EVENTS_ROLE_DROPDOWN_DIV,
     PATHNET_EVENTS_SUBMIT_BUTTON,
+    PATHNET_EVENTS_THRESHOLD,
+    PATHNET_EVENTS_THRESHOLDS_DIV,
+    PATHNET_EVENTS_UNIQUE_SWITCH,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
 )
@@ -48,8 +58,44 @@ def create_net_options_dropdown_row():
             dbc.Col(
                 loading_wrapper(dcc.Dropdown(id=PATHNET_EVENTS_DP_SOURCE_DROPDOWN, placeholder="Select DP-Source"))
             ),
+            dbc.Col(
+                daq.BooleanSwitch(
+                    id=PATHNET_EVENTS_UNIQUE_SWITCH,
+                    on=False,
+                    label="Unique events - Compare 2 nets / dp-sources",
+                    labelPosition="left",
+                    style={"margin-left": "0px", "display": "inline-block"},
+                ),
+                width=2,
+                style={"text-align": "left"},
+            ),
         ],
         style={"margin-bottom": "10px"},
+    )
+
+
+def create_ref_net_options_dropdown_row():
+    return html.Div(
+        id=PATHNET_EVENTS_REF_DIV,
+        children=[
+            dbc.Row(
+                [
+                    dbc.Col(
+                        loading_wrapper(
+                            dcc.Dropdown(id=PATHNET_EVENTS_REF_NET_ID_DROPDOWN, placeholder="Select ref Net-ID")
+                        )
+                    ),
+                    dbc.Col(
+                        loading_wrapper(
+                            dcc.Dropdown(id=PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN, placeholder="Select ref DP-Source")
+                        )
+                    ),
+                    dbc.Col(width=2),
+                ],
+                style={"margin-bottom": "10px"},
+            )
+        ],
+        hidden=True,
     )
 
 
@@ -64,21 +110,62 @@ def create_filtering_dropdowns_row():
                 ),
             ),
             dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_ROLE_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["host", "non-host"]),
-                    placeholder="Select Role",
+                html.Div(
+                    id=PATHNET_EVENTS_ROLE_DROPDOWN_DIV,
+                    children=[
+                        dcc.Dropdown(
+                            id=PATHNET_EVENTS_ROLE_DROPDOWN,
+                            options=create_dropdown_options_list(labels=["host", "non-host"]),
+                            placeholder="Select Role",
+                        )
+                    ],
+                    hidden=True,
                 )
             ),
             dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_DIST_DROPDOWN,
-                    options=create_dropdown_options_list(labels=distances),
-                    placeholder="Select Dist (sec)",
-                ),
+                html.Div(
+                    id=PATHNET_EVENTS_DIST_DROPDOWN_DIV,
+                    children=[
+                        dcc.Dropdown(
+                            id=PATHNET_EVENTS_DIST_DROPDOWN,
+                            options=create_dropdown_options_list(labels=distances),
+                            placeholder="Select Dist (sec)",
+                        )
+                    ],
+                    hidden=True,
+                )
             ),
         ],
         style={"margin-bottom": "10px"},
+    )
+
+
+def create_unique_thresholds_row():
+    return html.Div(
+        id=PATHNET_EVENTS_THRESHOLDS_DIV,
+        children=dbc.Row(
+            [
+                dbc.Col(
+                    dcc.Input(
+                        id=PATHNET_EVENTS_THRESHOLD,
+                        placeholder="Specify acc-threshold in meters (optional)",
+                        type="number",
+                        style={"width": "inherit", "height": "100%", "appearance": "textfield"},
+                    ),
+                ),
+                dbc.Col(
+                    dcc.Input(
+                        id=PATHNET_EVENTS_REF_THRESHOLD,
+                        placeholder="Specify ref acc-threshold in meters (optional)",
+                        type="number",
+                        style={"width": "inherit", "height": "100%", "appearance": "textfield"},
+                    )
+                ),
+                dbc.Col(style={"width": "inherit", "height": "100%"}),
+            ],
+            style={"margin-bottom": "10px"},
+        ),
+        hidden=True,
     )
 
 
@@ -108,9 +195,13 @@ def create_events_extractor_layout():
 
     net_options_dropdowns_row = create_net_options_dropdown_row()
 
+    ref_net_options_dropdowns_row = create_ref_net_options_dropdown_row()
+
     filtering_dropdowns_row = create_filtering_dropdowns_row()
 
     submit_events_filtering_row = create_submit_events_filtering_row()
+
+    unique_thresholds_row = create_unique_thresholds_row()
 
     log_msg_div = loading_wrapper(html.Div(id=PATHNET_EXTRACT_EVENTS_LOG_MESSAGE))
 
@@ -120,7 +211,9 @@ def create_events_extractor_layout():
         [
             header_row,
             net_options_dropdowns_row,
+            ref_net_options_dropdowns_row,
             filtering_dropdowns_row,
+            unique_thresholds_row,
             submit_events_filtering_row,
             log_msg_div,
             events_datatable_div,
