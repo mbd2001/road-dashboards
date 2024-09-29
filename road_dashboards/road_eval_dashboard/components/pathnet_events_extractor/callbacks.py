@@ -1,12 +1,12 @@
 import copy
 import json
 import traceback
-import pandas as pd
 
+import pandas as pd
 from botocore.exceptions import ClientError
+from cloud_storage_utils.file_abstraction import open_file
 from dash import Input, Output, State, callback, no_update
 from road_database_toolkit.cloud_file_system.file_operations import path_join, write_json
-from cloud_storage_utils.file_abstraction import open_file
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
@@ -543,12 +543,12 @@ def dump_events_to_jump(n_clicks, data_table, explorer_data):
 
 
 def generate_jump_file(df, out_jump_file_path, more_fields, max_lines=300, clipname_to_itrk_location_fn=lambda x: x):
-    clip_field, gi_field = 'clip_name', 'grabindex'
-    jump_fields = [gi_field] + list(set(more_fields) - set([clip_field, gi_field])) #ordered
+    clip_field, gi_field = "clip_name", "grabindex"
+    jump_fields = [gi_field] + list(set(more_fields) - set([clip_field, gi_field]))  # ordered
     all_clips = []
     with open_file(out_jump_file_path, "w") as f:
         for row in df.head(max_lines).itertuples():
-            clipname = getattr(row,clip_field)
+            clipname = getattr(row, clip_field)
             if clipname is None:
                 continue
             all_clips.append(clipname)
