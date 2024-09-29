@@ -1,9 +1,12 @@
 import copy
 import json
+import traceback
+import pandas as pd
 
 from botocore.exceptions import ClientError
 from dash import Input, Output, State, callback, no_update
 from road_database_toolkit.cloud_file_system.file_operations import path_join, write_json
+from cloud_storage_utils.file_abstraction import open_file
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
@@ -517,9 +520,6 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
     prevent_initial_call=True,
 )
 def dump_events_to_jump(n_clicks, data_table, explorer_data):
-    import traceback
-
-    import pandas as pd
 
     if not all([n_clicks, data_table, explorer_data]):
         return no_update
@@ -543,46 +543,19 @@ def dump_events_to_jump(n_clicks, data_table, explorer_data):
 
 
 def generate_jump_file(df, out_jump_file_path, more_fields, max_lines=300, clipname_to_itrk_location_fn=lambda x: x):
-    import numpy as np
-    from cloud_storage_utils.file_abstraction import open_file
-
-    def _is_float(val):
-        return (
-            (getattr(val, "dtype", "int") != np.int64)
-            and (getattr(val, "dtype", "int") != np.int32)
-            and (
-                (getattr(val, "dtype", "int") == np.float32)
-                or (getattr(val, "dtype", "int") == np.float64)
-                or (type(val) == float)
-            )
-        )
-
-    if "clip_name" in df:
-        _get_clipname = lambda row: getattr(row, "clip_name")
-    else:
-        assert "no clipname field in df"
-
-    if "grabindex" in df:
-        gi_field = "grabindex"
-    elif "gi" in df:
-        gi_field = "gi"
-    else:
-        assert "no grabIndex field in df"
-
-    jump_fields = list(set([gi_field] + more_fields))
+    clip_field, gi_field = 'clip_name', 'grabindex'
+    jump_fields = [gi_field] + list(set(more_fields) - set([clip_field, gi_field])) #ordered
     all_clips = []
     with open_file(out_jump_file_path, "w") as f:
         for row in df.head(max_lines).itertuples():
-            clipname = _get_clipname(row)
+            clipname = getattr(row,clip_field)
             if clipname is None:
                 continue
             all_clips.append(clipname)
             line = "{}".format(clipname_to_itrk_location_fn(clipname))
             for field in jump_fields:
                 val = getattr(row, field)
-                if type(val) == np.ndarray:
-                    val = val.squeeze()
-                if _is_float(val):
+                if type(val) == float:
                     val = "{:.2f}".format(val)
                 line += f" {val}"
             f.write(line + "\n")
