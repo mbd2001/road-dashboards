@@ -9,6 +9,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DIST_DROPDOWN_DIV,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_EVENTS_ORDER_BY,
+    PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
@@ -147,11 +148,17 @@ def create_filtering_dropdowns_row():
                 )
             ),
             dbc.Col(
-                dcc.Dropdown(
-                    id=PATHNET_EVENTS_EVENTS_ORDER_BY,
-                    options=create_dropdown_options_list(labels=["ASC", "DESC"]),
-                    placeholder="Select Order By",
-                ),
+                html.Div(
+                    id=PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
+                    children=[
+                        dcc.Dropdown(
+                            id=PATHNET_EVENTS_EVENTS_ORDER_BY,
+                            options=create_dropdown_options_list(labels=["ASC", "DESC"]),
+                            placeholder="Select Order By",
+                        )
+                    ],
+                    hidden=True,
+                )
             ),
         ],
         style={"margin-bottom": "10px"},

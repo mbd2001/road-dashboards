@@ -773,7 +773,6 @@ def generate_extract_acc_events_query(
         extra_filters=acc_cmd,
     )
     final_columns = bookmarks_columns + acc_columns
-    # results_order = "ASC" if operator == ">" else "DESC"
     order_cmd = f"ORDER BY {dist_column} {order_by}"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd

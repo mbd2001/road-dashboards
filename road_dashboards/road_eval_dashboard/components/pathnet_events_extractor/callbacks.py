@@ -20,6 +20,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DIST_DROPDOWN_DIV,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_EVENTS_ORDER_BY,
+    PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
     PATHNET_EVENTS_EXTRACTOR_DICT,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
@@ -296,7 +297,6 @@ def get_events_df(
     events_extractor_dict,
     meta_data_cols,
     meta_data_filters,
-    order_by,
 ):
     if "frame_has_labels_mf" in meta_data_cols:
         meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
@@ -311,7 +311,7 @@ def get_events_df(
         role,
         dist,
         events_extractor_dict["threshold"],
-        order_by,
+        events_extractor_dict["order_by"],
     )
 
     if events_extractor_dict["is_unique_on"]:
@@ -324,7 +324,7 @@ def get_events_df(
             role,
             dist,
             events_extractor_dict["ref_threshold"],
-            order_by,
+            events_extractor_dict["order_by"],
         )
         df = subtract_events(df, df_ref, metric)
     df = df.drop_duplicates(subset=final_columns)
@@ -351,6 +351,17 @@ def show_events_role_dropdown(metric):
     prevent_initial_call=True,
 )
 def show_events_dist_dropdown(metric):
+    if metric == "inaccurate":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_EVENTS_ORDER_BY_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_events_order_by_dropdown(metric):
     if metric == "inaccurate":
         return False
     return True
@@ -387,6 +398,7 @@ def show_unique_choices(is_unique_on, metric):
     State(PATHNET_EVENTS_THRESHOLD, "value"),
     State(PATHNET_EVENTS_REF_THRESHOLD, "value"),
     State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
@@ -404,6 +416,7 @@ def update_extractor_dict(
     specified_thresh,
     ref_specified_thresh,
     thresh_dict,
+    order_by,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -431,6 +444,8 @@ def update_extractor_dict(
         else:
             events_extractor_dict["ref_threshold"] = events_extractor_dict["threshold"] - REF_THRESH_DEFAULT_DIFF
 
+    events_extractor_dict["order_by"] = order_by if order_by is not None else "DESC"
+
     return events_extractor_dict
 
 
@@ -445,7 +460,6 @@ def update_extractor_dict(
     State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
     State(MD_FILTERS, "data"),
     State(MD_COLUMNS_TO_TYPE, "data"),
-    State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
     prevent_initial_call=True,
 )
 def build_events_df(
@@ -454,7 +468,6 @@ def build_events_df(
     dp_sources,
     meta_data_filters,
     meta_data_cols,
-    order_by,
 ):
     if not n_clicks:
         return no_update, no_update, no_update, no_update, create_alert_message("", color="warning")
@@ -463,7 +476,7 @@ def build_events_df(
     if not input_valid:
         return no_update, no_update, no_update, no_update, create_alert_message(input_error_message, color="warning")
 
-    df = get_events_df(events_extractor_dict, meta_data_cols, meta_data_filters, order_by)
+    df = get_events_df(events_extractor_dict, meta_data_cols, meta_data_filters)
     df_sane, sanity_error_message = check_events_df_sanity(events_df=df)
     if not df_sane:
         return no_update, no_update, no_update, no_update, create_alert_message(sanity_error_message, color="warning")
