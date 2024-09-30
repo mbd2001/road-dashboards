@@ -118,6 +118,20 @@ DIST_METRIC = """
     AS "score_{ind}"
     """
 
+BOUNDARY_DIST_METRIC = """
+    CAST(
+        (
+            COUNT(CASE WHEN "{left_dist_column_name}_{dist}" IS NOT NULL AND "{left_dist_column_name}_{dist}" {thresh_filter} THEN 1 ELSE NULL END) +
+            COUNT(CASE WHEN "{right_dist_column_name}_{dist}" IS NOT NULL AND "{right_dist_column_name}_{dist}" {thresh_filter} THEN 1 ELSE NULL END)
+        ) AS DOUBLE
+    ) /
+    (
+        COUNT(CASE WHEN "{left_dist_column_name}_{dist}" IS NOT NULL THEN 1 ELSE NULL END) +
+        COUNT(CASE WHEN "{right_dist_column_name}_{dist}" IS NOT NULL THEN 1 ELSE NULL END)
+    )
+    AS "score_{ind}"
+    """
+
 DP_QUALITY_METRIC = """
     CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {dist_thresh_filter} AND "{base_dp_quality_col_name}_{dist}" IS NOT NULL AND "{base_dp_quality_col_name}_{dist}" {quality_thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) /
     COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) THEN 1 ELSE NULL END)
@@ -642,10 +656,11 @@ def generate_path_net_query(
     extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
+    base_dist_column_name="dist",
 ):
     operator = "<"
     query = get_dist_query(
-        "dist",
+        base_dist_column_name,
         data_tables,
         distances_dict,
         meta_data,
@@ -654,6 +669,42 @@ def generate_path_net_query(
         role,
         extra_columns=extra_columns,
         base_extra_filters=extra_filters,
+    )
+    return query
+
+
+def generate_path_net_double_boundaries_query(
+    data_tables,
+    meta_data,
+    distances_dict,
+    meta_data_filters,
+    extra_columns=[],
+    role="",
+    extra_filters="",
+    base_dist_column_name="dist",
+):
+    operator = "<"
+    metrics = ", ".join(
+        BOUNDARY_DIST_METRIC.format(
+            thresh_filter=f"{operator} {thresh}",
+            dist=sec,
+            extra_filters=extra_filters.format(dist=sec),
+            left_dist_column_name=f"{base_dist_column_name}_left",
+            right_dist_column_name=f"{base_dist_column_name}_right",
+            ind=sec,
+        )
+        for sec, thresh in distances_dict.items()
+    )
+
+    query = get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics,
+        count_metrics=None,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        role=role,
+        extra_columns=extra_columns,
     )
     return query
 

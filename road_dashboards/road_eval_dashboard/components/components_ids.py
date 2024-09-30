@@ -1,7 +1,7 @@
 # tables names
 PATHNET_GT = "pathnet_gt_tables"
 PATHNET_PRED = "pathnet_pred_tables"
-
+PATHNET_BOUNDARIES = "pathnet_boundaries_tables"
 
 # stores
 NETS = "nets"
@@ -133,6 +133,8 @@ PATH_NET_QUALITY_FN = "path_net_quality_fn"
 PATH_NET_QUALITY_FP = "path_net_quality_fp"
 PATH_NET_QUALITY_TN = "path_net_quality_tn"
 PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION = "path_net_quality_unmathced_correct_rejection"
+PATHNET_BOUNDARY_ACC = "pathnet_boundary_acc"
+BOUNDARY_DROP_DOWN = "boundary-dropdown"
 
 
 PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"
@@ -172,6 +174,7 @@ PATHNET_EXTRACT_EVENTS_LOG_MESSAGE = "pathnet_extract_events_log_message"
 PATHNET_EXPORT_TO_BOOKMARK_BUTTON = "pathnet_export_to_bookmark_button"
 PATHNET_EXPORT_TO_JUMP_BUTTON = "pathnet_export_to_jump_button"
 PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD = "pathnet_dynamic_distance_to_threshold"
+PATHNET_DYNAMIC_THRESHOLD_BOUNDARIES = "pathnet_dynamic_threshold_boundaries"
 PATHNET_EVENTS_UNIQUE_SWITCH = "pathnet_events_unique_switch"
 PATHNET_EVENTS_REF_DIV = "pathnet_events_ref_div"
 PATHNET_EVENTS_REF_NET_ID_DROPDOWN = "pathnet_events_ref_net_id_dropdown"

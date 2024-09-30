@@ -1,6 +1,7 @@
 from dash import dcc, html
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
+    BOUNDARY_DROP_DOWN,
     EFFECTIVE_SAMPLES_PER_BATCH,
     GRAPH_TO_COPY,
     MD_COLUMNS_OPTION,
@@ -10,6 +11,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
+    PATHNET_DYNAMIC_THRESHOLD_BOUNDARIES,
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
     PATHNET_EVENTS_EXTRACTOR_DICT,
@@ -56,6 +58,7 @@ def init_dcc_stores():
             dcc.Store(id=PATHNET_EVENTS_BOOKMARKS_JSON, storage_type="session"),
             dcc.Store(id=PATHNET_EXPLORER_DATA, storage_type="session"),
             dcc.Store(id=PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, storage_type="session"),
+            dcc.Store(id=PATHNET_DYNAMIC_THRESHOLD_BOUNDARIES, storage_type="session"),
             dcc.Store(id=PATHNET_EVENTS_EXTRACTOR_DICT, data=init_events_extractor_dict(), storage_type="session"),
         ]
     )
