@@ -684,16 +684,27 @@ def generate_path_net_boundary_query(
     base_dist_column_name="dist",
 ):
     operator = "<"
-    query = get_boundary_dist_query(
-        base_dist_column_name,
+    metrics = ", ".join(
+        BOUNDARY_DIST_METRIC.format(
+            thresh_filter=f"{operator} {thresh}",
+            dist=sec,
+            extra_filters=extra_filters.format(dist=sec),
+            left_dist_column_name=f"{base_dist_column_name}_left",
+            right_dist_column_name=f"{base_dist_column_name}_right",
+            ind=sec,
+        )
+        for sec, thresh in distances_dict.items()
+    )
+
+    query = get_query_by_metrics(
         data_tables,
-        distances_dict,
         meta_data,
-        meta_data_filters,
-        operator,
-        role,
+        metrics,
+        count_metrics=None,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        role=role,
         extra_columns=extra_columns,
-        base_extra_filters=extra_filters,
     )
     return query
 
@@ -961,55 +972,6 @@ def get_dist_query(
                 else extra_filters.format(dist=sec)
             ),
             base_dist_column_name=base_dist_column_name,
-            ind=intresting_filter_name if intresting_filter_name else sec,
-        )
-        for sec, thresh in distances_dict.items()
-        for intresting_filter_name, intresting_filter in intresting_filters.items()
-    )
-    count_metrics = (
-        get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_filters, operator)
-        if is_add_filters_count
-        else None
-    )
-    return get_query_by_metrics(
-        data_tables,
-        meta_data,
-        metrics,
-        count_metrics=count_metrics,
-        meta_data_filters=meta_data_filters,
-        extra_filters=base_extra_filters,
-        role=role,
-        extra_columns=extra_columns,
-    )
-
-
-def get_boundary_dist_query(
-    base_dist_column_name,
-    data_tables,
-    distances_dict,
-    meta_data,
-    meta_data_filters,
-    operator,
-    role,
-    base_extra_filters="",
-    is_add_filters_count=False,
-    intresting_filters=None,
-    extra_columns=None,
-    extra_filters="",
-):
-    if intresting_filters is None:
-        intresting_filters = {"": ""}
-    metrics = ", ".join(
-        BOUNDARY_DIST_METRIC.format(
-            thresh_filter=f"{operator} {thresh}",
-            dist=sec,
-            extra_filters=(
-                f"{extra_filters.format(dist=sec)} AND {intresting_filter}"
-                if intresting_filter_name
-                else extra_filters.format(dist=sec)
-            ),
-            left_dist_column_name=f"{base_dist_column_name}_left",
-            right_dist_column_name=f"{base_dist_column_name}_right",
             ind=intresting_filter_name if intresting_filter_name else sec,
         )
         for sec, thresh in distances_dict.items()

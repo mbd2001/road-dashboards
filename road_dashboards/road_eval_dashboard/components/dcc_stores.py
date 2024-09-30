@@ -58,7 +58,6 @@ def init_dcc_stores():
             dcc.Store(id=PATHNET_EXPLORER_DATA, storage_type="session"),
             dcc.Store(id=PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, storage_type="session"),
             dcc.Store(id=PATHNET_DYNAMIC_THRESHOLD_BOUNDARIES, storage_type="session"),
-            dcc.Store(id=BOUNDARY_DROP_DOWN, storage_type="session"),
             dcc.Store(id=PATHNET_EVENTS_EXTRACTOR_DICT, data=init_events_extractor_dict(), storage_type="session"),
         ]
     )
