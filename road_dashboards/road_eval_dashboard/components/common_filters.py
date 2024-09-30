@@ -140,10 +140,12 @@ PATHNET_MD_FILTERS = {
     "in_curve": "curve_rad_ahead BETWEEN 0 AND 300",
     "close_curve": "curve_rad_ahead_40_90 BETWEEN 0 AND 250",
     "far_curve": "curve_rad_ahead_150 BETWEEN 0 AND 200",
-    "close_merge": "dist_to_merge_rpw BETWEEN 6.5 AND 100",
-    "close_split": "dist_to_split_rpw BETWEEN 6.5 AND 66",
-    "junction": "dist_to_intersection BETWEEN 0 AND 30",
-    "roundabout": "dist_to_roundabout BETWEEN 0 AND 30",
+    "close_merge": "dist_to_merge_rpw BETWEEN 6.5 AND 80",
+    "far_merge": "dist_to_merge_rpw BETWEEN 80 AND 150",
+    "close_split": "dist_to_split_rpw BETWEEN 6.5 AND 80",
+    "far_split": "dist_to_split_rpw BETWEEN 80 AND 150",
+    "junction": "dist_to_intersection BETWEEN 0 AND 40",
+    "roundabout": "dist_to_roundabout BETWEEN 0 AND 40",
     "CA": "dist_to_constarea_true < 40",
 }
 
