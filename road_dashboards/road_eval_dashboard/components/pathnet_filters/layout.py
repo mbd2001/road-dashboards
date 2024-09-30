@@ -21,6 +21,9 @@ BASIC_OPERATIONS = create_dropdown_options_list(
 
 
 def get_pathnet_md_filters_rows():
+    pathnet_md_filters_options = create_dropdown_options_list(
+        labels=PATHNET_MD_FILTERS.keys(), values=PATHNET_MD_FILTERS.values(), do_hover=True
+    )
     return [
         dbc.Row(
             dbc.Col(html.H3("Filter by Scene", className="mb-5"), width=5),
@@ -30,7 +33,7 @@ def get_pathnet_md_filters_rows():
             dbc.Col(
                 dcc.Dropdown(
                     id=PATHNET_FILTERS_IN_DROPDOWN,
-                    options=create_dropdown_options_list(labels=PATHNET_MD_FILTERS.keys()),
+                    options=pathnet_md_filters_options,
                     placeholder="Select Filters-in",
                     searchable=True,
                     multi=True,
@@ -42,7 +45,7 @@ def get_pathnet_md_filters_rows():
             dbc.Col(
                 dcc.Dropdown(
                     id=PATHNET_FILTERS_OUT_DROPDOWN,
-                    options=create_dropdown_options_list(labels=PATHNET_MD_FILTERS.keys()),
+                    options=pathnet_md_filters_options,
                     placeholder="Select Filters-out",
                     searchable=True,
                     multi=True,

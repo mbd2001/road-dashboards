@@ -808,6 +808,7 @@ def generate_extract_acc_events_query(
     dist,
     threshold,
     operator,
+    order_by,
 ):
     acc_columns = ["matched_dp_id", "dp_id", "match_score"]
     dist_column = f'"dist_{dist}"'
@@ -823,8 +824,7 @@ def generate_extract_acc_events_query(
         extra_filters=acc_cmd,
     )
     final_columns = bookmarks_columns + acc_columns
-    results_order = "ASC" if operator == ">" else "DESC"
-    order_cmd = f"ORDER BY {dist_column} {results_order}"
+    order_cmd = f"ORDER BY {dist_column} {order_by}"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
     )
@@ -844,7 +844,10 @@ def generate_extract_miss_false_events_query(
         extra_filters=f"bin_population = '{chosen_source}'",
     )
     final_columns = bookmarks_columns + metric_columns
-    query = EXTRACT_EVENT_QUERY.format(final_columns=", ".join(final_columns), base_query=base_query, order_cmd="")
+    order_cmd = f"ORDER BY batch_num, clip_name, grabindex ASC"
+    query = EXTRACT_EVENT_QUERY.format(
+        final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
+    )
     return query, final_columns
 
 
