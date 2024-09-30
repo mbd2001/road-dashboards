@@ -673,7 +673,7 @@ def generate_path_net_query(
     return query
 
 
-def generate_path_net_boundary_query(
+def generate_path_net_double_boundaries_query(
     data_tables,
     meta_data,
     distances_dict,

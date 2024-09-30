@@ -16,7 +16,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     distances,
-    generate_path_net_boundary_query,
+    generate_path_net_double_boundaries_query,
     generate_path_net_query,
     run_query_with_nets_names_processing,
 )
@@ -81,7 +81,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, graph_id, di
         return no_update
     role = graph_id["role"]
     if drop_down_value == "all":
-        query = generate_path_net_boundary_query(
+        query = generate_path_net_double_boundaries_query(
             nets[PATHNET_BOUNDARIES],
             nets["meta_data"],
             distances_dict,
