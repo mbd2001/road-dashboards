@@ -51,6 +51,19 @@ FB_PER_WEATHER_HOST = "fb_per_weather_host"
 FB_TRADEOFF_OVERALL = "fb_tradeoff_overall"
 FB_TRADEOFF_HOST = "fb_tradeoff_host"
 
+# ca_rel page
+CA_REL_OVERALL = "ca_rel_overall"
+CA_REL_HOST = "ca_rel_host"
+CA_REL_OVERALL_DAY = "ca_rel_overall_day"
+CA_REL_OVERALL_NIGHT = "ca_rel_overall_night"
+
+ALL_CA_REL_CONF_MATS = "all_ca_rel_conf_mats"
+
+OVERALL_CA_REL_CONF_MAT = "overall_ca_rel_conf_mat"
+HOST_CA_REL_CONF_MAT = "host_ca_rel_conf_mat"
+
+OVERALL_CA_REL_CONF_DIAGONAL = "overall_ca_rel_conf_diagonal"
+HOST_CA_REL_CONF_DIAGONAL = "host_ca_rel_conf_diagonal"
 
 # color page
 COLOR_OVERALL = "color_overall"
