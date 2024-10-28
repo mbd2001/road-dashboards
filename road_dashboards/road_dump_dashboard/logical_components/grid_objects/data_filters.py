@@ -1,16 +1,19 @@
 from __future__ import annotations
 
+from functools import reduce
 from operator import and_, or_
+from typing import Callable
 
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
-from pypika import Criterion, EmptyCriterion, Field
+from pypika import Criterion, EmptyCriterion
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object
+from road_dashboards.road_dump_dashboard.table_schemes.base import Column
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, load_object
 
 
 class DataFilters(GridObject):
@@ -138,43 +141,43 @@ class DataFilters(GridObject):
             Output({"type": self.operation_id, "index": MATCH}, "value"),
             Input({"type": self.column_id, "index": MATCH}, "value"),
         )
-        def update_operation_dropdown_options(column: Field):
+        def update_operation_dropdown_options(column):
             if not column:
                 return {}, ""
 
             if not callback_context.triggered_id:
                 return no_update, no_update
 
-            # if column.type is str:
-            #     options = {
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #     }
-            # elif column.type is bool:
-            #     options = {
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #     }
-            # else:
-            #     options = {
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #         "": "",
-            #     }
-            # return options, ""
-            return {}, ""
+            column: Column = load_object(column)
+            if column.type is str:
+                options = {
+                    "eq": "Equal",
+                    "ne": "Not Equal",
+                    "isnull": "Is NULL",
+                    "isnotnull": "Is not NULL",
+                    "like": "Like",
+                    "isin": "In",
+                    "notin": "Not In",
+                }
+            elif column.type is bool:
+                options = {
+                    "eq": "Equal",
+                    "ne": "Not Equal",
+                    "isnull": "Is NULL",
+                    "isnotnull": "Is not NULL",
+                }
+            else:
+                options = {
+                    "gt": "Greater",
+                    "gte": "Greater or equal",
+                    "lt": "Less",
+                    "lte": "Less or equal",
+                    "eq": "Equal",
+                    "ne": "Not Equal",
+                    "isnull": "Is NULL",
+                    "isnotnull": "Is not NULL",
+                }
+            return options, ""
 
         @callback(
             Output({"type": self.filter_val_obj_id, "index": MATCH}, "children"),
@@ -182,7 +185,7 @@ class DataFilters(GridObject):
             State({"type": self.operation_id, "index": MATCH}, "id"),
             State({"type": self.column_id, "index": MATCH}, "value"),
         )
-        def update_meta_data_values_options(operation, index, column: Field):
+        def update_meta_data_values_options(operation, index, column):
             curr_index = index["index"]
             if not column or not operation:
                 return dcc.Input(
@@ -196,7 +199,8 @@ class DataFilters(GridObject):
             if not callback_context.triggered_id:
                 return no_update
 
-            if operation in ["IS NULL", "IS NOT NULL"]:
+            column: Column = load_object(column)
+            if operation in ["isnull", "isnotnull"]:
                 return dcc.Input(
                     id={"type": self.filter_val_id, "index": curr_index},
                     style={"minWidth": "100%", "display": "none"},
@@ -204,8 +208,8 @@ class DataFilters(GridObject):
                     value="",
                     type="text",
                 )
-            elif operation in ["=", "<>", "IN", "NOT IN"] and column.type in [str, bool]:
-                multi = operation in ["IN", "NOT IN"]
+            elif operation in ["eq", "ne", "isin", "notin"] and column.type in [str, bool]:
+                multi = operation in ["isin", "notin"]
                 distinguish_values = self.get_column_distinct_values(column)
                 return dcc.Dropdown(
                     id={"type": self.filter_val_id, "index": curr_index},
@@ -239,7 +243,7 @@ class DataFilters(GridObject):
             md_filters = self.recursive_build_meta_data_filters(first_group)
             return dump_object(md_filters)
 
-    def get_group_layout(self, index: int, md_columns_options: dict[Field:str], max_filters_per_group: int):
+    def get_group_layout(self, index: int, md_columns_options: dict[Column:str], max_filters_per_group: int):
         group_layout = dbc.Row(
             id={"type": self.subgroup_id, "index": index},
             children=[
@@ -281,7 +285,7 @@ class DataFilters(GridObject):
         )
         return group_layout
 
-    def get_filter_row_initial_layout(self, index: int, md_columns_options: dict[str, Field]):
+    def get_filter_row_initial_layout(self, index: int, md_columns_options: dict[Column, str]):
         single_filter_initial_layout = dbc.Row(
             id={"type": self.filter_id, "index": index},
             children=[
@@ -336,7 +340,7 @@ class DataFilters(GridObject):
         return None
 
     @staticmethod
-    def get_column_distinct_values(column: Field):
+    def get_column_distinct_values(column: Column):
         if column.type is bool:
             return {True: "True", False: "False"}
         else:
@@ -357,14 +361,19 @@ class DataFilters(GridObject):
         # single filter case
         if filters["props"]["id"]["type"] == self.filter_id:
             row = filters["props"]
-            column: Field = row["children"][0]["props"]["children"]["props"]["value"]
-            operation = row["children"][1]["props"]["children"]["props"]["value"]
-            value = row["children"][2]["props"]["children"]["props"]["value"]
-            single_filter = operation(column, value)
+            column: str = row["children"][0]["props"]["children"]["props"]["value"]
+            operation: str = row["children"][1]["props"]["children"]["props"]["value"]
+            if not column or not operation:
+                return EmptyCriterion()
+
+            column: Column = load_object(column)
+            operation: Callable = getattr(column, operation)
+            value: str = row["children"][2]["props"]["children"]["props"]["value"]
+            single_filter = operation(value) if value != "" else operation()
             return single_filter
 
         # group case
         or_operation = or_ if filters["props"]["children"][0]["props"]["children"][0]["props"]["on"] else and_
         filters = filters["props"]["children"][1]["props"]["children"]
         sub_filters = [self.recursive_build_meta_data_filters(flt) for flt in filters]
-        return or_operation(filters, sub_filters)
+        return reduce(or_operation, sub_filters)
