@@ -29,6 +29,7 @@ from road_dashboards.road_eval_dashboard.utils.url_state_utils import NETS_STATE
 debug = False if os.environ.get("DEBUG") == "false" else True
 if not debug:
     sys.stdout = open(os.devnull, "w")
+    sys.stderr = open(os.devnull, "w")
 
 
 app = Dash(
@@ -134,4 +135,4 @@ def compare_existing_nets_to_hashed_nets(nets: dict, run_ids: list):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6007", debug=debug)
+    app.run_server(host="0.0.0.0", port="6007", debug=debug, use_reloader=debug)
