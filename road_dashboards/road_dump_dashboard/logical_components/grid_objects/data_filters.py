@@ -1,15 +1,14 @@
 from __future__ import annotations
 
-from functools import reduce
-from operator import and_, or_
 from typing import Callable
 
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion
+from road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
 
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Column
@@ -49,31 +48,35 @@ class DataFilters(GridObject):
         self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
 
     def layout(self):
-        empty_layout = [
-            dcc.Store(self.final_filter_id, data=dump_object(EmptyCriterion())),
-            html.H3("Filters"),
-            html.Div(
-                id=self.component_id,
-                children=[
-                    self.get_group_layout(
-                        1, self.get_united_columns_dict(self.main_table, META_DATA), self.MAX_FILTERS_PER_GROUP
-                    )
-                ],
-            ),
-            dbc.Stack(
-                [
-                    dbc.Button(
-                        "Update Filters", id=self.update_filters_btn_id, color="success", style={"margin": "10px"}
-                    ),
-                    dbc.Button("Draw Frames", id=self.show_n_frames_btn_id, color="primary", style={"margin": "10px"}),
-                    dbc.Button(
-                        "Save Jump File", id=self.generate_jump_btn_id, color="primary", style={"margin": "10px"}
-                    ),
-                ],
-                direction="horizontal",
-                gap=1,
-            ),
-        ]
+        empty_layout = card_wrapper(
+            [
+                dcc.Store(self.final_filter_id, data=dump_object(EmptyCriterion())),
+                html.H3("Filters"),
+                html.Div(
+                    id=self.component_id,
+                    children=[
+                        self.get_group_layout(
+                            1, self.get_united_columns_dict(self.main_table, META_DATA), self.MAX_FILTERS_PER_GROUP
+                        )
+                    ],
+                ),
+                dbc.Stack(
+                    [
+                        dbc.Button(
+                            "Update Filters", id=self.update_filters_btn_id, color="success", style={"margin": "10px"}
+                        ),
+                        dbc.Button(
+                            "Draw Frames", id=self.show_n_frames_btn_id, color="primary", style={"margin": "10px"}
+                        ),
+                        dbc.Button(
+                            "Save Jump File", id=self.generate_jump_btn_id, color="primary", style={"margin": "10px"}
+                        ),
+                    ],
+                    direction="horizontal",
+                    gap=1,
+                ),
+            ]
+        )
         return empty_layout
 
     def _callbacks(self):
@@ -373,7 +376,9 @@ class DataFilters(GridObject):
             return single_filter
 
         # group case
-        or_operation = or_ if filters["props"]["children"][0]["props"]["children"][0]["props"]["on"] else and_
+        or_and = (
+            Criterion.any if filters["props"]["children"][0]["props"]["children"][0]["props"]["on"] else Criterion.all
+        )
         filters = filters["props"]["children"][1]["props"]["children"]
         sub_filters = [self.recursive_build_meta_data_filters(flt) for flt in filters]
-        return reduce(or_operation, sub_filters)
+        return or_and(sub_filters)

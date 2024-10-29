@@ -42,7 +42,6 @@ requirements:
     - jira
     - python-kaleido
     - scipy
-    - pypika
 
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road-dashboards

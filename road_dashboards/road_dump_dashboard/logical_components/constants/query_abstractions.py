@@ -4,9 +4,8 @@ from operator import mul
 from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
 from pypika.queries import QueryBuilder
 from pypika.terms import Term
-
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
-from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
+from road_dump_dashboard.table_schemes.base import Base, Column
+from road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 def base_data_subquery(
@@ -18,11 +17,12 @@ def base_data_subquery(
     intersection_on: bool = False,
 ) -> QueryBuilder:
     intersection_filter = get_intersection_filter(meta_data_tables, intersection_on)
-    filters = data_filter & page_filters & intersection_filter
+    filters = Criterion.all([data_filter, page_filters, intersection_filter])
     joint_tables = [
-        join_main_and_md(main_table, md_table).select(*resolve_unambiguous(md_table, terms))
-        # .where(*resolve_unambiguous(md_table, [filters]))
-        .where(*resolve_unambiguous(md_table, [EmptyCriterion()]))
+        join_main_and_md(main_table, md_table)
+        .select(*resolve_unambiguous(md_table, terms))
+        .where(*resolve_unambiguous(md_table, [filters]))
+        # .where(*resolve_unambiguous(md_table, [EmptyCriterion()]))
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
     union_table = union_all_query_list(joint_tables)

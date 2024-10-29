@@ -1,11 +1,12 @@
 import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, html, no_update
 from pypika import Criterion, Query, functions
+from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import FormatNumber, execute, load_object
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
@@ -31,7 +32,7 @@ class ObjCountCard(GridObject):
         self.obj_count_id = self._generate_id("obj_count")
 
     def layout(self):
-        return loading_wrapper(dbc.Accordion(id=self.obj_count_id, always_open=True))
+        return card_wrapper(loading_wrapper(dbc.Accordion(id=self.obj_count_id, always_open=True)))
 
     def _callbacks(self):
         @callback(

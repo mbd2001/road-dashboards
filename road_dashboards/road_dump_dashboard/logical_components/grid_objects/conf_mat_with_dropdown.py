@@ -1,15 +1,14 @@
 import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, dcc, html, no_update
 from pypika import Criterion
-
-from road_dashboards.road_dump_dashboard.graphical_components.confusion_matrix import get_confusion_matrix
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import conf_mat_subquery
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.layout_wrappers import loading_wrapper
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object
+from road_dump_dashboard.graphical_components.confusion_matrix import get_confusion_matrix
+from road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
+from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper, loading_wrapper
+from road_dump_dashboard.logical_components.constants.query_abstractions import conf_mat_subquery
+from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+from road_dump_dashboard.table_schemes.base import Base, Column
+from road_dump_dashboard.table_schemes.custom_functions import execute, load_object
 
 
 class ConfMatGraphWithDropdown(GridObject):
@@ -53,7 +52,7 @@ class ConfMatGraphWithDropdown(GridObject):
         )
         buttons_row = dbc.Row(draw_diff_button)
         single_mat_layout = html.Div([mat_row, buttons_row])
-        dynamic_conf_mat = html.Div(
+        dynamic_conf_mat = card_wrapper(
             [
                 dbc.Row(
                     dcc.Dropdown(

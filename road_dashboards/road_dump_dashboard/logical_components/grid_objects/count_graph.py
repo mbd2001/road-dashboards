@@ -5,17 +5,16 @@ import dash_daq as daq
 from dash import Input, Output, callback, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query, functions
 from pypika.terms import Term
-
-from road_dashboards.road_dump_dashboard.graphical_components.histogram_plot import basic_histogram_plot
-from road_dashboards.road_dump_dashboard.graphical_components.line_graph import draw_line_graph
-from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.layout_wrappers import loading_wrapper
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import Round, execute, load_object
-from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
+from road_dump_dashboard.graphical_components.histogram_plot import basic_histogram_plot
+from road_dump_dashboard.graphical_components.line_graph import draw_line_graph
+from road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
+from road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper, loading_wrapper
+from road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
+from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+from road_dump_dashboard.table_schemes.base import Base, Column
+from road_dump_dashboard.table_schemes.custom_functions import Round, execute, load_object
+from road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class CountGraph(GridObject):
@@ -95,7 +94,7 @@ class CountGraph(GridObject):
         else:
             buttons_row = dbc.Row([dbc.Col([percentage_button, html.Div(filter_ignores_button, hidden=True)])])
 
-        group_by_layout = html.Div([graph_row, buttons_row])
+        group_by_layout = card_wrapper([graph_row, buttons_row])
         return group_by_layout
 
     def _callbacks(self):

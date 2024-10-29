@@ -1,22 +1,16 @@
-from typing import Optional
-
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, callback, dcc, html, no_update
 from pypika import Criterion, Query, functions
-
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph import (
-    pie_or_line_graph,
-    round_term,
-)
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.layout_wrappers import loading_wrapper
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object
-from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
+from road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
+from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper, loading_wrapper
+from road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
+from road_dump_dashboard.logical_components.grid_objects.count_graph import pie_or_line_graph, round_term
+from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+from road_dump_dashboard.table_schemes.base import Base, Column
+from road_dump_dashboard.table_schemes.custom_functions import execute, load_object
+from road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class CountGraphWithDropdown(GridObject):
@@ -72,7 +66,7 @@ class CountGraphWithDropdown(GridObject):
         )
         graph_row = dbc.Row([dbc.Col(graph, width=11), dbc.Col(slider, width=1)])
         buttons_row = dbc.Row(percentage_button)
-        dynamic_chart = html.Div(
+        dynamic_chart = card_wrapper(
             [
                 dbc.Row(
                     dcc.Dropdown(

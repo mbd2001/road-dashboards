@@ -5,10 +5,9 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
-
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import URL
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.layout_wrappers import card_wrapper
+from road_dump_dashboard.logical_components.constants.components_ids import URL
+from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
+from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
@@ -38,7 +37,7 @@ class CatalogTable(GridObject):
         self.update_runs_btn_id = self._generate_id("update_runs_btn")
 
     def layout(self):
-        catalog_layout = html.Div(
+        catalog_layout = card_wrapper(
             [
                 dbc.Row(html.H2("Datasets Catalog", className="mb-5")),
                 dbc.Row(dbc.Col(self.get_column_selector(self.column_selector_id), width={"size": 12})),

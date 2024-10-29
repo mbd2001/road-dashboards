@@ -1,6 +1,5 @@
 from pypika import Case
-
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dump_dashboard.table_schemes.base import Base, Column
 
 
 class MetaData(Base):

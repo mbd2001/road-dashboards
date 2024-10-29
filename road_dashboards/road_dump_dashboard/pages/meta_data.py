@@ -1,6 +1,6 @@
 from dash import register_page
+from road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 
-from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
     ConfMatGraphWithDropdown,
@@ -77,7 +77,8 @@ wildcard_count = CountGraphWithDropdown(
     intersection_switch_id=population_card.intersection_switch_id,
 )
 
-two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table)
+obj_to_hide_id = "meta_data_conf_mats"
+two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_hide_id=obj_to_hide_id)
 tv_perfects_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
@@ -119,7 +120,7 @@ layout = GridGenerator(
     road_type_hist,
     lm_color_hist,
     wildcard_count,
-    GridGenerator(two_datasets_selector, tv_perfects_conf, gtem_conf, wildcard_conf),
-    dataset_selector,
-    countries_heatmap,
+    GridGenerator(two_datasets_selector, tv_perfects_conf, gtem_conf, wildcard_conf, component_id=obj_to_hide_id),
+    GridGenerator(dataset_selector, countries_heatmap),
+    warp_sub_objects=False,
 ).layout()

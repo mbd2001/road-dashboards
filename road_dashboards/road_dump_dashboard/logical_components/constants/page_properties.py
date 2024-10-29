@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
+from road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 
 
 @dataclass

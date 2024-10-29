@@ -1,8 +1,8 @@
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base
-from road_dashboards.road_dump_dashboard.table_schemes.lane_marks import LaneMarks
-from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
-from road_dashboards.road_dump_dashboard.table_schemes.pathnet import PathNet
+from road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dump_dashboard.table_schemes.base import Base
+from road_dump_dashboard.table_schemes.lane_marks import LaneMarks
+from road_dump_dashboard.table_schemes.meta_data import MetaData
+from road_dump_dashboard.table_schemes.pathnet import PathNet
 
 EXISTING_TABLES: dict[str, type[Base]] = {META_DATA: MetaData, "lm_meta_data": LaneMarks, "rpw_meta_data": PathNet}
 

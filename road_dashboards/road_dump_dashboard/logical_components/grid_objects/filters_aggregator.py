@@ -1,8 +1,5 @@
-from functools import reduce
-from operator import and_
-
 from dash import Input, Output, callback, dcc
-from pypika import EmptyCriterion
+from pypika import Criterion, EmptyCriterion
 
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, load_object
@@ -30,4 +27,4 @@ class FiltersAggregator(GridObject):
         )
         def generate_curr_filters(*args):
             args = [load_object(arg) for arg in args]
-            return dump_object(reduce(and_, args))
+            return dump_object(Criterion.all(args))

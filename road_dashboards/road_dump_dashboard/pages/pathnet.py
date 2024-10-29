@@ -1,19 +1,15 @@
 from dash import register_page
+from road_dump_dashboard.logical_components.constants.page_properties import PageProperties
+from road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
+from road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import ConfMatGraphWithDropdown
+from road_dump_dashboard.logical_components.grid_objects.count_graph import CountGraph
+from road_dump_dashboard.logical_components.grid_objects.count_graph_with_dropdown import CountGraphWithDropdown
+from road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
+from road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
+from road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
+from road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
+from road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
 
-from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
-    ConfMatGraphWithDropdown,
-)
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph import CountGraph
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph_with_dropdown import (
-    CountGraphWithDropdown,
-)
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
     TwoDatasetsSelector,
 )
@@ -81,7 +77,8 @@ wildcard_count = CountGraphWithDropdown(
     intersection_switch_id=population_card.intersection_switch_id,
 )
 
-two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table)
+obj_to_hide_id = "path_net_conf_mats"
+two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_hide_id=obj_to_hide_id)
 role_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
@@ -146,5 +143,14 @@ layout = GridGenerator(
     merge_count,
     obj_count,
     wildcard_count,
-    GridGenerator(two_datasets_selector, role_conf, split_conf, primary_conf, merge_conf, wildcard_conf),
+    GridGenerator(
+        two_datasets_selector,
+        role_conf,
+        split_conf,
+        primary_conf,
+        merge_conf,
+        wildcard_conf,
+        component_id=obj_to_hide_id,
+    ),
+    warp_sub_objects=False,
 ).layout()

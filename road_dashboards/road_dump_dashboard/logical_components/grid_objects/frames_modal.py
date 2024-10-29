@@ -7,8 +7,8 @@ import pandas as pd
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, set_props
 from road_database_toolkit.athena.athena_utils import query_athena
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
+from road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
 
-from road_dashboards.road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import (
     CURR_DRAWN_GRAPH,
     DYNAMIC_CONF_MAT,
