@@ -15,6 +15,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
+    PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
     PATHNET_EVENTS_DIST_DROPDOWN_DIV,
@@ -328,6 +329,10 @@ def get_events_df(
             events_extractor_dict["order_by"],
         )
         df = subtract_events(df, df_ref, metric)
+
+    if events_extractor_dict["clips_unique_on"]:
+        df = df.drop_duplicates("clip_name", keep="first")
+
     df = df.head(events_extractor_dict["num_events"])
     df = df.round(3)
     return df
@@ -398,6 +403,7 @@ def show_unique_choices(is_unique_on, metric):
     State(PATHNET_EVENTS_REF_THRESHOLD, "value"),
     State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
+    State(PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH, "on"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
@@ -416,6 +422,7 @@ def update_extractor_dict(
     ref_specified_thresh,
     thresh_dict,
     order_by,
+    clips_unique_on,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -445,6 +452,7 @@ def update_extractor_dict(
             events_extractor_dict["ref_threshold"] = events_extractor_dict["threshold"] - REF_THRESH_DEFAULT_DIFF
 
     events_extractor_dict["order_by"] = order_by if order_by is not None else "DESC"
+    events_extractor_dict["clips_unique_on"] = clips_unique_on
 
     return events_extractor_dict
 
