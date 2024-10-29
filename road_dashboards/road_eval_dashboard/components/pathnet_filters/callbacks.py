@@ -104,11 +104,11 @@ def update_metadata_filters_by_pathnet_filters(in_filters, out_filters, curr_fil
     final_filters = []
 
     if in_filters:
-        in_filters = " OR ".join([f"({PATHNET_MD_FILTERS[filter]})" for filter in in_filters])
+        in_filters = " OR ".join([f"({filter})" for filter in in_filters])
         final_filters.append(f"({in_filters})")
 
     if out_filters:
-        out_filters = " OR ".join([f"({PATHNET_MD_FILTERS[filter]})" for filter in out_filters])
+        out_filters = " OR ".join([f"({filter})" for filter in out_filters])
         final_filters.append(f"NOT ({out_filters})")
 
     if curr_filters:

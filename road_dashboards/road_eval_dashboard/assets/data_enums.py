@@ -20,3 +20,9 @@ class LMColor(IntEnum):
     yellow = 0
     white = 1
     blue = 2
+
+
+class LMCaRel(IntEnum):
+    ignore = 0
+    ca_not_rel = -1
+    ca_rel = 1

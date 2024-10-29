@@ -1,8 +1,11 @@
 import copy
 import json
 import os
+import traceback
 
+import pandas as pd
 from botocore.exceptions import ClientError
+from cloud_storage_utils.file_abstraction import open_file
 from dash import Input, Output, State, callback, no_update
 from road_database_toolkit.cloud_file_system.file_operations import write_json
 
@@ -15,21 +18,35 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_CHOSEN_NET,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
+    PATHNET_EVENTS_DIST_DROPDOWN_DIV,
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
+    PATHNET_EVENTS_EVENTS_ORDER_BY,
+    PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
+    PATHNET_EVENTS_EXTRACTOR_DICT,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
+    PATHNET_EVENTS_REF_CHOSEN_NET,
+    PATHNET_EVENTS_REF_DIV,
+    PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN,
+    PATHNET_EVENTS_REF_NET_ID_DROPDOWN,
+    PATHNET_EVENTS_REF_THRESHOLD,
     PATHNET_EVENTS_ROLE_DROPDOWN,
+    PATHNET_EVENTS_ROLE_DROPDOWN_DIV,
     PATHNET_EVENTS_SUBMIT_BUTTON,
+    PATHNET_EVENTS_THRESHOLD,
+    PATHNET_EVENTS_THRESHOLDS_DIV,
+    PATHNET_EVENTS_UNIQUE_SWITCH,
     PATHNET_EXPLORER_DATA,
     PATHNET_EXPORT_TO_BOOKMARK_BUTTON,
+    PATHNET_EXPORT_TO_JUMP_BUTTON,
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
     PATHNET_GT,
     PATHNET_PRED,
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
-    generate_extract_inacc_events_query,
+    generate_extract_acc_events_query,
     generate_extract_miss_false_events_query,
     run_query_with_nets_names_processing,
 )
@@ -39,30 +56,32 @@ BOOKMARKS_COLUMNS = ["batch_num", "clip_name", "grabindex"]
 EXPLORER_PARAMS = """ 
     --dataset_names {dataset} 
     --population {population} 
+    --bookmarks {bookmarks_name}
     --net_name {net_id} 
     --ckpt {checkpoint} 
-    --use_case {use_case} 
-    --bookmarks {bookmarks_name}
+    --use_case {use_case}  
+"""
+EXPLORER_PARAMS_REF_ADDITION = """--net_name {net_id} 
+                                  --ckpt {checkpoint} 
+                                  --use_case {use_case} 
 """
 S3_EVENTS_DIR = (
     "s3://mobileye-team-road/roade2e_database/run_eval_catalog/{net_id}/{checkpoint}/{use_case}/{dataset}/events"
 )
+DEFAULT_NUM_EVENTS = 60
+REF_THRESH_DEFAULT_DIFF = 0.1
 
 
 @callback(
     Output(PATHNET_EVENTS_NET_ID_DROPDOWN, "options"),
+    Output(PATHNET_EVENTS_REF_NET_ID_DROPDOWN, "options"),
     Input(NETS, "data"),
 )
 def get_eval_name(nets):
-    return create_dropdown_options_list(nets["names"]) if nets else no_update
+    net_options_list = create_dropdown_options_list(nets["names"]) if nets else no_update
+    return net_options_list, net_options_list
 
 
-@callback(
-    Output(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
-    Input(PATHNET_EVENTS_CHOSEN_NET, "data"),
-    State(MD_FILTERS, "data"),
-    prevent_initial_call=True,
-)
 def create_dp_source_dropdown(net, meta_data_filters):
     if not net:
         return no_update
@@ -78,11 +97,25 @@ def create_dp_source_dropdown(net, meta_data_filters):
 
 
 @callback(
-    Output(PATHNET_EVENTS_CHOSEN_NET, "data"),
-    State(NETS, "data"),
-    Input(PATHNET_EVENTS_NET_ID_DROPDOWN, "value"),
+    Output(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
+    Input(PATHNET_EVENTS_CHOSEN_NET, "data"),
+    State(MD_FILTERS, "data"),
     prevent_initial_call=True,
 )
+def create_dp_source_dropdown_main(net, meta_data_filters):
+    return create_dp_source_dropdown(net, meta_data_filters)
+
+
+@callback(
+    Output(PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN, "options"),
+    Input(PATHNET_EVENTS_REF_CHOSEN_NET, "data"),
+    State(MD_FILTERS, "data"),
+    prevent_initial_call=True,
+)
+def create_dp_source_dropdown_ref(net, meta_data_filters):
+    return create_dp_source_dropdown(net, meta_data_filters)
+
+
 def update_chosen_net_data(nets, chosen_net_id):
     if not nets or not chosen_net_id:
         return no_update
@@ -97,13 +130,43 @@ def update_chosen_net_data(nets, chosen_net_id):
     return net
 
 
-def check_build_events_input(n_clicks, meta_data_columns, mandatory_args):
-    if not n_clicks:
-        return False, ""
+@callback(
+    Output(PATHNET_EVENTS_CHOSEN_NET, "data"),
+    State(NETS, "data"),
+    Input(PATHNET_EVENTS_NET_ID_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def update_chosen_net_data_main(nets, chosen_net_id):
+    return update_chosen_net_data(nets, chosen_net_id)
 
+
+@callback(
+    Output(PATHNET_EVENTS_REF_CHOSEN_NET, "data"),
+    State(NETS, "data"),
+    Input(PATHNET_EVENTS_REF_NET_ID_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def update_chosen_net_data_ref(nets, chosen_net_id):
+    return update_chosen_net_data(nets, chosen_net_id)
+
+
+def get_mandatory_args(events_extractor_dict):
+    metric = events_extractor_dict["metric"]
+    mandatory_args = [events_extractor_dict["net"], events_extractor_dict["dp_source"], metric]
+    if metric == "inaccurate":
+        mandatory_args += [events_extractor_dict["role"], events_extractor_dict["dist"]]
+    elif metric == "miss":
+        mandatory_args.append(events_extractor_dict["role"])
+    if events_extractor_dict["is_unique_on"]:
+        mandatory_args += [events_extractor_dict["ref_net"], events_extractor_dict["ref_dp_source"]]
+    return mandatory_args
+
+
+def check_build_events_input(meta_data_columns, events_extractor_dict):
     if not all(mandatory_column in meta_data_columns for mandatory_column in BOOKMARKS_COLUMNS):
         return False, f"meta-data is missing one of {BOOKMARKS_COLUMNS} columns"
 
+    mandatory_args = get_mandatory_args(events_extractor_dict)
     if not all(mandatory_args):
         return False, "Please specify an option for each dropdown."
 
@@ -133,24 +196,41 @@ def converts_events_df_to_bookmarks_json(events_df):
     return df_as_bookmarks.to_dict(orient="split")["data"]
 
 
-def create_data_dict_for_explorer(net_info, dp_sources, chosen_source, role, dist, metric):
+def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
+    net_info = events_extractor_dict["net"]["nets_info"]
     s3_dir_path = S3_EVENTS_DIR.format(
         dataset=net_info["dataset"],
         net_id=net_info["net_id"],
         checkpoint=net_info["checkpoint"],
         use_case=net_info["use_case"],
     )
-    bookmarks_file_name = f"{metric}_{chosen_source}_{role}_dist{dist}"
+
+    metric = events_extractor_dict["metric"]
+    dp_source = events_extractor_dict["dp_source"]
+    role = events_extractor_dict["role"]
+    dist = events_extractor_dict["dist"]
+    bookmarks_file_name = f"{metric}_{dp_source}"
+    if metric != "false":
+        bookmarks_file_name += f"_{role}"
+    if metric == "inaccurate":
+        bookmarks_file_name += f"_dist{dist}"
+
     explorer_params = EXPLORER_PARAMS.format(
         dataset=net_info["dataset"],
+        population=net_info["population"],
+        bookmarks_name=bookmarks_file_name,
         net_id=net_info["net_id"],
         checkpoint=net_info["checkpoint"],
         use_case=net_info["use_case"],
-        population=net_info["population"],
-        bookmarks_name=bookmarks_file_name,
     )
-    dp_sources = {dic["label"] for dic in dp_sources}
 
+    if events_extractor_dict["is_unique_on"] and events_extractor_dict["ref_net"] != events_extractor_dict["net"]:
+        ref_net_info = events_extractor_dict["ref_net"]["nets_info"]
+        explorer_params += EXPLORER_PARAMS_REF_ADDITION.format(
+            net_id=ref_net_info["net_id"], checkpoint=ref_net_info["checkpoint"], use_case=ref_net_info["use_case"]
+        )
+
+    dp_sources = {dic["label"] for dic in dp_sources}
     if "mf" in dp_sources:
         explorer_params += " --net_output_name mf"
     elif "fusion" in dp_sources:
@@ -159,21 +239,20 @@ def create_data_dict_for_explorer(net_info, dp_sources, chosen_source, role, dis
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, threshold):
-    DEFAULT_SAMPLES_NUM = 60
-    if "frame_has_labels_mf" in meta_data_cols:
-        meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
-
-    if metric == "inaccurate":
-        query, final_columns = generate_extract_inacc_events_query(
+def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold, order_by):
+    if metric == "inaccurate" or metric == "accurate":
+        operator = ">" if metric == "inaccurate" else "<"
+        query, final_columns = generate_extract_acc_events_query(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
             bookmarks_columns=BOOKMARKS_COLUMNS,
-            chosen_source=chosen_source,
+            chosen_source=dp_source,
             role=role,
             dist=float(dist),
             threshold=threshold,
+            operator=operator,
+            order_by=order_by,
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -181,14 +260,194 @@ def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net,
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
             bookmarks_columns=BOOKMARKS_COLUMNS,
-            chosen_source=chosen_source,
+            chosen_source=dp_source,
             role="unmatched-non-host" if metric == "false" else f"unmatched-{role}",
         )
 
     df, _ = run_query_with_nets_names_processing(query)
     df = df.drop_duplicates(subset=final_columns)
-    df = df.head(samples_num if samples_num else DEFAULT_SAMPLES_NUM)
     return df
+
+
+def subtract_events(df_main, df_ref, metric):
+    if metric == "miss":
+        merge_df = df_main.merge(df_ref, how="left", indicator=True)
+        only_in_main_df = merge_df[merge_df["_merge"] == "left_only"]
+        only_in_main_df = only_in_main_df.drop(columns=["_merge"])
+        return only_in_main_df
+
+    elif metric == "false":
+        df_main_grouped = df_main.groupby(BOOKMARKS_COLUMNS).size().reset_index(name="count_main")
+        df_ref_grouped = df_ref.groupby(BOOKMARKS_COLUMNS).size().reset_index(name="count_ref")
+        frames_count_df = df_main_grouped.merge(df_ref_grouped, on=BOOKMARKS_COLUMNS, how="left")
+        frames_count_df["count_ref"].fillna(0, inplace=True)
+        frames_count_higher_in_main_df = frames_count_df[frames_count_df["count_main"] > frames_count_df["count_ref"]]
+        df_main_filtered = df_main.merge(frames_count_higher_in_main_df[BOOKMARKS_COLUMNS], on=BOOKMARKS_COLUMNS)
+        return df_main_filtered
+
+    elif metric == "inaccurate":
+        df_main_filtered = df_main.merge(
+            df_ref, on=BOOKMARKS_COLUMNS + ["matched_dp_id"], how="inner", suffixes=("", "_ref")
+        )
+        return df_main_filtered
+
+    else:
+        return df_main
+
+
+def get_events_df(
+    events_extractor_dict,
+    meta_data_cols,
+    meta_data_filters,
+):
+    if "frame_has_labels_mf" in meta_data_cols:
+        meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
+    metric = events_extractor_dict["metric"]
+    role = events_extractor_dict["role"]
+    dist = events_extractor_dict["dist"]
+    df = get_source_events_df(
+        events_extractor_dict["net"],
+        events_extractor_dict["dp_source"],
+        meta_data_filters,
+        metric,
+        role,
+        dist,
+        events_extractor_dict["threshold"],
+        events_extractor_dict["order_by"],
+    )
+
+    if events_extractor_dict["is_unique_on"]:
+        ref_metric = "accurate" if metric == "inaccurate" else metric
+        df_ref = get_source_events_df(
+            events_extractor_dict["ref_net"],
+            events_extractor_dict["ref_dp_source"],
+            meta_data_filters,
+            ref_metric,
+            role,
+            dist,
+            events_extractor_dict["ref_threshold"],
+            events_extractor_dict["order_by"],
+        )
+        df = subtract_events(df, df_ref, metric)
+    df = df.head(events_extractor_dict["num_events"])
+    df = df.round(3)
+    return df
+
+
+@callback(
+    Output(PATHNET_EVENTS_ROLE_DROPDOWN_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_events_role_dropdown(metric):
+    if metric == "miss" or metric == "inaccurate":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_DIST_DROPDOWN_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_events_dist_dropdown(metric):
+    if metric == "inaccurate":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_EVENTS_ORDER_BY_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_events_order_by_dropdown(metric):
+    if metric == "inaccurate":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_REF_DIV, "hidden"),
+    Output(PATHNET_EVENTS_THRESHOLDS_DIV, "hidden"),
+    Input(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_unique_choices(is_unique_on, metric):
+    if is_unique_on:
+        if metric == "inaccurate":
+            return False, False
+        return False, True
+    return True, True
+
+
+@callback(
+    Output(PATHNET_EVENTS_EXTRACTOR_DICT, "data"),
+    Input(PATHNET_EVENTS_SUBMIT_BUTTON, "n_clicks"),
+    State(PATHNET_EVENTS_EXTRACTOR_DICT, "data"),
+    State(PATHNET_EVENTS_CHOSEN_NET, "data"),
+    State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_ROLE_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_DIST_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
+    State(PATHNET_EVENTS_REF_CHOSEN_NET, "data"),
+    State(PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_NUM_EVENTS, "value"),
+    State(PATHNET_EVENTS_THRESHOLD, "value"),
+    State(PATHNET_EVENTS_REF_THRESHOLD, "value"),
+    State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
+    prevent_initial_call=True,
+)
+def update_extractor_dict(
+    n_clicks,
+    events_extractor_dict,
+    net,
+    dp_source,
+    metric,
+    role,
+    dist,
+    is_unique_on,
+    ref_net,
+    ref_dp_source,
+    num_events,
+    specified_thresh,
+    ref_specified_thresh,
+    thresh_dict,
+    order_by,
+):
+    if not n_clicks:
+        return events_extractor_dict
+
+    events_extractor_dict["net"] = net
+    events_extractor_dict["dp_source"] = dp_source
+    events_extractor_dict["metric"] = metric
+    events_extractor_dict["role"] = role
+    events_extractor_dict["dist"] = dist
+    events_extractor_dict["is_unique_on"] = is_unique_on
+    events_extractor_dict["ref_net"] = ref_net
+    events_extractor_dict["ref_dp_source"] = ref_dp_source
+
+    events_extractor_dict["num_events"] = num_events if num_events is not None else DEFAULT_NUM_EVENTS
+
+    if specified_thresh is not None:
+        events_extractor_dict["threshold"] = specified_thresh
+    elif dist is not None:
+        events_extractor_dict["threshold"] = thresh_dict[str(float(dist))]
+    else:
+        events_extractor_dict["threshold"] = 0
+
+    if is_unique_on:
+        if ref_specified_thresh is not None:
+            events_extractor_dict["ref_threshold"] = ref_specified_thresh
+        else:
+            events_extractor_dict["ref_threshold"] = events_extractor_dict["threshold"] - REF_THRESH_DEFAULT_DIFF
+
+    events_extractor_dict["order_by"] = order_by if order_by is not None else "DESC"
+
+    return events_extractor_dict
 
 
 @callback(
@@ -197,50 +456,34 @@ def get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net,
     Output(PATHNET_EVENTS_BOOKMARKS_JSON, "data"),
     Output(PATHNET_EXPLORER_DATA, "data"),
     Output(PATHNET_EXTRACT_EVENTS_LOG_MESSAGE, "children"),
-    State(PATHNET_EVENTS_CHOSEN_NET, "data"),
-    State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "value"),
+    Input(PATHNET_EVENTS_EXTRACTOR_DICT, "data"),
+    State(PATHNET_EVENTS_SUBMIT_BUTTON, "n_clicks"),
     State(PATHNET_EVENTS_DP_SOURCE_DROPDOWN, "options"),
-    Input(PATHNET_EVENTS_SUBMIT_BUTTON, "n_clicks"),
     State(MD_FILTERS, "data"),
     State(MD_COLUMNS_TO_TYPE, "data"),
-    State(PATHNET_EVENTS_ROLE_DROPDOWN, "value"),
-    State(PATHNET_EVENTS_DIST_DROPDOWN, "value"),
-    State(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
-    State(PATHNET_EVENTS_NUM_EVENTS, "value"),
-    State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     prevent_initial_call=True,
 )
 def build_events_df(
-    net,
-    chosen_source,
-    dp_sources,
+    events_extractor_dict,
     n_clicks,
+    dp_sources,
     meta_data_filters,
     meta_data_cols,
-    role,
-    dist,
-    metric,
-    samples_num,
-    thresh_dict,
 ):
-    dropdown_args = [net, chosen_source, metric]
-    if metric == "inaccurate":
-        dropdown_args += [role, dist]
-    elif metric == "miss":
-        dropdown_args.append(role)
+    if not n_clicks:
+        return no_update, no_update, no_update, no_update, create_alert_message("", color="warning")
 
-    input_valid, input_error_message = check_build_events_input(n_clicks, meta_data_cols, dropdown_args)
+    input_valid, input_error_message = check_build_events_input(meta_data_cols, events_extractor_dict)
     if not input_valid:
         return no_update, no_update, no_update, no_update, create_alert_message(input_error_message, color="warning")
 
-    thresh = thresh_dict[str(dist)] if dist is not None else 0
-    df = get_events_df(chosen_source, meta_data_cols, meta_data_filters, metric, net, role, samples_num, dist, thresh)
+    df = get_events_df(events_extractor_dict, meta_data_cols, meta_data_filters)
     df_sane, sanity_error_message = check_events_df_sanity(events_df=df)
     if not df_sane:
         return no_update, no_update, no_update, no_update, create_alert_message(sanity_error_message, color="warning")
 
     bookmarks_json = converts_events_df_to_bookmarks_json(events_df=df)
-    data_for_explorer = create_data_dict_for_explorer(net["nets_info"], dp_sources, chosen_source, role, dist, metric)
+    data_for_explorer = create_data_dict_for_explorer(events_extractor_dict, dp_sources)
 
     data_table = df.to_dict("records")
     final_cols = [{"name": col, "id": col, "deletable": False, "selectable": True} for col in df.columns]
@@ -267,12 +510,12 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
 
     s3_dir_path = explorer_data["s3_dir_path"]
     bookmarks_file_name = explorer_data["bookmarks_name"]
-    explore_params = explorer_data["explorer_params"]
+    explorer_params = explorer_data["explorer_params"]
 
     s3_full_path = os.path.join(s3_dir_path, f"{bookmarks_file_name}.json")
     try:
         write_json(s3_full_path, bookmarks_dict)
-        success_message = f"Bookmarks dumped to:\n{s3_full_path}\n\nParams for explorer: {explore_params}"
+        success_message = f"Bookmarks dumped to:\n{s3_full_path}\n\nParams for explorer: {explorer_params}"
         return create_alert_message(success_message, color="success")
 
     except (json.JSONDecodeError, TypeError) as e:
@@ -281,3 +524,57 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
         error_message = f"Error uploading to S3:\n'{s3_full_path}' failed.\nTraceback: {e}"
 
     return create_alert_message(error_message, color="warning")
+
+
+@callback(
+    Output(PATHNET_EXTRACT_EVENTS_LOG_MESSAGE, "children", allow_duplicate=True),
+    Input(PATHNET_EXPORT_TO_JUMP_BUTTON, "n_clicks"),
+    State(PATHNET_EVENTS_DATA_TABLE, "data"),
+    State(PATHNET_EXPLORER_DATA, "data"),
+    prevent_initial_call=True,
+)
+def dump_events_to_jump(n_clicks, data_table, explorer_data):
+
+    if not all([n_clicks, data_table, explorer_data]):
+        return no_update
+
+    s3_dir_path = explorer_data["s3_dir_path"]
+    bookmarks_file_name = explorer_data["bookmarks_name"]
+
+    s3_full_path = path_join(s3_dir_path, f"{bookmarks_file_name}.jump")
+    try:
+        df = pd.DataFrame(data_table)
+        cols_with_dot = [col for col in df.columns if "." in col]
+        df_renamed = df.rename(columns={col: col.replace(".", "_") for col in cols_with_dot}, inplace=False)
+        generate_jump_file(df_renamed, s3_full_path, df_renamed.columns.to_list(), df.size)
+        success_message = f"Jump dumped to:\n{s3_full_path}\n"
+        return create_alert_message(success_message, color="success")
+
+    except Exception as e:
+        error_message = f"Error genereting jump into:\n'{s3_full_path}' failed.\nTraceback: {traceback.format_exc()}"
+
+    return create_alert_message(error_message, color="warning")
+
+
+def generate_jump_file(df, out_jump_file_path, more_fields, max_lines=300, clipname_to_itrk_location_fn=lambda x: x):
+    clip_field, gi_field = "clip_name", "grabindex"
+    jump_fields = [gi_field] + list(set(more_fields) - set([clip_field, gi_field]))  # ordered
+    all_clips = []
+    with open_file(out_jump_file_path, "w") as f:
+        for row in df.head(max_lines).itertuples():
+            clipname = getattr(row, clip_field)
+            if clipname is None:
+                continue
+            all_clips.append(clipname)
+            line = "{}".format(clipname_to_itrk_location_fn(clipname))
+            for field in jump_fields:
+                val = getattr(row, field)
+                if type(val) == float:
+                    val = "{:.2f}".format(val)
+                line += f" {val}"
+            f.write(line + "\n")
+        format_line = "\n#format: trackfile startframe " + " ".join(jump_fields[1:])
+        f.write(format_line + "\n")
+    # also dump a list of all clips
+    with open_file(out_jump_file_path + ".list", "w") as f:
+        f.write("\n".join(list(set(all_clips))))

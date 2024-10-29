@@ -1,21 +1,21 @@
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 import numpy as np
 import plotly.express as px
-from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_dashboards.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MISS_FALSE_FILTERS
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
+    PATH_NET_ACC_ALL_PRED,
     PATH_NET_ACC_HOST,
     PATH_NET_ACC_NEXT,
     PATH_NET_ALL_CONF_MATS,
     PATH_NET_ALL_TPR,
     PATH_NET_BIASES_HOST,
     PATH_NET_BIASES_NEXT,
-    PATH_NET_FALSES_HOST,
     PATH_NET_FALSES_NEXT,
     PATH_NET_HOST_CONF_MAT,
     PATH_NET_HOST_TPR,
@@ -23,35 +23,25 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
     PATH_NET_MONOTONE_ACC_NEXT,
-    PATH_NET_QUALITY_FN,
-    PATH_NET_QUALITY_FP,
-    PATH_NET_QUALITY_TN,
-    PATH_NET_QUALITY_TP,
-    PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_FILTERS,
     PATHNET_GT,
+    PATHNET_INCLUDE_MATCHED_HOST,
+    PATHNET_INCLUDE_MATCHED_NON_HOST,
     PATHNET_PRED,
 )
-from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import (
-    generate_matrices_graphs,
-    generate_matrices_layout,
-)
+from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_dashboards.road_eval_dashboard.components.page_properties import PageProperties
 from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.layout import (
     layout as events_extractor_card,
 )
-from road_dashboards.road_eval_dashboard.components.pathnet_filters.layout import layout as pathnet_filters_card
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     PATHNET_ACC_THRESHOLDS,
     distances,
     generate_count_query,
-    generate_path_net_dp_quality_query,
-    generate_path_net_dp_quality_true_rejection_query,
     generate_path_net_miss_false_query,
     generate_path_net_query,
     generate_pathnet_cumulative_query,
@@ -59,11 +49,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
-from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
-
-ACC_TAB_NAME = "pathnet-accuracy"
-ROLE_TAB_NAME = "pathnet-roles"
-QUALITY_TAB_NAME = "pathnet-quality-score"
+from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.roles_tab import get_miss_false_layout
 
 
 def get_cumulative_acc_layout():
@@ -107,39 +93,6 @@ def get_cumulative_acc_layout():
     return layout
 
 
-def get_miss_false_layout():
-    layout = []
-    for p_filter in PATHNET_MISS_FALSE_FILTERS:
-
-        layout += [
-            card_wrapper(
-                [
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
-                                width=4,
-                            ),
-                            dbc.Col(
-                                graph_wrapper({"id": PATH_NET_MISSES_HOST, "filter": p_filter}),
-                                width=4,
-                            ),
-                            dbc.Col(
-                                graph_wrapper({"id": PATH_NET_MISSES_NEXT, "filter": p_filter}),
-                                width=4,
-                            ),
-                        ]
-                    ),
-                ]
-            ),
-        ]
-        return layout
-
-
-extra_properties = PageProperties("line-chart")
-register_page(__name__, path="/path_net", name="Path Net", order=9, **extra_properties.__dict__)
-
-role_layout = html.Div([html.Div(id={"out": "graph", "role": role}) for role in ["split", "merge", "primary"]])
 pos_layout = html.Div(
     [
         events_extractor_card,
@@ -149,11 +102,15 @@ pos_layout = html.Div(
                     [
                         dbc.Col(
                             graph_wrapper(PATH_NET_ACC_HOST),
-                            width=6,
+                            width=4,
                         ),
                         dbc.Col(
                             graph_wrapper(PATH_NET_ACC_NEXT),
-                            width=6,
+                            width=4,
+                        ),
+                        dbc.Col(
+                            graph_wrapper(PATH_NET_ACC_ALL_PRED),
+                            width=4,
                         ),
                     ]
                 ),
@@ -162,6 +119,34 @@ pos_layout = html.Div(
                         html.Label("acc-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
                         dcc.RangeSlider(
                             id="acc-threshold-slider", min=0, max=2, step=0.1, value=[0.2, 0.5], allowCross=False
+                        ),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            daq.BooleanSwitch(
+                                id=PATHNET_INCLUDE_MATCHED_HOST,
+                                on=False,
+                                label="Filter Unmatched <-> Show All (include miss)",
+                                labelPosition="top",
+                            )
+                        ),
+                        dbc.Col(
+                            daq.BooleanSwitch(
+                                id=PATHNET_INCLUDE_MATCHED_NON_HOST,
+                                on=False,
+                                label="Filter Unmatched <-> Show All (include miss)",
+                                labelPosition="top",
+                            )
+                        ),
+                        dbc.Col(
+                            daq.BooleanSwitch(
+                                id="include-unmatched-pred",
+                                on=False,
+                                label="Filter Unmatched <-> Show All (include false)",
+                                labelPosition="top",
+                            )
                         ),
                     ]
                 ),
@@ -202,94 +187,6 @@ pos_layout = html.Div(
     ]
 )
 
-quality_layout = html.Div(
-    [
-        card_wrapper(
-            [
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            graph_wrapper({"type": PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION, "role": "host"}),
-                            width=6,
-                        ),
-                        dbc.Col(
-                            graph_wrapper({"type": PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION, "role": "non-host"}),
-                            width=6,
-                        ),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_TP, "role": "host"}), width=6),
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_TP, "role": "non-host"}), width=6),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_TN, "role": "host"}), width=6),
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_TN, "role": "non-host"}), width=6),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_FP, "role": "host"}), width=6),
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_FP, "role": "non-host"}), width=6),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_FN, "role": "host"}), width=6),
-                        dbc.Col(graph_wrapper({"type": PATH_NET_QUALITY_FN, "role": "non-host"}), width=6),
-                    ]
-                ),
-                dbc.Row(
-                    [
-                        html.Label("quality-threshold (score)", style={"text-align": "center", "fontSize": "20px"}),
-                        dcc.RangeSlider(
-                            id="quality-threshold-slider", min=-3, max=3, step=0.1, value=[0], allowCross=False
-                        ),
-                    ]
-                ),
-            ]
-        )
-    ]
-)
-
-
-TABS_LAYOUTS = {ACC_TAB_NAME: pos_layout, ROLE_TAB_NAME: role_layout, QUALITY_TAB_NAME: quality_layout}
-layout = html.Div(
-    [
-        html.H1("Path Net Metrics", className="mb-5"),
-        meta_data_filter.layout,
-        pathnet_filters_card,
-        base_dataset_statistics.dp_layout,
-        card_wrapper(
-            [
-                dcc.Tabs(
-                    id="pathnet-metrics-graphs",
-                    value=ACC_TAB_NAME,
-                    children=[
-                        dcc.Tab(label="pathnet-metrics-positional", value=ACC_TAB_NAME),
-                        dcc.Tab(label="pathnet-metrics-roles", value=ROLE_TAB_NAME),
-                        dcc.Tab(label="DPs Quality", value=QUALITY_TAB_NAME),
-                    ],
-                ),
-            ]
-        ),
-        html.Div(id="pathnet-metrics-content"),
-    ]
-)
-ROLE_CLASSES_NAMES = {
-    "split": ["NONE", "SPLIT_LEFT", "SPLIT_RIGHT", "IGNORE"],
-    "merge": ["NONE", "MERGE_LEFT", "MERGE_RIGHT", "IGNORE"],
-    "primary": ["NONE", "PRIMARY", "SECONDARY", "IGNORE", "UNDEFINED"],
-}
-
-
-@callback(Output("pathnet-metrics-content", "children"), Input("pathnet-metrics-graphs", "value"))
-def render_content(tab):
-    return TABS_LAYOUTS[tab]
-
 
 @callback(Output(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"), Input("acc-threshold-slider", "value"))
 def compute_dynamic_distances_dict(slider_values):
@@ -305,20 +202,52 @@ def compute_dynamic_distances_dict(slider_values):
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input(PATHNET_INCLUDE_MATCHED_HOST, "on"),
 )
-def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, distances_dict):
+def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, distances_dict, include_unmatched):
     if not nets:
         return no_update
+    if include_unmatched:
+        role = ["'host'", "'unmatched-host'"]
+    else:
+        role = "host"
+    query = generate_path_net_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        distances_dict,
+        meta_data_filters,
+        extra_filters=pathnet_filters,
+        role=role,
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_path_net_graph(df, distances, "accuracy", role="host", yaxis="% accurate dps")
+
+
+@callback(
+    Output(PATH_NET_ACC_ALL_PRED, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input("include-unmatched-pred", "on"),
+)
+def get_path_net_acc_pred(meta_data_filters, pathnet_filters, nets, distances_dict, include_unmatched):
+    if not nets:
+        return no_update
+    if include_unmatched:
+        role = ["'host'", "'non-host'", "'unmatched-non-host'", "'unmatched-host'"]
+    else:
+        role = ["'host'", "'non-host'"]
     query = generate_path_net_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
         distances_dict,
         meta_data_filters,
         extra_filters=pathnet_filters,
-        role="host",
+        role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy", role="host", yaxis="% accurate dps")
+    return draw_path_net_graph(df, distances, "accuracy", role="Pred", yaxis="% accurate dps")
 
 
 @callback(
@@ -394,17 +323,22 @@ def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, sli
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input(PATHNET_INCLUDE_MATCHED_NON_HOST, "on"),
 )
-def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, distances_dict):
+def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, distances_dict, include_unmatched):
     if not nets:
         return no_update
+    if include_unmatched:
+        role = ["'non-host'", "'unmatched-non-host'"]
+    else:
+        role = "non-host"
     query = generate_path_net_query(
         nets[PATHNET_PRED],
         nets["meta_data"],
         distances_dict,
         meta_data_filters,
         extra_filters=pathnet_filters,
-        role="non-host",
+        role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(df, distances, "accuracy", yaxis="% accurate dps")
@@ -524,63 +458,6 @@ def generate_conf_matrices_components(nets, graph_id):
     return children
 
 
-@callback(
-    Output({"type": PATH_NET_ALL_TPR, "role": MATCH}, "figure"),
-    Output({"type": PATH_NET_ALL_CONF_MATS, "role": MATCH, "index": ALL}, "figure"),
-    Input(NETS, "data"),
-    Input(MD_FILTERS, "data"),
-    State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
-    Input(PATHNET_FILTERS, "data"),
-)
-def generate_overall_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filters):
-    if not nets:
-        return no_update
-    role = graph_id["role"]
-    diagonal_compare, mats_figs = generate_matrices_graphs(
-        pred_col=f"{role}_role",
-        label_col=f"matched_{role}_role",
-        nets_tables=nets[PATHNET_PRED],
-        meta_data_table=nets["meta_data"],
-        net_names=nets["names"],
-        meta_data_filters=meta_data_filters,
-        class_names=ROLE_CLASSES_NAMES[role],
-        mat_name=f"{role} TPR for all dps",
-        extra_filters=pathnet_filters,
-    )
-    return diagonal_compare, mats_figs
-
-
-@callback(
-    Output({"type": PATH_NET_HOST_TPR, "role": MATCH}, "figure"),
-    Output({"type": PATH_NET_HOST_CONF_MAT, "index": ALL, "role": MATCH}, "figure"),
-    Input(NETS, "data"),
-    Input(MD_FILTERS, "data"),
-    State({"type": PATH_NET_ALL_TPR, "role": MATCH}, "id"),
-    Input(PATHNET_FILTERS, "data"),
-)
-def generate_host_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filters):
-    if not nets:
-        return no_update
-    if pathnet_filters:
-        pathnet_filters = f"{pathnet_filters} AND role = 'host'"
-    else:
-        pathnet_filters = "role = 'host'"
-    role = graph_id["role"]
-    diagonal_compare, mats_figs = generate_matrices_graphs(
-        pred_col=f"{role}_role",
-        label_col=f"matched_{role}_role",
-        nets_tables=nets[PATHNET_PRED],
-        meta_data_table=nets["meta_data"],
-        net_names=nets["names"],
-        meta_data_filters=meta_data_filters,
-        class_names=ROLE_CLASSES_NAMES[role],
-        mat_name=f"{role} TPR for host dp",
-        extra_filters=pathnet_filters,
-    )
-
-    return diagonal_compare, mats_figs
-
-
 def get_column_histogram(meta_data_filters, pathnet_filters, nets, role, column, min_val, max_val, bins_factor):
     if not nets:
         return no_update
@@ -675,172 +552,3 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
         max_val=10,
         bins_factor=0.1,
     )
-
-
-@callback(
-    Output({"type": PATH_NET_QUALITY_TP, "role": MATCH}, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
-    Input("quality-threshold-slider", "value"),
-    State({"type": PATH_NET_QUALITY_TP, "role": MATCH}, "id"),
-)
-def get_path_net_quality_score_tp(meta_data_filters, nets, slider_values, idx):
-    if not nets:
-        return no_update
-
-    acc_dist_operator = "<"
-    quality_operator = ">"
-
-    role = idx["role"]
-    query = generate_path_net_dp_quality_query(
-        data_tables=nets[PATHNET_PRED],
-        meta_data=nets["meta_data"],
-        meta_data_filters=meta_data_filters,
-        role=role,
-        base_dists=[0.2, 0.5],
-        acc_dist_operator=acc_dist_operator,
-        quality_operator=quality_operator,
-        quality_thresh_filter=slider_values[0],
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    fig = draw_path_net_graph(
-        data=df, cols=distances, title="DPs Quality Score - TP", role=role, yaxis="% hit", plot_bgcolor=GREEN
-    )
-    return fig
-
-
-@callback(
-    Output({"type": PATH_NET_QUALITY_TN, "role": MATCH}, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
-    Input("quality-threshold-slider", "value"),
-    State({"type": PATH_NET_QUALITY_TN, "role": MATCH}, "id"),
-)
-def get_path_net_quality_score_tn(meta_data_filters, nets, slider_values, idx):
-    if not nets:
-        return no_update
-
-    acc_dist_operator = ">"
-    quality_operator = "<="
-    role = idx["role"]
-
-    query = generate_path_net_dp_quality_query(
-        data_tables=nets[PATHNET_PRED],
-        meta_data=nets["meta_data"],
-        meta_data_filters=meta_data_filters,
-        role=role,
-        base_dists=[0.2, 0.5],
-        acc_dist_operator=acc_dist_operator,
-        quality_operator=quality_operator,
-        quality_thresh_filter=slider_values[0],
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    fig = draw_path_net_graph(
-        data=df,
-        cols=distances,
-        title="DPs Quality Score - TN",
-        role=role,
-        yaxis="% correct rejection",
-        plot_bgcolor=GREEN,
-    )
-    return fig
-
-
-@callback(
-    Output({"type": PATH_NET_QUALITY_FP, "role": MATCH}, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
-    Input("quality-threshold-slider", "value"),
-    State({"type": PATH_NET_QUALITY_FP, "role": MATCH}, "id"),
-)
-def get_path_net_quality_score_fp(meta_data_filters, nets, slider_values, idx):
-    if not nets:
-        return no_update
-
-    acc_dist_operator = "<"
-    quality_operator = "<="
-    role = idx["role"]
-
-    query = generate_path_net_dp_quality_query(
-        data_tables=nets[PATHNET_PRED],
-        meta_data=nets["meta_data"],
-        meta_data_filters=meta_data_filters,
-        role=role,
-        base_dists=[0.2, 0.5],
-        acc_dist_operator=acc_dist_operator,
-        quality_operator=quality_operator,
-        quality_thresh_filter=slider_values[0],
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    fig = draw_path_net_graph(
-        data=df, cols=distances, title="DPs Quality Score - FP", role=role, yaxis="% false alarm", plot_bgcolor=RED
-    )
-    return fig
-
-
-@callback(
-    Output({"type": PATH_NET_QUALITY_FN, "role": MATCH}, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
-    Input("quality-threshold-slider", "value"),
-    State({"type": PATH_NET_QUALITY_FN, "role": MATCH}, "id"),
-)
-def get_path_net_quality_score_fn(meta_data_filters, nets, slider_values, idx):
-    if not nets:
-        return no_update
-
-    acc_dist_operator = ">"
-    quality_operator = ">"
-    role = idx["role"]
-
-    query = generate_path_net_dp_quality_query(
-        data_tables=nets[PATHNET_PRED],
-        meta_data=nets["meta_data"],
-        meta_data_filters=meta_data_filters,
-        role=role,
-        base_dists=[0.2, 0.5],
-        acc_dist_operator=acc_dist_operator,
-        quality_operator=quality_operator,
-        quality_thresh_filter=slider_values[0],
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    fig = draw_path_net_graph(
-        data=df, cols=distances, title="DPs Quality Score - FN", role=role, yaxis="% miss", plot_bgcolor=RED
-    )
-    return fig
-
-
-@callback(
-    Output({"type": PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION, "role": MATCH}, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(NETS, "data"),
-    Input("quality-threshold-slider", "value"),
-    State({"type": PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION, "role": MATCH}, "id"),
-)
-def get_path_net_quality_score_unmatched_correct_rejection(meta_data_filters, nets, slider_values, idx):
-    if not nets:
-        return no_update
-
-    acc_dist_operator = ">"
-    quality_operator = "<"
-    role = idx["role"]
-
-    query = generate_path_net_dp_quality_true_rejection_query(
-        data_tables=nets[PATHNET_PRED],
-        meta_data=nets["meta_data"],
-        meta_data_filters=meta_data_filters,
-        role=[f"'{role}'", f"'unmatched-{role}'"],
-        acc_dist_operator=acc_dist_operator,
-        quality_operator=quality_operator,
-        quality_thresh_filter=slider_values[0],
-    )
-    df, _ = run_query_with_nets_names_processing(query)
-    fig = draw_path_net_graph(
-        data=df,
-        cols=distances,
-        title="DPs Quality - Unmatched Corrcert Rejection",
-        role=role,
-        yaxis="% correct rejection",
-        plot_bgcolor=GREEN,
-    )
-    return fig

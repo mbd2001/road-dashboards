@@ -1,7 +1,7 @@
 # tables names
 PATHNET_GT = "pathnet_gt_tables"
 PATHNET_PRED = "pathnet_pred_tables"
-
+PATHNET_BOUNDARIES = "pathnet_boundaries_tables"
 
 # stores
 NETS = "nets"
@@ -51,6 +51,19 @@ FB_PER_WEATHER_HOST = "fb_per_weather_host"
 FB_TRADEOFF_OVERALL = "fb_tradeoff_overall"
 FB_TRADEOFF_HOST = "fb_tradeoff_host"
 
+# ca_rel page
+CA_REL_OVERALL = "ca_rel_overall"
+CA_REL_HOST = "ca_rel_host"
+CA_REL_OVERALL_DAY = "ca_rel_overall_day"
+CA_REL_OVERALL_NIGHT = "ca_rel_overall_night"
+
+ALL_CA_REL_CONF_MATS = "all_ca_rel_conf_mats"
+
+OVERALL_CA_REL_CONF_MAT = "overall_ca_rel_conf_mat"
+HOST_CA_REL_CONF_MAT = "host_ca_rel_conf_mat"
+
+OVERALL_CA_REL_CONF_DIAGONAL = "overall_ca_rel_conf_diagonal"
+HOST_CA_REL_CONF_DIAGONAL = "host_ca_rel_conf_diagonal"
 
 # color page
 COLOR_OVERALL = "color_overall"
@@ -121,6 +134,7 @@ DP_COUNT = "dp_count"
 PATH_NET_FALSES_HOST = "path_net_losses_host"
 PATH_NET_FALSES_NEXT = "path_net_losses_next"
 
+PATH_NET_ACC_ALL_PRED = "path_net_accuracy_all_pred"
 PATH_NET_ACC_HOST = "path_net_accuracy_host"
 PATH_NET_ACC_NEXT = "path_net_accuracy_next"
 PATH_NET_MONOTONE_ACC_HOST = "path_net_monotone_accuracy_host"
@@ -132,6 +146,8 @@ PATH_NET_QUALITY_FN = "path_net_quality_fn"
 PATH_NET_QUALITY_FP = "path_net_quality_fp"
 PATH_NET_QUALITY_TN = "path_net_quality_tn"
 PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION = "path_net_quality_unmathced_correct_rejection"
+PATHNET_BOUNDARY_ACC = "pathnet_boundary_acc"
+BOUNDARY_DROP_DOWN = "boundary-dropdown"
 
 
 PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"
@@ -140,7 +156,8 @@ PATH_NET_ALL_TPR = "all_dp_tpr_id"
 PATH_NET_HOST_TPR = "host_dp_tpr_id"
 PATH_NET_HOST_CONF_MAT = "host_dp_conf_mat_id"
 PATH_NET_ALL_CONF_MATS = "all_dps_conf_mat_id"
-
+PATHNET_INCLUDE_MATCHED_HOST = "pathnet_include_match_host"
+PATHNET_INCLUDE_MATCHED_NON_HOST = "pathnet_include_match_non_host"
 
 PATH_NET_BIASES_HOST = "path_net_biases_host"
 PATH_NET_BIASES_NEXT = "path_net_biases_next"
@@ -150,8 +167,12 @@ PATH_NET_VIEW_RANGES_NEXT = "path_net_view_range_next"
 PATHNET_EVENTS_NET_ID_DROPDOWN = "pathnet_events_net_id_dropdown"
 PATHNET_EVENTS_CHOSEN_NET = "pathnet_events_chosen_net"
 PATHNET_EVENTS_DP_SOURCE_DROPDOWN = "pathnet_events_dp_source_dropdown"
+PATHNET_EVENTS_ROLE_DROPDOWN_DIV = "pathnet_events_role_dropdown_div"
 PATHNET_EVENTS_ROLE_DROPDOWN = "pathnet_events_role_dropdown"
+PATHNET_EVENTS_DIST_DROPDOWN_DIV = "pathnet_events_dist_dropdown_div"
 PATHNET_EVENTS_DIST_DROPDOWN = "pathnet_events_dist_dropdown"
+PATHNET_EVENTS_EVENTS_ORDER_BY_DIV = "pathnet_events_events_order_by_div"
+PATHNET_EVENTS_EVENTS_ORDER_BY = "pathnet_events_events_order_by"
 PATHNET_EVENTS_METRIC_DROPDOWN = "pathnet_events_metric_dropdown"
 PATHNET_FILTERS_IN_DROPDOWN = "pathnet_filters_in_dropdown"
 PATHNET_FILTERS_OUT_DROPDOWN = "pathnet_filters_out_dropdown"
@@ -164,7 +185,18 @@ PATHNET_EVENTS_BOOKMARKS_JSON = "pathnet_events_bookmarks_json"
 PATHNET_EXPLORER_DATA = "pathnet_explorer_data"
 PATHNET_EXTRACT_EVENTS_LOG_MESSAGE = "pathnet_extract_events_log_message"
 PATHNET_EXPORT_TO_BOOKMARK_BUTTON = "pathnet_export_to_bookmark_button"
+PATHNET_EXPORT_TO_JUMP_BUTTON = "pathnet_export_to_jump_button"
 PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD = "pathnet_dynamic_distance_to_threshold"
+PATHNET_DYNAMIC_THRESHOLD_BOUNDARIES = "pathnet_dynamic_threshold_boundaries"
+PATHNET_EVENTS_UNIQUE_SWITCH = "pathnet_events_unique_switch"
+PATHNET_EVENTS_REF_DIV = "pathnet_events_ref_div"
+PATHNET_EVENTS_REF_NET_ID_DROPDOWN = "pathnet_events_ref_net_id_dropdown"
+PATHNET_EVENTS_REF_CHOSEN_NET = "pathnet_events_ref_chosen_net"
+PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN = "pathnet_events_ref_dp_source_dropdown"
+PATHNET_EVENTS_EXTRACTOR_DICT = "pathnet_events_extractor_dict"
+PATHNET_EVENTS_THRESHOLDS_DIV = "pathnet_events_thresholds_div"
+PATHNET_EVENTS_THRESHOLD = "pathnet_events_threshold"
+PATHNET_EVENTS_REF_THRESHOLD = "pathnet_events_ref_threshold"
 
 LM_3D_SOURCE_DROPDOWN = "3d-source-dropdown"
 LM_3D_ACC_OVERALL = "lm_3d_accuracy_overall"

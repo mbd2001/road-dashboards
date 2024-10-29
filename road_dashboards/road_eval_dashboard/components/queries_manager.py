@@ -118,6 +118,20 @@ DIST_METRIC = """
     AS "score_{ind}"
     """
 
+BOUNDARY_DIST_METRIC = """
+    CAST(
+        (
+            COUNT(CASE WHEN "{left_dist_column_name}_{dist}" IS NOT NULL AND "{left_dist_column_name}_{dist}" {thresh_filter} THEN 1 ELSE NULL END) +
+            COUNT(CASE WHEN "{right_dist_column_name}_{dist}" IS NOT NULL AND "{right_dist_column_name}_{dist}" {thresh_filter} THEN 1 ELSE NULL END)
+        ) AS DOUBLE
+    ) /
+    (
+        COUNT(CASE WHEN "{left_dist_column_name}_{dist}" IS NOT NULL THEN 1 ELSE NULL END) +
+        COUNT(CASE WHEN "{right_dist_column_name}_{dist}" IS NOT NULL THEN 1 ELSE NULL END)
+    )
+    AS "score_{ind}"
+    """
+
 DP_QUALITY_METRIC = """
     CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {dist_thresh_filter} AND "{base_dp_quality_col_name}_{dist}" IS NOT NULL AND "{base_dp_quality_col_name}_{dist}" {quality_thresh_filter} THEN 1 ELSE NULL END) AS DOUBLE) /
     COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) THEN 1 ELSE NULL END)
@@ -171,9 +185,9 @@ COUNT_ALL_METRIC = """
     AS {count_name}
     """
 
-EXTRACT_EVENT_INACC = """
+EXTRACT_EVENT_ACC = """
     {dist_column} IS NOT NULL AND 
-    {dist_column} > {dist_thresh} AND 
+    {dist_column} {operator} {dist_thresh} AND 
     bin_population = '{chosen_source}'
 """
 
@@ -642,10 +656,11 @@ def generate_path_net_query(
     extra_columns=["split_role", "matched_split_role", "ignore_role"],
     role="",
     extra_filters="",
+    base_dist_column_name="dist",
 ):
     operator = "<"
     query = get_dist_query(
-        "dist",
+        base_dist_column_name,
         data_tables,
         distances_dict,
         meta_data,
@@ -654,6 +669,42 @@ def generate_path_net_query(
         role,
         extra_columns=extra_columns,
         base_extra_filters=extra_filters,
+    )
+    return query
+
+
+def generate_path_net_double_boundaries_query(
+    data_tables,
+    meta_data,
+    distances_dict,
+    meta_data_filters,
+    extra_columns=[],
+    role="",
+    extra_filters="",
+    base_dist_column_name="dist",
+):
+    operator = "<"
+    metrics = ", ".join(
+        BOUNDARY_DIST_METRIC.format(
+            thresh_filter=f"{operator} {thresh}",
+            dist=sec,
+            extra_filters=extra_filters.format(dist=sec),
+            left_dist_column_name=f"{base_dist_column_name}_left",
+            right_dist_column_name=f"{base_dist_column_name}_right",
+            ind=sec,
+        )
+        for sec, thresh in distances_dict.items()
+    )
+
+    query = get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics,
+        count_metrics=None,
+        meta_data_filters=meta_data_filters,
+        extra_filters=extra_filters,
+        role=role,
+        extra_columns=extra_columns,
     )
     return query
 
@@ -747,7 +798,7 @@ def generate_path_net_miss_false_query(
     return query
 
 
-def generate_extract_inacc_events_query(
+def generate_extract_acc_events_query(
     data_tables,
     meta_data,
     meta_data_filters,
@@ -756,22 +807,24 @@ def generate_extract_inacc_events_query(
     role,
     dist,
     threshold,
+    operator,
+    order_by,
 ):
-    inacc_columns = ["dp_id", "matched_dp_id", "match_score"]
+    acc_columns = ["matched_dp_id", "dp_id", "match_score"]
     dist_column = f'"dist_{dist}"'
-    inacc_cmd = EXTRACT_EVENT_INACC.format(
-        dist_column=f'"dist_{dist}"', dist_thresh=threshold, chosen_source=chosen_source
+    acc_cmd = EXTRACT_EVENT_ACC.format(
+        dist_column=f'"dist_{dist}"', operator=operator, dist_thresh=threshold, chosen_source=chosen_source
     )
     base_query = generate_base_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
         role=role,
-        extra_columns=inacc_columns,
-        extra_filters=inacc_cmd,
+        extra_columns=acc_columns,
+        extra_filters=acc_cmd,
     )
-    final_columns = bookmarks_columns + inacc_columns
-    order_cmd = f"ORDER BY {dist_column} ASC"
+    final_columns = bookmarks_columns + acc_columns
+    order_cmd = f"ORDER BY {dist_column} {order_by}"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
     )
@@ -791,7 +844,10 @@ def generate_extract_miss_false_events_query(
         extra_filters=f"bin_population = '{chosen_source}'",
     )
     final_columns = bookmarks_columns + metric_columns
-    query = EXTRACT_EVENT_QUERY.format(final_columns=", ".join(final_columns), base_query=base_query, order_cmd="")
+    order_cmd = f"ORDER BY batch_num, clip_name, grabindex ASC"
+    query = EXTRACT_EVENT_QUERY.format(
+        final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
+    )
     return query, final_columns
 
 
