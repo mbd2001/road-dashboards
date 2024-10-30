@@ -4,6 +4,7 @@ from dash import dash_table, dcc, html
 
 import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.components_ids import (
+    PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
     PATHNET_EVENTS_DIST_DROPDOWN_DIV,
@@ -43,6 +44,7 @@ def create_header_row():
                     id=PATHNET_EXPORT_TO_JUMP_BUTTON,
                     color="primary",
                     className="me-1",
+                    style={"position": "absolute", "top": 5, "right": 90},
                 ),
                 width=2,
             ),
@@ -198,6 +200,17 @@ def create_submit_events_filtering_row():
     return dbc.Row(
         [
             dbc.Col(dbc.Button("Extract", id=PATHNET_EVENTS_SUBMIT_BUTTON, color="success")),
+            dbc.Col(
+                daq.BooleanSwitch(
+                    id=PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
+                    on=False,
+                    label="Unique clips",
+                    labelPosition="left",
+                    style={"margin-left": "0px", "display": "inline-block"},
+                ),
+                width=2,
+                style={"text-align": "left"},
+            ),
             dbc.Col(
                 dcc.Input(
                     id=PATHNET_EVENTS_NUM_EVENTS,
