@@ -5,16 +5,23 @@ import dash_daq as daq
 from dash import Input, Output, callback, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query, functions
 from pypika.terms import Term
-from road_dump_dashboard.graphical_components.histogram_plot import basic_histogram_plot
-from road_dump_dashboard.graphical_components.line_graph import draw_line_graph
-from road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
-from road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper, loading_wrapper
-from road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
-from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dump_dashboard.table_schemes.base import Base, Column
-from road_dump_dashboard.table_schemes.custom_functions import Round, execute, load_object
-from road_dump_dashboard.table_schemes.meta_data import MetaData
+
+from road_dashboards.road_dump_dashboard.graphical_components.histogram_plot import basic_histogram_plot
+from road_dashboards.road_dump_dashboard.graphical_components.line_graph import draw_line_graph
+from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
+    base_data_subquery,
+    percentage_wrapper,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import Round, execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class CountGraph(GridObject):
@@ -138,8 +145,11 @@ class CountGraph(GridObject):
                 .groupby(self.column.alias, dump_name)
                 .select(self.column.alias, dump_name, functions.Count("*", "overall"))
             )
-            data = execute(query)
+            if compute_percentage:
+                query = percentage_wrapper(query, query.overall, [dump_name], [self.column])
+
             y_col = "percentage" if compute_percentage else "overall"
+            data = execute(query.orderby(dump_name))
             fig = pie_or_line_graph(data, self.column.alias, y_col, title=self.title, color=dump_name.alias)
             return fig
 

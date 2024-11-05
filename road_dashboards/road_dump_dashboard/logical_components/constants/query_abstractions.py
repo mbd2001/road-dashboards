@@ -1,11 +1,14 @@
 from functools import reduce
 from operator import mul
 
-from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
+from pypika import Criterion, EmptyCriterion, Query, Tuple
+from pypika import analytics as an
+from pypika import functions
 from pypika.queries import QueryBuilder
 from pypika.terms import Term
-from road_dump_dashboard.table_schemes.base import Base, Column
-from road_dump_dashboard.table_schemes.meta_data import MetaData
+
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 def base_data_subquery(
@@ -22,7 +25,6 @@ def base_data_subquery(
         join_main_and_md(main_table, md_table)
         .select(*resolve_unambiguous(md_table, terms))
         .where(*resolve_unambiguous(md_table, [filters]))
-        # .where(*resolve_unambiguous(md_table, [EmptyCriterion()]))
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
     union_table = union_all_query_list(joint_tables)
@@ -107,6 +109,16 @@ def conf_mat_subquery(
         .select(first_diff_col.as_("main_val"), second_diff_col.as_("secondary_val"), functions.Count("*", "overall"))
     )
     return joined_query
+
+
+def percentage_wrapper(
+    sub_query: QueryBuilder,
+    percentage_column: Column,
+    partition_columns: list[Column],
+    terms: list[Term],
+):
+    percentage_calc = (percentage_column * 100.0 / an.Sum(percentage_column).over(*partition_columns)).as_("percentage")
+    return Query().from_(sub_query).select(*partition_columns, *[term.alias for term in terms], percentage_calc)
 
 
 DIFF_IDS_QUERY = """

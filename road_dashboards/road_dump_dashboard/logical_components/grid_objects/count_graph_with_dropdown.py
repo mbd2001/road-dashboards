@@ -2,15 +2,25 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, callback, dcc, html, no_update
 from pypika import Criterion, Query, functions
-from road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
-from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper, loading_wrapper
-from road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
-from road_dump_dashboard.logical_components.grid_objects.count_graph import pie_or_line_graph, round_term
-from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dump_dashboard.table_schemes.base import Base, Column
-from road_dump_dashboard.table_schemes.custom_functions import execute, load_object
-from road_dump_dashboard.table_schemes.meta_data import MetaData
+
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
+    base_data_subquery,
+    percentage_wrapper,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph import (
+    pie_or_line_graph,
+    round_term,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class CountGraphWithDropdown(GridObject):
@@ -125,7 +135,10 @@ class CountGraphWithDropdown(GridObject):
                 .groupby(column.alias, dump_name)
                 .select(column.alias, dump_name, functions.Count("*", "overall"))
             )
-            data = execute(query)
+            if compute_percentage:
+                query = percentage_wrapper(query, query.overall, [dump_name], [column])
+
+            data = execute(query.orderby(dump_name))
             y_col = "percentage" if compute_percentage else "overall"
             fig = pie_or_line_graph(
                 data, column.alias, y_col, title=f"{column.alias.title()} Distribution", color="dump_name"
