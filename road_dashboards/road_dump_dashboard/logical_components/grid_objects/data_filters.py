@@ -5,14 +5,15 @@ from typing import Callable
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
-from pypika import Criterion, EmptyCriterion
+from pypika import Criterion, EmptyCriterion, Query
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.table_schemes.base import Column
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, execute, load_object
 
 
 class DataFilters(GridObject):
@@ -187,8 +188,10 @@ class DataFilters(GridObject):
             Input({"type": self.operation_id, "index": MATCH}, "value"),
             State({"type": self.operation_id, "index": MATCH}, "id"),
             State({"type": self.column_id, "index": MATCH}, "value"),
+            Input(self.main_table, "data"),
+            Input(META_DATA, "data"),
         )
-        def update_meta_data_values_options(operation, index, column):
+        def update_meta_data_values_options(operation, index, column, main_tables, md_tables):
             curr_index = index["index"]
             if not column or not operation:
                 return dcc.Input(
@@ -213,7 +216,13 @@ class DataFilters(GridObject):
                 )
             elif operation in ["eq", "ne", "isin", "notin"] and column.type in [str, bool]:
                 multi = operation in ["isin", "notin"]
-                distinguish_values = self.get_column_distinct_values(column)
+                if column.type is bool:
+                    distinguish_values = {True: "True", False: "False"}
+                else:
+                    main_tables: list[Base] = load_object(main_tables)
+                    md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                    distinguish_values = self.get_distinct_string_values(column, main_tables, md_tables)
+
                 return dcc.Dropdown(
                     id={"type": self.filter_val_id, "index": curr_index},
                     style={"minWidth": "100%", "display": "block"},
@@ -343,11 +352,15 @@ class DataFilters(GridObject):
         return None
 
     @staticmethod
-    def get_column_distinct_values(column: Column):
-        if column.type is bool:
-            return {True: "True", False: "False"}
-        else:
-            return {}
+    def get_distinct_string_values(column: Column, main_tables: list[Base], md_tables: list[Base]):
+        base_query = base_data_subquery(
+            main_tables=main_tables,
+            terms=[column],
+            meta_data_tables=md_tables,
+        )
+        distinct_query = Query().from_(base_query).select(column.alias).distinct().limit(30)
+        distinct_values = execute(distinct_query)[column.alias]
+        return distinct_values
 
     @staticmethod
     def get_united_columns_dict(main_data: str, md_table: str):
