@@ -19,6 +19,10 @@ def prepare_weekly_data(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return pd.DataFrame()
 
+    required_columns = ['last_update', 'status']
+    if not all(col in df.columns for col in required_columns):
+        raise ValueError(f"DataFrame must contain columns: {required_columns}")
+
     df["last_update"] = pd.to_datetime(df["last_update"])
 
     # Group data by week and status, counting occurrences

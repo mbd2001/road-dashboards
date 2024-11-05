@@ -1,6 +1,6 @@
 import pandas as pd
 from road_database_toolkit.dynamo_db.db_manager import DBManager
-
+from loguru import logger
 from workflows_dashboard.config import DBConfig, WorkflowFields
 
 
@@ -10,14 +10,17 @@ class WorkflowsDBManager(DBManager):
 
     def get_all_workflow_data(self) -> pd.DataFrame:
         """Get all workflow data as a DataFrame."""
-        items = self.table.scan().get("Items", [])
-        if not items:
+        try:
+            items = self.table.scan().get("Items", [])
+            if not items:
+                return pd.DataFrame()
+
+            df = pd.DataFrame(items)
+            df["workflows"] = df["workflows"].apply(list)
+            return df
+        except Exception as e:
+            logger.error(f"Error fetching workflow data: {str(e)}")
             return pd.DataFrame()
-
-        df = pd.DataFrame(items)
-        df["workflows"] = df["workflows"].apply(list)
-
-        return df
 
     def _process_workflow_df(
         self, df: pd.DataFrame, workflow_name: str, brains: list = None, start_date: str = None, end_date: str = None

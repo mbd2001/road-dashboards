@@ -56,5 +56,4 @@ class ChartConfig:
 @dataclass
 class DBConfig:
     table_name: str = "algoroad_workflows"
-    region: str = "us-east-1"
     primary_key: str = WorkflowFields.clip_name
