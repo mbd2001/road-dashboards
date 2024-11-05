@@ -1,5 +1,8 @@
 import dash_bootstrap_components as dbc
-from road_dump_dashboard.logical_components.constants.components_ids import LOAD_DATASETS_DATA_NOTIFICATION
+
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import (
+    LOAD_DATASETS_DATA_NOTIFICATION,
+)
 
 layout = dbc.Modal(
     [

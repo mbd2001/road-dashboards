@@ -1,17 +1,24 @@
 from dash import register_page
-from road_dump_dashboard.logical_components.constants.page_properties import PageProperties
-from road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
-from road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import ConfMatGraphWithDropdown
-from road_dump_dashboard.logical_components.grid_objects.count_graph import CountGraph
-from road_dump_dashboard.logical_components.grid_objects.count_graph_with_dropdown import CountGraphWithDropdown
-from road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
-from road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
-from road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
-from road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
-from road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
-from road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import TwoDatasetsSelector
-from road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
-from road_dump_dashboard.table_schemes.lane_marks import LaneMarks
+
+from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
+    ConfMatGraphWithDropdown,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph import CountGraph
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph_with_dropdown import (
+    CountGraphWithDropdown,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
+    TwoDatasetsSelector,
+)
+from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
+from road_dashboards.road_dump_dashboard.table_schemes.lane_marks import LaneMarks
 
 page = PageProperties(order=2, icon="search", path="/lane_marks", title="Lane Marks", main_table="lm_meta_data")
 register_page(__name__, **page.__dict__)

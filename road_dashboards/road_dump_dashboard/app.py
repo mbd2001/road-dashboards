@@ -6,12 +6,23 @@ import sys
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Dash, Input, Output, callback, dcc, html, no_update
-from road_dump_dashboard.logical_components.constants.components_ids import LOAD_DATASETS_DATA_NOTIFICATION, URL
-from road_dump_dashboard.logical_components.constants.dcc_stores import init_dcc_stores
-from road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES, init_tables
-from road_dump_dashboard.logical_components.grid_objects.catalog_table import dump_db_manager
-from road_dump_dashboard.logical_components.multi_page_objects import load_datasets_modal, page_content, sidebar
-from road_dump_dashboard.table_schemes.custom_functions import dump_object
+
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import (
+    LOAD_DATASETS_DATA_NOTIFICATION,
+    URL,
+)
+from road_dashboards.road_dump_dashboard.logical_components.constants.dcc_stores import init_dcc_stores
+from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import (
+    EXISTING_TABLES,
+    init_tables,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.catalog_table import dump_db_manager
+from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects import (
+    load_datasets_modal,
+    page_content,
+    sidebar,
+)
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object
 
 debug = False if os.environ.get("DEBUG") == "false" else True
 if not debug:

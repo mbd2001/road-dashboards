@@ -1,8 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import Input, Output, Patch, callback, dcc, no_update
-from road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetsSelector
-from road_dump_dashboard.table_schemes.base import Base
 
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetsSelector
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import load_object
 
 

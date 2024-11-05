@@ -1,6 +1,6 @@
 from dash import register_page
-from road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 
+from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
     ConfMatGraphWithDropdown,

@@ -1,7 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import html
-from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
-from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 
 
 class GridGenerator(GridObject):

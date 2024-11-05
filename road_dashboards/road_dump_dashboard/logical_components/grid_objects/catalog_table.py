@@ -5,9 +5,10 @@ import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
-from road_dump_dashboard.logical_components.constants.components_ids import URL
-from road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
-from road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import URL
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
 

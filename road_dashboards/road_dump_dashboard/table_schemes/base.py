@@ -7,7 +7,8 @@ from pypika import Field, Table
 from pypika.queries import Selectable
 from pypika.terms import Term
 from pypika.utils import builder
-from road_dump_dashboard.table_schemes.custom_functions import dump_object
+
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object
 
 
 class Column(Field):

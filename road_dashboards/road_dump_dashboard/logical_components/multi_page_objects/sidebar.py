@@ -1,7 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, callback, html, page_registry
-from road_dump_dashboard.logical_components.constants.components_ids import SIDEBAR, URL
-from road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
+
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import SIDEBAR, URL
+from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 
 
 def sidebar():
