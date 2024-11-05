@@ -26,6 +26,10 @@ def create_status_pie_chart(df: pd.DataFrame, workflow_name: str):
         color=status_counts.index,
     )
 
+    fig.update_traces(
+        hovertemplate="%{label}<br>Count: %{value}<br>Percentage: %{percent}<extra></extra>"
+    )
+
     add_center_annotation(fig, f"Total Clips:<br><b>{total_clips}</b>")
 
     return fig

@@ -46,7 +46,6 @@ class WorkflowsDBManager(DBManager):
         # Rename columns by removing workflow_name prefix
         workflow_prefix = f"{workflow_name}_"
         column_mapping = {col: col.replace(workflow_prefix, "") for col in filtered_df.columns}
-
         return filtered_df.rename(columns=column_mapping)
 
     def get_multiple_workflow_data(

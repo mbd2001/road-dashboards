@@ -18,6 +18,7 @@ BRAIN_OPTIONS = ["8mp", "wono", "mono"]
 DEFAULT_BRAIN = "8mp"
 BRAIN_SELECTOR = "brain-selector"
 WORKFLOW_SELECTOR = "workflow-selector"
+MAX_ERROR_MESSAGE_LENGTH = 45
 
 
 @dataclass
@@ -27,6 +28,7 @@ class WorkflowFields:
     last_update = "last_update"
     brain_type = "brain_type"
     clip_name = "clip_name"
+    exit_code = "exit_code"
 
 
 class Status(str, Enum):
