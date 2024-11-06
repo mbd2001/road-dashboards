@@ -11,6 +11,7 @@ RUN chmod 777 -R /app
 
 RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
     pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
+RUN yum -y install git
 
 
 # pip installations
