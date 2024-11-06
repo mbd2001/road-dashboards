@@ -34,7 +34,7 @@ obj_count_card = ObjCountCard(
     intersection_switch_id=population_card.intersection_switch_id,
 )
 tv_prefects_count = CountGraph(
-    column=MetaData.gtem_labels_exist,
+    column=MetaData.is_tv_perfect,
     title="Top View Perfects Exists",
     main_table=page.main_table,
     page_filters_id=filters_agg.final_filter_id,
