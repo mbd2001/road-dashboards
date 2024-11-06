@@ -1,7 +1,8 @@
-from dash import html, register_page
+from dash import register_page
 
-from road_dashboards.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
-from road_dashboards.road_dump_dashboard.components.logical_components import catalog_table
+from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.catalog_table import CatalogTable
+from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 
 page_properties = PageProperties(
     order=0,
@@ -12,6 +13,4 @@ page_properties = PageProperties(
 register_page(__name__, **page_properties.__dict__)
 
 
-def layout():
-    home_layout = html.Div(catalog_table.layout())
-    return home_layout
+layout = GridGenerator(CatalogTable()).layout()
