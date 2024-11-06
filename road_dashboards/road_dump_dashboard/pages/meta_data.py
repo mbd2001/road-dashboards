@@ -57,6 +57,14 @@ curve_rad_hist = CountGraph(
     filter=MetaData.curve_rad_ahead != 99999,
     full_grid_row=True,
 )
+batches_hist = CountGraph(
+    column=MetaData.batch_num,
+    title="Batches Distribution",
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+    full_grid_row=True,
+)
 road_type_hist = CountGraph(
     column=MetaData.road_type,
     title="Road Type Distribution",
@@ -117,6 +125,7 @@ layout = GridGenerator(
     tv_prefects_count,
     gtem_count,
     curve_rad_hist,
+    batches_hist,
     road_type_hist,
     lm_color_hist,
     wildcard_count,

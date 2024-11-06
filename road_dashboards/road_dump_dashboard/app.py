@@ -11,7 +11,6 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.components
     LOAD_DATASETS_DATA_NOTIFICATION,
     URL,
 )
-from road_dashboards.road_dump_dashboard.logical_components.constants.dcc_stores import init_dcc_stores
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import (
     EXISTING_TABLES,
     init_tables,
@@ -22,6 +21,7 @@ from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects i
     page_content,
     sidebar,
 )
+from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.dcc_stores import init_dcc_stores
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object
 
 debug = False if os.environ.get("DEBUG") == "false" else True
