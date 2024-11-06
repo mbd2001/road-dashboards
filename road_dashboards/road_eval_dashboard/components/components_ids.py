@@ -149,6 +149,13 @@ PATH_NET_QUALITY_UNMATHCED_CORRECT_REJECTION = "path_net_quality_unmathced_corre
 PATHNET_BOUNDARY_ACC = "pathnet_boundary_acc"
 BOUNDARY_DROP_DOWN = "boundary-dropdown"
 
+PATHNET_MID_PRED_SOURCE = "pathnet_mid_pred_source"
+PATHNET_MID_MATCHED_PRED_SOURCE_HOST = "pathnet_mid_matched_pred_source_host"
+PATHNET_MID_MATCHED_PRED_SOURCE_NON_HOST = "pathnet_mid_matched_pred_source_non_host"
+PATHNET_MID_MATCHED_PRED_SOURCE_ALL = "pathnet_mid_matched_pred_source_all"
+PATHNET_MID_MATCHED_INPUT_SOURCE_HOST = "pathnet_mid_matched_input_source_host"
+PATHNET_MID_MATCHED_INPUT_SOURCE_NON_HOST = "pathnet_mid_matched_input_source_non_host"
+PATHNET_MID_MATCHED_INPUT_SOURCE_ALL = "pathnet_mid_matched_input_source_all"
 
 PATH_NET_CONF_MAT_CARD = "all_conf_mat_id"
 PATHNET_TPR_CARD = "all_dp_tpr_card_id"
