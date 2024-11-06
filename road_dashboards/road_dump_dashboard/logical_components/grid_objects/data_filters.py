@@ -358,7 +358,7 @@ class DataFilters(GridObject):
             terms=[column],
             meta_data_tables=md_tables,
         )
-        distinct_query = Query().from_(base_query).select(column.alias).distinct().limit(30)
+        distinct_query = Query.from_(base_query).select(column.alias).distinct().limit(30)
         distinct_values = execute(distinct_query)[column.alias]
         return distinct_values
 

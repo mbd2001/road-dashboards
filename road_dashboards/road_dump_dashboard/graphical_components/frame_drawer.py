@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Optional
 
 import numpy as np
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from dash import dcc
@@ -74,7 +75,7 @@ class CandidateParams:
         return x, y, half_width, dashed_y
 
 
-def get_candidate(cand: dict, is_img: bool = True):
+def get_candidate(cand: pd.Series, is_img: bool = True):
     obj_id = int(cand["obj_id"])
     color = cand.get("color")
     type = cand.get("type")
@@ -121,10 +122,10 @@ def get_aggregated_dashed_y(start_y=None, end_y=None):
     return dashed_y
 
 
-def draw_top_view(candidates: list[dict]):
+def draw_top_view(candidates: pd.DataFrame):
     fig = go.Figure()
-    for cand_dict in candidates:
-        cand = get_candidate(cand_dict, is_img=False)
+    for _, cand_row in candidates.iterrows():
+        cand = get_candidate(cand_row, is_img=False)
         draw_line(fig, cand)
 
     fig.update_layout(showlegend=False, height=FIGS_HEIGHT)
@@ -134,10 +135,10 @@ def draw_top_view(candidates: list[dict]):
     return graph
 
 
-def draw_img(image, candidates, dump_name, clip_name, grab_index):
+def draw_img(image, candidates: pd.DataFrame, dump_name, clip_name, grab_index):
     fig = px.imshow(image, color_continuous_scale="gray", origin="lower", aspect="auto")
-    for cand_dict in candidates:
-        cand = get_candidate(cand_dict)
+    for _, cand_row in candidates.iterrows():
+        cand = get_candidate(cand_row)
         draw_line(fig, cand)
 
     fig.update_layout(

@@ -25,7 +25,7 @@ class GridGenerator(GridObject):
         if self.warp_sub_objects:
             grid_layout = card_wrapper(grid_layout)
 
-        return html.Div(grid_layout, id=self.component_id, style={"display": "block"})
+        return html.Div(grid_layout, id=self.component_id, hidden=False)
 
     def _callbacks(self):
         pass

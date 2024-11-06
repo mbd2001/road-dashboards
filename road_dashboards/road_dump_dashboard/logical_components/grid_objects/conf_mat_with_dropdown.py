@@ -93,7 +93,7 @@ class ConfMatGraphWithDropdown(GridObject):
             column: Column = load_object(column)
 
             conf_query = conf_mat_subquery(
-                diff_column=column,
+                group_by_column=column,
                 main_labels=[table for table in main_tables if table.dataset_name == main_dump],
                 secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
                 main_md=[table for table in md_tables if table.dataset_name == main_dump],

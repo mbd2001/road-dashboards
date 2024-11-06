@@ -31,26 +31,30 @@ class Base(Table):
 
     @classmethod
     @overload
-    def get_columns_dict(cls, dump_terms: Literal[True] = True, include_all_terms: bool = False) -> dict[str, str]: ...
+    def get_columns_dict(
+        cls, dump_columns: Literal[True] = True, include_all_columns: bool = False
+    ) -> dict[str, str]: ...
 
     @classmethod
     @overload
     def get_columns_dict(
-        cls, dump_terms: Literal[False] = True, include_all_terms: bool = False
+        cls, dump_columns: Literal[False] = True, include_all_columns: bool = False
     ) -> dict[Term, str]: ...
 
     @classmethod
     @overload
-    def get_columns_dict(cls, dump_terms: bool = True, include_all_terms: bool = False) -> dict[str | Term, str]: ...
+    def get_columns_dict(
+        cls, dump_columns: bool = True, include_all_columns: bool = False
+    ) -> dict[str | Term, str]: ...
 
     @classmethod
-    def get_columns_dict(cls, dump_terms: bool = True, include_all_terms: bool = False) -> dict[str | Term, str]:
-        cls_term: list[tuple[str, Term]] = inspect.getmembers(
+    def get_columns_dict(cls, dump_columns: bool = True, include_all_columns: bool = False) -> dict[str | Term, str]:
+        cls_columns: list[tuple[str, Term]] = inspect.getmembers(
             cls,
-            lambda term: isinstance(term, Term)
-            and (include_all_terms or get_origin(getattr(term, "type", list[Any])) != list),
+            lambda term: isinstance(term, Column)
+            and (include_all_columns or get_origin(getattr(term, "type", list[Any])) != list),
         )
-        return {dump_object(term) if dump_terms else term: name for name, term in cls_term}
+        return {dump_object(column) if dump_columns else column: name for name, column in cls_columns}
 
     def __init__(self, table_name: str, dataset_name: str):
         super().__init__(table_name)

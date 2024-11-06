@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, Patch, callback, dcc, no_update
+from dash import Input, Output, callback, dcc, no_update
 
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetsSelector
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
@@ -62,18 +62,15 @@ class TwoDatasetsSelector(DatasetsSelector):
         if self.obj_to_hide_id:
 
             @callback(
-                Output(self.obj_to_hide_id, "style"),
+                Output(self.obj_to_hide_id, "hidden"),
                 Input(self.main_table, "data"),
             )
             def toggle_hidden(main_tables):
-                patched_style = Patch()
-                patched_style["display"] = "none"
                 if not main_tables:
-                    return patched_style
+                    return no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 if len(main_tables) < 2:
-                    return patched_style
+                    return True
 
-                patched_style["display"] = "block"
-                return patched_style
+                return False

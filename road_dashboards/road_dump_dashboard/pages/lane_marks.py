@@ -11,6 +11,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_g
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.frames_modal import FramesModal
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
@@ -138,6 +139,14 @@ wildcard_conf = ConfMatGraphWithDropdown(
     page_filters_id=filters_agg.final_filter_id,
     main_table=page.main_table,
 )
+frames_modal = FramesModal(
+    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
+    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
+    main_table=page.main_table,
+    triggering_conf_mats=[type_conf, color_conf, role_conf],
+    triggering_dropdown_conf_mats=[wildcard_conf],
+)
 
 layout = GridGenerator(
     data_filters,
@@ -153,6 +162,14 @@ layout = GridGenerator(
     dashed_gap_hist,
     obj_count,
     wildcard_count,
-    GridGenerator(two_datasets_selector, type_conf, color_conf, role_conf, wildcard_conf, component_id=obj_to_hide_id),
+    GridGenerator(
+        two_datasets_selector,
+        type_conf,
+        color_conf,
+        role_conf,
+        wildcard_conf,
+        frames_modal,
+        component_id=obj_to_hide_id,
+    ),
     warp_sub_objects=False,
 ).layout()

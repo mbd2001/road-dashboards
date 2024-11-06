@@ -1,5 +1,3 @@
-from typing import Optional
-
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, callback, dcc, html, no_update
@@ -42,7 +40,7 @@ class CountGraph(GridObject):
         page_filters_id: str,
         intersection_switch_id: str,
         filter: Criterion = EmptyCriterion(),
-        slider_value: Optional[int] = None,
+        slider_value: int | None = None,
         full_grid_row: bool = False,
         component_id: str = "",
     ):

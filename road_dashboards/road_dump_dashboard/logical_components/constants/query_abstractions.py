@@ -72,7 +72,7 @@ def intersect_query_list(query_list: list[QueryBuilder]) -> QueryBuilder:
 
 
 def conf_mat_subquery(
-    diff_column: Column,
+    group_by_column: Column,
     main_labels: list[Base],
     secondary_labels: list[Base],
     main_md: list[Base] = None,
@@ -80,7 +80,58 @@ def conf_mat_subquery(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
 ):
-    terms = [diff_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id]
+    terms = list({group_by_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
+    main_subquery = base_data_subquery(
+        main_tables=main_labels,
+        terms=terms,
+        meta_data_tables=main_md,
+        data_filter=data_filter,
+        page_filters=page_filters,
+    )
+    secondary_subquery = base_data_subquery(
+        main_tables=secondary_labels,
+        terms=terms,
+        meta_data_tables=secondary_md,
+        data_filter=data_filter,
+        page_filters=page_filters,
+    )
+    first_diff_col = group_by_column.replace_table(None, main_subquery)
+    second_diff_col = group_by_column.replace_table(None, secondary_subquery)
+    group_by_query = (
+        Query.from_(main_subquery)
+        .inner_join(secondary_subquery)
+        .on(
+            (main_subquery.clip_name == secondary_subquery.clip_name)
+            & (main_subquery.grabindex == secondary_subquery.grabindex)
+            & (main_subquery.obj_id == secondary_subquery.obj_id)
+        )
+        .groupby(first_diff_col, second_diff_col)
+        .select(first_diff_col.as_("main_val"), second_diff_col.as_("secondary_val"), functions.Count("*", "overall"))
+    )
+    return group_by_query
+
+
+def percentage_wrapper(
+    sub_query: QueryBuilder,
+    percentage_column: Column,
+    partition_columns: list[Column],
+    terms: list[Term],
+):
+    percentage_calc = (percentage_column * 100.0 / an.Sum(percentage_column).over(*partition_columns)).as_("percentage")
+    return Query.from_(sub_query).select(*partition_columns, *[term.alias for term in terms], percentage_calc)
+
+
+def diff_ids_subquery(
+    diff_column: Column,
+    main_labels: list[Base],
+    secondary_labels: list[Base],
+    main_md: list[Base] = None,
+    secondary_md: list[Base] = None,
+    data_filter: Criterion = EmptyCriterion(),
+    page_filters: Criterion = EmptyCriterion(),
+    limit: int | None = None,
+):
+    terms = list({diff_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
     main_subquery = base_data_subquery(
         main_tables=main_labels,
         terms=terms,
@@ -97,7 +148,7 @@ def conf_mat_subquery(
     )
     first_diff_col = diff_column.replace_table(None, main_subquery)
     second_diff_col = diff_column.replace_table(None, secondary_subquery)
-    joined_query = (
+    diff_query = (
         Query.from_(main_subquery)
         .inner_join(secondary_subquery)
         .on(
@@ -105,41 +156,57 @@ def conf_mat_subquery(
             & (main_subquery.grabindex == secondary_subquery.grabindex)
             & (main_subquery.obj_id == secondary_subquery.obj_id)
         )
-        .groupby(first_diff_col, second_diff_col)
-        .select(first_diff_col.as_("main_val"), second_diff_col.as_("secondary_val"), functions.Count("*", "overall"))
+        .where(first_diff_col != second_diff_col)
+        .select(main_subquery.clip_name, main_subquery.grabindex)
+        .distinct()
+        .limit(limit)
     )
-    return joined_query
+    return diff_query
 
 
-def percentage_wrapper(
-    sub_query: QueryBuilder,
-    percentage_column: Column,
-    partition_columns: list[Column],
-    terms: list[Term],
+def diff_labels_subquery(
+    diff_column: Column,
+    label_columns: list[Term],
+    main_labels: list[Base],
+    secondary_labels: list[Base],
+    main_md: list[Base] = None,
+    secondary_md: list[Base] = None,
+    data_filter: Criterion = EmptyCriterion(),
+    page_filters: Criterion = EmptyCriterion(),
+    limit: int | None = None,
 ):
-    percentage_calc = (percentage_column * 100.0 / an.Sum(percentage_column).over(*partition_columns)).as_("percentage")
-    return Query().from_(sub_query).select(*partition_columns, *[term.alias for term in terms], percentage_calc)
-
-
-DIFF_IDS_QUERY = """
-    SELECT A.clip_name, A.grabindex
-    FROM ({main_data}) A INNER JOIN ({secondary_data}) B
-    ON ((A.clip_name = B.clip_name) AND (A.grabindex = B.grabindex) AND (A.obj_id = B.obj_id))
-    WHERE A.{column_to_compare} != B.{column_to_compare}
-    GROUP BY A.clip_name, A.grabindex   
-    LIMIT {limit}
-"""
-
-DIFF_LABELS_QUERY = """
-    WITH t1 AS (
-        {diff_ids_query}
+    diff_ids = diff_ids_subquery(
+        diff_column,
+        main_labels,
+        secondary_labels,
+        main_md,
+        secondary_md,
+        data_filter,
+        page_filters,
+        limit,
     )
-    SELECT t2.clip_name, t2.grabindex, t2.dump_name, {agg_columns}
-    FROM 
-    (SELECT clip_name, grabindex, dump_name, {label_columns} FROM {main_data} UNION ALL SELECT clip_name, grabindex, dump_name, {label_columns} FROM {secondary_data}) t2
-    INNER JOIN t1 
-    ON t1.clip_name = t2.clip_name AND t1.grabindex = t2.grabindex
-    GROUP BY t2.clip_name, t2.grabindex, t2.dump_name
-"""
 
-IMG_LIMIT = 25
+    terms = list({*label_columns})
+    main_subquery = base_data_subquery(
+        main_tables=main_labels,
+        terms=terms,
+        meta_data_tables=main_md,
+        data_filter=data_filter,
+        page_filters=page_filters,
+    )
+    secondary_subquery = base_data_subquery(
+        main_tables=secondary_labels,
+        terms=terms,
+        meta_data_tables=secondary_md,
+        data_filter=data_filter,
+        page_filters=page_filters,
+    )
+
+    union_query = main_subquery.union_all(secondary_subquery)
+    labels_query = (
+        Query.from_(union_query)
+        .where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(diff_ids))
+        .select(*terms)
+        .orderby(MetaData.dump_name, MetaData.clip_name, MetaData.grabindex)
+    )
+    return labels_query

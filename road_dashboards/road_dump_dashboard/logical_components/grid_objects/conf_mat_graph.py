@@ -98,7 +98,7 @@ class ConfMatGraph(GridObject):
             page_filters: Criterion = load_object(page_filters)
 
             conf_query = conf_mat_subquery(
-                diff_column=self.column,
+                group_by_column=self.column,
                 main_labels=[table for table in main_tables if table.dataset_name == main_dump],
                 secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
                 main_md=[table for table in md_tables if table.dataset_name == main_dump],
