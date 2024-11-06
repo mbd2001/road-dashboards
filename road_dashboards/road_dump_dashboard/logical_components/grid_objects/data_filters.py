@@ -152,7 +152,7 @@ class DataFilters(GridObject):
             if not callback_context.triggered_id:
                 return no_update, no_update
 
-            column: Column = load_object(column)
+            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
             if column.type is str:
                 options = {
                     "eq": "Equal",
@@ -198,26 +198,26 @@ class DataFilters(GridObject):
                     id={"type": self.filter_val_id, "index": curr_index},
                     style={"minWidth": "100%", "display": "block"},
                     placeholder="----",
-                    value="",
+                    value=None,
                     type="text",
                 )
 
             if not callback_context.triggered_id:
                 return no_update
 
-            column: Column = load_object(column)
+            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
             if operation in ["isnull", "isnotnull"]:
                 return dcc.Input(
                     id={"type": self.filter_val_id, "index": curr_index},
                     style={"minWidth": "100%", "display": "none"},
                     placeholder="----",
-                    value="",
+                    value=None,
                     type="text",
                 )
             elif operation in ["eq", "ne", "isin", "notin"] and column.type in [str, bool]:
                 multi = operation in ["isin", "notin"]
                 if column.type is bool:
-                    distinguish_values = {True: "True", False: "False"}
+                    distinguish_values = {"T": "True", "": "False"}
                 else:
                     main_tables: list[Base] = load_object(main_tables)
                     md_tables: list[Base] = load_object(md_tables) if md_tables else None
@@ -229,7 +229,7 @@ class DataFilters(GridObject):
                     multi=multi,
                     clearable=True,
                     placeholder="----",
-                    value="",
+                    value=None,
                     options=distinguish_values,
                 )
             else:
@@ -238,7 +238,7 @@ class DataFilters(GridObject):
                     id={"type": self.filter_val_id, "index": curr_index},
                     style={"minWidth": "100%", "marginBottom": "10px", "display": "block"},
                     placeholder="----",
-                    value="",
+                    value=None,
                     type=input_type,
                 )
 
@@ -255,7 +255,7 @@ class DataFilters(GridObject):
             md_filters = self.recursive_build_meta_data_filters(first_group)
             return dump_object(md_filters)
 
-    def get_group_layout(self, index: int, md_columns_options: dict[Column:str], max_filters_per_group: int):
+    def get_group_layout(self, index: int, md_columns_options: list[str], max_filters_per_group: int):
         group_layout = dbc.Row(
             id={"type": self.subgroup_id, "index": index},
             children=[
@@ -297,7 +297,7 @@ class DataFilters(GridObject):
         )
         return group_layout
 
-    def get_filter_row_initial_layout(self, index: int, md_columns_options: dict[Column, str]):
+    def get_filter_row_initial_layout(self, index: int, md_columns_options: list[str]):
         single_filter_initial_layout = dbc.Row(
             id={"type": self.filter_id, "index": index},
             children=[
@@ -308,7 +308,7 @@ class DataFilters(GridObject):
                         multi=False,
                         clearable=True,
                         placeholder="Attribute",
-                        value="",
+                        value=None,
                         options=md_columns_options,
                     ),
                 ),
@@ -319,7 +319,7 @@ class DataFilters(GridObject):
                         multi=False,
                         clearable=True,
                         placeholder="----",
-                        value="",
+                        value=None,
                     ),
                 ),
                 dbc.Col(
@@ -328,7 +328,7 @@ class DataFilters(GridObject):
                         id={"type": self.filter_val_id, "index": index},
                         style={"minWidth": "100%", "display": "block"},
                         placeholder="----",
-                        value="",
+                        value=None,
                         type="text",
                     ),
                 ),
@@ -345,7 +345,7 @@ class DataFilters(GridObject):
 
     @staticmethod
     def get_empty_index(base_ind: int, filters_list, max_filters_per_group: int):
-        existing_indexes = set(single_filter["props"]["id"]["index"] for single_filter in filters_list)
+        existing_indexes = list(single_filter["props"]["id"]["index"] for single_filter in filters_list)
         for ind in range(base_ind, base_ind + max_filters_per_group):
             if ind not in existing_indexes:
                 return ind
@@ -363,11 +363,21 @@ class DataFilters(GridObject):
         return distinct_values
 
     @staticmethod
-    def get_united_columns_dict(main_data: str, md_table: str):
-        columns = EXISTING_TABLES[main_data].get_columns_dict()
-        columns.update(EXISTING_TABLES[md_table].get_columns_dict())
+    def get_united_columns_dict(main_data: str, md_table: str = None) -> list[str]:
+        columns = EXISTING_TABLES[main_data].get_columns()
+        if md_table:
+            md_columns = EXISTING_TABLES[md_table].get_columns()
+            columns = list(set(columns + md_columns))
 
         return columns
+
+    @staticmethod
+    def get_column_from_tables(column_name: str, main_data: str, md_table: str = None) -> Column:
+        column = getattr(EXISTING_TABLES[main_data], column_name, None)
+        if (not column) and md_table:
+            column = getattr(EXISTING_TABLES[md_table], column_name, None)
+
+        return column
 
     def recursive_build_meta_data_filters(self, filters) -> Criterion:
         # removed filter case
@@ -382,10 +392,10 @@ class DataFilters(GridObject):
             if not column or not operation:
                 return EmptyCriterion()
 
-            column: Column = load_object(column)
+            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
             operation: Callable = getattr(column, operation)
             value: str = row["children"][2]["props"]["children"]["props"]["value"]
-            single_filter = operation(value) if value != "" else operation()
+            single_filter = operation(column.type(value)) if value is not None else operation()
             return single_filter
 
         # group case

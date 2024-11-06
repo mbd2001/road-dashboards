@@ -8,8 +8,6 @@ from pypika.queries import Selectable
 from pypika.terms import Term
 from pypika.utils import builder
 
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object
-
 
 class Column(Field):
     def __init__(self, name: str, column_type: type, alias: str | None = None, table: Selectable | None = None) -> None:
@@ -31,30 +29,23 @@ class Base(Table):
 
     @classmethod
     @overload
-    def get_columns_dict(
-        cls, dump_columns: Literal[True] = True, include_all_columns: bool = False
-    ) -> dict[str, str]: ...
+    def get_columns(cls, names_only: Literal[True] = True, include_all_columns: bool = False) -> list[str]: ...
 
     @classmethod
     @overload
-    def get_columns_dict(
-        cls, dump_columns: Literal[False] = True, include_all_columns: bool = False
-    ) -> dict[Term, str]: ...
+    def get_columns(cls, names_only: Literal[False] = True, include_all_columns: bool = False) -> list[Column]: ...
 
     @classmethod
     @overload
-    def get_columns_dict(
-        cls, dump_columns: bool = True, include_all_columns: bool = False
-    ) -> dict[str | Term, str]: ...
+    def get_columns(cls, names_only: bool = True, include_all_columns: bool = False) -> list[str | Column]: ...
 
     @classmethod
-    def get_columns_dict(cls, dump_columns: bool = True, include_all_columns: bool = False) -> dict[str | Term, str]:
-        cls_columns: list[tuple[str, Term]] = inspect.getmembers(
+    def get_columns(cls, names_only: bool = True, include_all_columns: bool = False) -> list[str | Column]:
+        cls_columns: list[tuple[str, Column]] = inspect.getmembers(
             cls,
-            lambda term: isinstance(term, Column)
-            and (include_all_columns or get_origin(getattr(term, "type", list[Any])) != list),
+            lambda column: isinstance(column, Column) and (include_all_columns or get_origin(column.type) != list),
         )
-        return {dump_object(column) if dump_columns else column: name for name, column in cls_columns}
+        return [column.name if names_only else column for _, column in cls_columns]
 
     def __init__(self, table_name: str, dataset_name: str):
         super().__init__(table_name)

@@ -31,7 +31,7 @@ class TwoDatasetsSelector(DatasetsSelector):
                         style={"minWidth": "100%"},
                         multi=False,
                         placeholder="----",
-                        value="",
+                        value=None,
                     )
                 ),
             ]
@@ -52,12 +52,11 @@ class TwoDatasetsSelector(DatasetsSelector):
             if not selected_val:
                 return no_update
 
-            options = {val: title for val, title in options.items() if val != selected_val}
+            options = [val for val in options if val != selected_val]
             if not options:
                 return no_update, no_update, no_update
 
-            val, title = next(iter(options.items()))
-            return options, title, val
+            return options, options[0], options[0]
 
         if self.obj_to_hide_id:
 

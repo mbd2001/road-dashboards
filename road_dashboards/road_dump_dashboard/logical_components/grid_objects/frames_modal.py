@@ -154,9 +154,7 @@ class FramesModal(GridObject):
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
-                extra_columns = list(
-                    main_tables[0].get_columns_dict(dump_columns=False, include_all_columns=True).keys()
-                )
+                extra_columns = list(main_tables[0].get_columns(names_only=False, include_all_columns=True))
                 query = diff_labels_subquery(
                     diff_column=conf_mat.column,
                     label_columns=extra_columns,
@@ -224,7 +222,7 @@ class FramesModal(GridObject):
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
-                extra_columns = list(main_tables[0].get_columns_dict(dump_columns=False).keys())
+                extra_columns = list(main_tables[0].get_columns(names_only=False))
                 dynamic_column = load_object(dynamic_column)
                 query = diff_labels_subquery(
                     diff_column=dynamic_column,
@@ -273,7 +271,7 @@ class FramesModal(GridObject):
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            extra_columns = list(main_tables[0].get_columns_dict(dump_columns=False).keys())
+            extra_columns = list(main_tables[0].get_columns(names_only=False))
             column_to_compare = load_object(column_to_compare)
             query = diff_labels_subquery(
                 diff_column=column_to_compare,

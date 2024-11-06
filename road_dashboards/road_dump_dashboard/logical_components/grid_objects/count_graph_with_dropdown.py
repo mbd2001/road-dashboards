@@ -84,8 +84,8 @@ class CountGraphWithDropdown(GridObject):
                         style={"minWidth": "100%"},
                         multi=False,
                         placeholder="Attribute",
-                        options=EXISTING_TABLES[self.main_table].get_columns_dict(),
-                        value="",
+                        options=EXISTING_TABLES[self.main_table].get_columns(),
+                        value=None,
                     )
                 ),
                 dbc.Row(html.Div([graph_row, buttons_row])),
@@ -118,7 +118,7 @@ class CountGraphWithDropdown(GridObject):
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            column: Column = load_object(column)
+            column: Column = getattr(EXISTING_TABLES[self.main_table], column, None)
             page_filters: Criterion = load_object(page_filters)
 
             dump_name = MetaData.dump_name

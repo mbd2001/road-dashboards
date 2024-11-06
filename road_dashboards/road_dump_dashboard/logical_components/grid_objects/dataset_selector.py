@@ -24,7 +24,7 @@ class DatasetsSelector(GridObject):
             style={"minWidth": "100%"},
             multi=False,
             placeholder="----",
-            value="",
+            value=None,
         )
         return selector_layout
 
@@ -40,5 +40,5 @@ class DatasetsSelector(GridObject):
                 return no_update, no_update, no_update
 
             main_tables: list[Base] = load_object(main_tables)
-            options = {table.dataset_name: table.dataset_name.title() for table in main_tables}
-            return options, main_tables[0].dataset_name.title(), main_tables[0].dataset_name
+            options = [table.dataset_name for table in main_tables]
+            return options, options[0], options[0]
