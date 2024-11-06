@@ -29,7 +29,7 @@ population_card = PopulationCard()
 filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
 obj_count_card = ObjCountCard(
     main_table=page.main_table,
-    objs_name="lane marks",
+    objs_name="Lane marks",
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
 )
