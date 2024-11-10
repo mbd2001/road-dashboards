@@ -549,7 +549,7 @@ def dump_events_to_jump(n_clicks, data_table, explorer_data):
     s3_dir_path = explorer_data["s3_dir_path"]
     bookmarks_file_name = explorer_data["bookmarks_name"]
 
-    s3_full_path = path_join(s3_dir_path, f"{bookmarks_file_name}.jump")
+    s3_full_path = os.path.join(s3_dir_path, f"{bookmarks_file_name}.jump")
     try:
         df = pd.DataFrame(data_table)
         cols_with_dot = [col for col in df.columns if "." in col]
