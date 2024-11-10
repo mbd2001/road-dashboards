@@ -118,7 +118,7 @@ def percentage_wrapper(
     terms: list[Term],
 ):
     percentage_calc = (percentage_column * 100.0 / an.Sum(percentage_column).over(*partition_columns)).as_("percentage")
-    return Query.from_(sub_query).select(*partition_columns, *[term for term in terms], percentage_calc)
+    return Query.from_(sub_query).select(*partition_columns, *[term.alias for term in terms], percentage_calc)
 
 
 def diff_ids_subquery(
