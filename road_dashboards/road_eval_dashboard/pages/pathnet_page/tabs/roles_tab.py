@@ -88,7 +88,6 @@ def generate_host_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filte
 def get_miss_false_layout():
     layout = []
     for p_filter in PATHNET_MISS_FALSE_FILTERS:
-
         layout += [
             card_wrapper(
                 [

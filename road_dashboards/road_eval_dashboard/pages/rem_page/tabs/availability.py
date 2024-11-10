@@ -134,7 +134,7 @@ def get_availability_fig(
 ):
     label = f"rem_availability_{Z_source}"
     pred = 1
-    title = f"Availability"
+    title = "Availability"
     fig = get_rem_fig(
         meta_data_filters,
         nets,

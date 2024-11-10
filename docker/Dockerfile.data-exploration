@@ -9,6 +9,7 @@ COPY ./road_dashboards/road_dump_dashboard /app/road_dashboards/road_dump_dashbo
 
 RUN chmod 777 -R /app
 
+
 # git installation
 RUN apt-get update && apt-get upgrade -y && apt-get install -y git
 

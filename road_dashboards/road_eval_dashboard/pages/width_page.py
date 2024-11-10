@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
+from dash import MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 
 from road_dashboards.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_dashboards.road_eval_dashboard.components.common_filters import (
@@ -26,7 +26,6 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     Roles,
     ZSources,
     generate_sum_bins_by_diff_cols_metric_query,
-    generate_sum_bins_metric_query,
     generate_sum_success_rate_metric_by_Z_bins_query,
     generate_sum_success_rate_metric_query,
     run_query_with_nets_names_processing,

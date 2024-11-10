@@ -75,11 +75,11 @@ def get_cumulative_acc_layout():
                         [
                             html.Label(
                                 "dist (sec)",
-                                id={"id": f"acc threshold", "ind": i},
+                                id={"id": "acc threshold", "ind": i},
                                 style={"text-align": "center", "fontSize": "20px"},
                             ),
                             dcc.RangeSlider(
-                                id={"id": f"dist-column-slider", "ind": i},
+                                id={"id": "dist-column-slider", "ind": i},
                                 min=0.5,
                                 max=5,
                                 step=0.5,
@@ -255,7 +255,7 @@ def get_path_net_acc_pred(meta_data_filters, pathnet_filters, nets, distances_di
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input({"id": f"dist-column-slider", "ind": MATCH}, "value"),
+    Input({"id": "dist-column-slider", "ind": MATCH}, "value"),
 )
 def get_path_net_monotone_acc_host(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -291,7 +291,7 @@ def score_func(row, score_filter):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input({"id": f"dist-column-slider", "ind": MATCH}, "value"),
+    Input({"id": "dist-column-slider", "ind": MATCH}, "value"),
 )
 def get_path_net_monotone_acc_next(meta_data_filters, pathnet_filters, nets, slider_values):
     if not nets:
@@ -398,7 +398,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title=f"<b>Miss Host<b>",
+        title="<b>Miss Host<b>",
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
@@ -430,7 +430,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title=f"<b>Miss non-host<b>",
+        title="<b>Miss non-host<b>",
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),

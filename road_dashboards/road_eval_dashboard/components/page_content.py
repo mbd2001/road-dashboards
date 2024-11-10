@@ -1,4 +1,3 @@
-import dash_bootstrap_components as dbc
 from dash import html, page_container
 
 from road_dashboards.road_eval_dashboard.components.components_ids import PAGE_CONTENT, STATE_NOTIFICATION

@@ -78,7 +78,7 @@ def get_frame_count(meta_data_filters, nets, role, Z_source, threshold):
         data,
         ["accurate", "inaccurate", "unavailable"],
         get_rem_score,
-        title=f"Overall Stats",
+        title="Overall Stats",
         xaxis="Status",
         yaxis="Percentage",
         hover=True,

@@ -1,4 +1,4 @@
-""" Dummy test always should pass
+"""Dummy test always should pass
 Can be used for testing pytest configuration
 """
 

@@ -752,7 +752,6 @@ def generate_path_net_dp_quality_true_rejection_query(
     quality_operator=">",
     quality_thresh_filter=0.0,
 ):
-
     distances_dict = {sec: PATHNET_IGNORE for sec in distances}
     quality_cols = [f'"quality_score_{sec}"' for sec in distances]
     extra_columns = extra_columns + quality_cols
@@ -844,7 +843,7 @@ def generate_extract_miss_false_events_query(
         extra_filters=f"bin_population = '{chosen_source}'",
     )
     final_columns = bookmarks_columns + metric_columns
-    order_cmd = f"ORDER BY batch_num, clip_name, grabindex ASC"
+    order_cmd = "ORDER BY batch_num, clip_name, grabindex ASC"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
     )
@@ -1542,7 +1541,6 @@ def get_quality_score_query_true_rejection(
     acc_dist_operator="<",
     quality_operator=">",
 ):
-
     metrics = ", ".join(
         DP_QUALITY_TRUE_REJECTION_METRIC.format(
             dist_thresh_filter=f"{acc_dist_operator} {thresh}",

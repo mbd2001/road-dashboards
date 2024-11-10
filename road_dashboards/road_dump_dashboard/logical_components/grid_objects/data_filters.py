@@ -267,19 +267,19 @@ class DataFilters(GridObject):
                             labelPosition="top",
                         ),
                         dbc.Button(
-                            className=f"ms-auto fas fa-plus",
+                            className="ms-auto fas fa-plus",
                             id={"type": self.add_filter_btn_id, "index": index},
                             color="secondary",
                             style={"margin": "10px"},
                         ),
                         dbc.Button(
-                            className=f"fas fa-link",
+                            className="fas fa-link",
                             id={"type": self.add_subgroup_btn_id, "index": index},
                             color="secondary",
                             style={"margin": "10px"},
                         ),
                         dbc.Button(
-                            className=f"fas fa-trash",
+                            className="fas fa-trash",
                             id={"type": self.remove_subgroup_btn_id, "index": index},
                             color="secondary",
                             style={"margin": "10px"},
@@ -334,7 +334,7 @@ class DataFilters(GridObject):
                 ),
                 dbc.Col(
                     dbc.Button(
-                        className=f"fas fa-x", id={"type": self.remove_filter_btn_id, "index": index}, color="secondary"
+                        className="fas fa-x", id={"type": self.remove_filter_btn_id, "index": index}, color="secondary"
                     ),
                     width=1,
                 ),
