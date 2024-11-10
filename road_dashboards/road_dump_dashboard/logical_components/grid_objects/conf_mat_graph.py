@@ -71,7 +71,7 @@ class ConfMatGraph(GridObject):
             labelPosition="top",
         )
 
-        if self.filter:
+        if self.filter is not EmptyCriterion():
             buttons_row = dbc.Row([dbc.Col(draw_diff_button), dbc.Col(filter_ignores_button)])
         else:
             buttons_row = dbc.Row([dbc.Col([draw_diff_button, html.Div(filter_ignores_button, hidden=True)])])
