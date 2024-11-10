@@ -51,7 +51,7 @@ def get_filter_row_initial_layout(index, md_columns_options):
                 ),
             ),
             dbc.Col(
-                dbc.Button(className=f"fas fa-x", id={"type": "remove_filter_btn", "index": index}, color="secondary"),
+                dbc.Button(className="fas fa-x", id={"type": "remove_filter_btn", "index": index}, color="secondary"),
                 width=1,
             ),
         ],
@@ -72,19 +72,19 @@ def get_group_layout(index, md_columns_options):
                         labelPosition="top",
                     ),
                     dbc.Button(
-                        className=f"ms-auto fas fa-plus",
+                        className="ms-auto fas fa-plus",
                         id={"type": "add_filter_btn", "index": index},
                         color="secondary",
                         style={"margin": "10px"},
                     ),
                     dbc.Button(
-                        className=f"fas fa-link",
+                        className="fas fa-link",
                         id={"type": "add_sub_group", "index": index},
                         color="secondary",
                         style={"margin": "10px"},
                     ),
                     dbc.Button(
-                        className=f"fas fa-trash",
+                        className="fas fa-trash",
                         id={"type": "remove_sub_group", "index": index},
                         color="secondary",
                         style={"margin": "10px"},

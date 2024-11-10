@@ -1,5 +1,3 @@
-from road_dashboards.road_eval_dashboard.components.queries_manager import INTERSTING_FILTERS_DIST_TO_CHECK
-
 ROAD_TYPE_FILTERS = {
     "highway": "mdbi_road_highway = TRUE OR mdbi_road_freeway = TRUE",
     "country": "mdbi_road_country = TRUE",
@@ -71,7 +69,7 @@ for i in range(1, len(VMAX_BINS)):
 VMAX_BINS_FILTERS = {
     "vmax_ignore": "vmax_full_range = -1",
     **VMAX_BINS_FILTERS,
-    f"vmax_{VMAX_BINS[-1]}_above": f"vmax_full_range >= 35",
+    f"vmax_{VMAX_BINS[-1]}_above": "vmax_full_range >= 35",
 }
 
 VMAX_DIST_OPTIONS = [15, 25, 35]

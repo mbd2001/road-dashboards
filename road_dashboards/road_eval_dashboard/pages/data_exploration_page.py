@@ -149,7 +149,7 @@ def get_tvgt_pie_chart(meta_data_filters, nets):
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data["overall"] = data["overall"] / len(nets["names"])
-    title = f"Distribution of TVGTs"
+    title = "Distribution of TVGTs"
     fig = basic_pie_chart(data, group_by_column, "overall", title=title)
     return fig
 
@@ -169,7 +169,7 @@ def get_gtem_pie_chart(meta_data_filters, nets):
     )
     data, _ = query_athena(database="run_eval_db", query=query)
     data["overall"] = data["overall"] / len(nets["names"])
-    title = f"Distribution of GTEMs"
+    title = "Distribution of GTEMs"
     fig = basic_pie_chart(data, group_by_column, "overall", title=title)
     return fig
 
@@ -239,7 +239,7 @@ def get_road_type_pie_chart(meta_data_filters, nets):
     data, _ = query_athena(database="run_eval_db", query=query)
     data = data.drop("net_id", axis=1).iloc[0]
     data = pd.DataFrame({"filters": data.index.map(lambda x: x.replace("overall_", "")), "overall": data})
-    title = f"Distribution of Road Type"
+    title = "Distribution of Road Type"
     fig = basic_pie_chart(data, list(interesting_filters.keys()), "overall", title=title)
     return fig
 
@@ -263,6 +263,6 @@ def get_lane_mark_color_pie_chart(meta_data_filters, nets):
     data, _ = query_athena(database="run_eval_db", query=query)
     data = data.drop("net_id", axis=1).iloc[0]
     data = pd.DataFrame({"filters": data.index.map(lambda x: x.replace("overall_", "")), "overall": data})
-    title = f"Distribution of Lane Mark Color"
+    title = "Distribution of Lane Mark Color"
     fig = basic_pie_chart(data, list(interesting_filters.keys()), "overall", title=title)
     return fig

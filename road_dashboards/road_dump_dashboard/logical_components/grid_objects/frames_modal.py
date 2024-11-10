@@ -126,7 +126,6 @@ class FramesModal(GridObject):
         return frames_layout
 
     def _callbacks(self):
-
         for conf_mat in self.triggering_conf_mats:
 
             @callback(

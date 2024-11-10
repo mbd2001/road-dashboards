@@ -28,7 +28,7 @@ def update_sidebar(url, *args):
             [
                 dbc.NavLink(
                     [
-                        html.I(className=f"fas fa-book me-2"),
+                        html.I(className="fas fa-book me-2"),
                         html.Span("Maffe Bins Docs", className="ms-2"),
                     ],
                     href="https://algoobjd-prod-1-backstage.sddc.mobileye.com/docs/your-group/component/maffe_bins",

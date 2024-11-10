@@ -1,7 +1,5 @@
 import dash_bootstrap_components as dbc
-import dash_daq as daq
 import numpy as np
-import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -89,7 +87,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, graph_id, di
             extra_filters=pathnet_filters,
             extra_columns=None,
             role=role,
-            base_dist_column_name=f"dist",
+            base_dist_column_name="dist",
         )
     else:
         query = generate_path_net_query(

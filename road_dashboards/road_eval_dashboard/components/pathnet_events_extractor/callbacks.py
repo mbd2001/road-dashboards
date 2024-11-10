@@ -542,7 +542,6 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
     prevent_initial_call=True,
 )
 def dump_events_to_jump(n_clicks, data_table, explorer_data):
-
     if not all([n_clicks, data_table, explorer_data]):
         return no_update
 
@@ -558,7 +557,7 @@ def dump_events_to_jump(n_clicks, data_table, explorer_data):
         success_message = f"Jump dumped to:\n{s3_full_path}\n"
         return create_alert_message(success_message, color="success")
 
-    except Exception as e:
+    except Exception:
         error_message = f"Error genereting jump into:\n'{s3_full_path}' failed.\nTraceback: {traceback.format_exc()}"
 
     return create_alert_message(error_message, color="warning")

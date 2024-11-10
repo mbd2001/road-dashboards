@@ -160,25 +160,10 @@ deploy:docs:
       - public
   extends: .only-master-pushes
 
-.docker-deploy: &docker-deploy-before-script
-  - |
-    apk add git rclone python3 aws-cli py3-pip
-    python3 -m venv /path/to/venv
-    . /path/to/venv/bin/activate
-    if ! command -v hatch >/dev/null 2>&1; then
-      echo "Installing Hatch." && pip install hatch
-    else
-      echo "Hatch is already installed."
-    fi
-  - source .auth/.setup_auth.sh
-
 deploy:docker:eval-dashboard:
-  image: docker:cli
   stage: deploy
   tags:
     - road-algo-md
-  before_script:
-    - *docker-deploy-before-script
   variables:
     DOCKER_BUILDKIT: "0"
     IMAGE_NAME: road-eval-dashboard
@@ -194,12 +179,9 @@ deploy:docker:eval-dashboard:
         - docker/Dockerfile.eval-dashboard
 
 deploy:docker:data-exploration:
-  image: docker:cli
   stage: deploy
   tags:
     - road-algo-md
-  before_script:
-    - *docker-deploy-before-script
   variables:
     DOCKER_BUILDKIT: "0"
     IMAGE_NAME: road-data-exploration

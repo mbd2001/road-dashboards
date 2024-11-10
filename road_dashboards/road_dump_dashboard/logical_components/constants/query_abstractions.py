@@ -1,9 +1,8 @@
 from functools import reduce
 from operator import mul
 
-from pypika import Criterion, EmptyCriterion, Query, Tuple
+from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
 from pypika import analytics as an
-from pypika import functions
 from pypika.queries import QueryBuilder
 from pypika.terms import Term
 
