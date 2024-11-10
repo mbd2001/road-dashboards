@@ -9,11 +9,10 @@ COPY ./road_dashboards/road_eval_dashboard /app/road_dashboards/road_eval_dashbo
 
 RUN chmod 777 -R /app
 
-RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
-    pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
-
 
 # pip installations
+RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
+    pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
 RUN pip install --upgrade pip
 RUN pip install -r /app/road_dashboards/road_eval_dashboard/requirements.txt
 
