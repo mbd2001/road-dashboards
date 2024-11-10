@@ -2,6 +2,7 @@ import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import dash_table, dcc, html
 
+import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
     PATHNET_EVENTS_DATA_TABLE,

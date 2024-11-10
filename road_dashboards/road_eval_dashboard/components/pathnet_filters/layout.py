@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+import road_dashboards.road_eval_dashboard.components.pathnet_filters.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MD_FILTERS
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     BIN_POPULATION_DROPDOWN,
