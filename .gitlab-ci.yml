@@ -130,11 +130,11 @@ deploy:package:
     - hatch publish $HATCH_BUILD_OUTPUT_FOLDER/*.whl -r $PYPI_REPO -u $FACELESS_ONPREM_USER --auth $FACELESS_PASS
   extends: .only-master-pushes
 
-post:bump_version:
+deploy:bump_version:
   tags:
     - road-algo-sm
   needs: [deploy:package]
-  stage: post
+  stage: deploy
   # faceless user is configured in the group masked CI variables
   script:
     - git config --global user.name $FACELESS_ONPREM_USER
