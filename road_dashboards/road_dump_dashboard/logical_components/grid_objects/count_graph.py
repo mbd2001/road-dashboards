@@ -94,7 +94,7 @@ class CountGraph(GridObject):
         else:
             graph_row = dbc.Row([graph, html.Div(slider, hidden=True)])
 
-        if self.filter is not EmptyCriterion():
+        if not isinstance(self.filter, EmptyCriterion):
             buttons_row = dbc.Row([dbc.Col(percentage_button), dbc.Col(filter_ignores_button)])
         else:
             buttons_row = dbc.Row([dbc.Col([percentage_button, html.Div(filter_ignores_button, hidden=True)])])
