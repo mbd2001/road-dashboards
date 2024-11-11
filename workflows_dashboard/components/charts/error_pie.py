@@ -3,7 +3,7 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from workflows_dashboard.components.base.base_pie_chart import BasePieChart
+from workflows_dashboard.components.base.pie_chart import BasePieChart
 from workflows_dashboard.core_settings.constants import ComponentIds, Status
 from workflows_dashboard.core_settings.settings import ChartSettings
 
