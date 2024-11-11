@@ -360,7 +360,7 @@ def get_view_range_histogram_plot(meta_data_filters, naive_Z, cumulative, monoto
         },
     )
     fig.update_layout(
-        title=f"<b>View Range Histogram<b>",
+        title="<b>View Range Histogram<b>",
         xaxis_title="Z (sec)" if by_sec else "Z(m)",
         yaxis_title="Count",
         font=dict(size=16),

@@ -160,25 +160,10 @@ deploy:docs:
       - public
   extends: .only-master-pushes
 
-.docker-deploy: &docker-deploy-before-script
-  - |
-    apk add git rclone python3 aws-cli py3-pip
-    python3 -m venv /path/to/venv
-    . /path/to/venv/bin/activate
-    if ! command -v hatch >/dev/null 2>&1; then
-      echo "Installing Hatch." && pip install hatch
-    else
-      echo "Hatch is already installed."
-    fi
-  - source .auth/.setup_auth.sh
-
 deploy:docker:eval-dashboard:
-  image: docker:cli
   stage: deploy
   tags:
     - road-algo-md
-  before_script:
-    - *docker-deploy-before-script
   variables:
     DOCKER_BUILDKIT: "0"
     IMAGE_NAME: road-eval-dashboard
@@ -194,12 +179,9 @@ deploy:docker:eval-dashboard:
         - docker/Dockerfile.eval-dashboard
 
 deploy:docker:data-exploration:
-  image: docker:cli
   stage: deploy
   tags:
     - road-algo-md
-  before_script:
-    - *docker-deploy-before-script
   variables:
     DOCKER_BUILDKIT: "0"
     IMAGE_NAME: road-data-exploration
@@ -220,7 +202,7 @@ post:reload-data-exploration:
     - road-algo-sm
   script:
     - echo "Reloading the Data Exploration container."
-    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-data-exploration_latest"],"containerName":["data_exploration"],"dockerRunArgs":["-p 6008:6008 --memory=2.5g --memory-swap=2.5g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-data-exploration_latest"],"containerName":["data_exploration"],"dockerRunArgs":["-p 6008:6008 --memory=3g --memory-swap=3g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
     - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
     - echo "Data Exploration container reloaded."
   rules:

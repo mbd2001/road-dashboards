@@ -6,6 +6,7 @@ pandas
 boto3
 tqdm
 fsspec
+orjson
 s3fs==0.4.2
 road-database-toolkit
 jira

@@ -1,91 +1,135 @@
-from dash import html, register_page
+from dash import register_page
 
-from road_dashboards.road_dump_dashboard.components.common_pages_layout import base_dataset_statistics, data_filters
-from road_dashboards.road_dump_dashboard.components.common_pages_layout.page_properties import PageProperties
-from road_dashboards.road_dump_dashboard.components.constants.graphs_properties import (
-    CasesGraphProperties,
-    ConfMatGraphProperties,
-    GroupByGraphProperties,
+from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
+    ConfMatGraphWithDropdown,
 )
-from road_dashboards.road_dump_dashboard.components.graph_wrappers import (
-    conf_mats_collection,
-    count_graphs_collection,
-    countries_heatmap,
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph import CountGraph
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph_with_dropdown import (
+    CountGraphWithDropdown,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.countries_heatmap import CountriesHeatMap
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetsSelector
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
+    TwoDatasetsSelector,
+)
+from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
+from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
+
+page = PageProperties(order=1, icon="search", path="/meta_data", title="Meta Data", main_table="meta_data")
+register_page(__name__, **page.__dict__)
+
+data_filters = DataFilters(main_table=page.main_table)
+population_card = PopulationCard()
+filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
+obj_count_card = ObjCountCard(
+    main_table=page.main_table,
+    objs_name="Frames",
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+)
+tv_prefects_count = CountGraph(
+    column=MetaData.is_tv_perfect,
+    title="Top View Perfects Exists",
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+)
+gtem_count = CountGraph(
+    column=MetaData.gtem_labels_exist,
+    title="Gtem Exists",
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+)
+curve_rad_hist = CountGraph(
+    column=MetaData.curve_rad_ahead,
+    title="Curve Rad Distribution",
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+    slider_value=-2,
+    filter=MetaData.curve_rad_ahead != 99999,
+    full_grid_row=True,
+)
+batches_hist = CountGraph(
+    column=MetaData.batch_num,
+    title="Batches Distribution",
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+    full_grid_row=True,
+)
+road_type_hist = CountGraph(
+    column=MetaData.road_type,
+    title="Road Type Distribution",
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+)
+lm_color_hist = CountGraph(
+    column=MetaData.lm_color,
+    title="Lane Mark Color Distribution",
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
+)
+wildcard_count = CountGraphWithDropdown(
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=population_card.intersection_switch_id,
 )
 
-page_properties = PageProperties(
-    order=1,
-    icon="search",
-    path="/meta_data",
-    title="Meta Data",
-    objs_name="frames",
-    main_table="meta_data",
+obj_to_hide_id = "meta_data_conf_mats"
+two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_hide_id=obj_to_hide_id)
+tv_perfects_conf = ConfMatGraph(
+    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
+    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
+    title="Top View Perfects Classification",
+    main_table=page.main_table,
+    column=MetaData.is_tv_perfect,
 )
-register_page(__name__, **page_properties.__dict__)
-
-
-group_by_graphs = [
-    GroupByGraphProperties(
-        name="Top View Perfects Exists",
-        group_by_column="is_tv_perfect",
-    ),
-    GroupByGraphProperties(
-        name="Gtem Exists",
-        group_by_column="gtem_labels_exist",
-    ),
-    GroupByGraphProperties(
-        name="Curve Rad Distribution",
-        group_by_column="curve_rad_ahead",
-        full_grid_row=True,
-        include_slider=True,
-        slider_default_value=2,
-        ignore_filter="curve_rad_ahead <> 99999",
-    ),
-    GroupByGraphProperties(name="Batch Distribution", group_by_column="batch_num", full_grid_row=True),
-]
-
-cases_graphs = [
-    CasesGraphProperties(
-        name="Road Type Distribution",
-        interesting_cases={
-            "highway": "mdbi_road_highway = TRUE",
-            "country": "mdbi_road_country = TRUE",
-            "urban": "mdbi_road_city = TRUE",
-            "freeway": "mdbi_road_freeway = TRUE",
-        },
-        extra_columns=["mdbi_road_highway", "mdbi_road_country", "mdbi_road_city", "mdbi_road_freeway"],
-    ),
-    CasesGraphProperties(
-        name="Lane Mark Color Distribution",
-        interesting_cases={
-            "yellow": "rightColor_yellow = TRUE OR leftColor_yellow = TRUE",
-            "white": "rightColor_white = TRUE OR leftColor_white = TRUE",
-            "blue": "rightColor_blue = TRUE OR leftColor_blue = TRUE",
-        },
-        extra_columns=[
-            "rightColor_yellow",
-            "leftColor_yellow",
-            "rightColor_white",
-            "leftColor_white",
-            "rightColor_blue",
-            "leftColor_blue",
-        ],
-    ),
-]
-
-conf_mat_graphs = [
-    ConfMatGraphProperties(name="Top View Perfects Classification", column_to_compare="is_tv_perfect"),
-    ConfMatGraphProperties(name="Gtem Classification", column_to_compare="gtem_labels_exist"),
-]
-
-
-layout = html.Div(
-    [
-        html.H1(page_properties.title, className="mb-5"),
-        data_filters.layout,
-        base_dataset_statistics.layout(page_properties.objs_name),
-        count_graphs_collection.layout(group_by_graphs, cases_graphs, draw_obj_count=False),
-        conf_mats_collection.layout(conf_mat_graphs),
-        countries_heatmap.layout(),
-    ]
+gtem_conf = ConfMatGraph(
+    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
+    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
+    title="Gtem Classification",
+    main_table=page.main_table,
+    column=MetaData.gtem_labels_exist,
 )
+wildcard_conf = ConfMatGraphWithDropdown(
+    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
+    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
+    main_table=page.main_table,
+)
+dataset_selector = DatasetsSelector(main_table=page.main_table)
+countries_heatmap = CountriesHeatMap(
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
+)
+
+
+layout = GridGenerator(
+    data_filters,
+    obj_count_card,
+    population_card,
+    filters_agg,
+    tv_prefects_count,
+    gtem_count,
+    curve_rad_hist,
+    batches_hist,
+    road_type_hist,
+    lm_color_hist,
+    wildcard_count,
+    GridGenerator(two_datasets_selector, tv_perfects_conf, gtem_conf, wildcard_conf, component_id=obj_to_hide_id),
+    GridGenerator(dataset_selector, countries_heatmap),
+    warp_sub_objects=False,
+).layout()

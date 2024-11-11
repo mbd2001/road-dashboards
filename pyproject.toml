@@ -27,14 +27,12 @@ dependencies = [
   "pyyaml"
 ]
 
-[tool.black]
-target-version = ["py310"]
+[tool.ruff]
 line-length = 120
+extend-exclude = ["*.ipynb"]
 
-[tool.isort]
-py_version = 310
-profile = "black"
-line_length = 120
+[tool.ruff.lint]
+select = ["F541", "I"]  # enforcing redundant f-strings and isort sorting
 
 [tool.coverage.run]
 source_pkgs = ["road_dashboards"]
@@ -58,10 +56,8 @@ exclude_lines = [
 [[tool.mypy.overrides]]
 # Fill here modules you want to ignore while type checking:
 module = [
-    'tensorflow',
     'boto3',
     'fire',
-    'altair',
     'ruamel.yaml',
 ]
 ignore_missing_imports = true

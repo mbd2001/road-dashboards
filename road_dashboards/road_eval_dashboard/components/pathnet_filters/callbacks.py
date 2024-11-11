@@ -1,6 +1,5 @@
 from dash import Input, Output, State, callback, no_update
 
-from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MD_FILTERS
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     BIN_POPULATION_DROPDOWN,
     MD_FILTERS,

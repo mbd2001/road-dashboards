@@ -1,12 +1,13 @@
 import copy
 import json
+import os
 import traceback
 
 import pandas as pd
 from botocore.exceptions import ClientError
 from cloud_storage_utils.file_abstraction import open_file
 from dash import Input, Output, State, callback, no_update
-from road_database_toolkit.cloud_file_system.file_operations import path_join, write_json
+from road_database_toolkit.cloud_file_system.file_operations import write_json
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
@@ -519,7 +520,7 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
     bookmarks_file_name = explorer_data["bookmarks_name"]
     explorer_params = explorer_data["explorer_params"]
 
-    s3_full_path = path_join(s3_dir_path, f"{bookmarks_file_name}.json")
+    s3_full_path = os.path.join(s3_dir_path, f"{bookmarks_file_name}.json")
     try:
         write_json(s3_full_path, bookmarks_dict)
         success_message = f"Bookmarks dumped to:\n{s3_full_path}\n\nParams for explorer: {explorer_params}"
@@ -541,14 +542,13 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
     prevent_initial_call=True,
 )
 def dump_events_to_jump(n_clicks, data_table, explorer_data):
-
     if not all([n_clicks, data_table, explorer_data]):
         return no_update
 
     s3_dir_path = explorer_data["s3_dir_path"]
     bookmarks_file_name = explorer_data["bookmarks_name"]
 
-    s3_full_path = path_join(s3_dir_path, f"{bookmarks_file_name}.jump")
+    s3_full_path = os.path.join(s3_dir_path, f"{bookmarks_file_name}.jump")
     try:
         df = pd.DataFrame(data_table)
         cols_with_dot = [col for col in df.columns if "." in col]
@@ -557,7 +557,7 @@ def dump_events_to_jump(n_clicks, data_table, explorer_data):
         success_message = f"Jump dumped to:\n{s3_full_path}\n"
         return create_alert_message(success_message, color="success")
 
-    except Exception as e:
+    except Exception:
         error_message = f"Error genereting jump into:\n'{s3_full_path}' failed.\nTraceback: {traceback.format_exc()}"
 
     return create_alert_message(error_message, color="warning")

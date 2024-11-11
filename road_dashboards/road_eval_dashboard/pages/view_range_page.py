@@ -109,7 +109,7 @@ def get_view_range_success_rate_plot(
     )
     fig.update_xaxes(tickvals=Z_samples)
     fig.update_layout(
-        title=f"<b>View Range Success Rate<b>",
+        title="<b>View Range Success Rate<b>",
         xaxis_title="Z(m)",
         yaxis_title="Success Rate",
         xaxis=dict(constrain="domain"),
@@ -175,7 +175,7 @@ def get_view_range_success_rate_interesting_plots(
     fig.update_yaxes(range=[0, 1])
     fig.for_each_annotation(lambda a: a.update(text=a.text.split("=")[-1]))
     fig.update_layout(
-        title=f"<b>View Range Success Rate - Host & Next<b>",
+        title="<b>View Range Success Rate - Host & Next<b>",
         xaxis_title="Z(m)",
         yaxis_title="Success Rate",
         xaxis=dict(constrain="domain"),
@@ -238,7 +238,7 @@ def get_view_range_histogram_plot(
         },
     )
     fig.update_layout(
-        title=f"<b>View Range Histogram<b>",
+        title="<b>View Range Histogram<b>",
         xaxis_title="Z(m)",
         yaxis_title="Count",
         font=dict(size=16),
