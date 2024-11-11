@@ -1,7 +1,7 @@
 from dash import Input, Output, callback
 
-from workflows_dashboard.core_settings.constants import BRAIN_OPTIONS, WORKFLOWS, ComponentIds
-from workflows_dashboard.database.workflow_manager import WorkflowsDBManager
+from road_dashboards.workflows_dashboard.core_settings.constants import BRAIN_OPTIONS, WORKFLOWS, ComponentIds
+from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
 workflow_db_handler = WorkflowsDBManager()
 

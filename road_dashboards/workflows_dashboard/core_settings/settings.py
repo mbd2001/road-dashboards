@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict
 
-from workflows_dashboard.core_settings.constants import Status
+from road_dashboards.workflows_dashboard.core_settings.constants import Status
 
 
 class ChartSettings:

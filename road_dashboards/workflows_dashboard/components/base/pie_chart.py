@@ -4,8 +4,8 @@ from typing import Any, Dict, Optional
 import pandas as pd
 import plotly.express as px
 
-from workflows_dashboard.components.base.chart import BaseChart
-from workflows_dashboard.utils.chart_utils import add_center_annotation
+from road_dashboards.workflows_dashboard.components.base.chart import BaseChart
+from road_dashboards.workflows_dashboard.utils.chart_utils import add_center_annotation
 
 
 class BasePieChart(BaseChart):

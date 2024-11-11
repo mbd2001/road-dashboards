@@ -4,7 +4,7 @@ from functools import reduce
 import pandas as pd
 from dash import Input, Output, State, callback, dcc
 
-from workflows_dashboard.core_settings.constants import ComponentIds, WorkflowFields
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, WorkflowFields
 
 
 @callback(

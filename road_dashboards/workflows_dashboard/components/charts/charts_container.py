@@ -1,11 +1,11 @@
 import dash_bootstrap_components as dbc
 from dash import html
 
-from workflows_dashboard.components.charts.error_pie import ErrorPieChart
-from workflows_dashboard.components.charts.status_pie import StatusPieChart
-from workflows_dashboard.components.charts.weekly_success import WeeklySuccessChart
-from workflows_dashboard.components.selectors.workflow_selector import create_workflow_selector
-from workflows_dashboard.core_settings.constants import WORKFLOWS
+from road_dashboards.workflows_dashboard.components.charts.error_pie import ErrorPieChart
+from road_dashboards.workflows_dashboard.components.charts.status_pie import StatusPieChart
+from road_dashboards.workflows_dashboard.components.charts.weekly_success import WeeklySuccessChart
+from road_dashboards.workflows_dashboard.components.selectors.workflow_selector import create_workflow_selector
+from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS
 
 
 def create_charts_container():

@@ -1,11 +1,10 @@
 from datetime import datetime
 
 import pandas as pd
-from loguru import logger
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
-from workflows_dashboard.core_settings.constants import WORKFLOWS, WorkflowFields
-from workflows_dashboard.core_settings.settings import DatabaseSettings
+from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, WorkflowFields
+from road_dashboards.workflows_dashboard.core_settings.settings import DatabaseSettings
 
 
 class WorkflowsDBManager(DBManager):

@@ -1,9 +1,10 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-import workflows_dashboard.components.selectors.callbacks  # DO NOT REMOVE!!
-from workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds
-from workflows_dashboard.utils.formatting import format_workflow_name
+from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds
+from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
+
+from . import callbacks  # DO NOT REMOVE!!
 
 
 def create_workflow_selector():

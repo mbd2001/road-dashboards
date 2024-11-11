@@ -5,6 +5,7 @@ WORKFLOWS = ["drone_view_workflow", "gtrm_workflow", "emdp_workflow"]
 BRAIN_OPTIONS = ["8mp", "wono", "mono"]
 DEFAULT_BRAIN = "8mp"
 
+
 class ComponentIds:
     WORKFLOW_DATA_STORE = "workflow-data-store"
     STATUS_PIE_CHART = "status-pie-chart"

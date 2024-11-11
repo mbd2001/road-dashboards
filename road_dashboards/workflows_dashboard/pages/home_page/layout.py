@@ -1,10 +1,10 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html, register_page
 
-from workflows_dashboard.components.main_content.layout import render_main_content
-from workflows_dashboard.components.sidebar.layout import render_sidebar
-from workflows_dashboard.core_settings.constants import ComponentIds
-from workflows_dashboard.database.workflow_manager import WorkflowsDBManager
+from road_dashboards.workflows_dashboard.components.main_content.layout import render_main_content
+from road_dashboards.workflows_dashboard.components.sidebar.layout import render_sidebar
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
+from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
 from . import callbacks  # DO NOT REMOVE!
 

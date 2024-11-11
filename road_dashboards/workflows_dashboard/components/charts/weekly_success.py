@@ -2,10 +2,10 @@ import pandas as pd
 import plotly.graph_objects as go
 from dash import Input, Output, callback
 
-from workflows_dashboard.components.base.chart import BaseChart
-from workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds, Status
-from workflows_dashboard.core_settings.settings import ChartSettings
-from workflows_dashboard.utils.formatting import format_workflow_name
+from road_dashboards.workflows_dashboard.components.base.chart import BaseChart
+from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds, Status
+from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings
+from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
 
 
 class WeeklySuccessChart(BaseChart):

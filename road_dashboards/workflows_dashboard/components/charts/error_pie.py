@@ -3,9 +3,9 @@ from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
 
-from workflows_dashboard.components.base.pie_chart import BasePieChart
-from workflows_dashboard.core_settings.constants import ComponentIds, Status
-from workflows_dashboard.core_settings.settings import ChartSettings
+from road_dashboards.workflows_dashboard.components.base.pie_chart import BasePieChart
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, Status
+from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings
 
 
 class ErrorPieChart(BasePieChart):

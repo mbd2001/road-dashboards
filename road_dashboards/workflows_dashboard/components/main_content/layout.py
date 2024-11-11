@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 
-from workflows_dashboard.components.charts.charts_container import create_charts_container
+from road_dashboards.workflows_dashboard.components.charts.charts_container import create_charts_container
 
 
 def render_main_content() -> dbc.Col:

@@ -1,7 +1,7 @@
 from dash import callback, dash
 from dash.dependencies import Input, Output
 
-from workflows_dashboard.core_settings.constants import ComponentIds
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 
 
 @callback(

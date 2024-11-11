@@ -5,8 +5,8 @@ import pandas as pd
 import plotly.express as px
 from dash import Input, Output, State, callback, dcc, html
 
-from workflows_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from workflows_dashboard.core_settings.constants import ComponentIds
+from road_dashboards.workflows_dashboard.components.layout_wrapper import card_wrapper
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 
 
 class BaseChart(ABC):
