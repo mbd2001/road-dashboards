@@ -36,6 +36,9 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_INCLUDE_MATCHED_HOST,
     PATHNET_INCLUDE_MATCHED_NON_HOST,
     PATHNET_PRED,
+    PATH_NET_OOL_HOST,
+    PATH_NET_OOL_NEXT,
+    PATH_NET_OOL_TH_SLIDER,
 )
 from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
@@ -233,6 +236,22 @@ pos_layout = html.Div(
                 ),
             ]
         ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(graph_wrapper(PATH_NET_OOL_HOST), width=4),
+                        dbc.Col(graph_wrapper(PATH_NET_OOL_NEXT), width=4)
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label("out-of-lane-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
+                        dcc.Slider(id=PATH_NET_OOL_TH_SLIDER, min=0, max=2, step=0.1, value=1),
+                    ]
+                )
+            ]
+        )
     ]
     + get_cumulative_acc_layout()
     + get_miss_false_layout()
@@ -727,3 +746,59 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
         max_val=10,
         bins_factor=0.1,
     )
+
+
+@callback(
+    Output(PATH_NET_OOL_HOST, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input(PATH_NET_OOL_TH_SLIDER, "value"),
+)
+def get_path_net_ool_host(meta_data_filters, pathnet_filters, nets, threshold):
+    if not nets:
+        return no_update
+    distances_dict = {sec: threshold for sec in distances}
+    dist_col_name = "dist_from_boundaries"
+    ool_dist_columns = [f'"{dist_col_name}_{sec}"' for sec in distances]
+    query = generate_path_net_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        distances_dict,
+        meta_data_filters,
+        role="host",
+        extra_columns=ool_dist_columns,
+        extra_filters=pathnet_filters,
+        base_dist_column_name=dist_col_name,
+        operator=">"
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_path_net_graph(df, distances, "out-of-lane accuracy", role="host", yaxis="% accurate dps")
+
+
+@callback(
+    Output(PATH_NET_OOL_NEXT, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input(PATH_NET_OOL_TH_SLIDER, "value"),
+)
+def get_path_net_ool_next(meta_data_filters, pathnet_filters, nets, threshold):
+    if not nets:
+        return no_update
+    distances_dict = {sec: threshold for sec in distances}
+    dist_col_name = "dist_from_boundaries"
+    ool_dist_columns = [f'"{dist_col_name}_{sec}"' for sec in distances]
+    query = generate_path_net_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        distances_dict,
+        meta_data_filters,
+        role="non-host",
+        extra_columns=ool_dist_columns,
+        extra_filters=pathnet_filters,
+        base_dist_column_name=dist_col_name,
+        operator=">"
+    )
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_path_net_graph(df, distances, "out-of-lane accuracy", yaxis="% accurate dps")

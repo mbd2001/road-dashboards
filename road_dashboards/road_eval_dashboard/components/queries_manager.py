@@ -657,8 +657,8 @@ def generate_path_net_query(
     role="",
     extra_filters="",
     base_dist_column_name="dist",
+    operator="<"
 ):
-    operator = "<"
     query = get_dist_query(
         base_dist_column_name,
         data_tables,
