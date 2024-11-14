@@ -834,18 +834,21 @@ def generate_extract_acc_events_query(
     threshold,
     operator,
     order_by,
+    dist_column_name
 ):
-    acc_columns = ["matched_dp_id", "dp_id", "match_score"]
-    dist_column = f'"dist_{dist}"'
+    acc_columns = ["matched_dp_id", "dp_id"]
+    if dist == "dist":
+        acc_columns.append("match_score")
+    dist_column = f'"{dist_column_name}_{dist}"'
     acc_cmd = EXTRACT_EVENT_ACC.format(
-        dist_column=f'"dist_{dist}"', operator=operator, dist_thresh=threshold, chosen_source=chosen_source
+        dist_column=dist_column, operator=operator, dist_thresh=threshold, chosen_source=chosen_source
     )
     base_query = generate_base_query(
         data_tables,
         meta_data,
         meta_data_filters=meta_data_filters,
         role=role,
-        extra_columns=acc_columns,
+        extra_columns=acc_columns if dist_column_name == "dist" else acc_columns + [dist_column],
         extra_filters=acc_cmd,
     )
     final_columns = bookmarks_columns + acc_columns

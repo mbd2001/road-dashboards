@@ -119,7 +119,7 @@ def create_filtering_dropdowns_row():
             dbc.Col(
                 dcc.Dropdown(
                     id=PATHNET_EVENTS_METRIC_DROPDOWN,
-                    options=create_dropdown_options_list(labels=["inaccurate", "false", "miss"]),
+                    options=create_dropdown_options_list(labels=["inaccurate", "out-of-lane", "false", "miss"]),
                     placeholder="Select Metric",
                 ),
             ),
@@ -175,7 +175,7 @@ def create_unique_thresholds_row():
                 dbc.Col(
                     dcc.Input(
                         id=PATHNET_EVENTS_THRESHOLD,
-                        placeholder="Specify acc-threshold in meters (optional)",
+                        placeholder="Specify metric-threshold in meters (optional)",
                         type="number",
                         style={"width": "inherit", "height": "100%", "appearance": "textfield"},
                     ),
@@ -183,7 +183,7 @@ def create_unique_thresholds_row():
                 dbc.Col(
                     dcc.Input(
                         id=PATHNET_EVENTS_REF_THRESHOLD,
-                        placeholder="Specify ref acc-threshold in meters (optional)",
+                        placeholder="Specify ref metric-threshold in meters (optional)",
                         type="number",
                         style={"width": "inherit", "height": "100%", "appearance": "textfield"},
                     )

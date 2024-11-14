@@ -39,6 +39,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_OOL_HOST,
     PATH_NET_OOL_NEXT,
     PATH_NET_OOL_TH_SLIDER,
+    PATHNET_BOUNDARIES,
 )
 from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
@@ -759,10 +760,10 @@ def get_path_net_ool_host(meta_data_filters, pathnet_filters, nets, threshold):
     if not nets:
         return no_update
     distances_dict = {sec: threshold for sec in distances}
-    dist_col_name = "dist_from_boundaries"
+    dist_col_name = "dp_dist_from_boundaries_labels"
     ool_dist_columns = [f'"{dist_col_name}_{sec}"' for sec in distances]
     query = generate_path_net_query(
-        nets[PATHNET_GT],
+        nets[PATHNET_BOUNDARIES],
         nets["meta_data"],
         distances_dict,
         meta_data_filters,
@@ -787,10 +788,10 @@ def get_path_net_ool_next(meta_data_filters, pathnet_filters, nets, threshold):
     if not nets:
         return no_update
     distances_dict = {sec: threshold for sec in distances}
-    dist_col_name = "dist_from_boundaries"
+    dist_col_name = "dp_dist_from_boundaries_labels"
     ool_dist_columns = [f'"{dist_col_name}_{sec}"' for sec in distances]
     query = generate_path_net_query(
-        nets[PATHNET_GT],
+        nets[PATHNET_BOUNDARIES],
         nets["meta_data"],
         distances_dict,
         meta_data_filters,
