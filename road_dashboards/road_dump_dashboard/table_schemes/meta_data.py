@@ -384,6 +384,14 @@ class MetaData(Base):
     wipers_prob: Column = Column("wipers_prob", float)
     yaw_rate: Column = Column("yaw_rate", float)
     yawrate_ahead: Column = Column("yawrate_ahead", float)
+    is_oncoming_rpw: Column = Column("is_oncoming_rpw", bool)
+    is_tvgt_rpw: Column = Column("is_tvgt_rpw", bool)
+    is_tvfix_rpw: Column = Column("is_tvfix_rpw", bool)
+    clip_tvfix_rpw: Column = Column("clip_tvfix_rpw", bool)
+    is_rem_rpw: Column = Column("is_rem_rpw", bool)
+    map_source: Column = Column("map_source", str)
+    raas_is_path_safe: Column = Column("raas_is_path_safe", bool)
+    raas_is_trustable: Column = Column("raas_is_trustable", bool)
 
     road_type: Case = (
         Case(alias="road_type")
