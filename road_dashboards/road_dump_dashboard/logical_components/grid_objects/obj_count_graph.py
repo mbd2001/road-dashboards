@@ -102,7 +102,9 @@ class ObjCountGraph(GridObject):
                 .select(obj_query.dump_name, obj_query.objects_per_frame, functions.Count("*", "overall"))
             )
             if compute_percentage:
-                query = percentage_wrapper(query, query.overall, [query.dump_name], [query.objects_per_frame])
+                query = percentage_wrapper(
+                    query, query.overall, [query.dump_name], [query.objects_per_frame.as_("objects_per_frame")]
+                )
 
             y_col = "percentage" if compute_percentage else "overall"
             data = execute(query)
