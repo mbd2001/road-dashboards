@@ -657,7 +657,7 @@ def generate_path_net_query(
     role="",
     extra_filters="",
     base_dist_column_name="dist",
-    operator="<"
+    operator="<",
 ):
     query = get_dist_query(
         base_dist_column_name,
@@ -834,13 +834,44 @@ def generate_extract_acc_events_query(
     threshold,
     operator,
     order_by,
-    dist_column_name
 ):
-    acc_columns = ["matched_dp_id", "dp_id"]
-    if dist == "dist":
-        acc_columns.append("match_score")
-    dist_column = f'"{dist_column_name}_{dist}"'
+    acc_columns = ["matched_dp_id", "dp_id", "match_score"]
+    dist_column = f'"dist_{dist}"'
     acc_cmd = EXTRACT_EVENT_ACC.format(
+        dist_column=f'"dist_{dist}"', operator=operator, dist_thresh=threshold, chosen_source=chosen_source
+    )
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=acc_columns,
+        extra_filters=acc_cmd,
+    )
+    final_columns = bookmarks_columns + acc_columns
+    order_cmd = f"ORDER BY {dist_column} {order_by}"
+    query = EXTRACT_EVENT_QUERY.format(
+        final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
+    )
+    return query, final_columns
+
+
+def generate_extract_ool_events_query(
+    data_tables,
+    meta_data,
+    meta_data_filters,
+    bookmarks_columns,
+    chosen_source,
+    role,
+    dist,
+    threshold,
+    operator,
+    order_by,
+):
+    dist_column = f'"dp_dist_from_boundaries_labels_{dist}"'
+    side_column = f'"closer_boundary_to_dp_{dist}"'
+    ool_columns = ["matched_dp_id", "dp_id", dist_column, side_column]
+    ool_cmd = EXTRACT_EVENT_ACC.format(
         dist_column=dist_column, operator=operator, dist_thresh=threshold, chosen_source=chosen_source
     )
     base_query = generate_base_query(
@@ -848,13 +879,13 @@ def generate_extract_acc_events_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         role=role,
-        extra_columns=acc_columns if dist_column_name == "dist" else acc_columns + [dist_column],
-        extra_filters=acc_cmd,
+        extra_columns=ool_columns,
+        extra_filters=ool_cmd,
     )
-    final_columns = bookmarks_columns + acc_columns
+    final_columns = bookmarks_columns + ool_columns
     order_cmd = f"ORDER BY {dist_column} {order_by}"
     query = EXTRACT_EVENT_QUERY.format(
-        final_columns=", ".join(final_columns + [dist_column]), base_query=base_query, order_cmd=order_cmd
+        final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
     )
     return query, final_columns
 

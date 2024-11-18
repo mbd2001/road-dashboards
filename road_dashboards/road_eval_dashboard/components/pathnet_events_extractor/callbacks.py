@@ -13,6 +13,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     NETS,
+    PATH_NET_OOL_TH_SLIDER,
+    PATHNET_BOUNDARIES,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
@@ -44,12 +46,11 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
     PATHNET_GT,
     PATHNET_PRED,
-    PATHNET_BOUNDARIES,
-    PATH_NET_OOL_TH_SLIDER,
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
     generate_extract_acc_events_query,
+    generate_extract_ool_events_query,
     generate_extract_miss_false_events_query,
     run_query_with_nets_names_processing,
 )
@@ -244,14 +245,9 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
 
 def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold, order_by, is_ref=False):
     if metric in ["inaccurate", "out-of-lane"]:
-        if metric == "inaccurate":
-            operator = ">" if not is_ref else "<"
-        else:
-            operator = "<" if not is_ref else ">"
-        dist_column_name = "dp_dist_from_boundaries_labels" if metric == "out-of-lane" else "dist"
-        table_type = PATHNET_BOUNDARIES if metric == "out-of-lane" else PATHNET_PRED
+        operator = ">" if not is_ref else "<"
         query, final_columns = generate_extract_acc_events_query(
-            data_tables=net[table_type],
+            data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
             bookmarks_columns=BOOKMARKS_COLUMNS,
@@ -261,7 +257,20 @@ def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, 
             threshold=threshold,
             operator=operator,
             order_by=order_by,
-            dist_column_name=dist_column_name
+        )
+    elif metric == "out-of-lane":
+        operator = "<" if not is_ref else ">"
+        query, final_columns = generate_extract_ool_events_query(
+            data_tables=net[PATHNET_BOUNDARIES],
+            meta_data=net["meta_data"],
+            meta_data_filters=meta_data_filters,
+            bookmarks_columns=BOOKMARKS_COLUMNS,
+            chosen_source=dp_source,
+            role=role,
+            dist=float(dist),
+            threshold=threshold,
+            operator=operator,
+            order_by=order_by,
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -301,9 +310,7 @@ def subtract_events(df_main, df_ref, metric):
         return df_main_filtered
 
     elif metric == "out-of-lane":
-        df_main_filtered = df_main.merge(
-            df_ref, on=BOOKMARKS_COLUMNS + ["dp_id"], how="inner", suffixes=("", "_ref")
-        )
+        df_main_filtered = df_main.merge(df_ref, on=BOOKMARKS_COLUMNS + ["dp_id"], how="inner", suffixes=("", "_ref"))
         return df_main_filtered
 
     else:
@@ -341,7 +348,7 @@ def get_events_df(
             dist,
             events_extractor_dict["ref_threshold"],
             events_extractor_dict["order_by"],
-            is_ref=True
+            is_ref=True,
         )
         df = subtract_events(df, df_ref, metric)
 
@@ -439,7 +446,7 @@ def update_extractor_dict(
     thresh_dict,
     order_by,
     clips_unique_on,
-    out_of_lane_threshold
+    out_of_lane_threshold,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -458,7 +465,9 @@ def update_extractor_dict(
     if specified_thresh is not None:
         events_extractor_dict["threshold"] = specified_thresh
     elif dist is not None:
-        events_extractor_dict["threshold"] = out_of_lane_threshold if metric == "out-of-lane" else thresh_dict[str(float(dist))]
+        events_extractor_dict["threshold"] = (
+            out_of_lane_threshold if metric == "out-of-lane" else thresh_dict[str(float(dist))]
+        )
     else:
         events_extractor_dict["threshold"] = 0
 

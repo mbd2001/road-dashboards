@@ -79,12 +79,15 @@ class Nets:
             "bin_population",
             "smooth_index",
         ] + [f'"dist_{sec}"' for sec in distances]
-        bounadaries_columns = ["clip_name", "grabIndex", "net_id", "role", "bin_population"] + [
-            f'"{prefix}_dist_{side}_{sec}"'
-            for sec in distances
-            for side in ["left", "right"]
-            for prefix in ["boundaries", "road_edges"]
-        ]
+        bounadaries_columns = (
+            ["clip_name", "grabIndex", "net_id", "role", "bin_population"]
+            + [
+                f'"{prefix}_dist_{side}_{sec}"'
+                for sec in distances
+                for side in ["left", "right"]
+                for prefix in ["boundaries", "road_edges"]
+            ]
+        )
         self.pathnet_pred_tables = Table(pathnet_pred_tables, pathnet_columns, "")
         self.pathnet_boundaries_tables = Table(pathent_boundaries_tables, bounadaries_columns, "")
         self.pathnet_gt_tables = Table(pathnet_gt_tables, pathnet_columns, "")
