@@ -69,7 +69,7 @@ def init_run(tables_list):
     datasets = [dump_db_manager.get_item(datasets_id) for datasets_id in datasets_ids]
     datasets = pd.DataFrame(datasets)
     tables = get_tables(datasets)
-    return *(dump_object(table) if table else no_update for table in tables), True
+    return *(dump_object(table) if table else None for table in tables), True
 
 
 def get_tables(datasets):
