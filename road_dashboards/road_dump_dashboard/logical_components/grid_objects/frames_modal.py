@@ -2,7 +2,19 @@ import dash_bootstrap_components as dbc
 import numpy as np
 import orjson
 import pandas as pd
-from dash import Input, Output, Patch, State, callback, callback_context, dcc, html, no_update, set_props
+from dash import (
+    Input,
+    Output,
+    Patch,
+    State,
+    callback,
+    callback_context,
+    clientside_callback,
+    dcc,
+    html,
+    no_update,
+    set_props,
+)
 from pypika import EmptyCriterion
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
@@ -96,28 +108,8 @@ class FramesModal(GridObject):
                                 ),
                             ],
                         ),
-                        dbc.Row(
-                            dbc.Stack(
-                                [
-                                    dbc.Button(
-                                        "Prev Frame",
-                                        id=self.prev_btn_id,
-                                        className="bg-primary mt-5",
-                                        color="secondary",
-                                        style={"margin": "10px"},
-                                    ),
-                                    dbc.Button(
-                                        "Next Frame",
-                                        id=self.next_btn_id,
-                                        className="bg-primary mt-5",
-                                        color="secondary",
-                                        style={"margin": "10px"},
-                                    ),
-                                ],
-                                direction="horizontal",
-                                gap=1,
-                            )
-                        ),
+                        html.Div(id=self.prev_btn_id, hidden=True),
+                        html.Div(id=self.next_btn_id, hidden=True),
                     ]
                 ),
             ],
@@ -153,12 +145,14 @@ class FramesModal(GridObject):
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
-                extra_columns = list(main_tables[0].get_columns(names_only=False, include_all_columns=True))
+                extra_columns = list(
+                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+                )
                 query = diff_labels_subquery(
                     diff_column=conf_mat.column,
                     label_columns=extra_columns,
-                    main_labels=[table for table in main_tables if table.dataset_name == main_dump],
-                    secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
+                    main_tables=[table for table in main_tables if table.dataset_name == main_dump],
+                    secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
                     data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
@@ -221,13 +215,15 @@ class FramesModal(GridObject):
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
-                extra_columns = list(main_tables[0].get_columns(names_only=False))
+                extra_columns = list(
+                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+                )
                 dynamic_column = load_object(dynamic_column)
                 query = diff_labels_subquery(
                     diff_column=dynamic_column,
                     label_columns=extra_columns,
-                    main_labels=[table for table in main_tables if table.dataset_name == main_dump],
-                    secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
+                    main_tables=[table for table in main_tables if table.dataset_name == main_dump],
+                    secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
                     page_filters=load_object(filters),
@@ -270,13 +266,15 @@ class FramesModal(GridObject):
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            extra_columns = list(main_tables[0].get_columns(names_only=False))
+            extra_columns = list(
+                main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+            )
             column_to_compare = load_object(column_to_compare)
             query = diff_labels_subquery(
                 diff_column=column_to_compare,
                 label_columns=extra_columns,
-                main_labels=[table for table in main_tables if table.dataset_name == main_dump],
-                secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
+                main_tables=[table for table in main_tables if table.dataset_name == main_dump],
+                secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
                 main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
                 data_filter=load_object(column_filter),
@@ -288,6 +286,26 @@ class FramesModal(GridObject):
                 self.compute_images_from_query_data(data, extra_columns)
             )
             return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0
+
+        clientside_callback(
+            """
+                function(id) {{
+                    document.addEventListener("keydown", function(event) {{
+                        if (event.key == 'ArrowLeft') {{
+                            document.getElementById('{prev_btn_id}').click()
+                            event.stopPropagation()
+                        }}
+                        if (event.key == 'ArrowRight') {{
+                            document.getElementById('{next_btn_id}').click()
+                            event.stopPropagation()
+                        }}
+                    }});
+                    return window.dash_clientside.no_update
+                }}
+            """.format(next_btn_id=self.next_btn_id, prev_btn_id=self.prev_btn_id),
+            Output(self.component_id, "id"),
+            Input(self.component_id, "id"),
+        )
 
         @callback(
             Output(self.main_img_id, "children", allow_duplicate=True),

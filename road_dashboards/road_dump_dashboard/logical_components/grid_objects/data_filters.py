@@ -294,7 +294,6 @@ class DataFilters(GridObject):
                 dbc.Col(
                     children=dcc.Dropdown(
                         id={"type": self.column_id, "index": index},
-                        style={"minWidth": "100%"},
                         multi=False,
                         clearable=True,
                         placeholder="Attribute",
@@ -305,7 +304,6 @@ class DataFilters(GridObject):
                 dbc.Col(
                     children=dcc.Dropdown(
                         id={"type": self.operation_id, "index": index},
-                        style={"minWidth": "100%"},
                         multi=False,
                         clearable=True,
                         placeholder="----",

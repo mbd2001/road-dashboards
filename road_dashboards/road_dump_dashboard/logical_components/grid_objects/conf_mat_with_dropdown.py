@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, callback, dcc, html, no_update
+from dash import Input, Output, State, callback, dcc, html, no_update
 from pypika import Criterion
 
 from road_dashboards.road_dump_dashboard.graphical_components.confusion_matrix import get_confusion_matrix
@@ -9,16 +9,21 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
     card_wrapper,
     loading_wrapper,
 )
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import conf_mat_subquery
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
+    conf_mat_subquery,
+    diff_ids_subquery,
+)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import df_to_jump, execute, load_object
 
 
 class ConfMatGraphWithDropdown(GridObject):
     """
     Defines the properties of group by graph
     """
+
+    FRAMES_LIMIT = 2048
 
     def __init__(
         self,
@@ -39,6 +44,8 @@ class ConfMatGraphWithDropdown(GridObject):
         self.conf_mat_id = self._generate_id("conf_mat")
         self.columns_dropdown_id = self._generate_id("columns_dropdown")
         self.show_diff_btn_id = self._generate_id("show_diff_btn")
+        self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
+        self.download_jump_id = self._generate_id("download_jump")
 
     def layout(self):
         mat_row = dbc.Row(
@@ -52,16 +59,24 @@ class ConfMatGraphWithDropdown(GridObject):
         draw_diff_button = dbc.Button(
             "Draw Diff Frames",
             id=self.show_diff_btn_id,
-            className="bg-primary mt-5",
         )
-        buttons_row = dbc.Row(draw_diff_button)
-        single_mat_layout = html.Div([mat_row, buttons_row])
+        generate_jump_btn = dbc.Button("Save Diff to Jump File", id=self.generate_jump_btn_id, color="primary")
+        download_jump = dcc.Download(id=self.download_jump_id)
+        buttons_row = dbc.Stack(
+            [
+                draw_diff_button,
+                generate_jump_btn,
+            ],
+            direction="horizontal",
+            gap=2,
+        )
+
+        single_mat_layout = html.Div([mat_row, buttons_row, download_jump])
         dynamic_conf_mat = card_wrapper(
             [
                 dbc.Row(
                     dcc.Dropdown(
                         id=self.columns_dropdown_id,
-                        style={"minWidth": "100%"},
                         multi=False,
                         placeholder="Attribute",
                         options=EXISTING_TABLES[self.main_table].get_columns(),
@@ -105,3 +120,37 @@ class ConfMatGraphWithDropdown(GridObject):
                 data, x_label=secondary_dump, y_label=main_dump, title=f"{column.alias.title()} Classification"
             )
             return fig
+
+        @callback(
+            Output(self.download_jump_id, "data"),
+            Input(self.generate_jump_btn_id, "n_clicks"),
+            Input(self.main_dataset_dropdown_id, "value"),
+            Input(self.secondary_dataset_dropdown_id, "value"),
+            State(self.main_table, "data"),
+            State(META_DATA, "data"),
+            State(self.page_filters_id, "data"),
+            Input(self.columns_dropdown_id, "value"),
+        )
+        def generate_jump_file(n_clicks, main_dump, secondary_dump, main_tables, md_tables, page_filters, column):
+            if not n_clicks or not main_tables:
+                return no_update
+
+            main_tables: list[Base] = load_object(main_tables)
+            md_tables: list[Base] = load_object(md_tables) if md_tables else None
+            page_filters: Criterion = load_object(page_filters)
+            column: Column = getattr(EXISTING_TABLES[self.main_table], column, None)
+
+            query = diff_ids_subquery(
+                diff_column=column,
+                main_tables=[table for table in main_tables if table.dataset_name == main_dump],
+                main_md=[table for table in md_tables if table.dataset_name == main_dump],
+                secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
+                secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
+                page_filters=page_filters,
+                limit=self.FRAMES_LIMIT,
+            )
+            jump_frames = execute(query)
+            if jump_frames.empty:
+                return no_update
+
+            return dict(content=df_to_jump(jump_frames), filename=f"{column.alias}_diff.jump")

@@ -21,7 +21,6 @@ class DatasetSelector(GridObject):
     def layout(self):
         selector_layout = dcc.Dropdown(
             id=self.main_dataset_dropdown_id,
-            style={"minWidth": "100%"},
             multi=False,
             placeholder="----",
             value=None,

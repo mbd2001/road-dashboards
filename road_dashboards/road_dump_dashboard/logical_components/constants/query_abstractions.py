@@ -72,8 +72,8 @@ def intersect_query_list(query_list: list[QueryBuilder]) -> QueryBuilder:
 
 
 def get_main_secondary_subqueries(
-    main_labels: list[Base],
-    secondary_labels: list[Base],
+    main_tables: list[Base],
+    secondary_tables: list[Base],
     terms: list[Term],
     main_md: list[Base] = None,
     secondary_md: list[Base] = None,
@@ -81,14 +81,14 @@ def get_main_secondary_subqueries(
     page_filters: Criterion = EmptyCriterion(),
 ):
     main_subquery = base_data_subquery(
-        main_tables=main_labels,
+        main_tables=main_tables,
         terms=terms,
         meta_data_tables=main_md,
         data_filter=data_filter,
         page_filters=page_filters,
     )
     secondary_subquery = base_data_subquery(
-        main_tables=secondary_labels,
+        main_tables=secondary_tables,
         terms=terms,
         meta_data_tables=secondary_md,
         data_filter=data_filter,
@@ -108,8 +108,8 @@ def conf_mat_subquery(
 ):
     terms = list({group_by_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
     main_subquery, secondary_subquery = get_main_secondary_subqueries(
-        main_labels=main_labels,
-        secondary_labels=secondary_labels,
+        main_tables=main_labels,
+        secondary_tables=secondary_labels,
         terms=terms,
         main_md=main_md,
         secondary_md=secondary_md,
@@ -166,11 +166,10 @@ def ids_query(
     return query
 
 
-def diff_labels_subquery(
+def diff_ids_subquery(
     diff_column: Column,
-    label_columns: list[Term],
-    main_labels: list[Base],
-    secondary_labels: list[Base],
+    main_tables: list[Base],
+    secondary_tables: list[Base],
     main_md: list[Base] = None,
     secondary_md: list[Base] = None,
     data_filter: Criterion = EmptyCriterion(),
@@ -179,8 +178,8 @@ def diff_labels_subquery(
 ):
     terms = list({diff_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
     main_subquery, secondary_subquery = get_main_secondary_subqueries(
-        main_labels=main_labels,
-        secondary_labels=secondary_labels,
+        main_tables=main_tables,
+        secondary_tables=secondary_tables,
         terms=terms,
         main_md=main_md,
         secondary_md=secondary_md,
@@ -189,7 +188,7 @@ def diff_labels_subquery(
     )
     first_diff_col = diff_column.replace_table(None, main_subquery)
     second_diff_col = diff_column.replace_table(None, secondary_subquery)
-    ids_subquery = (
+    query = (
         Query.from_(main_subquery)
         .inner_join(secondary_subquery)
         .on(
@@ -202,11 +201,35 @@ def diff_labels_subquery(
         .distinct()
         .limit(limit)
     )
+    return query
+
+
+def diff_labels_subquery(
+    diff_column: Column,
+    label_columns: list[Term],
+    main_tables: list[Base],
+    secondary_tables: list[Base],
+    main_md: list[Base] = None,
+    secondary_md: list[Base] = None,
+    data_filter: Criterion = EmptyCriterion(),
+    page_filters: Criterion = EmptyCriterion(),
+    limit: int | None = None,
+):
+    ids_subquery = diff_ids_subquery(
+        diff_column=diff_column,
+        main_tables=main_tables,
+        secondary_tables=secondary_tables,
+        main_md=main_md,
+        secondary_md=secondary_md,
+        data_filter=data_filter,
+        page_filters=page_filters,
+        limit=limit,
+    )
 
     terms = list({*label_columns})
     main_subquery, secondary_subquery = get_main_secondary_subqueries(
-        main_labels=main_labels,
-        secondary_labels=secondary_labels,
+        main_tables=main_tables,
+        secondary_tables=secondary_tables,
         terms=terms,
         main_md=main_md,
         secondary_md=secondary_md,

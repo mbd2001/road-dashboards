@@ -6,7 +6,7 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.components
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import ids_query
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import df_to_jump, execute, load_object
 
 
 class DatasetIDsOperations(GridObject):
@@ -37,12 +37,12 @@ class DatasetIDsOperations(GridObject):
     def layout(self):
         buttons_layout = dbc.Stack(
             [
-                dbc.Button("Draw Frames", id=self.show_n_frames_btn_id, color="primary", style={"margin": "10px"}),
-                dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary", style={"margin": "10px"}),
+                dbc.Button("Draw Frames", id=self.show_n_frames_btn_id, color="primary"),
+                dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary"),
                 dcc.Download(id=self.download_jump_id),
             ],
             direction="horizontal",
-            gap=1,
+            gap=2,
         )
         return buttons_layout
 
@@ -70,7 +70,4 @@ class DatasetIDsOperations(GridObject):
                 limit=self.FRAMES_LIMIT,
             )
             jump_frames = execute(query)
-            jump_string = (
-                jump_frames.to_string(header=False, index=False) + f"\n#format: {' '.join(jump_frames.columns)}"
-            )
-            return dict(content=jump_string, filename=f"{chosen_dump}.jump")
+            return dict(content=df_to_jump(jump_frames), filename=f"{chosen_dump}.jump")

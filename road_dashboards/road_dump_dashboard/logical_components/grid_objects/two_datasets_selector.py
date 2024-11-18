@@ -28,7 +28,6 @@ class TwoDatasetsSelector(DatasetSelector):
                 dbc.Col(
                     dcc.Dropdown(
                         id=self.secondary_dataset_dropdown_id,
-                        style={"minWidth": "100%"},
                         multi=False,
                         placeholder="----",
                         value=None,

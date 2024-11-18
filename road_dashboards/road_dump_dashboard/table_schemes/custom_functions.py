@@ -21,6 +21,10 @@ def execute(query: QueryBuilder) -> pd.DataFrame:
     return results
 
 
+def df_to_jump(df: pd.DataFrame):
+    return df.to_string(header=False, index=False) + f"\n#format: {' '.join(df.columns)}"
+
+
 class Round(Function):
     def __init__(self, column, round_to_n_decimal, alias=None):
         super().__init__("ROUND", column, round_to_n_decimal, alias=alias)

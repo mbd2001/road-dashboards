@@ -81,7 +81,6 @@ class CountGraphWithDropdown(GridObject):
                 dbc.Row(
                     dcc.Dropdown(
                         id=self.columns_dropdown_id,
-                        style={"minWidth": "100%"},
                         multi=False,
                         placeholder="Attribute",
                         options=EXISTING_TABLES[self.main_table].get_columns(),
