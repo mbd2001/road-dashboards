@@ -244,7 +244,7 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
 
 
 def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold, order_by, is_ref=False):
-    if metric in ["inaccurate", "out-of-lane"]:
+    if metric == "inaccurate":
         operator = ">" if not is_ref else "<"
         query, final_columns = generate_extract_acc_events_query(
             data_tables=net[PATHNET_PRED],

@@ -870,7 +870,8 @@ def generate_extract_ool_events_query(
 ):
     dist_column = f'"dp_dist_from_boundaries_labels_{dist}"'
     side_column = f'"closer_boundary_to_dp_{dist}"'
-    ool_columns = ["matched_dp_id", "dp_id", dist_column, side_column]
+    ool_columns = [side_column, dist_column]
+    dp_id_columns = ["matched_dp_id", "dp_id"]
     ool_cmd = EXTRACT_EVENT_ACC.format(
         dist_column=dist_column, operator=operator, dist_thresh=threshold, chosen_source=chosen_source
     )
@@ -879,13 +880,13 @@ def generate_extract_ool_events_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         role=role,
-        extra_columns=ool_columns,
+        extra_columns=dp_id_columns + ool_columns,
         extra_filters=ool_cmd,
     )
-    final_columns = bookmarks_columns + ool_columns
+    final_columns = bookmarks_columns + dp_id_columns
     order_cmd = f"ORDER BY {dist_column} {order_by}"
     query = EXTRACT_EVENT_QUERY.format(
-        final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
+        final_columns=", ".join(final_columns + ool_columns), base_query=base_query, order_cmd=order_cmd
     )
     return query, final_columns
 
