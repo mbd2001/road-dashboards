@@ -14,8 +14,19 @@ class BasePieChart(BaseChart):
         self.workflow_name = workflow_name
 
     @abstractmethod
-    def prepare_data(self, df: pd.DataFrame) -> Optional[pd.DataFrame]:
-        """Prepare data for visualization."""
+    def prepare_data(self, filters: dict) -> Optional[pd.DataFrame]:
+        """
+        Prepare data for visualization.
+
+        Args:
+            filters (dict): Filter parameters from BaseChart.create_chart
+
+        Returns:
+            Optional[pd.DataFrame]: DataFrame with columns:
+                - message: Label for the pie slice
+                - count: Value for the pie slice
+                Returns None if no data available
+        """
         pass
 
     @abstractmethod
@@ -32,8 +43,17 @@ class BasePieChart(BaseChart):
         """Get additional chart parameters."""
         return {}
 
-    def create_chart(self, df: pd.DataFrame) -> px.pie:
-        plot_df = self.prepare_data(df)
+    def create_chart(self, filters: dict) -> px.pie:
+        """
+        Create a pie chart based on the provided filters.
+
+        Args:
+            filters (dict): Filter parameters from BaseChart.create_chart
+
+        Returns:
+            px.pie: A plotly pie chart figure
+        """
+        plot_df = self.prepare_data(filters)
         if plot_df is None:
             return self.create_empty_chart()
 
@@ -43,7 +63,12 @@ class BasePieChart(BaseChart):
         fig = px.pie(plot_df, values="count", names="message", title=self.get_chart_title(), **chart_params)
 
         add_center_annotation(fig, f"Total Clips:<br><b>{total_count}</b>")
+        self._update_traces(fig)
 
+        return fig
+
+    def _update_traces(self, fig: px.pie) -> None:
+        """Update the traces with consistent styling."""
         fig.update_traces(
             textposition="inside",
             textinfo="percent",
@@ -56,5 +81,3 @@ class BasePieChart(BaseChart):
                 namelength=-1,
             )
         )
-
-        return fig
