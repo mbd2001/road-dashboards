@@ -45,8 +45,6 @@ class DataFilters(GridObject):
         self.filter_val_id = self._generate_id("filter_val")
 
         self.update_filters_btn_id = self._generate_id("update_filters_btn")
-        self.show_n_frames_btn_id = self._generate_id("show_n_frames_btn")
-        self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
 
     def layout(self):
         empty_layout = card_wrapper(
@@ -62,17 +60,9 @@ class DataFilters(GridObject):
                     ],
                 ),
                 dbc.Stack(
-                    [
-                        dbc.Button(
-                            "Update Filters", id=self.update_filters_btn_id, color="success", style={"margin": "10px"}
-                        ),
-                        dbc.Button(
-                            "Draw Frames", id=self.show_n_frames_btn_id, color="primary", style={"margin": "10px"}
-                        ),
-                        dbc.Button(
-                            "Save Jump File", id=self.generate_jump_btn_id, color="primary", style={"margin": "10px"}
-                        ),
-                    ],
+                    dbc.Button(
+                        "Update Filters", id=self.update_filters_btn_id, color="success", style={"margin": "10px"}
+                    ),
                     direction="horizontal",
                     gap=1,
                 ),

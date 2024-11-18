@@ -10,6 +10,10 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_g
     CountGraphWithDropdown,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_ids_operations import (
+    DatasetIDsOperations,
+)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.frames_modal import FramesModal
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
@@ -27,6 +31,15 @@ register_page(__name__, **page.__dict__)
 data_filters = DataFilters(main_table=page.main_table)
 population_card = PopulationCard()
 filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
+
+ids_dataset_selector = DatasetSelector(main_table=page.main_table, full_grid_row=False)
+ids_operations = DatasetIDsOperations(
+    main_table=page.main_table,
+    page_filters_id=filters_agg.final_filter_id,
+    datasets_dropdown_id=ids_dataset_selector.main_dataset_dropdown_id,
+    full_grid_row=False,
+)
+
 obj_count_card = ObjCountCard(
     main_table=page.main_table,
     objs_name="DPs",
@@ -149,6 +162,7 @@ layout = GridGenerator(
     obj_count_card,
     population_card,
     filters_agg,
+    GridGenerator(ids_dataset_selector, ids_operations),
     role_count,
     split_count,
     primary_count,

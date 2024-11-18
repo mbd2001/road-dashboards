@@ -5,7 +5,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import load_object
 
 
-class DatasetsSelector(GridObject):
+class DatasetSelector(GridObject):
     def __init__(
         self,
         main_table: str,

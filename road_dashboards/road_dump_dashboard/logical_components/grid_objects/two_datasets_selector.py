@@ -1,12 +1,12 @@
 import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, dcc, no_update
 
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetsSelector
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import load_object
 
 
-class TwoDatasetsSelector(DatasetsSelector):
+class TwoDatasetsSelector(DatasetSelector):
     def __init__(
         self,
         main_table: str,
