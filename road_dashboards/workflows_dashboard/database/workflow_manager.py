@@ -9,23 +9,18 @@ from road_dashboards.workflows_dashboard.core_settings.settings import DatabaseS
 
 
 class WorkflowsDBManager(DBManager):
-    """
-    Manages workflow data retrieval and caching from DynamoDB using GSIs.
-    """
-
     def __init__(self):
         super().__init__(table_name=DatabaseSettings.table_name, primary_key=DatabaseSettings.primary_key)
         self._workflow_dfs: dict[str, pd.DataFrame] = {}
         self._load_workflow_data()
 
     def _load_workflow_data(self) -> None:
-        """Load all data and partition by workflow using status columns."""
-        # Fetch all data in parallel for each workflow
+        """Loads all data as df for each workflow."""
 
         def fetch_workflow_data(workflow: str) -> tuple[str, pd.DataFrame]:
             """Helper function to fetch data for a single workflow."""
             filter_expr = Attr("workflows").contains(workflow)
-            projection_expr = f"#pk, brain_type, {workflow}_status, {workflow}_message, {workflow}_last_update"
+            projection_expr = f"#pk, brain_type, {workflow}_{WorkflowFields.status}, {workflow}_{WorkflowFields.message}, {workflow}_{WorkflowFields.last_update}"
             expr_names = {"#pk": DatabaseSettings.primary_key}
 
             items = []
@@ -57,9 +52,9 @@ class WorkflowsDBManager(DBManager):
         for workflow, df in results:
             if not df.empty:
                 column_mapping = {
-                    f"{workflow}_status": WorkflowFields.status,
-                    f"{workflow}_message": WorkflowFields.message,
-                    f"{workflow}_last_update": WorkflowFields.last_update,
+                    f"{workflow}_{WorkflowFields.status}": WorkflowFields.status,
+                    f"{workflow}_{WorkflowFields.message}": WorkflowFields.message,
+                    f"{workflow}_{WorkflowFields.last_update}": WorkflowFields.last_update,
                 }
                 df.rename(columns=column_mapping, inplace=True)
                 df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
@@ -149,7 +144,6 @@ class WorkflowsDBManager(DBManager):
         if filtered_df.empty:
             return pd.DataFrame(columns=["message", "count"])
 
-        # Apply error status filter
         error_df = filtered_df[filtered_df[WorkflowFields.status] == Status.FAILED]
         error_counts = error_df[WorkflowFields.message].value_counts()
 
@@ -194,12 +188,10 @@ class WorkflowsDBManager(DBManager):
                 .unstack(fill_value=0)
             )
 
-            # Ensure success and failed columns exist
             for status in [Status.SUCCESS, Status.FAILED]:
                 if status not in weekly_stats.columns:
                     weekly_stats[status] = 0
 
-            # Calculate success rate
             total_count = weekly_stats[Status.SUCCESS] + weekly_stats[Status.FAILED]
             success_rate = (weekly_stats[Status.SUCCESS.value] / total_count * 100).fillna(0)
 
@@ -237,11 +229,10 @@ class WorkflowsDBManager(DBManager):
             if filtered_df.empty:
                 continue
 
-            # Rename columns back to workflow-specific names before merging
             column_mapping = {
-                WorkflowFields.status: f"{workflow}_status",
-                WorkflowFields.message: f"{workflow}_message",
-                WorkflowFields.last_update: f"{workflow}_last_update",
+                WorkflowFields.status: f"{workflow}_{WorkflowFields.status}",
+                WorkflowFields.message: f"{workflow}_{WorkflowFields.message}",
+                WorkflowFields.last_update: f"{workflow}_{WorkflowFields.last_update}",
             }
             filtered_df = filtered_df.rename(columns=column_mapping)
 
