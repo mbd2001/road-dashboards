@@ -70,50 +70,48 @@ class FramesModal(GridObject):
         self.prev_btn_id = self._generate_id("prev_btn")
 
     def layout(self):
-        frames_layout = html.Div(
-            id=self.component_id,
-            children=[
+        frames_layout = dbc.Modal(
+            [
                 dcc.Store(id=self.curr_img_index_id, data=0),
                 dcc.Store(id=self.curr_drawn_column_id),
                 dcc.Store(id=self.curr_drawn_column_filter_id, data=dump_object(EmptyCriterion())),
-                card_wrapper(
+                dbc.Row(
                     [
-                        dbc.Row(
-                            [
-                                dbc.Col(
-                                    loading_wrapper(
-                                        html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.main_world_id)
-                                    ),
-                                    width=1,
-                                ),
-                                dbc.Col(
-                                    loading_wrapper(
-                                        html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.main_img_id)
-                                    ),
-                                    width=5,
-                                ),
-                                dbc.Col(
-                                    loading_wrapper(
-                                        html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.secondary_img_id)
-                                    ),
-                                    width=5,
-                                ),
-                                dbc.Col(
-                                    loading_wrapper(
-                                        html.Div(
-                                            dcc.Graph(config={"displayModeBar": False}), id=self.secondary_world_id
-                                        )
-                                    ),
-                                    width=1,
-                                ),
-                            ],
+                        dbc.Col(
+                            loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.main_img_id)),
+                            width=10,
                         ),
-                        html.Div(id=self.prev_btn_id, hidden=True),
-                        html.Div(id=self.next_btn_id, hidden=True),
-                    ]
+                        dbc.Col(
+                            loading_wrapper(
+                                html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.main_world_id)
+                            ),
+                            width=2,
+                        ),
+                    ],
                 ),
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            loading_wrapper(
+                                html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.secondary_img_id)
+                            ),
+                            width=10,
+                        ),
+                        dbc.Col(
+                            loading_wrapper(
+                                html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.secondary_world_id)
+                            ),
+                            width=2,
+                        ),
+                    ],
+                ),
+                html.Div(id=self.prev_btn_id, hidden=True),
+                html.Div(id=self.next_btn_id, hidden=True),
             ],
-            hidden=True,
+            id=self.component_id,
+            centered=True,
+            is_open=False,
+            className="mw-100 p-5",
         )
         return frames_layout
 
@@ -169,7 +167,7 @@ class FramesModal(GridObject):
                 set_props(self.secondary_img_id, {"children": secondary_img_figs})
                 set_props(self.secondary_world_id, {"children": secondary_world_figs})
                 set_props(self.curr_img_index_id, {"data": 0})
-                set_props(self.component_id, {"hidden": False})
+                set_props(self.component_id, {"is_open": True})
                 set_props(self.curr_drawn_column_id, {"data": dump_object(conf_mat.column)})
                 set_props(self.curr_drawn_column_filter_id, {"data": dump_object(conf_mat.filter)})
                 return filter_ignores
@@ -182,7 +180,7 @@ class FramesModal(GridObject):
                 Output(self.secondary_img_id, "children", allow_duplicate=True),
                 Output(self.secondary_world_id, "children", allow_duplicate=True),
                 Output(self.curr_img_index_id, "data", allow_duplicate=True),
-                Output(self.component_id, "hidden"),
+                Output(self.component_id, "is_open", allow_duplicate=True),
                 Output(self.curr_drawn_column_id, "data"),
                 Output(self.curr_drawn_column_filter_id, "data"),
                 State(self.page_filters_id, "data"),
@@ -239,7 +237,7 @@ class FramesModal(GridObject):
                     secondary_img_figs,
                     secondary_world_figs,
                     0,
-                    False,
+                    True,
                     dump_object(dynamic_column),
                     dump_object(EmptyCriterion()),
                 )
@@ -250,6 +248,7 @@ class FramesModal(GridObject):
             Output(self.secondary_img_id, "children"),
             Output(self.secondary_world_id, "children"),
             Output(self.curr_img_index_id, "data"),
+            Output(self.component_id, "is_open"),
             Input(self.page_filters_id, "data"),
             Input(self.main_table, "data"),
             Input(META_DATA, "data"),
@@ -262,7 +261,7 @@ class FramesModal(GridObject):
             filters, main_tables, md_tables, main_dump, secondary_dump, column_to_compare, column_filter
         ):
             if not column_to_compare or not main_tables or not md_tables or not main_dump or not secondary_dump:
-                return no_update, no_update, no_update, no_update, no_update
+                return no_update, no_update, no_update, no_update, no_update, no_update
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
@@ -285,7 +284,7 @@ class FramesModal(GridObject):
             main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs = (
                 self.compute_images_from_query_data(data, extra_columns)
             )
-            return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0
+            return main_img_figs, main_world_figs, secondary_img_figs, secondary_world_figs, 0, True
 
         clientside_callback(
             """
