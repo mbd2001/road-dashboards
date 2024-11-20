@@ -199,6 +199,7 @@ def diff_ids_subquery(
         .select(main_subquery.clip_name, main_subquery.grabindex)
         .where(first_diff_col != second_diff_col)
         .distinct()
+        .orderby(main_subquery.clip_name, main_subquery.grabindex)
         .limit(limit)
     )
     return query

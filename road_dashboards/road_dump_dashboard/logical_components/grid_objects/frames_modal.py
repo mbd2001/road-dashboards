@@ -32,7 +32,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import d
 
 
 class FramesModal(GridObject):
-    IMG_LIMIT = 50
+    IMG_LIMIT = 64
 
     def __init__(
         self,
@@ -54,24 +54,22 @@ class FramesModal(GridObject):
 
     def _generate_ids(self):
         self.curr_img_index_id = self._generate_id("curr_img_index")
-        self.curr_drawn_column_id = self._generate_id("curr_drawn_column")
-        self.curr_drawn_column_filter_id = self._generate_id("curr_drawn_column_filter")
+        self.curr_num_of_drawn_datasets_id = self._generate_id("curr_num_of_drawn_datasets")
+        self.curr_query_id = self._generate_id("curr_query")
 
         self.images_layout_id = self._generate_id("images_layout")
         self.next_btn_id = self._generate_id("next_btn")
         self.prev_btn_id = self._generate_id("prev_btn")
-        self.curr_num_of_drawn_datasets_id = self._generate_id("curr_num_of_drawn_datasets")
 
     def layout(self):
         frames_layout = dbc.Modal(
             [
                 dcc.Store(id=self.curr_img_index_id, data=0),
                 dcc.Store(id=self.curr_num_of_drawn_datasets_id),
-                dcc.Store(id=self.curr_drawn_column_id),
-                dcc.Store(id=self.curr_drawn_column_filter_id, data=dump_object(EmptyCriterion())),
-                html.Div(id=self.images_layout_id),
+                dcc.Store(id=self.curr_query_id),
                 html.Div(id=self.prev_btn_id, hidden=True),
                 html.Div(id=self.next_btn_id, hidden=True),
+                loading_wrapper(html.Div(dcc.Graph(config={"displayModeBar": False}), id=self.images_layout_id)),
             ],
             id=self.component_id,
             is_open=False,
@@ -121,26 +119,16 @@ class FramesModal(GridObject):
                     page_filters=load_object(filters),
                     limit=self.IMG_LIMIT,
                 )
-                data = execute(query)
-                images_layout = self.generate_layout_from_query_data(data, extra_columns)
 
-                set_props(self.images_layout_id, {"children": images_layout})
-                set_props(self.curr_num_of_drawn_datasets_id, {"data": 2})
-                set_props(self.curr_img_index_id, {"data": 0})
+                set_props(self.curr_query_id, {"data": dump_object(query)})
                 set_props(self.component_id, {"is_open": True})
-                set_props(self.curr_drawn_column_id, {"data": dump_object(conf_mat.column)})
-                set_props(self.curr_drawn_column_filter_id, {"data": dump_object(conf_mat.filter)})
                 return filter_ignores
 
         for dropdown_conf_mat in self.triggering_dropdown_conf_mats:
 
             @callback(
-                Output(self.images_layout_id, "children", allow_duplicate=True),
-                Output(self.curr_num_of_drawn_datasets_id, "data", allow_duplicate=True),
-                Output(self.curr_img_index_id, "data", allow_duplicate=True),
+                Output(self.curr_query_id, "data", allow_duplicate=True),
                 Output(self.component_id, "is_open", allow_duplicate=True),
-                Output(self.curr_drawn_column_id, "data"),
-                Output(self.curr_drawn_column_filter_id, "data"),
                 State(self.page_filters_id, "data"),
                 State(self.main_table, "data"),
                 State(META_DATA, "data"),
@@ -167,7 +155,7 @@ class FramesModal(GridObject):
                     or not secondary_dump
                     or not dynamic_column
                 ):
-                    return no_update, no_update, no_update, no_update, no_update, no_update
+                    return no_update, no_update, no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
@@ -185,56 +173,8 @@ class FramesModal(GridObject):
                     page_filters=load_object(filters),
                     limit=self.IMG_LIMIT,
                 )
-                data = execute(query)
-                images_layout = self.generate_layout_from_query_data(data, extra_columns)
-                return (
-                    images_layout,
-                    2,
-                    0,
-                    True,
-                    dump_object(dynamic_column),
-                    dump_object(EmptyCriterion()),
-                )
 
-        @callback(
-            Output(self.images_layout_id, "children"),
-            Output(self.curr_num_of_drawn_datasets_id, "data"),
-            Output(self.curr_img_index_id, "data"),
-            Output(self.component_id, "is_open"),
-            Input(self.page_filters_id, "data"),
-            Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
-            Input(self.main_dataset_dropdown_id, "value"),
-            Input(self.secondary_dataset_dropdown_id, "value"),
-            State(self.curr_drawn_column_id, "data"),
-            State(self.curr_drawn_column_filter_id, "data"),
-        )
-        def draw_diffs_general_buttons_case(
-            filters, main_tables, md_tables, main_dump, secondary_dump, column_to_compare, column_filter
-        ):
-            if not column_to_compare or not main_tables or not md_tables or not main_dump or not secondary_dump:
-                return no_update, no_update, no_update, no_update
-
-            main_tables: list[Base] = load_object(main_tables)
-            md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            extra_columns = list(
-                main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
-            )
-            column_to_compare = load_object(column_to_compare)
-            query = diff_labels_subquery(
-                diff_column=column_to_compare,
-                label_columns=extra_columns,
-                main_tables=[table for table in main_tables if table.dataset_name == main_dump],
-                secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
-                main_md=[table for table in md_tables if table.dataset_name == main_dump],
-                secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
-                data_filter=load_object(column_filter),
-                page_filters=load_object(filters),
-                limit=self.IMG_LIMIT,
-            )
-            data = execute(query)
-            images_layout = self.generate_layout_from_query_data(data, extra_columns)
-            return images_layout, 2, 0, True
+                return query, True
 
         clientside_callback(
             """
@@ -257,42 +197,55 @@ class FramesModal(GridObject):
         )
 
         @callback(
+            Output(self.images_layout_id, "children"),
+            Output(self.curr_num_of_drawn_datasets_id, "data"),
+            Output(self.curr_img_index_id, "data"),
+            Input(self.curr_query_id, "data"),
+            prevent_initial_call=True,
+        )
+        def init_frame_graphs(
+            curr_query,
+        ):
+            data = execute(load_object(curr_query))
+            images_layout = self.generate_layout_from_query_data(data)
+            return images_layout, len(images_layout), 0
+
+        @callback(
             Output(self.images_layout_id, "children", allow_duplicate=True),
             Output(self.curr_img_index_id, "data", allow_duplicate=True),
-            Input(self.curr_img_index_id, "data"),
-            Input(self.curr_num_of_drawn_datasets_id, "data"),
             Input(self.prev_btn_id, "n_clicks"),
             Input(self.next_btn_id, "n_clicks"),
+            State(self.curr_img_index_id, "data"),
+            State(self.curr_num_of_drawn_datasets_id, "data"),
             prevent_initial_call=True,
         )
         def update_frame_graphs(
-            img_ind,
-            curr_num_of_drawn_datasets_id,
             prev_n_clicks,
             next_n_clicks,
+            img_ind,
+            curr_num_of_drawn_datasets_id,
         ):
             triggered_id = callback_context.triggered_id
-            if not triggered_id or img_ind is None:
+            if not triggered_id:
                 return no_update, no_update
 
             images_layout = Patch()
-            if triggered_id != self.curr_img_index_id:
-                n_clicks = callback_context.triggered[0]["value"]
-                if n_clicks == 0:
-                    return no_update, no_update, no_update, no_update, no_update
+            n_clicks = callback_context.triggered[0]["value"]
+            if n_clicks == 0:
+                return no_update, no_update, no_update, no_update, no_update
 
-                for i in range(curr_num_of_drawn_datasets_id):
-                    images_layout[i]["props"]["children"][0]["props"]["children"]["props"]["children"][img_ind][
-                        "props"
-                    ]["style"]["display"] = "none"
-                    images_layout[i]["props"]["children"][1]["props"]["children"]["props"]["children"][img_ind][
-                        "props"
-                    ]["style"]["display"] = "none"
+            for i in range(curr_num_of_drawn_datasets_id):
+                images_layout[i]["props"]["children"][0]["props"]["children"]["props"]["children"][img_ind]["props"][
+                    "style"
+                ]["display"] = "none"
+                images_layout[i]["props"]["children"][1]["props"]["children"]["props"]["children"][img_ind]["props"][
+                    "style"
+                ]["display"] = "none"
 
-                if triggered_id == self.prev_btn_id:
-                    img_ind = (img_ind - 1) % self.IMG_LIMIT
-                elif triggered_id == self.next_btn_id:
-                    img_ind = (img_ind + 1) % self.IMG_LIMIT
+            if triggered_id == self.prev_btn_id:
+                img_ind = (img_ind - 1) % self.IMG_LIMIT
+            elif triggered_id == self.next_btn_id:
+                img_ind = (img_ind + 1) % self.IMG_LIMIT
 
             for dataset_ind in range(curr_num_of_drawn_datasets_id):
                 images_layout[dataset_ind]["props"]["children"][0]["props"]["children"]["props"]["children"][img_ind][
@@ -302,11 +255,11 @@ class FramesModal(GridObject):
                     "props"
                 ]["style"]["display"] = "block"
 
-            return images_layout, img_ind if triggered_id != self.curr_img_index_id else no_update
+            return images_layout, img_ind
 
     @staticmethod
-    def generate_layout_from_query_data(data, extra_columns):
-        labels_df = FramesModal.parse_labels_df(data, extra_columns)
+    def generate_layout_from_query_data(data: pd.DataFrame):
+        labels_df = FramesModal.parse_labels_df(data)
 
         indexes_df = labels_df[["clip_name", "grabindex"]].drop_duplicates()
         clip_names = indexes_df.clip_name
@@ -333,6 +286,8 @@ class FramesModal(GridObject):
                 )
                 world_graphs.append(draw_top_view(frames_df))
 
+            img_graphs[0].style["display"] = "block"
+            world_graphs[0].style["display"] = "block"
             dump_row = dbc.Row(
                 [dbc.Col(loading_wrapper(img_graphs), width=10), dbc.Col(loading_wrapper(world_graphs), width=2)]
             )
@@ -341,17 +296,16 @@ class FramesModal(GridObject):
         return final_layout
 
     @staticmethod
-    def parse_labels_df(labels_df: pd.DataFrame, extra_columns: list[Column]):
+    def parse_labels_df(labels_df: pd.DataFrame):
         if labels_df.empty:
             return {}
 
-        arr_columns = [col.alias for col in extra_columns]
-        labels_df[arr_columns] = labels_df[arr_columns].map(FramesModal.safe_json).map(np.array)
+        labels_df = labels_df.map(FramesModal.safe_json)
         return labels_df
 
     @staticmethod
     def safe_json(x):
         try:
-            return orjson.loads(x)
+            return np.array(orjson.loads(x))
         except orjson.JSONDecodeError:
             return x
