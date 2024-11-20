@@ -151,6 +151,9 @@ def draw_img(image, candidates: pd.DataFrame, dump_name, clip_name, grab_index):
 
 
 def draw_line(fig, cand):
+    if cand.x is None or cand.y is None:
+        return
+
     if cand.half_width is not None:
         if (
             cand.dashed_y is not None
