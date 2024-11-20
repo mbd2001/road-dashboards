@@ -36,16 +36,12 @@ class FramesModal(GridObject):
 
     def __init__(
         self,
-        main_dataset_dropdown_id: str,
-        secondary_dataset_dropdown_id: str,
         page_filters_id: str,
         main_table: str,
         triggering_conf_mats: list[ConfMatGraph] = None,
         triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] = None,
         component_id: str = "",
     ):
-        self.main_dataset_dropdown_id = main_dataset_dropdown_id
-        self.secondary_dataset_dropdown_id = secondary_dataset_dropdown_id
         self.page_filters_id = page_filters_id
         self.main_table = main_table
         self.triggering_conf_mats = triggering_conf_mats
@@ -87,8 +83,8 @@ class FramesModal(GridObject):
                 State(self.page_filters_id, "data"),
                 State(self.main_table, "data"),
                 State(META_DATA, "data"),
-                State(self.main_dataset_dropdown_id, "value"),
-                State(self.secondary_dataset_dropdown_id, "value"),
+                State(conf_mat.main_dataset_dropdown_id, "value"),
+                State(conf_mat.secondary_dataset_dropdown_id, "value"),
                 prevent_initial_call=True,
             )
             def draw_diffs_generic_case(
@@ -132,8 +128,8 @@ class FramesModal(GridObject):
                 State(self.page_filters_id, "data"),
                 State(self.main_table, "data"),
                 State(META_DATA, "data"),
-                State(self.main_dataset_dropdown_id, "value"),
-                State(self.secondary_dataset_dropdown_id, "value"),
+                State(dropdown_conf_mat.main_dataset_dropdown_id, "value"),
+                State(dropdown_conf_mat.secondary_dataset_dropdown_id, "value"),
                 Input(dropdown_conf_mat.columns_dropdown_id, "value"),
                 Input(dropdown_conf_mat.show_diff_btn_id, "n_clicks"),
                 prevent_initial_call=True,
