@@ -5,7 +5,7 @@ from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
 from pypika import analytics as an
 from pypika.enums import SqlTypes
 from pypika.queries import QueryBuilder
-from pypika.terms import Term
+from pypika.terms import Case, Term
 
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
@@ -150,6 +150,7 @@ def ids_query(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
+    diff_tolerance: int = 8,
 ):
     terms = list({MetaData.clip_name, MetaData.grabindex})
     main_subquery = base_data_subquery(
@@ -159,13 +160,36 @@ def ids_query(
         data_filter=data_filter,
         page_filters=page_filters,
     )
-    query = (
-        Query.from_(main_subquery)
-        .select(main_subquery.clip_name, functions.Cast(main_subquery.grabindex, SqlTypes.INTEGER).as_("startframe"))
-        .distinct()
+    group_cases = Query.from_(main_subquery).select(
+        main_subquery.clip_name,
+        main_subquery.grabindex,
+        Case(alias="is_new_group")
+        .when(
+            (
+                main_subquery.grabindex
+                - an.Lag(main_subquery.grabindex).over(1).orderby(main_subquery.clip_name, main_subquery.grabindex)
+            )
+            >= diff_tolerance,
+            1,
+        )
+        .else_(0),
+    )
+    sum_groups = Query.from_(group_cases).select(
+        group_cases.clip_name,
+        group_cases.grabindex,
+        an.Sum(group_cases.is_new_group).orderby(group_cases.clip_name, group_cases.grabindex).as_("group_id"),
+    )
+    final_query = (
+        Query.from_(sum_groups)
+        .select(
+            sum_groups.clip_name,
+            functions.Cast(functions.Min(sum_groups.grabindex), SqlTypes.INTEGER).as_("startframe"),
+            functions.Cast(functions.Max(sum_groups.grabindex), SqlTypes.INTEGER).as_("endframe"),
+        )
+        .groupby(sum_groups.clip_name, sum_groups.group_id)
         .limit(limit)
     )
-    return query
+    return final_query
 
 
 def diff_ids_subquery(

@@ -63,6 +63,7 @@ class ObjCountCard(GridObject):
                 Query.from_(base)
                 .groupby(MetaData.dump_name)
                 .select(MetaData.dump_name, FormatNumber(functions.Count("*"), alias="overall"))
+                .orderby(MetaData.dump_name)
             )
             data = execute(query)
             frame_count_accordion = [
