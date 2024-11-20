@@ -54,8 +54,8 @@ class ObjCountCard(GridObject):
             page_filters: Criterion = load_object(page_filters)
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=[MetaData.dump_name],
                 meta_data_tables=md_tables,
+                terms=[MetaData.dump_name],
                 page_filters=page_filters,
                 intersection_on=intersection_on,
             )

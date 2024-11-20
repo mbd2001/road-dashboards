@@ -65,6 +65,9 @@ class CandidateParams:
 
     @staticmethod
     def remove_ignores(x, y, half_width=None, dashed_y=None):
+        if x is None or y is None:
+            return x, y, half_width, dashed_y
+
         dashed_y = (
             dashed_y[(dashed_y[:, 0] > IGNORE_VAL) & (dashed_y[:, 1] > IGNORE_VAL)] if dashed_y is not None else None
         )
@@ -83,7 +86,7 @@ def get_candidate(cand: pd.Series, is_img: bool = True):
     view_range = cand.get("max_view_range")
     max_view_range_idx = cand.get("max_view_range_idx")
     if is_img:
-        x = cand["dv_dp_points"][:, 0] if "dv_dp_points" in cand.keys() else cand["pos"]
+        x = cand["dv_dp_points"][:, 0] if "dv_dp_points" in cand.keys() else cand.get("pos")
         y = cand["dv_dp_points"][:, 1] if "dv_dp_points" in cand.keys() else VERT
         half_width = cand.get("half_width")
         dashed_y = get_aggregated_dashed_y(cand.get("dashed_start_y"), cand.get("dashed_end_y"))
@@ -100,8 +103,8 @@ def get_candidate(cand: pd.Series, is_img: bool = True):
             dashed_y=dashed_y,
         )
     else:
-        x = cand["dp_points"][:, 0] if "dp_points" in cand.keys() else cand["pos_x"]
-        z = cand["dp_points"][:, 2] if "dp_points" in cand.keys() else cand["pos_z"]
+        x = cand["dp_points"][:, 0] if "dp_points" in cand.keys() else cand.get("pos_x")
+        z = cand["dp_points"][:, 2] if "dp_points" in cand.keys() else cand.get("pos_z")
         cand = CandidateParams(
             obj_id=obj_id,
             color=color,

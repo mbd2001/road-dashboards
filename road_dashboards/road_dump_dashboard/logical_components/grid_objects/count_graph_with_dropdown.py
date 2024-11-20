@@ -124,8 +124,8 @@ class CountGraphWithDropdown(GridObject):
             columns = [round_term(column, round_n_decimal_place=round_n_decimal_place), dump_name]
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=columns,
                 meta_data_tables=md_tables,
+                terms=columns,
                 page_filters=page_filters,
                 intersection_on=intersection_on,
             )

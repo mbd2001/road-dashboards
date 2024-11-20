@@ -149,15 +149,15 @@ wildcard_conf = ConfMatGraphWithDropdown(
     main_table=page.main_table,
 )
 frames_modal = FramesModal(
-    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
-    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
     page_filters_id=filters_agg.final_filter_id,
     main_table=page.main_table,
     triggering_conf_mats=[role_conf, split_conf, primary_conf, merge_conf, oncoming_conf],
     triggering_dropdown_conf_mats=[wildcard_conf],
+    ids_operations=[ids_operations],
 )
 
 layout = GridGenerator(
+    frames_modal,
     data_filters,
     obj_count_card,
     population_card,
@@ -176,7 +176,6 @@ layout = GridGenerator(
         primary_conf,
         merge_conf,
         wildcard_conf,
-        frames_modal,
         component_id=obj_to_hide_id,
     ),
     warp_sub_objects=False,

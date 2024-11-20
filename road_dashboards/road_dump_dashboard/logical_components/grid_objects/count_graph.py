@@ -132,8 +132,8 @@ class CountGraph(GridObject):
             dump_name = MetaData.dump_name
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=[round_term(self.column, round_n_decimal_place), dump_name],
                 meta_data_tables=md_tables,
+                terms=[round_term(self.column, round_n_decimal_place), dump_name],
                 data_filter=self.filter if filter_ignores else EmptyCriterion(),
                 page_filters=page_filters,
                 intersection_on=intersection_on,

@@ -2,32 +2,26 @@ import dash_bootstrap_components as dbc
 import numpy as np
 import orjson
 import pandas as pd
-from dash import (
-    Input,
-    Output,
-    Patch,
-    State,
-    callback,
-    callback_context,
-    clientside_callback,
-    dcc,
-    html,
-    no_update,
-    set_props,
-)
+from dash import Input, Output, Patch, State, callback, callback_context, clientside_callback, dcc, html, no_update
 from pypika import EmptyCriterion
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dashboards.road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import diff_labels_subquery
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
+    base_data_subquery,
+    diff_labels_subquery,
+)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
     ConfMatGraphWithDropdown,
 )
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_ids_operations import (
+    DatasetIDsOperations,
+)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, execute, load_object
 
 
@@ -40,12 +34,14 @@ class FramesModal(GridObject):
         main_table: str,
         triggering_conf_mats: list[ConfMatGraph] = None,
         triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] = None,
+        ids_operations: list[DatasetIDsOperations] = None,
         component_id: str = "",
     ):
         self.page_filters_id = page_filters_id
         self.main_table = main_table
-        self.triggering_conf_mats = triggering_conf_mats
-        self.triggering_dropdown_conf_mats = triggering_dropdown_conf_mats
+        self.triggering_conf_mats = triggering_conf_mats if triggering_conf_mats else []
+        self.triggering_dropdown_conf_mats = triggering_dropdown_conf_mats if triggering_dropdown_conf_mats else []
+        self.ids_operations = ids_operations if ids_operations else []
         super().__init__(full_grid_row=True, component_id=component_id)
 
     def _generate_ids(self):
@@ -77,7 +73,8 @@ class FramesModal(GridObject):
         for conf_mat in self.triggering_conf_mats:
 
             @callback(
-                Output(conf_mat.filter_ignores_btn_id, "on"),
+                Output(self.curr_query_id, "data", allow_duplicate=True),
+                Output(self.component_id, "is_open", allow_duplicate=True),
                 Input(conf_mat.show_diff_btn_id, "n_clicks"),
                 Input(conf_mat.filter_ignores_btn_id, "on"),
                 State(self.page_filters_id, "data"),
@@ -97,7 +94,7 @@ class FramesModal(GridObject):
                 secondary_dump,
             ):
                 if not show_diff_n_clicks or not main_tables or not md_tables or not main_dump or not secondary_dump:
-                    return no_update
+                    return no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
@@ -105,20 +102,17 @@ class FramesModal(GridObject):
                     main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
                 query = diff_labels_subquery(
-                    diff_column=conf_mat.column,
-                    label_columns=extra_columns,
                     main_tables=[table for table in main_tables if table.dataset_name == main_dump],
                     secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
+                    label_columns=extra_columns,
+                    diff_column=conf_mat.column,
                     data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
                     page_filters=load_object(filters),
                     limit=self.IMG_LIMIT,
                 )
-
-                set_props(self.curr_query_id, {"data": dump_object(query)})
-                set_props(self.component_id, {"is_open": True})
-                return filter_ignores
+                return dump_object(query), True
 
         for dropdown_conf_mat in self.triggering_dropdown_conf_mats:
 
@@ -160,17 +154,52 @@ class FramesModal(GridObject):
                 )
                 dynamic_column = load_object(dynamic_column)
                 query = diff_labels_subquery(
-                    diff_column=dynamic_column,
-                    label_columns=extra_columns,
                     main_tables=[table for table in main_tables if table.dataset_name == main_dump],
                     secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
+                    label_columns=extra_columns,
+                    diff_column=dynamic_column,
                     page_filters=load_object(filters),
                     limit=self.IMG_LIMIT,
                 )
 
                 return query, True
+
+        for ids_operations_obj in self.ids_operations:
+
+            @callback(
+                Output(self.curr_query_id, "data"),
+                Output(self.component_id, "is_open"),
+                Input(ids_operations_obj.show_n_frames_btn_id, "n_clicks"),
+                State(self.page_filters_id, "data"),
+                State(self.main_table, "data"),
+                State(META_DATA, "data"),
+                State(ids_operations_obj.datasets_dropdown_id, "value"),
+            )
+            def draw_diffs_generic_case(
+                n_clicks,
+                filters,
+                main_tables,
+                md_tables,
+                main_dump,
+            ):
+                if not n_clicks or not main_tables or not md_tables or not main_dump:
+                    return no_update, no_update
+
+                main_tables: list[Base] = load_object(main_tables)
+                md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                extra_columns = list(
+                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+                )
+                query = base_data_subquery(
+                    main_tables=[table for table in main_tables if table.dataset_name == main_dump],
+                    meta_data_tables=[table for table in md_tables if table.dataset_name == main_dump],
+                    terms=extra_columns,
+                    page_filters=load_object(filters),
+                    limit=self.IMG_LIMIT,
+                )
+                return dump_object(query), True
 
         clientside_callback(
             """
@@ -219,39 +248,34 @@ class FramesModal(GridObject):
             prev_n_clicks,
             next_n_clicks,
             img_ind,
-            curr_num_of_drawn_datasets_id,
+            num_of_drawn_datasets,
         ):
-            triggered_id = callback_context.triggered_id
-            if not triggered_id:
-                return no_update, no_update
-
             images_layout = Patch()
             n_clicks = callback_context.triggered[0]["value"]
             if n_clicks == 0:
-                return no_update, no_update, no_update, no_update, no_update
+                return no_update, no_update
 
-            for i in range(curr_num_of_drawn_datasets_id):
-                images_layout[i]["props"]["children"][0]["props"]["children"]["props"]["children"][img_ind]["props"][
-                    "style"
-                ]["display"] = "none"
-                images_layout[i]["props"]["children"][1]["props"]["children"]["props"]["children"][img_ind]["props"][
-                    "style"
-                ]["display"] = "none"
-
+            self.edit_display_of_images_in_each_layout_row(images_layout, num_of_drawn_datasets, img_ind, "none")
+            triggered_id = callback_context.triggered_id
             if triggered_id == self.prev_btn_id:
                 img_ind = (img_ind - 1) % self.IMG_LIMIT
             elif triggered_id == self.next_btn_id:
                 img_ind = (img_ind + 1) % self.IMG_LIMIT
 
-            for dataset_ind in range(curr_num_of_drawn_datasets_id):
-                images_layout[dataset_ind]["props"]["children"][0]["props"]["children"]["props"]["children"][img_ind][
-                    "props"
-                ]["style"]["display"] = "block"
-                images_layout[dataset_ind]["props"]["children"][1]["props"]["children"]["props"]["children"][img_ind][
-                    "props"
-                ]["style"]["display"] = "block"
-
+            self.edit_display_of_images_in_each_layout_row(images_layout, num_of_drawn_datasets, img_ind, "block")
             return images_layout, img_ind
+
+    @staticmethod
+    def edit_display_of_images_in_each_layout_row(
+        images_layout: Patch, num_of_drawn_datasets: int, img_ind: int, display: str
+    ):
+        for dataset_ind in range(num_of_drawn_datasets):
+            images_layout[dataset_ind]["props"]["children"][0]["props"]["children"]["props"]["children"][img_ind][
+                "props"
+            ]["style"]["display"] = display
+            images_layout[dataset_ind]["props"]["children"][1]["props"]["children"]["props"]["children"][img_ind][
+                "props"
+            ]["style"]["display"] = display
 
     @staticmethod
     def generate_layout_from_query_data(data: pd.DataFrame):

@@ -67,8 +67,8 @@ class CountriesHeatMap(GridObject):
             country_col = MetaData.mdbi_country
             base = base_data_subquery(
                 main_tables=[table for table in main_tables if table.dataset_name == chosen_dump],
-                terms=[country_col],
                 meta_data_tables=[table for table in md_tables if table.dataset_name == chosen_dump],
+                terms=[country_col],
                 page_filters=page_filters,
             )
             query = Query.from_(base).groupby(country_col).select(country_col, functions.Count("*", "overall"))

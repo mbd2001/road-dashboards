@@ -13,11 +13,12 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 def base_data_subquery(
     main_tables: list[Base],
+    meta_data_tables: list[Base],
     terms: list[Term],
-    meta_data_tables: list[Base] = None,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     intersection_on: bool = False,
+    limit: int | None = None,
 ) -> QueryBuilder:
     intersection_filter = get_intersection_filter(meta_data_tables, intersection_on)
     filters = Criterion.all([data_filter, page_filters, intersection_filter])
@@ -25,6 +26,7 @@ def base_data_subquery(
         join_main_and_md(main_table, md_table)
         .select(*resolve_unambiguous(md_table, terms))
         .where(*resolve_unambiguous(md_table, [filters]))
+        .limit(limit)
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
     union_table = union_all_query_list(joint_tables)
@@ -36,7 +38,7 @@ def resolve_unambiguous(md_table: Base, terms: list[Term]) -> list[Term]:
 
 
 def get_intersection_filter(meta_data_tables: list[Base], intersection_on: bool):
-    if not intersection_on:
+    if not intersection_on or len(meta_data_tables) == 1:
         return EmptyCriterion()
 
     return Tuple(MetaData.clip_name, MetaData.grabindex).isin(
@@ -73,24 +75,24 @@ def intersect_query_list(query_list: list[QueryBuilder]) -> QueryBuilder:
 
 def get_main_secondary_subqueries(
     main_tables: list[Base],
+    main_md: list[Base],
     secondary_tables: list[Base],
+    secondary_md: list[Base],
     terms: list[Term],
-    main_md: list[Base] = None,
-    secondary_md: list[Base] = None,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
 ):
     main_subquery = base_data_subquery(
         main_tables=main_tables,
-        terms=terms,
         meta_data_tables=main_md,
+        terms=terms,
         data_filter=data_filter,
         page_filters=page_filters,
     )
     secondary_subquery = base_data_subquery(
         main_tables=secondary_tables,
-        terms=terms,
         meta_data_tables=secondary_md,
+        terms=terms,
         data_filter=data_filter,
         page_filters=page_filters,
     )
@@ -98,21 +100,21 @@ def get_main_secondary_subqueries(
 
 
 def conf_mat_subquery(
-    group_by_column: Column,
     main_labels: list[Base],
     secondary_labels: list[Base],
-    main_md: list[Base] = None,
-    secondary_md: list[Base] = None,
+    main_md: list[Base],
+    secondary_md: list[Base],
+    group_by_column: Column,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
 ):
     terms = list({group_by_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
     main_subquery, secondary_subquery = get_main_secondary_subqueries(
         main_tables=main_labels,
-        secondary_tables=secondary_labels,
-        terms=terms,
         main_md=main_md,
+        secondary_tables=secondary_labels,
         secondary_md=secondary_md,
+        terms=terms,
         data_filter=data_filter,
         page_filters=page_filters,
     )
@@ -144,7 +146,7 @@ def percentage_wrapper(
 
 def ids_query(
     main_tables: list[Base],
-    main_md: list[Base] = None,
+    main_md: list[Base],
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
@@ -152,8 +154,8 @@ def ids_query(
     terms = list({MetaData.clip_name, MetaData.grabindex})
     main_subquery = base_data_subquery(
         main_tables=main_tables,
-        terms=terms,
         meta_data_tables=main_md,
+        terms=terms,
         data_filter=data_filter,
         page_filters=page_filters,
     )
@@ -167,11 +169,11 @@ def ids_query(
 
 
 def diff_ids_subquery(
-    diff_column: Column,
     main_tables: list[Base],
     secondary_tables: list[Base],
-    main_md: list[Base] = None,
-    secondary_md: list[Base] = None,
+    main_md: list[Base],
+    secondary_md: list[Base],
+    diff_column: Column,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
@@ -179,10 +181,10 @@ def diff_ids_subquery(
     terms = list({diff_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
     main_subquery, secondary_subquery = get_main_secondary_subqueries(
         main_tables=main_tables,
-        secondary_tables=secondary_tables,
-        terms=terms,
         main_md=main_md,
+        secondary_tables=secondary_tables,
         secondary_md=secondary_md,
+        terms=terms,
         data_filter=data_filter,
         page_filters=page_filters,
     )
@@ -206,22 +208,22 @@ def diff_ids_subquery(
 
 
 def diff_labels_subquery(
-    diff_column: Column,
-    label_columns: list[Term],
     main_tables: list[Base],
     secondary_tables: list[Base],
-    main_md: list[Base] = None,
-    secondary_md: list[Base] = None,
+    main_md: list[Base],
+    secondary_md: list[Base],
+    label_columns: list[Term],
+    diff_column: Column,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
 ):
     ids_subquery = diff_ids_subquery(
-        diff_column=diff_column,
         main_tables=main_tables,
         secondary_tables=secondary_tables,
         main_md=main_md,
         secondary_md=secondary_md,
+        diff_column=diff_column,
         data_filter=data_filter,
         page_filters=page_filters,
         limit=limit,
@@ -230,10 +232,10 @@ def diff_labels_subquery(
     terms = list({*label_columns})
     main_subquery, secondary_subquery = get_main_secondary_subqueries(
         main_tables=main_tables,
-        secondary_tables=secondary_tables,
-        terms=terms,
         main_md=main_md,
+        secondary_tables=secondary_tables,
         secondary_md=secondary_md,
+        terms=terms,
         data_filter=data_filter,
         page_filters=page_filters,
     )

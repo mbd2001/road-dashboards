@@ -108,11 +108,11 @@ class ConfMatGraphWithDropdown(GridObject):
             column: Column = getattr(EXISTING_TABLES[self.main_table], column, None)
 
             conf_query = conf_mat_subquery(
-                group_by_column=column,
                 main_labels=[table for table in main_tables if table.dataset_name == main_dump],
                 secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
                 main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
+                group_by_column=column,
                 page_filters=page_filters,
             )
             data = execute(conf_query)
@@ -141,11 +141,11 @@ class ConfMatGraphWithDropdown(GridObject):
             column: Column = getattr(EXISTING_TABLES[self.main_table], column, None)
 
             query = diff_ids_subquery(
-                diff_column=column,
                 main_tables=[table for table in main_tables if table.dataset_name == main_dump],
-                main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
+                main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
+                diff_column=column,
                 page_filters=page_filters,
                 limit=self.FRAMES_LIMIT,
             )

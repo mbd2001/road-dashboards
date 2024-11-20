@@ -16,6 +16,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.frames_modal import FramesModal
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
@@ -121,6 +122,14 @@ wildcard_conf = ConfMatGraphWithDropdown(
     page_filters_id=filters_agg.final_filter_id,
     main_table=page.main_table,
 )
+frames_modal = FramesModal(
+    page_filters_id=filters_agg.final_filter_id,
+    main_table=page.main_table,
+    triggering_conf_mats=[tv_perfects_conf, gtem_conf],
+    triggering_dropdown_conf_mats=[wildcard_conf],
+    ids_operations=[ids_operations],
+)
+
 countries_dataset_selector = DatasetSelector(main_table=page.main_table)
 countries_heatmap = CountriesHeatMap(
     main_table=page.main_table,
@@ -130,6 +139,7 @@ countries_heatmap = CountriesHeatMap(
 
 
 layout = GridGenerator(
+    frames_modal,
     data_filters,
     obj_count_card,
     population_card,

@@ -86,8 +86,8 @@ class ObjCountGraph(GridObject):
             page_filters: Criterion = load_object(page_filters)
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=[MetaData.dump_name, MetaData.clip_name, MetaData.grabindex],
                 meta_data_tables=md_tables,
+                terms=[MetaData.dump_name, MetaData.clip_name, MetaData.grabindex],
                 page_filters=page_filters,
                 intersection_on=intersection_on,
             )

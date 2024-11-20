@@ -341,11 +341,7 @@ class DataFilters(GridObject):
 
     @staticmethod
     def get_distinct_string_values(column: Column, main_tables: list[Base], md_tables: list[Base]):
-        base_query = base_data_subquery(
-            main_tables=main_tables,
-            terms=[column],
-            meta_data_tables=md_tables,
-        )
+        base_query = base_data_subquery(main_tables=main_tables, meta_data_tables=md_tables, terms=[column])
         distinct_query = Query.from_(base_query).select(column.alias).distinct().limit(30)
         distinct_values = execute(distinct_query)[column.alias]
         return distinct_values

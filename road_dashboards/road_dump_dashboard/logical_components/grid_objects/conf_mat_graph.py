@@ -109,11 +109,11 @@ class ConfMatGraph(GridObject):
             page_filters: Criterion = load_object(page_filters)
 
             conf_query = conf_mat_subquery(
-                group_by_column=self.column,
                 main_labels=[table for table in main_tables if table.dataset_name == main_dump],
                 secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
                 main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
+                group_by_column=self.column,
                 data_filter=self.filter if filter_ignores else EmptyCriterion(),
                 page_filters=page_filters,
             )
@@ -139,11 +139,11 @@ class ConfMatGraph(GridObject):
             page_filters: Criterion = load_object(page_filters)
 
             query = diff_ids_subquery(
-                diff_column=self.column,
                 main_tables=[table for table in main_tables if table.dataset_name == main_dump],
-                main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
+                main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
+                diff_column=self.column,
                 data_filter=self.filter,
                 page_filters=page_filters,
                 limit=self.FRAMES_LIMIT,
