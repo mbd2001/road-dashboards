@@ -46,7 +46,6 @@ class WorkflowsDBManager(DBManager):
 
             return workflow, pd.DataFrame(items) if items else pd.DataFrame()
 
-        # Fetch data for all workflows in parallel
         with ThreadPoolExecutor() as executor:  # One thread per workflow
             results = list(executor.map(fetch_workflow_data, WORKFLOWS))
 
@@ -179,7 +178,6 @@ class WorkflowsDBManager(DBManager):
             if filtered_df.empty:
                 continue
 
-            # Group by week and status
             weekly_stats = (
                 filtered_df.groupby(
                     [
@@ -249,7 +247,6 @@ class WorkflowsDBManager(DBManager):
         if result_df is None:
             return pd.DataFrame()
 
-        # Reorder columns to put clip_name and brain_type first
         columns = [DatabaseSettings.primary_key, "brain_type"]
         other_columns = [col for col in result_df.columns if col not in columns]
         result_df = result_df[columns + other_columns]
