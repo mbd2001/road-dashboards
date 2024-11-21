@@ -18,6 +18,8 @@ class ComponentIds:
     BRAIN_SELECTOR = "brain-selector"
     WORKFLOW_SELECTOR = "workflow-selector"
     EXPORT_WORKFLOW_SELECTOR = "export-workflow-selector"
+    LOADING_OVERLAY = "loading-overlay"
+    MAIN_CONTENT = "main-content"
 
 
 @dataclass
@@ -34,4 +36,30 @@ class Status(str, Enum):
     SUCCESS = "SUCCESS"
     IN_PROGRESS = "IN_PROGRESS"
     FAILED = "FAILED"
-    EMPTY = ""
+    UNPROCESSED = "UNPROCESSED"
+
+
+class LoadingStyles:
+    overlay: dict = {
+        "position": "fixed",
+        "width": "100%",
+        "height": "100%",
+        "top": 0,
+        "left": 0,
+        "backgroundColor": "rgba(255, 255, 255, 0.7)",
+        "zIndex": 999,
+    }
+
+    spinner: dict = {
+        "position": "fixed",
+        "top": "50%",
+        "left": "50%",
+        "transform": "translate(-50%, -50%)",
+        "zIndex": 1000,
+    }
+
+    hidden: dict = {"display": "none"}
+
+    blurred_content: dict = {"filter": "blur(3px)"}
+
+    normal_content: dict = {}

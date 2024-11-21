@@ -1,9 +1,8 @@
 import pandas as pd
 import plotly.graph_objects as go
-from dash import Input, Output, callback
 
 from road_dashboards.workflows_dashboard.components.base.chart import BaseChart
-from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds, Status
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings
 from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name

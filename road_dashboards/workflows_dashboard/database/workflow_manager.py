@@ -12,7 +12,9 @@ class WorkflowsDBManager(DBManager):
     def __init__(self):
         super().__init__(table_name=DatabaseSettings.table_name, primary_key=DatabaseSettings.primary_key)
         self._workflow_dfs: dict[str, pd.DataFrame] = {}
+        self.is_loading = True
         self._load_workflow_data()
+        self.is_loading = False
 
     def _load_workflow_data(self) -> None:
         """Loads all data as df for each workflow."""
@@ -36,7 +38,6 @@ class WorkflowsDBManager(DBManager):
                         ExpressionAttributeNames=expr_names,
                         Segment=segment,
                         TotalSegments=total_segments,
-                        verbose=True,
                     )
                     futures.append(future)
 
@@ -58,6 +59,8 @@ class WorkflowsDBManager(DBManager):
                 }
                 df.rename(columns=column_mapping, inplace=True)
                 df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
+                df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
+
                 self._workflow_dfs[workflow] = df
 
     def _get_filtered_df(

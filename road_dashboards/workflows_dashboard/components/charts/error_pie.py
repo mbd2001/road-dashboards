@@ -1,10 +1,9 @@
-from textwrap import wrap
-from typing import Dict, List, Optional, Tuple
+from typing import Optional
 
 import pandas as pd
 
 from road_dashboards.workflows_dashboard.components.base.pie_chart import BasePieChart
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, Status
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings
 from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
