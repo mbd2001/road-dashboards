@@ -8,12 +8,13 @@ def draw_path_net_graph(
     cols,
     title="",
     role="non-host",
-    hover=False,
     effective_samples={},
     xaxis="Time (s)",
     yaxis=None,
     score_func=lambda row, score_filter: row[f"score_{score_filter}"],
     plot_bgcolor=None,
+    hover=False,
+    hover_func=lambda row, col: f'lane marks: {row[f"count_{col}"]}',
 ):
     fig = go.Figure()
     if all(f"overall_{col}" in effective_samples for col in cols):
@@ -27,7 +28,7 @@ def draw_path_net_graph(
                 x=cols,
                 y=[score_func(row, col) for col in cols],
                 name=row.net_id,
-                hovertext=["lane marks: " + f'{row[f"count_{col}"]}' for col in cols] if hover else None,
+                hovertext=[hover_func(row, col) for col in cols] if hover else None,
                 marker=(
                     dict(
                         symbol=[

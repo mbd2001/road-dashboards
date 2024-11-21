@@ -13,7 +13,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     NETS,
-    PATH_NET_OOL_TH_SLIDER,
+    PATH_NET_OOL_BORDER_DIST_SLIDER,
+    PATH_NET_OOL_RE_DIST_SLIDER,
     PATHNET_BOUNDARIES,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_EVENTS_BOOKMARKS_JSON,
@@ -50,8 +51,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
     generate_extract_acc_events_query,
-    generate_extract_ool_events_query,
     generate_extract_miss_false_events_query,
+    generate_extract_ool_events_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_alert_message, create_dropdown_options_list
@@ -243,7 +244,9 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold, order_by, is_ref=False):
+def get_source_events_df(
+    net, dp_source, meta_data_filters, metric, role, dist, threshold, re_threshold, order_by, is_ref=False
+):
     if metric == "inaccurate":
         operator = ">" if not is_ref else "<"
         query, final_columns = generate_extract_acc_events_query(
@@ -269,6 +272,7 @@ def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, 
             role=role,
             dist=float(dist),
             threshold=threshold,
+            re_threshold=re_threshold,
             operator=operator,
             order_by=order_by,
         )
@@ -335,6 +339,7 @@ def get_events_df(
         role,
         dist,
         events_extractor_dict["threshold"],
+        events_extractor_dict["re_threshold"],
         events_extractor_dict["order_by"],
     )
 
@@ -347,6 +352,7 @@ def get_events_df(
             role,
             dist,
             events_extractor_dict["ref_threshold"],
+            events_extractor_dict["re_threshold"],
             events_extractor_dict["order_by"],
             is_ref=True,
         )
@@ -426,7 +432,8 @@ def show_unique_choices(is_unique_on, metric):
     State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
     State(PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH, "on"),
-    State(PATH_NET_OOL_TH_SLIDER, "value"),
+    State(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+    State(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
@@ -446,7 +453,8 @@ def update_extractor_dict(
     thresh_dict,
     order_by,
     clips_unique_on,
-    out_of_lane_threshold,
+    out_of_lane_min_border_dist,
+    out_of_lane_min_re_dist,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -466,7 +474,7 @@ def update_extractor_dict(
         events_extractor_dict["threshold"] = specified_thresh
     elif dist is not None:
         events_extractor_dict["threshold"] = (
-            out_of_lane_threshold if metric == "out-of-lane" else thresh_dict[str(float(dist))]
+            out_of_lane_min_border_dist if metric == "out-of-lane" else thresh_dict[str(float(dist))]
         )
     else:
         events_extractor_dict["threshold"] = 0
@@ -480,6 +488,8 @@ def update_extractor_dict(
     default_order_by = "ASC" if metric == "out-of-lane" else "DESC"
     events_extractor_dict["order_by"] = order_by if order_by is not None else default_order_by
     events_extractor_dict["clips_unique_on"] = clips_unique_on
+
+    events_extractor_dict["re_threshold"] = out_of_lane_min_re_dist
 
     return events_extractor_dict
 

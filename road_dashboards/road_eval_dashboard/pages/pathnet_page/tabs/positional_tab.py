@@ -28,9 +28,10 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MONOTONE_ACC_NEXT,
     PATH_NET_SCENE_ACC_HOST,
     PATH_NET_SCENE_ACC_NEXT,
+    PATH_NET_OOL_BORDER_DIST_SLIDER,
     PATH_NET_OOL_HOST,
     PATH_NET_OOL_NEXT,
-    PATH_NET_OOL_TH_SLIDER,
+    PATH_NET_OOL_RE_DIST_SLIDER,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_BOUNDARIES,
@@ -55,6 +56,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_path_net_query,
     generate_path_net_scene_by_sec_query,
     generate_pathnet_cumulative_query,
+    get_in_lane_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
@@ -247,8 +249,20 @@ pos_layout = html.Div(
                 ),
                 dbc.Row(
                     [
-                        html.Label("out-of-lane-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
-                        dcc.Slider(id=PATH_NET_OOL_TH_SLIDER, min=0, max=2, step=0.1, value=1),
+                        html.Label(
+                            "minimum distance between dp and border (m)",
+                            style={"text-align": "center", "fontSize": "20px"},
+                        ),
+                        dcc.Slider(id=PATH_NET_OOL_BORDER_DIST_SLIDER, min=0, max=2, step=0.1, value=1),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label(
+                            "minimum distance between dp and road-edge (m)",
+                            style={"text-align": "center", "fontSize": "20px"},
+                        ),
+                        dcc.Slider(id=PATH_NET_OOL_RE_DIST_SLIDER, min=0, max=2, step=0.1, value=1.2),
                     ]
                 ),
             ]
@@ -749,32 +763,55 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
     )
 
 
+def in_lane_hover_txt(row, col):
+    count = row[f"count_{col}"]
+    score = row[f"score_{col}"]
+    comp_count = round(count / score) - count
+    return f"in-lane dps: {count}<br>out-of-lane dps: {comp_count}"
+
+
+def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re, role):
+    if not nets:
+        return no_update
+    boundaries_dist_col_name = "dp_dist_from_boundaries_gt"
+    re_dist_col_name = "dp_dist_from_road_edges_gt"
+
+    boundaries_dist_columns = [f'"{boundaries_dist_col_name}_{sec}"' for sec in distances]
+    boundaries_dist_columns += [f'"{re_dist_col_name}_{sec}"' for sec in distances]
+
+    query = get_in_lane_query(
+        data_tables=nets[PATHNET_BOUNDARIES],
+        meta_data=nets["meta_data"],
+        boundary_dist_column_name=boundaries_dist_col_name,
+        boundary_dist_threshold=threshold_boundary,
+        re_dist_column_name=re_dist_col_name,
+        re_dist_threshold=threshold_re,
+        sec_samples=distances,
+        meta_data_filters=meta_data_filters,
+        operator=">",
+        role=role,
+        base_extra_filters=pathnet_filters,
+        extra_columns=boundaries_dist_columns,
+    )
+
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_path_net_graph(
+        df, distances, "in-lane accuracy", role=role, yaxis="% accurate dps", hover=True, hover_func=in_lane_hover_txt
+    )
+
+
 @callback(
     Output(PATH_NET_OOL_HOST, "figure"),
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input(PATH_NET_OOL_TH_SLIDER, "value"),
+    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
 )
-def get_path_net_ool_host(meta_data_filters, pathnet_filters, nets, threshold):
-    if not nets:
-        return no_update
-    distances_dict = {sec: threshold for sec in distances}
-    dist_col_name = "dp_dist_from_boundaries_labels"
-    ool_dist_columns = [f'"{dist_col_name}_{sec}"' for sec in distances]
-    query = generate_path_net_query(
-        nets[PATHNET_BOUNDARIES],
-        nets["meta_data"],
-        distances_dict,
-        meta_data_filters,
-        role="host",
-        extra_columns=ool_dist_columns,
-        extra_filters=pathnet_filters,
-        base_dist_column_name=dist_col_name,
-        operator=">",
+def get_path_net_in_lane_host(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re):
+    return get_path_net_in_lane_fig(
+        meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re, role="host"
     )
-    df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "out-of-lane accuracy", role="host", yaxis="% accurate dps")
 
 
 @callback(
@@ -782,24 +819,15 @@ def get_path_net_ool_host(meta_data_filters, pathnet_filters, nets, threshold):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input(PATH_NET_OOL_TH_SLIDER, "value"),
+    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
 )
-def get_path_net_ool_next(meta_data_filters, pathnet_filters, nets, threshold):
-    if not nets:
-        return no_update
-    distances_dict = {sec: threshold for sec in distances}
-    dist_col_name = "dp_dist_from_boundaries_labels"
-    ool_dist_columns = [f'"{dist_col_name}_{sec}"' for sec in distances]
-    query = generate_path_net_query(
-        nets[PATHNET_BOUNDARIES],
-        nets["meta_data"],
-        distances_dict,
+def get_path_net_in_lane_next(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re):
+    return get_path_net_in_lane_fig(
         meta_data_filters,
+        pathnet_filters,
+        nets,
+        threshold_boundary,
+        threshold_re,
         role="non-host",
-        extra_columns=ool_dist_columns,
-        extra_filters=pathnet_filters,
-        base_dist_column_name=dist_col_name,
-        operator=">",
     )
-    df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "out-of-lane accuracy", yaxis="% accurate dps")
