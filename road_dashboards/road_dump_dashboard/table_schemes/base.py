@@ -5,17 +5,24 @@ from typing import Any, Literal, get_origin, overload
 
 from pypika import Field, Table
 from pypika.queries import Selectable
-from pypika.terms import Term
+from pypika.terms import Criterion, Term
 from pypika.utils import builder
 
 
 class Column(Field):
     def __init__(
-        self, name: str, column_type: type, drawable=False, alias: str | None = None, table: Selectable | None = None
+        self,
+        name: str,
+        column_type: type,
+        drawable=False,
+        alias: str | None = None,
+        table: Selectable | None = None,
+        ignore: Criterion | None = None,
     ) -> None:
         super().__init__(name=name, alias=alias if alias else name, table=table)
         self.type = column_type
         self.drawable = drawable
+        self.ignore = ignore
 
     @builder
     def replace_table(self, current_table: Table, new_table: Table) -> Column:
