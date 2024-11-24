@@ -403,8 +403,8 @@ class MetaData(Base):
     )
     lm_color: Case = (
         Case(alias="lm_color")
-        .when((rightcolor_yellow == True) & (rightcolor_yellow == True), "yellow")
-        .when((rightcolor_white == True) & (rightcolor_white == True), "white")
-        .when((rightcolor_blue == True) & (rightcolor_blue == True), "blue")
+        .when((rightcolor_yellow == True) & (leftcolor_yellow == True), "yellow")
+        .when((rightcolor_white == True) & (leftcolor_white == True), "white")
+        .when((rightcolor_blue == True) & (leftcolor_blue == True), "blue")
         .else_("other")
     )
