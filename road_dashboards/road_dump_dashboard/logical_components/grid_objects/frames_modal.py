@@ -175,16 +175,14 @@ class FramesModal(GridObject):
                 State(self.page_filters_id, "data"),
                 State(self.main_table, "data"),
                 State(META_DATA, "data"),
-                State(ids_operations_obj.datasets_dropdown_id, "value"),
             )
-            def draw_diffs_generic_case(
+            def draw_general_data_case(
                 n_clicks,
                 filters,
                 main_tables,
                 md_tables,
-                main_dump,
             ):
-                if not n_clicks or not main_tables or not md_tables or not main_dump:
+                if not n_clicks or not main_tables or not md_tables:
                     return no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
@@ -193,10 +191,11 @@ class FramesModal(GridObject):
                     main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
                 query = base_data_subquery(
-                    main_tables=[table for table in main_tables if table.dataset_name == main_dump],
-                    meta_data_tables=[table for table in md_tables if table.dataset_name == main_dump],
+                    main_tables=main_tables,
+                    meta_data_tables=md_tables,
                     terms=extra_columns,
                     page_filters=load_object(filters),
+                    intersection_on=True,
                     limit=self.IMG_LIMIT,
                 )
                 return dump_object(query), True

@@ -147,7 +147,7 @@ class CountGraph(GridObject):
                 query = percentage_wrapper(query, query.overall, [dump_name], [self.column])
 
             y_col = "percentage" if compute_percentage else "overall"
-            data = execute(query.orderby(dump_name))
+            data = execute(query)
             fig = pie_or_line_graph(data, self.column.alias, y_col, title=self.title, color=dump_name.alias)
             return fig
 

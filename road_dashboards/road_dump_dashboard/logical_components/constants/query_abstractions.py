@@ -26,6 +26,7 @@ def base_data_subquery(
         join_main_and_md(main_table, md_table)
         .select(*resolve_unambiguous(md_table, terms))
         .where(*resolve_unambiguous(md_table, [filters]))
+        .orderby(md_table.dump_name, md_table.clip_name, md_table.grabindex)
         .limit(limit)
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
@@ -158,6 +159,7 @@ def ids_query(
         meta_data_tables=main_md,
         terms=terms,
         data_filter=data_filter,
+        intersection_on=True,
         page_filters=page_filters,
     )
     group_cases = Query.from_(main_subquery).select(
@@ -165,11 +167,7 @@ def ids_query(
         main_subquery.grabindex,
         Case(alias="is_new_group")
         .when(
-            (
-                main_subquery.grabindex
-                - an.Lag(main_subquery.grabindex).over(1).orderby(main_subquery.clip_name, main_subquery.grabindex)
-            )
-            >= diff_tolerance,
+            (main_subquery.grabindex - an.Lag(main_subquery.grabindex).over(1)) >= diff_tolerance,
             1,
         )
         .else_(0),
@@ -177,7 +175,7 @@ def ids_query(
     sum_groups = Query.from_(group_cases).select(
         group_cases.clip_name,
         group_cases.grabindex,
-        an.Sum(group_cases.is_new_group).orderby(group_cases.clip_name, group_cases.grabindex).as_("group_id"),
+        an.Sum(group_cases.is_new_group).as_("group_id"),
     )
     final_query = (
         Query.from_(sum_groups)
@@ -225,7 +223,6 @@ def diff_ids_subquery(
         .select(main_subquery.clip_name, main_subquery.grabindex)
         .where(first_diff_col != second_diff_col)
         .distinct()
-        .orderby(main_subquery.clip_name, main_subquery.grabindex)
         .limit(limit)
     )
     return query
@@ -265,9 +262,6 @@ def diff_labels_subquery(
     )
     union_query = main_subquery.union_all(secondary_subquery)
     labels_query = (
-        Query.from_(union_query)
-        .where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(ids_subquery))
-        .select(*terms)
-        .orderby(MetaData.dump_name, MetaData.clip_name, MetaData.grabindex)
+        Query.from_(union_query).where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(ids_subquery)).select(*terms)
     )
     return labels_query
