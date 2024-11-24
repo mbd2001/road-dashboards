@@ -68,7 +68,7 @@ def intersect_query_list(query_list: list[QueryBuilder]) -> QueryBuilder:
     queries_iter = iter(query_list)
     final_query = next(queries_iter)
     while curr_query := next(queries_iter, None):
-        final_query = curr_query.intersect(curr_query)
+        final_query = final_query.intersect(curr_query)
 
     return final_query
 
