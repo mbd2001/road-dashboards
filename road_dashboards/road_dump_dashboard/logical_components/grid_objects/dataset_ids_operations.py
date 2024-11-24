@@ -64,10 +64,11 @@ class DatasetIDsOperations(GridObject):
             page_filters: Criterion = load_object(page_filters)
 
             query = ids_query(
-                main_tables=[table for table in main_tables if table.dataset_name == chosen_dump],
-                main_md=[table for table in md_tables if table.dataset_name == chosen_dump],
+                main_tables=main_tables,
+                main_md=md_tables,
                 page_filters=page_filters,
                 limit=self.FRAMES_LIMIT,
             )
             jump_frames = execute(query)
-            return dict(content=df_to_jump(jump_frames), filename=f"{chosen_dump}.jump")
+            jump_name = "_".join(table.dataset_name for table in main_tables)
+            return dict(content=df_to_jump(jump_frames), filename=f"{jump_name}.jump")

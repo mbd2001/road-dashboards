@@ -8,6 +8,7 @@ from pypika.queries import QueryBuilder
 from pypika.terms import Case, Term
 
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import Arbitrary
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
@@ -151,7 +152,7 @@ def ids_query(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
-    diff_tolerance: int = 32,
+    diff_tolerance: int = 128,
 ):
     terms = list({MetaData.clip_name, MetaData.grabindex})
     main_subquery = base_data_subquery(
@@ -162,14 +163,20 @@ def ids_query(
         intersection_on=True,
         page_filters=page_filters,
     )
-    group_cases = Query.from_(main_subquery).select(
-        main_subquery.clip_name,
-        main_subquery.grabindex,
+    unique_ind_query = (
+        Query.from_(main_subquery)
+        .select(*[Arbitrary(term, alias=term.alias) for term in terms])
+        .groupby(main_subquery.clip_name, main_subquery.grabindex)
+    )
+    group_cases = Query.from_(unique_ind_query).select(
+        *terms,
         Case(alias="is_new_group")
         .when(
             (
-                main_subquery.grabindex
-                - an.Lag(main_subquery.grabindex).over().orderby(main_subquery.clip_name, main_subquery.grabindex)
+                unique_ind_query.grabindex
+                - an.Lag(unique_ind_query.grabindex)
+                .over()
+                .orderby(unique_ind_query.clip_name, unique_ind_query.grabindex)
             )
             >= diff_tolerance,
             1,
@@ -177,19 +184,18 @@ def ids_query(
         .else_(0),
     )
     sum_groups = Query.from_(group_cases).select(
-        group_cases.clip_name,
-        group_cases.grabindex,
+        *terms,
         an.Sum(group_cases.is_new_group).orderby(group_cases.clip_name, group_cases.grabindex).as_("group_id"),
     )
     final_query = (
         Query.from_(sum_groups)
         .select(
-            sum_groups.clip_name,
             functions.Cast(functions.Min(sum_groups.grabindex), SqlTypes.INTEGER).as_("startframe"),
             functions.Cast(functions.Max(sum_groups.grabindex), SqlTypes.INTEGER).as_("endframe"),
+            *[Arbitrary(term, alias=term.alias) for term in terms],
         )
         .groupby(sum_groups.clip_name, sum_groups.group_id)
-        # .limit(limit)
+        .limit(limit)
     )
     return final_query
 

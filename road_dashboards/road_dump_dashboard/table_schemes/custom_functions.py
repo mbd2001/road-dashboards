@@ -33,3 +33,8 @@ class Round(Function):
 class FormatNumber(Function):
     def __init__(self, column, alias=None):
         super().__init__("FORMAT_NUMBER", column, alias=alias)
+
+
+class Arbitrary(Function):
+    def __init__(self, column, alias=None):
+        super().__init__("ARBITRARY", column, alias=alias)
