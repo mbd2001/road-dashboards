@@ -152,7 +152,7 @@ def ids_query(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
-    diff_tolerance: int = 128,
+    diff_tolerance: int = 64,
 ):
     terms = list({MetaData.clip_name, MetaData.grabindex})
     main_subquery = base_data_subquery(
@@ -190,9 +190,9 @@ def ids_query(
     final_query = (
         Query.from_(sum_groups)
         .select(
+            *[Arbitrary(term, alias=term.alias) for term in terms if term.alias != "grabindex"],
             functions.Cast(functions.Min(sum_groups.grabindex), SqlTypes.INTEGER).as_("startframe"),
             functions.Cast(functions.Max(sum_groups.grabindex), SqlTypes.INTEGER).as_("endframe"),
-            *[Arbitrary(term, alias=term.alias) for term in terms],
         )
         .groupby(sum_groups.clip_name, sum_groups.group_id)
         .limit(limit)

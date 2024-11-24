@@ -258,7 +258,7 @@ class MetaData(Base):
     max_lm_width_avg: Column = Column("max_lm_width_avg", float)
     max_lm_width_point: Column = Column("max_lm_width_point", float)
     mdbi_car: Column = Column("mdbi_car", int)
-    mdbi_country: Column = Column("mdbi_country", bool)
+    mdbi_country: Column = Column("mdbi_country", str)
     mdbi_road_city: Column = Column("mdbi_road_city", bool)
     mdbi_road_country: Column = Column("mdbi_road_country", bool)
     mdbi_road_freeway: Column = Column("mdbi_road_freeway", bool)
