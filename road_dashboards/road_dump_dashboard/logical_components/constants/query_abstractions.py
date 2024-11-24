@@ -151,7 +151,7 @@ def ids_query(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
-    diff_tolerance: int = 8,
+    diff_tolerance: int = 32,
 ):
     terms = list({MetaData.clip_name, MetaData.grabindex})
     main_subquery = base_data_subquery(
@@ -167,7 +167,11 @@ def ids_query(
         main_subquery.grabindex,
         Case(alias="is_new_group")
         .when(
-            (main_subquery.grabindex - an.Lag(main_subquery.grabindex).over(1)) >= diff_tolerance,
+            (
+                main_subquery.grabindex
+                - an.Lag(main_subquery.grabindex).over().orderby(main_subquery.clip_name, main_subquery.grabindex)
+            )
+            >= diff_tolerance,
             1,
         )
         .else_(0),
@@ -175,7 +179,7 @@ def ids_query(
     sum_groups = Query.from_(group_cases).select(
         group_cases.clip_name,
         group_cases.grabindex,
-        an.Sum(group_cases.is_new_group).as_("group_id"),
+        an.Sum(group_cases.is_new_group).orderby(group_cases.clip_name, group_cases.grabindex).as_("group_id"),
     )
     final_query = (
         Query.from_(sum_groups)
@@ -185,7 +189,7 @@ def ids_query(
             functions.Cast(functions.Max(sum_groups.grabindex), SqlTypes.INTEGER).as_("endframe"),
         )
         .groupby(sum_groups.clip_name, sum_groups.group_id)
-        .limit(limit)
+        # .limit(limit)
     )
     return final_query
 
