@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import Input, Output, callback, dcc, html, no_update
+from dash import Input, Output, State, callback, dcc, html, no_update
 from pypika import Criterion, Query, functions
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
@@ -99,7 +99,7 @@ class CountGraphWithDropdown(GridObject):
             Input(self.bins_slider, "value"),
             Input(self.percentage_switch_id, "on"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
             Input(self.intersection_switch_id, "on"),
             Input(self.page_filters_id, "data"),
         )

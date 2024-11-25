@@ -17,9 +17,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_ma
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
     ConfMatGraphWithDropdown,
 )
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_ids_operations import (
-    DatasetIDsOperations,
-)
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, execute, load_object
@@ -31,17 +29,15 @@ class FramesModal(GridObject):
     def __init__(
         self,
         page_filters_id: str,
-        main_table: str,
         triggering_conf_mats: list[ConfMatGraph] = None,
         triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] = None,
-        ids_operations: list[DatasetIDsOperations] = None,
+        triggering_filters: list[DataFilters] = None,
         component_id: str = "",
     ):
         self.page_filters_id = page_filters_id
-        self.main_table = main_table
         self.triggering_conf_mats = triggering_conf_mats if triggering_conf_mats else []
         self.triggering_dropdown_conf_mats = triggering_dropdown_conf_mats if triggering_dropdown_conf_mats else []
-        self.ids_operations = ids_operations if ids_operations else []
+        self.triggering_filters = triggering_filters if triggering_filters else []
         super().__init__(full_grid_row=True, component_id=component_id)
 
     def _generate_ids(self):
@@ -78,7 +74,7 @@ class FramesModal(GridObject):
                 Input(conf_mat.show_diff_btn_id, "n_clicks"),
                 Input(conf_mat.filter_ignores_btn_id, "on"),
                 State(self.page_filters_id, "data"),
-                State(self.main_table, "data"),
+                State(conf_mat.main_table, "data"),
                 State(META_DATA, "data"),
                 State(conf_mat.main_dataset_dropdown_id, "value"),
                 State(conf_mat.secondary_dataset_dropdown_id, "value"),
@@ -120,7 +116,7 @@ class FramesModal(GridObject):
                 Output(self.curr_query_id, "data", allow_duplicate=True),
                 Output(self.component_id, "is_open", allow_duplicate=True),
                 State(self.page_filters_id, "data"),
-                State(self.main_table, "data"),
+                State(dropdown_conf_mat.main_table, "data"),
                 State(META_DATA, "data"),
                 State(dropdown_conf_mat.main_dataset_dropdown_id, "value"),
                 State(dropdown_conf_mat.secondary_dataset_dropdown_id, "value"),
@@ -166,15 +162,16 @@ class FramesModal(GridObject):
 
                 return query, True
 
-        for ids_operations_obj in self.ids_operations:
+        for triggering_filter in self.triggering_filters:
 
             @callback(
-                Output(self.curr_query_id, "data"),
-                Output(self.component_id, "is_open"),
-                Input(ids_operations_obj.show_n_frames_btn_id, "n_clicks"),
+                Output(self.curr_query_id, "data", allow_duplicate=True),
+                Output(self.component_id, "is_open", allow_duplicate=True),
+                Input(triggering_filter.show_n_frames_btn_id, "n_clicks"),
                 State(self.page_filters_id, "data"),
-                State(self.main_table, "data"),
+                State(triggering_filter.main_table, "data"),
                 State(META_DATA, "data"),
+                prevent_initial_call=True,
             )
             def draw_general_data_case(
                 n_clicks,

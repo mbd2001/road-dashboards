@@ -4,8 +4,10 @@ from typing import Any
 
 import pandas as pd
 from pypika.queries import QueryBuilder
-from pypika.terms import Function
+from pypika.terms import Function, Term
 from road_database_toolkit.athena.athena_utils import query_athena
+
+from road_dashboards.road_dump_dashboard.table_schemes.base import Column
 
 
 def dump_object(obj: Any) -> str:
@@ -23,6 +25,12 @@ def execute(query: QueryBuilder) -> pd.DataFrame:
 
 def df_to_jump(df: pd.DataFrame):
     return df.to_string(header=False, index=False) + f"\n#format: {' '.join(df.columns)}"
+
+
+def get_main_and_secondary_columns(term: Term) -> tuple[Column, Column]:
+    main_field = Column(name=f"main_{term.alias}")
+    secondary_field = Column(name=f"secondary_{term.alias}")
+    return main_field, secondary_field
 
 
 class Round(Function):

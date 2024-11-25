@@ -4,11 +4,11 @@ from operator import mul
 from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
 from pypika import analytics as an
 from pypika.enums import SqlTypes
-from pypika.queries import QueryBuilder
+from pypika.queries import QueryBuilder, Selectable
 from pypika.terms import Case, Term
 
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import Arbitrary
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import Arbitrary, get_main_and_secondary_columns
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
@@ -20,7 +20,7 @@ def base_data_subquery(
     page_filters: Criterion = EmptyCriterion(),
     intersection_on: bool = False,
     limit: int | None = None,
-) -> QueryBuilder:
+) -> Selectable:
     intersection_filter = get_intersection_filter(meta_data_tables, intersection_on)
     filters = Criterion.all([data_filter, page_filters, intersection_filter])
     joint_tables = [
@@ -39,7 +39,7 @@ def resolve_unambiguous(md_table: Base, terms: list[Term]) -> list[Term]:
     return [term.replace_table(current_table=None, new_table=md_table) for term in terms]
 
 
-def get_intersection_filter(meta_data_tables: list[Base], intersection_on: bool):
+def get_intersection_filter(meta_data_tables: list[Base], intersection_on: bool) -> Criterion:
     if not intersection_on or len(meta_data_tables) == 1:
         return EmptyCriterion()
 
@@ -50,7 +50,7 @@ def get_intersection_filter(meta_data_tables: list[Base], intersection_on: bool)
     )
 
 
-def join_main_and_md(main_table: Base, md_table: Base):
+def join_main_and_md(main_table: Base, md_table: Base) -> QueryBuilder:
     if not md_table or (md_table == main_table):
         return Query.from_(main_table)
 
@@ -61,7 +61,7 @@ def join_main_and_md(main_table: Base, md_table: Base):
     )
 
 
-def union_all_query_list(query_list: list[QueryBuilder]) -> QueryBuilder:
+def union_all_query_list(query_list: list[Selectable]) -> Selectable:
     ret = reduce(mul, query_list)
     return ret
 
@@ -75,54 +75,36 @@ def intersect_query_list(query_list: list[QueryBuilder]) -> QueryBuilder:
     return final_query
 
 
-def get_main_secondary_subqueries(
+def join_on_obj_id(
     main_tables: list[Base],
-    main_md: list[Base],
     secondary_tables: list[Base],
-    secondary_md: list[Base],
-    terms: list[Term],
-    data_filter: Criterion = EmptyCriterion(),
-    page_filters: Criterion = EmptyCriterion(),
-):
-    main_subquery = base_data_subquery(
-        main_tables=main_tables,
-        meta_data_tables=main_md,
-        terms=terms,
-        data_filter=data_filter,
-        page_filters=page_filters,
-    )
-    secondary_subquery = base_data_subquery(
-        main_tables=secondary_tables,
-        meta_data_tables=secondary_md,
-        terms=terms,
-        data_filter=data_filter,
-        page_filters=page_filters,
-    )
-    return main_subquery, secondary_subquery
-
-
-def conf_mat_subquery(
-    main_labels: list[Base],
-    secondary_labels: list[Base],
     main_md: list[Base],
     secondary_md: list[Base],
-    group_by_column: Column,
+    terms: list[Term] | None = None,
+    diff_terms: list[Term] | None = None,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
-):
-    terms = list({group_by_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
-    main_subquery, secondary_subquery = get_main_secondary_subqueries(
-        main_tables=main_labels,
-        main_md=main_md,
-        secondary_tables=secondary_labels,
-        secondary_md=secondary_md,
-        terms=terms,
-        data_filter=data_filter,
-        page_filters=page_filters,
+) -> tuple[Selectable, Selectable, Selectable]:
+    terms = list({MetaData.clip_name, MetaData.grabindex, MetaData.obj_id, *(terms or [])})
+    diff_terms = diff_terms or []
+
+    base_terms = list({*terms, *diff_terms})
+    main_subquery, secondary_subquery = [
+        base_data_subquery(
+            main_tables=main_table,
+            meta_data_tables=md_table,
+            terms=base_terms,
+            data_filter=data_filter,
+            page_filters=page_filters,
+        )
+        for main_table, md_table in [[main_tables, main_md], [secondary_tables, secondary_md]]
+    ]
+    updated_terms = (
+        [Column(name=term.alias, alias=term.alias, table=main_subquery) for term in terms]
+        + [Column(name=term.alias, alias=f"main_{term.alias}", table=main_subquery) for term in diff_terms]
+        + [Column(name=term.alias, alias=f"secondary_{term.alias}", table=secondary_subquery) for term in diff_terms]
     )
-    first_diff_col = group_by_column.replace_table(None, main_subquery)
-    second_diff_col = group_by_column.replace_table(None, secondary_subquery)
-    group_by_query = (
+    join_query = (
         Query.from_(main_subquery)
         .inner_join(secondary_subquery)
         .on(
@@ -130,43 +112,58 @@ def conf_mat_subquery(
             & (main_subquery.grabindex == secondary_subquery.grabindex)
             & (main_subquery.obj_id == secondary_subquery.obj_id)
         )
-        .groupby(first_diff_col, second_diff_col)
-        .select(first_diff_col.as_("main_val"), second_diff_col.as_("secondary_val"), functions.Count("*", "overall"))
+        .select(*updated_terms)
+    )
+    return join_query, main_subquery, secondary_subquery
+
+
+def conf_mat_subquery(
+    main_labels: list[Base],
+    secondary_labels: list[Base],
+    main_md: list[Base],
+    secondary_md: list[Base],
+    group_by_column: Term,
+    data_filter: Criterion = EmptyCriterion(),
+    page_filters: Criterion = EmptyCriterion(),
+) -> QueryBuilder:
+    join_query, _, _ = join_on_obj_id(
+        main_tables=main_labels,
+        main_md=main_md,
+        secondary_tables=secondary_labels,
+        secondary_md=secondary_md,
+        diff_terms=[group_by_column],
+        data_filter=data_filter,
+        page_filters=page_filters,
+    )
+    first_group_by_column, second_group_by_column = get_main_and_secondary_columns(group_by_column)
+    group_by_query = (
+        Query.from_(join_query)
+        .groupby(first_group_by_column, second_group_by_column)
+        .select(first_group_by_column, second_group_by_column, functions.Count("*", "overall"))
     )
     return group_by_query
 
 
 def percentage_wrapper(
-    sub_query: QueryBuilder,
-    percentage_column: Column,
-    partition_columns: list[Column],
+    sub_query: Selectable,
+    percentage_column: Term,
+    partition_columns: list[Term],
     terms: list[Term],
-):
+) -> QueryBuilder:
     percentage_calc = (percentage_column * 100.0 / an.Sum(percentage_column).over(*partition_columns)).as_("percentage")
     return Query.from_(sub_query).select(*partition_columns, *[term.alias for term in terms], percentage_calc)
 
 
-def ids_query(
-    main_tables: list[Base],
-    main_md: list[Base],
-    data_filter: Criterion = EmptyCriterion(),
-    page_filters: Criterion = EmptyCriterion(),
+def ids_query_wrapper(
+    sub_query: Selectable,
+    terms: list[Term],
     limit: int | None = None,
-    diff_tolerance: int = 64,
-):
-    terms = list({MetaData.clip_name, MetaData.grabindex})
-    main_subquery = base_data_subquery(
-        main_tables=main_tables,
-        meta_data_tables=main_md,
-        terms=terms,
-        data_filter=data_filter,
-        intersection_on=True,
-        page_filters=page_filters,
-    )
+    diff_tolerance: int = 0,
+) -> QueryBuilder:
     unique_ind_query = (
-        Query.from_(main_subquery)
+        Query.from_(sub_query)
         .select(*[Arbitrary(term, alias=term.alias) for term in terms])
-        .groupby(main_subquery.clip_name, main_subquery.grabindex)
+        .groupby(sub_query.clip_name, sub_query.grabindex)
     )
     group_cases = Query.from_(unique_ind_query).select(
         *terms,
@@ -190,7 +187,12 @@ def ids_query(
     final_query = (
         Query.from_(sum_groups)
         .select(
-            *[Arbitrary(term, alias=term.alias) for term in terms if term.alias != "grabindex"],
+            MetaData.clip_name,
+            *[
+                Arbitrary(term, alias=term.alias)
+                for term in terms
+                if term.alias not in ["clip_name", "grabindex", "obj_id"]
+            ],
             functions.Cast(functions.Min(sum_groups.grabindex), SqlTypes.INTEGER).as_("startframe"),
             functions.Cast(functions.Max(sum_groups.grabindex), SqlTypes.INTEGER).as_("endframe"),
         )
@@ -200,41 +202,32 @@ def ids_query(
     return final_query
 
 
-def diff_ids_subquery(
+def diff_terms_subquery(
     main_tables: list[Base],
     secondary_tables: list[Base],
     main_md: list[Base],
     secondary_md: list[Base],
-    diff_column: Column,
+    diff_column: Term,
+    terms: list[Term] = None,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
-    limit: int | None = None,
-):
-    terms = list({diff_column, MetaData.clip_name, MetaData.grabindex, MetaData.obj_id})
-    main_subquery, secondary_subquery = get_main_secondary_subqueries(
+) -> QueryBuilder:
+    if terms is None:
+        terms = []
+
+    join_query, main_subquery, secondary_subquery = join_on_obj_id(
         main_tables=main_tables,
         main_md=main_md,
         secondary_tables=secondary_tables,
         secondary_md=secondary_md,
         terms=terms,
+        diff_terms=[diff_column],
         data_filter=data_filter,
         page_filters=page_filters,
     )
-    first_diff_col = diff_column.replace_table(None, main_subquery)
-    second_diff_col = diff_column.replace_table(None, secondary_subquery)
-    query = (
-        Query.from_(main_subquery)
-        .inner_join(secondary_subquery)
-        .on(
-            (main_subquery.clip_name == secondary_subquery.clip_name)
-            & (main_subquery.grabindex == secondary_subquery.grabindex)
-            & (main_subquery.obj_id == secondary_subquery.obj_id)
-        )
-        .select(main_subquery.clip_name, main_subquery.grabindex)
-        .where(first_diff_col != second_diff_col)
-        .distinct()
-        .limit(limit)
-    )
+    first_diff_col = Column(name=diff_column.alias, table=main_subquery)
+    second_diff_col = Column(name=diff_column.alias, table=secondary_subquery)
+    query = join_query.where(first_diff_col != second_diff_col)
     return query
 
 
@@ -244,12 +237,12 @@ def diff_labels_subquery(
     main_md: list[Base],
     secondary_md: list[Base],
     label_columns: list[Term],
-    diff_column: Column,
+    diff_column: Term,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     limit: int | None = None,
-):
-    ids_subquery = diff_ids_subquery(
+) -> QueryBuilder:
+    diff_terms = diff_terms_subquery(
         main_tables=main_tables,
         secondary_tables=secondary_tables,
         main_md=main_md,
@@ -257,20 +250,21 @@ def diff_labels_subquery(
         diff_column=diff_column,
         data_filter=data_filter,
         page_filters=page_filters,
-        limit=limit,
     )
+    ids_subquery = Query.from_(diff_terms).select(diff_terms.clip_name, diff_terms.grabindex).distinct().limit(limit)
 
     terms = list({*label_columns})
-    main_subquery, secondary_subquery = get_main_secondary_subqueries(
-        main_tables=main_tables,
-        main_md=main_md,
-        secondary_tables=secondary_tables,
-        secondary_md=secondary_md,
-        terms=terms,
-        data_filter=data_filter,
-        page_filters=page_filters,
-    )
-    union_query = main_subquery.union_all(secondary_subquery)
+    labels_queries = [
+        base_data_subquery(
+            main_tables=main_table,
+            meta_data_tables=md_table,
+            terms=terms,
+            data_filter=data_filter,
+            page_filters=page_filters,
+        )
+        for main_table, md_table in [[main_tables, main_md], [secondary_tables, secondary_md]]
+    ]
+    union_query = union_all_query_list(labels_queries)
     labels_query = (
         Query.from_(union_query).where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(ids_subquery)).select(*terms)
     )

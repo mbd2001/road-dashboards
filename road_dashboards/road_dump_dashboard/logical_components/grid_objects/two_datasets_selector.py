@@ -10,11 +10,11 @@ class TwoDatasetsSelector(DatasetSelector):
     def __init__(
         self,
         main_table: str,
-        obj_to_hide_id: str = "",
+        obj_to_hide_ids: list[str] = None,
         full_grid_row: bool = True,
         component_id: str = "",
     ):
-        self.obj_to_hide_id: str = obj_to_hide_id
+        self.obj_to_hide_ids: list[str] = obj_to_hide_ids if obj_to_hide_ids else []
         super().__init__(main_table=main_table, full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -57,10 +57,10 @@ class TwoDatasetsSelector(DatasetSelector):
 
             return options, options[0], options[0]
 
-        if self.obj_to_hide_id:
+        for obj_to_hide_id in self.obj_to_hide_ids:
 
             @callback(
-                Output(self.obj_to_hide_id, "hidden"),
+                Output(obj_to_hide_id, "hidden"),
                 Input(self.main_table, "data"),
             )
             def toggle_hidden(main_tables):

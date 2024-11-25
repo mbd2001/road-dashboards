@@ -13,7 +13,7 @@ class Column(Field):
     def __init__(
         self,
         name: str,
-        column_type: type,
+        column_type: type = str,
         drawable=False,
         alias: str | None = None,
         table: Selectable | None = None,

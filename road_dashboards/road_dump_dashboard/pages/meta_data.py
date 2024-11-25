@@ -11,12 +11,10 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_g
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.countries_heatmap import CountriesHeatMap
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_ids_operations import (
-    DatasetIDsOperations,
-)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.frames_modal import FramesModal
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.jump_modal import JumpModal
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
@@ -31,14 +29,6 @@ register_page(__name__, **page.__dict__)
 data_filters = DataFilters(main_table=page.main_table)
 population_card = PopulationCard()
 filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
-
-ids_dataset_selector = DatasetSelector(main_table=page.main_table, full_grid_row=False)
-ids_operations = DatasetIDsOperations(
-    main_table=page.main_table,
-    page_filters_id=filters_agg.final_filter_id,
-    datasets_dropdown_id=ids_dataset_selector.main_dataset_dropdown_id,
-    full_grid_row=False,
-)
 
 obj_count_card = ObjCountCard(
     main_table=page.main_table,
@@ -99,7 +89,7 @@ wildcard_count = CountGraphWithDropdown(
 )
 
 obj_to_hide_id = "meta_data_conf_mats"
-two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_hide_id=obj_to_hide_id)
+two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_hide_ids=[obj_to_hide_id])
 tv_perfects_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
@@ -116,6 +106,22 @@ gtem_conf = ConfMatGraph(
     main_table=page.main_table,
     column=MetaData.gtem_labels_exist,
 )
+road_type_conf = ConfMatGraph(
+    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
+    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
+    title="Road Type Classification",
+    main_table=page.main_table,
+    column=MetaData.road_type,
+)
+lm_color_conf = ConfMatGraph(
+    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
+    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
+    title="Lane Marks Color Classification",
+    main_table=page.main_table,
+    column=MetaData.lm_color,
+)
 wildcard_conf = ConfMatGraphWithDropdown(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
@@ -124,10 +130,15 @@ wildcard_conf = ConfMatGraphWithDropdown(
 )
 frames_modal = FramesModal(
     page_filters_id=filters_agg.final_filter_id,
-    main_table=page.main_table,
-    triggering_conf_mats=[tv_perfects_conf, gtem_conf],
+    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf],
     triggering_dropdown_conf_mats=[wildcard_conf],
-    ids_operations=[ids_operations],
+    triggering_filters=[data_filters],
+)
+jump_modal = JumpModal(
+    page_filters_id=filters_agg.final_filter_id,
+    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf],
+    triggering_dropdown_conf_mats=[wildcard_conf],
+    triggering_filters=[data_filters],
 )
 
 countries_dataset_selector = DatasetSelector(main_table=page.main_table)
@@ -140,11 +151,11 @@ countries_heatmap = CountriesHeatMap(
 
 layout = GridGenerator(
     frames_modal,
+    jump_modal,
     data_filters,
     obj_count_card,
     population_card,
     filters_agg,
-    GridGenerator(ids_dataset_selector, ids_operations),
     tv_prefects_count,
     gtem_count,
     curve_rad_hist,
@@ -152,7 +163,15 @@ layout = GridGenerator(
     road_type_hist,
     lm_color_hist,
     wildcard_count,
-    GridGenerator(two_datasets_selector, tv_perfects_conf, gtem_conf, wildcard_conf, component_id=obj_to_hide_id),
+    GridGenerator(
+        two_datasets_selector,
+        tv_perfects_conf,
+        gtem_conf,
+        road_type_conf,
+        lm_color_conf,
+        wildcard_conf,
+        component_id=obj_to_hide_id,
+    ),
     GridGenerator(countries_dataset_selector, countries_heatmap),
     warp_sub_objects=False,
 ).layout()

@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import Input, Output, callback, dcc, html, no_update
+from dash import Input, Output, State, callback, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query, functions
 from pypika.terms import Term
 
@@ -109,7 +109,7 @@ class CountGraph(GridObject):
             Input(self.percentage_switch_id, "on"),
             Input(self.filter_ignores_switch_id, "on"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
             Input(self.intersection_switch_id, "on"),
             Input(self.page_filters_id, "data"),
         )

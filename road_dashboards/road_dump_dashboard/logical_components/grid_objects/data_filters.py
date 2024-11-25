@@ -45,6 +45,8 @@ class DataFilters(GridObject):
         self.filter_val_id = self._generate_id("filter_val")
 
         self.update_filters_btn_id = self._generate_id("update_filters_btn")
+        self.show_n_frames_btn_id = self._generate_id("show_n_frames_btn")
+        self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
 
     def layout(self):
         empty_layout = card_wrapper(
@@ -60,11 +62,17 @@ class DataFilters(GridObject):
                     ],
                 ),
                 dbc.Stack(
-                    dbc.Button(
-                        "Update Filters", id=self.update_filters_btn_id, color="success", style={"margin": "10px"}
-                    ),
+                    [
+                        dbc.Button(
+                            "Update Filters",
+                            id=self.update_filters_btn_id,
+                            color="success",
+                        ),
+                        dbc.Button("Draw Frames", id=self.show_n_frames_btn_id, color="primary"),
+                        dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary"),
+                    ],
                     direction="horizontal",
-                    gap=1,
+                    gap=2,
                 ),
             ]
         )
@@ -226,7 +234,7 @@ class DataFilters(GridObject):
                 input_type = "text" if column.type in [str, bool] else "number"
                 return dcc.Input(
                     id={"type": self.filter_val_id, "index": curr_index},
-                    style={"minWidth": "100%", "marginBottom": "10px", "display": "block"},
+                    style={"minWidth": "100%", "display": "block"},
                     placeholder="----",
                     value=None,
                     type=input_type,
