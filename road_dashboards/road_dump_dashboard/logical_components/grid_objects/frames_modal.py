@@ -3,14 +3,13 @@ import numpy as np
 import orjson
 import pandas as pd
 from dash import Input, Output, Patch, State, callback, callback_context, clientside_callback, dcc, html, no_update
-from pypika import EmptyCriterion, Query
+from pypika import EmptyCriterion
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dashboards.road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
-    base_data_subquery,
     diff_labels_subquery,
     general_labels_subquery,
 )
@@ -142,7 +141,7 @@ class FramesModal(GridObject):
                     or not secondary_dump
                     or not dynamic_column
                 ):
-                    return no_update, no_update, no_update, no_update
+                    return no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None

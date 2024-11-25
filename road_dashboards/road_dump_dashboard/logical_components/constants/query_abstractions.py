@@ -83,8 +83,9 @@ def join_on_obj_id(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
 ) -> tuple[Selectable, Selectable, Selectable]:
-    terms = list({MetaData.clip_name, MetaData.grabindex, MetaData.obj_id, *(terms or [])})
-    diff_terms = diff_terms or []
+    diff_terms = diff_terms if diff_terms is not None else []
+    terms = terms if terms is not None else []
+    terms = list({MetaData.clip_name, MetaData.grabindex, MetaData.obj_id, *terms})
 
     base_terms = list({*terms, *diff_terms})
     main_subquery, secondary_subquery = [

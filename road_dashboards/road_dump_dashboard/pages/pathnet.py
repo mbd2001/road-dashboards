@@ -121,7 +121,6 @@ merge_conf = ConfMatGraph(
     main_table=page.main_table,
     column=PathNet.dp_merge_role,
     filter=PathNet.dp_merge_role != "IGNORE",
-    full_grid_row=True,
 )
 oncoming_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
@@ -169,6 +168,7 @@ layout = GridGenerator(
         split_conf,
         primary_conf,
         merge_conf,
+        oncoming_conf,
         wildcard_conf,
         component_id=obj_to_hide_id,
     ),

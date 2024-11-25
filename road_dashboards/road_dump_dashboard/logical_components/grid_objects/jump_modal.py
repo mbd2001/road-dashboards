@@ -32,6 +32,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 class JumpModal(GridObject):
     LINES_LIMIT = 4096
+    DIFF_TOLERANCE = 8
 
     def __init__(
         self,
@@ -77,8 +78,7 @@ class JumpModal(GridObject):
                                     dcc.Input(
                                         id=self.diff_tolerance_input_id,
                                         style={"minWidth": "100%"},
-                                        placeholder="Generate sequence for frames",
-                                        value=8,
+                                        placeholder=f"Sequence if gis diff smaller than (default {self.DIFF_TOLERANCE}):",
                                         type="number",
                                     )
                                 ),
@@ -101,6 +101,7 @@ class JumpModal(GridObject):
             @callback(
                 Output(self.curr_query_id, "data", allow_duplicate=True),
                 Output(self.component_id, "is_open", allow_duplicate=True),
+                Output(self.extra_columns_dropdown_id, "options", allow_duplicate=True),
                 Input(conf_mat.generate_jump_btn_id, "n_clicks"),
                 State(conf_mat.main_dataset_dropdown_id, "value"),
                 State(conf_mat.secondary_dataset_dropdown_id, "value"),
@@ -114,7 +115,7 @@ class JumpModal(GridObject):
                 n_clicks, main_dump, secondary_dump, filter_ignores, main_tables, md_tables, page_filters
             ):
                 if not n_clicks or not main_tables:
-                    return no_update, no_update
+                    return no_update, no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
@@ -130,13 +131,15 @@ class JumpModal(GridObject):
                     data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
                     page_filters=page_filters,
                 )
-                return dump_object(partial_query), True
+                extra_columns = DataFilters.get_united_columns_dict(conf_mat.main_table, META_DATA)
+                return dump_object(partial_query), True, extra_columns
 
         for dropdown_conf_mat in self.triggering_dropdown_conf_mats:
 
             @callback(
                 Output(self.curr_query_id, "data", allow_duplicate=True),
                 Output(self.component_id, "is_open", allow_duplicate=True),
+                Output(self.extra_columns_dropdown_id, "options", allow_duplicate=True),
                 Input(dropdown_conf_mat.generate_jump_btn_id, "n_clicks"),
                 State(dropdown_conf_mat.main_dataset_dropdown_id, "value"),
                 State(dropdown_conf_mat.secondary_dataset_dropdown_id, "value"),
@@ -150,7 +153,7 @@ class JumpModal(GridObject):
                 n_clicks, main_dump, secondary_dump, main_tables, md_tables, page_filters, column
             ):
                 if not n_clicks or not main_tables:
-                    return no_update, no_update
+                    return no_update, no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
@@ -166,13 +169,15 @@ class JumpModal(GridObject):
                     diff_column=column,
                     page_filters=page_filters,
                 )
-                return dump_object(partial_query), True
+                extra_columns = DataFilters.get_united_columns_dict(dropdown_conf_mat.main_table, META_DATA)
+                return dump_object(partial_query), True, extra_columns
 
         for triggering_filter in self.triggering_filters:
 
             @callback(
                 Output(self.curr_query_id, "data", allow_duplicate=True),
                 Output(self.component_id, "is_open", allow_duplicate=True),
+                Output(self.extra_columns_dropdown_id, "options", allow_duplicate=True),
                 Input(triggering_filter.generate_jump_btn_id, "n_clicks"),
                 State(triggering_filter.main_table, "data"),
                 State(META_DATA, "data"),
@@ -181,7 +186,7 @@ class JumpModal(GridObject):
             )
             def dataset_jump_file(n_clicks, main_tables, md_tables, page_filters):
                 if not n_clicks or not main_tables:
-                    return no_update, no_update
+                    return no_update, no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
@@ -194,7 +199,8 @@ class JumpModal(GridObject):
                     intersection_on=True,
                     page_filters=page_filters,
                 )
-                return dump_object(partial_query), True
+                extra_columns = DataFilters.get_united_columns_dict(triggering_filter.main_table, META_DATA)
+                return dump_object(partial_query), True, extra_columns
 
         @callback(
             Output(self.download_jump_id, "data"),
@@ -208,9 +214,12 @@ class JumpModal(GridObject):
             if not n_clicks or not curr_query:
                 return no_update
 
+            extra_terms = extra_terms if extra_terms is not None else []
+            extra_terms = [Column(term) for term in extra_terms]
             page_filters: Criterion = load_object(page_filters)
-            # terms: list[Term] = list({MetaData.clip_name, MetaData.grabindex, *[extra_terms], *list(page_filters.nodes_())})
-            terms: list[Term] = [term for term in {MetaData.clip_name, MetaData.grabindex, *page_filters.find_(Column)}]
+            terms: list[Term] = [
+                term for term in {MetaData.clip_name, MetaData.grabindex, *page_filters.find_(Column), *extra_terms}
+            ]
             query_partial_func: Callable = load_object(curr_query)
             subquery: Selectable = query_partial_func(terms=terms)
             updated_terms = (
@@ -218,6 +227,7 @@ class JumpModal(GridObject):
                 if isinstance(subquery, QueryBuilder)
                 else terms
             )
+            diff_tolerance = diff_tolerance if diff_tolerance is not None else self.DIFF_TOLERANCE
             query = ids_query_wrapper(
                 sub_query=subquery,
                 terms=updated_terms,
@@ -230,13 +240,3 @@ class JumpModal(GridObject):
 
             jump_name = "asdasdas"
             return dict(content=df_to_jump(jump_frames), filename=f"{jump_name}.jump")
-
-        # @callback(
-        #     Output(self.extra_columns_dropdown_id, "options"),
-        #     Output(self.extra_columns_dropdown_id, "value"),
-        #     Input("meta_data", "data"),
-        #     State(META_DATA, "data"),
-        # )
-        # def extra_columns(main_tables, md_tables):
-        #     # TODO: Fix it - move to the callbacks themself
-        #     return DataFilters.get_united_columns_dict(main_tables, md_tables)
