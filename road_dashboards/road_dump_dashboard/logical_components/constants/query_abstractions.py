@@ -19,7 +19,6 @@ def base_data_subquery(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     intersection_on: bool = False,
-    limit: int | None = None,
 ) -> Selectable:
     intersection_filter = get_intersection_filter(meta_data_tables, intersection_on)
     filters = Criterion.all([data_filter, page_filters, intersection_filter])
@@ -28,7 +27,6 @@ def base_data_subquery(
         .select(*resolve_unambiguous(md_table, terms))
         .where(*resolve_unambiguous(md_table, [filters]))
         .orderby(md_table.dump_name, md_table.clip_name, md_table.grabindex)
-        .limit(limit)
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
     union_table = union_all_query_list(joint_tables)
@@ -269,3 +267,37 @@ def diff_labels_subquery(
         Query.from_(union_query).where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(ids_subquery)).select(*terms)
     )
     return labels_query
+
+
+def general_labels_subquery(
+    main_tables: list[Base],
+    meta_data_tables: list[Base],
+    label_columns: list[Term],
+    data_filter: Criterion = EmptyCriterion(),
+    page_filters: Criterion = EmptyCriterion(),
+    limit: int | None = None,
+) -> QueryBuilder:
+    ids_terms = [MetaData.clip_name, MetaData.grabindex]
+    ids_query = base_data_subquery(
+        main_tables=main_tables,
+        meta_data_tables=meta_data_tables,
+        terms=ids_terms,
+        data_filter=data_filter,
+        page_filters=page_filters,
+        intersection_on=True,
+    )
+    ids_subquery = Query.from_(ids_query).select(ids_query.clip_name, ids_query.grabindex).distinct().limit(limit)
+
+    terms = list({*label_columns})
+    labels_query = base_data_subquery(
+        main_tables=main_tables,
+        meta_data_tables=meta_data_tables,
+        terms=terms,
+        data_filter=data_filter,
+        page_filters=page_filters,
+        intersection_on=True,
+    )
+    final_query = (
+        Query.from_(labels_query).where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(ids_subquery)).select(*terms)
+    )
+    return final_query

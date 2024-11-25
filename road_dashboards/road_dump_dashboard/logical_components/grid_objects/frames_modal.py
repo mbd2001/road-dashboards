@@ -3,7 +3,7 @@ import numpy as np
 import orjson
 import pandas as pd
 from dash import Input, Output, Patch, State, callback, callback_context, clientside_callback, dcc, html, no_update
-from pypika import EmptyCriterion
+from pypika import EmptyCriterion, Query
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dashboards.road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
@@ -12,6 +12,7 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
     base_data_subquery,
     diff_labels_subquery,
+    general_labels_subquery,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
@@ -187,12 +188,11 @@ class FramesModal(GridObject):
                 extra_columns = list(
                     main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
-                query = base_data_subquery(
+                query = general_labels_subquery(
                     main_tables=main_tables,
                     meta_data_tables=md_tables,
-                    terms=extra_columns,
+                    label_columns=extra_columns,
                     page_filters=load_object(filters),
-                    intersection_on=True,
                     limit=self.IMG_LIMIT,
                 )
                 return dump_object(query), True
