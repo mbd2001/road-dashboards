@@ -29,8 +29,6 @@ class ConfMatGraph(GridObject):
             filter (str): optional. filter to apply on the datasets
     """
 
-    FRAMES_LIMIT = 2048
-
     def __init__(
         self,
         main_dataset_dropdown_id: str,

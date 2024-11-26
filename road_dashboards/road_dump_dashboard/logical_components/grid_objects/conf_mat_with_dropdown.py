@@ -24,8 +24,6 @@ class ConfMatGraphWithDropdown(GridObject):
     Defines the properties of group by graph
     """
 
-    FRAMES_LIMIT = 2048
-
     def __init__(
         self,
         main_dataset_dropdown_id: str,
