@@ -250,7 +250,7 @@ def get_histograms_layout():
         ),
     ]
 
-    return card_wrapper(view_range_histogram + emdp_error_histogram)
+    return [card_wrapper(view_range_histogram), card_wrapper(emdp_error_histogram)]
 
 
 layout = html.Div(
@@ -258,8 +258,8 @@ layout = html.Div(
         html.H1("Emdp Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
-        get_histograms_layout(),
     ]
+    + get_histograms_layout()
     + [
         get_base_graph_layout(filter_name, sort_by_dist=filter_props.get("sort_by_dist", False))
         for filter_name, filter_props in EMDP_FILTERS.items()
