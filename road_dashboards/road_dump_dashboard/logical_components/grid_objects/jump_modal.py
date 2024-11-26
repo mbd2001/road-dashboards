@@ -215,7 +215,7 @@ class JumpModal(GridObject):
                 return no_update
 
             extra_terms = extra_terms if extra_terms is not None else []
-            extra_terms = [Column(term) for term in extra_terms]
+            extra_terms = [Column(term, str) for term in extra_terms]
             page_filters: Criterion = load_object(page_filters)
             terms: list[Term] = [
                 term for term in {MetaData.clip_name, MetaData.grabindex, *page_filters.find_(Column), *extra_terms}
@@ -223,7 +223,7 @@ class JumpModal(GridObject):
             query_partial_func: Callable = load_object(curr_query)
             subquery: Selectable = query_partial_func(terms=terms)
             updated_terms = (
-                [Column(name=term.alias or term.name) for term in subquery._selects]
+                [Column(term.alias or term.name, str) for term in subquery._selects]
                 if isinstance(subquery, QueryBuilder)
                 else terms
             )

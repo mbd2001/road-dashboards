@@ -13,8 +13,8 @@ class Column(Field):
     def __init__(
         self,
         name: str,
-        column_type: type = str,
-        drawable=False,
+        column_type: type,
+        drawable: bool = False,
         alias: str | None = None,
         table: Selectable | None = None,
         ignore: Criterion | None = None,
@@ -84,7 +84,7 @@ class Base(Table):
     def __getitem__(self, name: str):
         raise KeyError(name)
 
-    def __contains__(self, item: Column) -> bool:
+    def __contains__(self, item: Term) -> bool:
         try:
             super().__getattribute__(item.alias)
             return True

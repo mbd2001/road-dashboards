@@ -28,8 +28,8 @@ def df_to_jump(df: pd.DataFrame):
 
 
 def get_main_and_secondary_columns(term: Term) -> tuple[Column, Column]:
-    main_field = Column(name=f"main_{term.alias}")
-    secondary_field = Column(name=f"secondary_{term.alias}")
+    main_field = Column(f"main_{term.alias}", str)
+    secondary_field = Column(f"secondary_{term.alias}", str)
     return main_field, secondary_field
 
 
