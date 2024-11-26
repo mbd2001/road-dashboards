@@ -12,6 +12,13 @@ PATHNET_ROAD_FILTERS = {
     "all": "(urban = TRUE or urban = FALSE)",
 }
 
+PATHNET_BATCH_FILTERS = {
+    "curve": "(curve_rad_ahead_150 BETWEEN 0 AND 800) AND dist_to_intersection > 150",
+    "junction_avail": "dist_to_intersection BETWEEN 0 AND 50",
+    "ramp": "ramp = TRUE AND curve_rad_ahead_40_90 < 800",
+    "ca": "(CAST(is_rem_rpw AS BOOLEAN) or urban) = FALSE AND (dist_to_constarea_true BETWEEN 0 AND 60)",
+}
+
 LANE_MARK_TYPE_FILTERS = {
     "dashed": "rightType_dashed = TRUE OR leftType_dashed = TRUE",
     "solid": "rightType_solid = TRUE OR leftType_solid = TRUE",
@@ -148,6 +155,7 @@ PATHNET_MD_FILTERS = {
 }
 
 PATHNET_MISS_FALSE_FILTERS = {"road_type": PATHNET_ROAD_FILTERS}
+PATHNET_BATCH_BY_SEC_FILTERS = {"rel_batch_type": PATHNET_BATCH_FILTERS}
 LM_3D_INTRESTING_FILTERS = {
     extra_filter_name: f"({extra_filter})"
     for filters_names, filters in LM_3D_FILTERS.items()
