@@ -19,6 +19,7 @@ def base_data_subquery(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     intersection_on: bool = False,
+    to_sort: bool = True,
 ) -> Selectable:
     intersection_filter = get_intersection_filter(meta_data_tables, intersection_on)
     filters = Criterion.all([data_filter, page_filters, intersection_filter])
@@ -26,7 +27,7 @@ def base_data_subquery(
         join_main_and_md(main_table, md_table)
         .select(*resolve_unambiguous(md_table, terms))
         .where(*resolve_unambiguous(md_table, [filters]))
-        .orderby(md_table.dump_name, md_table.clip_name, md_table.grabindex)
+        .orderby(*[md_table.dump_name, md_table.clip_name, md_table.grabindex] if to_sort else [None])
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
     union_table = union_all_query_list(joint_tables)
@@ -82,6 +83,7 @@ def join_on_obj_id(
     diff_terms: list[Term] | None = None,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
+    to_sort: bool = True,
 ) -> tuple[Selectable, Selectable, Selectable]:
     diff_terms = diff_terms if diff_terms is not None else []
     terms = terms if terms is not None else []
@@ -95,6 +97,7 @@ def join_on_obj_id(
             terms=base_terms,
             data_filter=data_filter,
             page_filters=page_filters,
+            to_sort=to_sort,
         )
         for main_table, md_table in [[main_tables, main_md], [secondary_tables, secondary_md]]
     ]
@@ -210,6 +213,7 @@ def diff_terms_subquery(
     terms: list[Term] = None,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
+    to_sort: bool = True,
 ) -> QueryBuilder:
     if terms is None:
         terms = []
@@ -223,6 +227,7 @@ def diff_terms_subquery(
         diff_terms=[diff_column],
         data_filter=data_filter,
         page_filters=page_filters,
+        to_sort=to_sort,
     )
     first_diff_col = Column(diff_column.alias, str, table=main_subquery)
     second_diff_col = Column(diff_column.alias, str, table=secondary_subquery)
@@ -249,6 +254,7 @@ def diff_labels_subquery(
         diff_column=diff_column,
         data_filter=data_filter,
         page_filters=page_filters,
+        to_sort=False,
     )
     ids_subquery = Query.from_(diff_terms).select(diff_terms.clip_name, diff_terms.grabindex).distinct().limit(limit)
 
@@ -286,6 +292,7 @@ def general_labels_subquery(
         data_filter=data_filter,
         page_filters=page_filters,
         intersection_on=True,
+        to_sort=False,
     )
     ids_subquery = Query.from_(ids_query).select(ids_query.clip_name, ids_query.grabindex).distinct().limit(limit)
 
