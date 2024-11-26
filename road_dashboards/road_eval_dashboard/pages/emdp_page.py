@@ -15,6 +15,7 @@ from road_dashboards.road_eval_dashboard.components.common_filters import (
 )
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     EFFECTIVE_SAMPLES_PER_BATCH,
+    EMDP_DP_ERROR_HISTOGRAM,
     EMDP_VIEW_RANGE_HISTOGRAM,
     EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC,
     EMDP_VIEW_RANGE_HISTOGRAM_CUMULATIVE,
@@ -32,6 +33,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_compare_metric_query,
     generate_emdp_view_range_sec_histogram_query,
     generate_emdp_view_range_Z_histogram_query,
+    generate_sum_bins_by_diff_cols_metric_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
@@ -47,7 +49,9 @@ EMDP_FILTERS = {
     "weather": {"filters": WEATHER_FILTERS},
     "curve": {"filters": CURVE_BY_RAD_FILTERS, "dist_filters": CURVE_BY_DIST_FILTERS, "sort_by_dist": True},
 }
-HISTOGRAM_BOOLEAN_SWITCHES = [
+
+EMDP_AVG_ERR_TIME_STAMPS = [0.5, 1.0, 1.3, 1.5, 2.0, 2.5, 3.0, 3.5, 4.0, 4.5, 5.0]
+VIEW_RANGE_HISTOGRAM_BOOLEAN_SWITCHES = [
     {
         "id": EMDP_VIEW_RANGE_HISTOGRAM_NAIVE_Z,
         "on": False,
@@ -192,34 +196,62 @@ def get_base_graph_layout(filter_name, sort_by_dist=False):
     return layout
 
 
-def get_view_range_histogram_layout():
-    return card_wrapper(
-        [
-            dbc.Row(
-                [
-                    dbc.Col(
-                        graph_wrapper(EMDP_VIEW_RANGE_HISTOGRAM),
-                        width=11,
-                    )
-                ]
-            ),
-            dbc.Stack(
-                [
-                    daq.BooleanSwitch(
-                        id=boolean_switch_setting["id"],
-                        on=boolean_switch_setting["on"],
-                        label=boolean_switch_setting["label"],
-                        labelPosition="top",
-                        persistence=True,
-                        persistence_type="session",
-                    )
-                    for boolean_switch_setting in HISTOGRAM_BOOLEAN_SWITCHES
-                ],
-                direction="horizontal",
-                gap=3,
-            ),
-        ]
+def get_histograms_layout():
+    Z_naive_switch = daq.BooleanSwitch(
+        id={
+            "out": "use_Z_naive",
+            "emdp_type": EMDP_TYPE,
+        },
+        on=False,
+        label="Use Z naive",
+        labelPosition="top",
+        persistence=True,
+        persistence_type="session",
     )
+    view_range_histogram = [
+        dbc.Row(
+            [
+                dbc.Col(
+                    graph_wrapper(EMDP_VIEW_RANGE_HISTOGRAM),
+                    width=11,
+                )
+            ]
+        ),
+        dbc.Stack(
+            [
+                daq.BooleanSwitch(
+                    id=boolean_switch_setting["id"],
+                    on=boolean_switch_setting["on"],
+                    label=boolean_switch_setting["label"],
+                    labelPosition="top",
+                    persistence=True,
+                    persistence_type="session",
+                )
+                for boolean_switch_setting in VIEW_RANGE_HISTOGRAM_BOOLEAN_SWITCHES
+            ],
+            direction="horizontal",
+            gap=3,
+        ),
+    ]
+
+    emdp_error_histogram = [
+        dbc.Row(
+            [
+                dbc.Col(
+                    graph_wrapper(EMDP_DP_ERROR_HISTOGRAM),
+                    width=11,
+                )
+            ]
+        ),
+        dbc.Stack(
+            [Z_naive_switch],
+            direction="horizontal",
+            gap=3,
+        ),
+    ]
+
+    return card_wrapper(view_range_histogram + emdp_error_histogram)
+
 
 
 layout = html.Div(
@@ -227,7 +259,7 @@ layout = html.Div(
         html.H1("Emdp Metrics", className="mb-5"),
         meta_data_filter.layout,
         base_dataset_statistics.frame_layout,
-        get_view_range_histogram_layout(),
+        get_histograms_layout(),
     ]
     + [
         get_base_graph_layout(filter_name, sort_by_dist=filter_props.get("sort_by_dist", False))
@@ -402,6 +434,38 @@ def _get_histogram_df(BIN_SIZE, column_name, by_sec, meta_data_filters, monotoni
     return run_query_with_nets_names_processing(query)
 
 
+@callback(
+    Output(EMDP_DP_ERROR_HISTOGRAM, "figure"),
+    Input({"out": "use_Z_naive", "emdp_type": EMDP_TYPE}, "on"),
+    Input(MD_FILTERS, "data"),
+    Input(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+)
+def get_average_error_histogram(use_Z_naive, meta_data_filters, nets, effective_samples):
+    labels_to_preds = get_labels_to_preds_with_names(use_Z_naive)
+    query = generate_sum_bins_by_diff_cols_metric_query(
+        nets["frame_tables"],
+        nets["meta_data"],
+        labels_to_preds=labels_to_preds,
+        meta_data_filters=meta_data_filters,
+        is_count_lm=True,
+    )
+    data, _ = run_query_with_nets_names_processing(query)
+    data = data.sort_values(by="net_id")
+    for sec in EMDP_AVG_ERR_TIME_STAMPS:
+        data[f"score_{sec}"] = data[f"score_{sec}"] / data[f"count_{sec}"]
+    fig = draw_meta_data_filters(
+        data,
+        list(labels_to_preds.keys()),
+        get_emdp_score,
+        effective_samples=effective_samples,
+        title=f"Average Error",
+        xaxis="Sec",
+        yaxis="Avg Error",
+        hover=True,
+    )
+    return fig
+
 def get_emdp_fig(
     meta_data_filters,
     nets,
@@ -442,6 +506,15 @@ def get_emdp_fig(
     return fig
 
 
-def get_emdp_score(row, filter):
-    score = row[f"score_{filter}"]
+def get_emdp_score(row, filter_name):
+    score = row[f"score_{filter_name}"]
     return score
+
+def get_labels_to_preds_with_names(use_Z_naive):
+    labels_to_preds = {}
+    base_column_name = "avg_err_dz"
+    suffix = "" if use_Z_naive else "_world"
+    for sec in EMDP_AVG_ERR_TIME_STAMPS:
+        col_name = f"{base_column_name}_{sec}{suffix}"
+        labels_to_preds[str(sec)] = (col_name, col_name)
+    return labels_to_preds

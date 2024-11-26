@@ -101,6 +101,8 @@ EMDP_VIEW_RANGE_HISTOGRAM_MONOTONIC = "emdp_view_range_histogram_monotonic"
 EMDP_VIEW_RANGE_HISTOGRAM_NORM = "emdp_view_range_histogram_norm"
 EMDP_VIEW_RANGE_HISTOGRAM_BY_SEC = "emdp_view_range_histogram_by_sec"
 
+EMDP_DP_ERROR_HISTOGRAM = "emdp_dp_error_histogram"
+
 # rem page
 REM_SOURCE_DROPDOWN = "rem-source-dropdown"
 REM_ACCURACY_ERROR_THRESHOLD_SLIDER = "rem-accuracy-error-threshold-slider"
@@ -208,6 +210,9 @@ PATHNET_EVENTS_REF_THRESHOLD = "pathnet_events_ref_threshold"
 
 LM_3D_SOURCE_DROPDOWN = "3d-source-dropdown"
 LM_3D_ACC_OVERALL = "lm_3d_accuracy_overall"
+LM_3D_AVG_ERROR_HOST = "lm_3d_avg_error_host"
+LM_3D_AVG_ERROR_NEXT = "lm_3d_avg_error_next"
+LM_3D_AVG_ERROR_Z_X = "lm_3d_avg_error_Z_X"
 LM_3D_ACC_OVERALL_Z_X = "lm_3d_accuracy_overall_Z_X"
 LM_3D_ACC_HOST = "lm_3d_accuracy_host"
 LM_3D_ACC_HOST_Z_X = "lm_3d_accuracy_host_Z_X"
