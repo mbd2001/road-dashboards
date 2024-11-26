@@ -9,6 +9,7 @@ from pypika.terms import Term
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
     base_data_subquery,
     diff_terms_subquery,
@@ -62,7 +63,6 @@ class JumpModal(GridObject):
                 dbc.ModalBody(
                     [
                         dcc.Store(id=self.curr_query_id),
-                        dcc.Download(id=self.download_jump_id),
                         dbc.Row(
                             [
                                 dbc.Col(
@@ -85,6 +85,7 @@ class JumpModal(GridObject):
                             ],
                         ),
                         dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary", className="mt-3"),
+                        loading_wrapper(dcc.Download(id=self.download_jump_id)),
                     ]
                 ),
             ],
