@@ -253,7 +253,6 @@ def get_histograms_layout():
     return card_wrapper(view_range_histogram + emdp_error_histogram)
 
 
-
 layout = html.Div(
     [
         html.H1("Emdp Metrics", className="mb-5"),
@@ -459,12 +458,13 @@ def get_average_error_histogram(use_Z_naive, meta_data_filters, nets, effective_
         list(labels_to_preds.keys()),
         get_emdp_score,
         effective_samples=effective_samples,
-        title=f"Average Error",
+        title="Average Error",
         xaxis="Sec",
         yaxis="Avg Error",
         hover=True,
     )
     return fig
+
 
 def get_emdp_fig(
     meta_data_filters,
@@ -509,6 +509,7 @@ def get_emdp_fig(
 def get_emdp_score(row, filter_name):
     score = row[f"score_{filter_name}"]
     return score
+
 
 def get_labels_to_preds_with_names(use_Z_naive):
     labels_to_preds = {}

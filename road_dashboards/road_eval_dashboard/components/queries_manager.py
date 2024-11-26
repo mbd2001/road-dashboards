@@ -602,9 +602,9 @@ def generate_sum_bins_by_diff_cols_metric_query(
 
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
-    SUM_METRIC = f"""
-            CAST(SUM(CASE WHEN {{extra_filters}} THEN {{col}} ELSE 0 END) AS DOUBLE)
-            AS "count_{{ind}}"
+    SUM_METRIC = """
+            CAST(SUM(CASE WHEN {extra_filters} THEN {col} ELSE 0 END) AS DOUBLE)
+            AS "count_{ind}"
             """
     metrics = ", ".join(
         [
