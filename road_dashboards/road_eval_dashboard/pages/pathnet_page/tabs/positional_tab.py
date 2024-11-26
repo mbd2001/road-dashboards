@@ -5,7 +5,10 @@ import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MISS_FALSE_FILTERS
+from road_dashboards.road_eval_dashboard.components.common_filters import (
+    PATHNET_BATCH_BY_SEC_FILTERS,
+    PATHNET_MISS_FALSE_FILTERS,
+)
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
@@ -23,6 +26,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
     PATH_NET_MONOTONE_ACC_NEXT,
+    PATH_NET_SCENE_ACC_HOST,
+    PATH_NET_SCENE_ACC_NEXT,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
@@ -93,6 +98,67 @@ def get_cumulative_acc_layout():
     return layout
 
 
+def get_acc_by_sec_layout():
+    layout = []
+    default_sec = 1.5
+    for p_filter in PATHNET_BATCH_BY_SEC_FILTERS:
+        layout += [
+            card_wrapper(
+                [
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_SCENE_ACC_HOST, "filter": p_filter}),
+                                width=6,
+                            ),
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_SCENE_ACC_NEXT, "filter": p_filter}),
+                                width=6,
+                            ),
+                        ]
+                    ),
+                    dbc.Row(
+                        [
+                            html.Label(
+                                "sec",
+                                id={"id": "sec acc"},
+                                style={"text-align": "center", "fontSize": "20px"},
+                            ),
+                            dcc.RangeSlider(
+                                id={"id": "sec-slider", "filter": p_filter},
+                                min=0.5,
+                                max=5,
+                                step=0.5,
+                                value=[default_sec],
+                            ),
+                        ]
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                daq.BooleanSwitch(
+                                    id=PATHNET_INCLUDE_MATCHED_HOST,
+                                    on=False,
+                                    label="Filter Unmatched <-> Show All (include miss)",
+                                    labelPosition="top",
+                                )
+                            ),
+                            dbc.Col(
+                                daq.BooleanSwitch(
+                                    id=PATHNET_INCLUDE_MATCHED_NON_HOST,
+                                    on=False,
+                                    label="Filter Unmatched <-> Show All (include miss)",
+                                    labelPosition="top",
+                                )
+                            ),
+                        ]
+                    ),
+                ]
+            )
+        ]
+    return layout
+
+
 pos_layout = html.Div(
     [
         events_extractor_card,
@@ -155,6 +221,7 @@ pos_layout = html.Div(
     ]
     + get_cumulative_acc_layout()
     + get_miss_false_layout()
+    + get_acc_by_sec_layout()
     + [
         card_wrapper(
             [
