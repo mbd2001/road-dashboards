@@ -49,6 +49,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_count_query,
     generate_path_net_miss_false_query,
     generate_path_net_query,
+    generate_path_net_scene_by_sec_query,
     generate_pathnet_cumulative_query,
     run_query_with_nets_names_processing,
 )
@@ -469,6 +470,88 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+        hover=True,
+        count_items_name="dps",
+    )
+
+
+@callback(
+    Output({"id": PATH_NET_SCENE_ACC_HOST, "filter": MATCH}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input({"id": "sec-slider", "filter": MATCH}, "value"),
+    Input(PATHNET_INCLUDE_MATCHED_HOST, "on"),
+    State({"id": PATH_NET_SCENE_ACC_HOST, "filter": MATCH}, "id"),
+)
+def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, include_unmatched, graph_id):
+    if not nets:
+        return no_update
+    if include_unmatched:
+        role = ["'host'", "'unmatched-host'"]
+    else:
+        role = "host"
+    filter_name = graph_id["filter"]
+    distances_dict = compute_dynamic_distances_dict([0.2, 0.5])
+    query = generate_path_net_scene_by_sec_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        {float(slider_values[0]): distances_dict[slider_values[0]]},
+        interesting_filters=PATHNET_BATCH_BY_SEC_FILTERS[filter_name],
+        meta_data_filters=meta_data_filters,
+        extra_filters=pathnet_filters,
+        role=role,
+    )
+
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_meta_data_filters(
+        df,
+        title="<b>Host Scene Accuracy<b>",
+        yaxis="Acc rate",
+        xaxis="",
+        interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
+        score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+        hover=True,
+        count_items_name="dps",
+    )
+
+
+@callback(
+    Output({"id": PATH_NET_SCENE_ACC_NEXT, "filter": MATCH}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input({"id": "sec-slider", "filter": MATCH}, "value"),
+    Input(PATHNET_INCLUDE_MATCHED_NON_HOST, "on"),
+    State({"id": PATH_NET_SCENE_ACC_NEXT, "filter": MATCH}, "id"),
+)
+def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, include_unmatched, graph_id):
+    if not nets:
+        return no_update
+    if include_unmatched:
+        role = ["'non-host'", "'unmatched-non-host'"]
+    else:
+        role = "non-host"
+    filter_name = graph_id["filter"]
+    distances_dict = compute_dynamic_distances_dict([0.2, 0.5])
+    query = generate_path_net_scene_by_sec_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        {float(slider_values[0]): distances_dict[slider_values[0]]},
+        interesting_filters=PATHNET_BATCH_BY_SEC_FILTERS[filter_name],
+        meta_data_filters=meta_data_filters,
+        extra_filters=pathnet_filters,
+        role=role,
+    )
+
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_meta_data_filters(
+        df,
+        title="<b>Non-Host Scene Accuracy<b>",
+        yaxis="Acc rate",
+        xaxis="",
+        interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
