@@ -238,5 +238,5 @@ class JumpModal(GridObject):
             if jump_frames.empty:
                 return no_update
 
-            jump_name = "asdasdas"
+            jump_name = "tmp_name"
             return dict(content=df_to_jump(jump_frames), filename=f"{jump_name}.jump")

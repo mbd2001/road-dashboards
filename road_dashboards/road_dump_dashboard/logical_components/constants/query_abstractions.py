@@ -1,13 +1,13 @@
 from functools import reduce
 from operator import mul
 
-from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
+from pypika import Criterion, EmptyCriterion, Field, Query, Tuple, functions
 from pypika import analytics as an
 from pypika.enums import SqlTypes
 from pypika.queries import QueryBuilder, Selectable
 from pypika.terms import Case, Term
 
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import Arbitrary, get_main_and_secondary_columns
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
@@ -99,9 +99,9 @@ def join_on_obj_id(
         for main_table, md_table in [[main_tables, main_md], [secondary_tables, secondary_md]]
     ]
     updated_terms = (
-        [Column(name=term.alias, alias=term.alias, table=main_subquery) for term in terms]
-        + [Column(name=term.alias, alias=f"main_{term.alias}", table=main_subquery) for term in diff_terms]
-        + [Column(name=term.alias, alias=f"secondary_{term.alias}", table=secondary_subquery) for term in diff_terms]
+        [Field(name=term.alias, alias=term.alias, table=main_subquery) for term in terms]
+        + [Field(name=term.alias, alias=f"main_{term.alias}", table=main_subquery) for term in diff_terms]
+        + [Field(name=term.alias, alias=f"secondary_{term.alias}", table=secondary_subquery) for term in diff_terms]
     )
     join_query = (
         Query.from_(main_subquery)
@@ -224,8 +224,8 @@ def diff_terms_subquery(
         data_filter=data_filter,
         page_filters=page_filters,
     )
-    first_diff_col = Column(name=diff_column.alias, table=main_subquery)
-    second_diff_col = Column(name=diff_column.alias, table=secondary_subquery)
+    first_diff_col = Field(name=diff_column.alias, table=main_subquery)
+    second_diff_col = Field(name=diff_column.alias, table=secondary_subquery)
     query = join_query.where(first_diff_col != second_diff_col)
     return query
 
