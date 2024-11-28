@@ -101,7 +101,8 @@ def get_cumulative_acc_layout():
 
 def get_acc_by_sec_layout():
     layout = []
-    default_sec = 1.5
+    default_sec_slider = 1.5
+    default_threshold_slider = [0.2, 0.5]
     for p_filter in PATHNET_BATCH_BY_SEC_FILTERS:
         layout += [
             card_wrapper(
@@ -130,7 +131,15 @@ def get_acc_by_sec_layout():
                                 min=0.5,
                                 max=5,
                                 step=0.5,
-                                value=[default_sec],
+                                value=[default_sec_slider],
+                            ),
+                        ]
+                    ),
+                    dbc.Row(
+                        [
+                            html.Label("acc-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
+                            dcc.RangeSlider(
+                                id="acc-threshold-slider", min=0, max=2, step=0.1, value=default_threshold_slider, allowCross=False
                             ),
                         ]
                     ),
@@ -482,10 +491,11 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input({"id": "sec-slider", "filter": MATCH}, "value"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     Input(PATHNET_INCLUDE_MATCHED_HOST, "on"),
     State({"id": PATH_NET_SCENE_ACC_HOST, "filter": MATCH}, "id"),
 )
-def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, include_unmatched, graph_id):
+def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id):
     if not nets:
         return no_update
     if include_unmatched:
@@ -493,11 +503,12 @@ def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_
     else:
         role = "host"
     filter_name = graph_id["filter"]
-    distances_dict = compute_dynamic_distances_dict([0.2, 0.5])
+    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
+    sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
         nets["meta_data"],
-        {float(slider_values[0]): distances_dict[slider_values[0]]},
+        {sv: distances_dict[str(sv)]},
         interesting_filters=PATHNET_BATCH_BY_SEC_FILTERS[filter_name],
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
@@ -523,10 +534,11 @@ def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
     Input({"id": "sec-slider", "filter": MATCH}, "value"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     Input(PATHNET_INCLUDE_MATCHED_NON_HOST, "on"),
     State({"id": PATH_NET_SCENE_ACC_NEXT, "filter": MATCH}, "id"),
 )
-def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, include_unmatched, graph_id):
+def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id):
     if not nets:
         return no_update
     if include_unmatched:
@@ -534,11 +546,12 @@ def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_
     else:
         role = "non-host"
     filter_name = graph_id["filter"]
-    distances_dict = compute_dynamic_distances_dict([0.2, 0.5])
+    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
+    sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
         nets["meta_data"],
-        {float(slider_values[0]): distances_dict[slider_values[0]]},
+        {sv: distances_dict[str(sv)]},
         interesting_filters=PATHNET_BATCH_BY_SEC_FILTERS[filter_name],
         meta_data_filters=meta_data_filters,
         extra_filters=pathnet_filters,
