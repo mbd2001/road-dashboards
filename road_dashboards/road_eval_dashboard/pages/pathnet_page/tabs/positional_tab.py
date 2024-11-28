@@ -139,7 +139,12 @@ def get_acc_by_sec_layout():
                         [
                             html.Label("acc-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
                             dcc.RangeSlider(
-                                id="acc-threshold-slider", min=0, max=2, step=0.1, value=default_threshold_slider, allowCross=False
+                                id="acc-threshold-slider",
+                                min=0,
+                                max=2,
+                                step=0.1,
+                                value=default_threshold_slider,
+                                allowCross=False,
                             ),
                         ]
                     ),
@@ -495,7 +500,9 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
     Input(PATHNET_INCLUDE_MATCHED_HOST, "on"),
     State({"id": PATH_NET_SCENE_ACC_HOST, "filter": MATCH}, "id"),
 )
-def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id):
+def get_path_net_scene_sec_acc(
+    meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id
+):
     if not nets:
         return no_update
     if include_unmatched:
@@ -538,7 +545,9 @@ def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_
     Input(PATHNET_INCLUDE_MATCHED_NON_HOST, "on"),
     State({"id": PATH_NET_SCENE_ACC_NEXT, "filter": MATCH}, "id"),
 )
-def get_path_net_scene_sec_acc(meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id):
+def get_path_net_scene_sec_acc(
+    meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id
+):
     if not nets:
         return no_update
     if include_unmatched:

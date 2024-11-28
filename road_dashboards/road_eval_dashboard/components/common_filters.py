@@ -5,7 +5,6 @@ ROAD_TYPE_FILTERS = {
 }
 
 
-
 LANE_MARK_TYPE_FILTERS = {
     "dashed": "rightType_dashed = TRUE OR leftType_dashed = TRUE",
     "solid": "rightType_solid = TRUE OR leftType_solid = TRUE",
@@ -146,7 +145,7 @@ PATHNET_BATCH_FILTERS = {
     "curve": "(curve_rad_ahead_150 BETWEEN 0 AND 800) AND dist_to_intersection > 150",
     "junction_avail": PATHNET_MD_FILTERS["junction"],
     "ramp": PATHNET_MD_FILTERS["ramp"],
-    "ca" : PATHNET_MD_FILTERS["CA"],
+    "ca": PATHNET_MD_FILTERS["CA"],
 }
 
 PATHNET_ROAD_FILTERS = {
