@@ -1,5 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, callback, dcc, no_update
+from dash import Input, Output, State, callback, dcc, no_update
 from pypika import Criterion, Query, functions
 
 from road_dashboards.road_dump_dashboard.graphical_components.countries_map import (
@@ -54,7 +54,7 @@ class CountriesHeatMap(GridObject):
             Output(self.heatmap_id, "figure"),
             Input(self.page_filters_id, "data"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
             Input(self.datasets_dropdown_id, "value"),
         )
         def get_countries_heat_map(page_filters, main_tables, md_tables, chosen_dump):
@@ -67,8 +67,8 @@ class CountriesHeatMap(GridObject):
             country_col = MetaData.mdbi_country
             base = base_data_subquery(
                 main_tables=[table for table in main_tables if table.dataset_name == chosen_dump],
-                terms=[country_col],
                 meta_data_tables=[table for table in md_tables if table.dataset_name == chosen_dump],
+                terms=[country_col],
                 page_filters=page_filters,
             )
             query = Query.from_(base).groupby(country_col).select(country_col, functions.Count("*", "overall"))

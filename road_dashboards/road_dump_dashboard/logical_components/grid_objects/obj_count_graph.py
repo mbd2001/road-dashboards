@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import Input, Output, callback, dcc, no_update
+from dash import Input, Output, State, callback, dcc, no_update
 from pypika import Criterion, functions
 from pypika.queries import Query
 
@@ -67,7 +67,7 @@ class ObjCountGraph(GridObject):
             Output(self.obj_count_id, "figure"),
             Input(self.percentage_switch_id, "on"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
             Input(self.intersection_switch_id, "on"),
             Input(self.page_filters_id, "data"),
         )
@@ -86,8 +86,8 @@ class ObjCountGraph(GridObject):
             page_filters: Criterion = load_object(page_filters)
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=[MetaData.dump_name, MetaData.clip_name, MetaData.grabindex],
                 meta_data_tables=md_tables,
+                terms=[MetaData.dump_name, MetaData.clip_name, MetaData.grabindex],
                 page_filters=page_filters,
                 intersection_on=intersection_on,
             )
@@ -102,7 +102,9 @@ class ObjCountGraph(GridObject):
                 .select(obj_query.dump_name, obj_query.objects_per_frame, functions.Count("*", "overall"))
             )
             if compute_percentage:
-                query = percentage_wrapper(query, query.overall, [query.dump_name], [query.objects_per_frame])
+                query = percentage_wrapper(
+                    query, query.overall, [query.dump_name], [query.objects_per_frame.as_("objects_per_frame")]
+                )
 
             y_col = "percentage" if compute_percentage else "overall"
             data = execute(query)

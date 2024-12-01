@@ -1,20 +1,20 @@
 import dash_bootstrap_components as dbc
 from dash import Input, Output, callback, dcc, no_update
 
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetsSelector
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import load_object
 
 
-class TwoDatasetsSelector(DatasetsSelector):
+class TwoDatasetsSelector(DatasetSelector):
     def __init__(
         self,
         main_table: str,
-        obj_to_hide_id: str = "",
+        obj_to_hide_ids: list[str] = None,
         full_grid_row: bool = True,
         component_id: str = "",
     ):
-        self.obj_to_hide_id: str = obj_to_hide_id
+        self.obj_to_hide_ids: list[str] = obj_to_hide_ids if obj_to_hide_ids else []
         super().__init__(main_table=main_table, full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -28,7 +28,6 @@ class TwoDatasetsSelector(DatasetsSelector):
                 dbc.Col(
                     dcc.Dropdown(
                         id=self.secondary_dataset_dropdown_id,
-                        style={"minWidth": "100%"},
                         multi=False,
                         placeholder="----",
                         value=None,
@@ -58,10 +57,10 @@ class TwoDatasetsSelector(DatasetsSelector):
 
             return options, options[0], options[0]
 
-        if self.obj_to_hide_id:
+        for obj_to_hide_id in self.obj_to_hide_ids:
 
             @callback(
-                Output(self.obj_to_hide_id, "hidden"),
+                Output(obj_to_hide_id, "hidden"),
                 Input(self.main_table, "data"),
             )
             def toggle_hidden(main_tables):

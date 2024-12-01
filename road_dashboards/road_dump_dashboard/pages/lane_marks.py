@@ -12,6 +12,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_g
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.frames_modal import FramesModal
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.jump_modal import JumpModal
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
@@ -27,6 +28,7 @@ register_page(__name__, **page.__dict__)
 data_filters = DataFilters(main_table=page.main_table)
 population_card = PopulationCard()
 filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
+
 obj_count_card = ObjCountCard(
     main_table=page.main_table,
     objs_name="Lane marks",
@@ -107,7 +109,7 @@ wildcard_count = CountGraphWithDropdown(
 )
 
 obj_to_hide_id = "lane_marks_conf_mats"
-two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_hide_id=obj_to_hide_id)
+two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_hide_ids=[obj_to_hide_id])
 type_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
@@ -140,15 +142,21 @@ wildcard_conf = ConfMatGraphWithDropdown(
     main_table=page.main_table,
 )
 frames_modal = FramesModal(
-    main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
-    secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
     page_filters_id=filters_agg.final_filter_id,
-    main_table=page.main_table,
     triggering_conf_mats=[type_conf, color_conf, role_conf],
     triggering_dropdown_conf_mats=[wildcard_conf],
+    triggering_filters=[data_filters],
+)
+jump_modal = JumpModal(
+    page_filters_id=filters_agg.final_filter_id,
+    triggering_conf_mats=[type_conf, color_conf, role_conf],
+    triggering_dropdown_conf_mats=[wildcard_conf],
+    triggering_filters=[data_filters],
 )
 
 layout = GridGenerator(
+    frames_modal,
+    jump_modal,
     data_filters,
     obj_count_card,
     population_card,
@@ -168,7 +176,6 @@ layout = GridGenerator(
         color_conf,
         role_conf,
         wildcard_conf,
-        frames_modal,
         component_id=obj_to_hide_id,
     ),
     warp_sub_objects=False,

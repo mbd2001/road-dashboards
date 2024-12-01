@@ -33,7 +33,7 @@ def draw_confusion_matrix(conf_matrix, normalize_mat, x_label="", y_label="", ti
     return fig
 
 
-def get_confusion_matrix(data, main_val="main_val", secondary_val="secondary_val", x_label="", y_label="", title=""):
+def get_confusion_matrix(data, main_val, secondary_val, x_label="", y_label="", title=""):
     conf_matrix, normalize_mat = compute_confusion_matrix(data, main_val, secondary_val)
     fig = draw_confusion_matrix(conf_matrix, normalize_mat, x_label=x_label, y_label=y_label, title=title)
     return fig

@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import Input, Output, callback, dcc, html, no_update
+from dash import Input, Output, State, callback, dcc, html, no_update
 from pypika import Criterion, Query, functions
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
@@ -81,7 +81,6 @@ class CountGraphWithDropdown(GridObject):
                 dbc.Row(
                     dcc.Dropdown(
                         id=self.columns_dropdown_id,
-                        style={"minWidth": "100%"},
                         multi=False,
                         placeholder="Attribute",
                         options=EXISTING_TABLES[self.main_table].get_columns(),
@@ -100,7 +99,7 @@ class CountGraphWithDropdown(GridObject):
             Input(self.bins_slider, "value"),
             Input(self.percentage_switch_id, "on"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
             Input(self.intersection_switch_id, "on"),
             Input(self.page_filters_id, "data"),
         )
@@ -125,8 +124,8 @@ class CountGraphWithDropdown(GridObject):
             columns = [round_term(column, round_n_decimal_place=round_n_decimal_place), dump_name]
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=columns,
                 meta_data_tables=md_tables,
+                terms=columns,
                 page_filters=page_filters,
                 intersection_on=intersection_on,
             )
@@ -138,7 +137,7 @@ class CountGraphWithDropdown(GridObject):
             if compute_percentage:
                 query = percentage_wrapper(query, query.overall, [dump_name], [column])
 
-            data = execute(query.orderby(dump_name))
+            data = execute(query)
             y_col = "percentage" if compute_percentage else "overall"
             fig = pie_or_line_graph(
                 data, column.alias, y_col, title=f"{column.alias.title()} Distribution", color="dump_name"

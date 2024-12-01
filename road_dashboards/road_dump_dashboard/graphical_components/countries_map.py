@@ -23,7 +23,7 @@ COUNTRIES_NORMALIZATION = {
 }
 
 
-def generate_world_map(countries_data, locations, color, hover_data=[]):
+def generate_world_map(countries_data, locations, color, hover_data=None):
     fig = px.choropleth_mapbox(
         countries_data,
         geojson=geojson,

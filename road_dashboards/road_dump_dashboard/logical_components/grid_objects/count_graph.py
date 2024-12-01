@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-from dash import Input, Output, callback, dcc, html, no_update
+from dash import Input, Output, State, callback, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query, functions
 from pypika.terms import Term
 
@@ -109,7 +109,7 @@ class CountGraph(GridObject):
             Input(self.percentage_switch_id, "on"),
             Input(self.filter_ignores_switch_id, "on"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
             Input(self.intersection_switch_id, "on"),
             Input(self.page_filters_id, "data"),
         )
@@ -132,8 +132,8 @@ class CountGraph(GridObject):
             dump_name = MetaData.dump_name
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=[round_term(self.column, round_n_decimal_place), dump_name],
                 meta_data_tables=md_tables,
+                terms=[round_term(self.column, round_n_decimal_place), dump_name],
                 data_filter=self.filter if filter_ignores else EmptyCriterion(),
                 page_filters=page_filters,
                 intersection_on=intersection_on,
@@ -147,7 +147,7 @@ class CountGraph(GridObject):
                 query = percentage_wrapper(query, query.overall, [dump_name], [self.column])
 
             y_col = "percentage" if compute_percentage else "overall"
-            data = execute(query.orderby(dump_name))
+            data = execute(query)
             fig = pie_or_line_graph(data, self.column.alias, y_col, title=self.title, color=dump_name.alias)
             return fig
 

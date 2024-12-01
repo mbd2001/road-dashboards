@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 from typing import Callable
 
 import dash_bootstrap_components as dbc
@@ -64,17 +62,15 @@ class DataFilters(GridObject):
                 dbc.Stack(
                     [
                         dbc.Button(
-                            "Update Filters", id=self.update_filters_btn_id, color="success", style={"margin": "10px"}
+                            "Update Filters",
+                            id=self.update_filters_btn_id,
+                            color="success",
                         ),
-                        dbc.Button(
-                            "Draw Frames", id=self.show_n_frames_btn_id, color="primary", style={"margin": "10px"}
-                        ),
-                        dbc.Button(
-                            "Save Jump File", id=self.generate_jump_btn_id, color="primary", style={"margin": "10px"}
-                        ),
+                        dbc.Button("Draw Frames", id=self.show_n_frames_btn_id, color="primary"),
+                        dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary"),
                     ],
                     direction="horizontal",
-                    gap=1,
+                    gap=2,
                 ),
             ]
         )
@@ -236,7 +232,7 @@ class DataFilters(GridObject):
                 input_type = "text" if column.type in [str, bool] else "number"
                 return dcc.Input(
                     id={"type": self.filter_val_id, "index": curr_index},
-                    style={"minWidth": "100%", "marginBottom": "10px", "display": "block"},
+                    style={"minWidth": "100%", "display": "block"},
                     placeholder="----",
                     value=None,
                     type=input_type,
@@ -304,7 +300,6 @@ class DataFilters(GridObject):
                 dbc.Col(
                     children=dcc.Dropdown(
                         id={"type": self.column_id, "index": index},
-                        style={"minWidth": "100%"},
                         multi=False,
                         clearable=True,
                         placeholder="Attribute",
@@ -315,7 +310,6 @@ class DataFilters(GridObject):
                 dbc.Col(
                     children=dcc.Dropdown(
                         id={"type": self.operation_id, "index": index},
-                        style={"minWidth": "100%"},
                         multi=False,
                         clearable=True,
                         placeholder="----",
@@ -353,11 +347,7 @@ class DataFilters(GridObject):
 
     @staticmethod
     def get_distinct_string_values(column: Column, main_tables: list[Base], md_tables: list[Base]):
-        base_query = base_data_subquery(
-            main_tables=main_tables,
-            terms=[column],
-            meta_data_tables=md_tables,
-        )
+        base_query = base_data_subquery(main_tables=main_tables, meta_data_tables=md_tables, terms=[column])
         distinct_query = Query.from_(base_query).select(column.alias).distinct().limit(30)
         distinct_values = execute(distinct_query)[column.alias]
         return distinct_values
