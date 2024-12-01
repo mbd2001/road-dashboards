@@ -5,7 +5,10 @@ import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena
 
-from road_dashboards.road_eval_dashboard.components.common_filters import PATHNET_MISS_FALSE_FILTERS
+from road_dashboards.road_eval_dashboard.components.common_filters import (
+    PATHNET_BATCH_BY_SEC_FILTERS,
+    PATHNET_MISS_FALSE_FILTERS,
+)
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_FILTERS,
     NETS,
@@ -23,6 +26,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
     PATH_NET_MONOTONE_ACC_NEXT,
+    PATH_NET_SCENE_ACC_HOST,
+    PATH_NET_SCENE_ACC_NEXT,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
@@ -44,6 +49,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_count_query,
     generate_path_net_miss_false_query,
     generate_path_net_query,
+    generate_path_net_scene_by_sec_query,
     generate_pathnet_cumulative_query,
     run_query_with_nets_names_processing,
 )
@@ -90,6 +96,81 @@ def get_cumulative_acc_layout():
                 ]
             )
         )
+    return layout
+
+
+def get_acc_by_sec_layout():
+    layout = []
+    default_sec_slider = 1.5
+    default_threshold_slider = [0.2, 0.5]
+    for p_filter in PATHNET_BATCH_BY_SEC_FILTERS:
+        layout += [
+            card_wrapper(
+                [
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_SCENE_ACC_HOST, "filter": p_filter}),
+                                width=6,
+                            ),
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_SCENE_ACC_NEXT, "filter": p_filter}),
+                                width=6,
+                            ),
+                        ]
+                    ),
+                    dbc.Row(
+                        [
+                            html.Label(
+                                "sec",
+                                id={"id": "sec acc"},
+                                style={"text-align": "center", "fontSize": "20px"},
+                            ),
+                            dcc.RangeSlider(
+                                id={"id": "sec-slider", "filter": p_filter},
+                                min=0.5,
+                                max=5,
+                                step=0.5,
+                                value=[default_sec_slider],
+                            ),
+                        ]
+                    ),
+                    dbc.Row(
+                        [
+                            html.Label("acc-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
+                            dcc.RangeSlider(
+                                id="acc-threshold-slider",
+                                min=0,
+                                max=2,
+                                step=0.1,
+                                value=default_threshold_slider,
+                                allowCross=False,
+                            ),
+                        ]
+                    ),
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                daq.BooleanSwitch(
+                                    id=PATHNET_INCLUDE_MATCHED_HOST,
+                                    on=False,
+                                    label="Filter Unmatched <-> Show All (include miss)",
+                                    labelPosition="top",
+                                )
+                            ),
+                            dbc.Col(
+                                daq.BooleanSwitch(
+                                    id=PATHNET_INCLUDE_MATCHED_NON_HOST,
+                                    on=False,
+                                    label="Filter Unmatched <-> Show All (include miss)",
+                                    labelPosition="top",
+                                )
+                            ),
+                        ]
+                    ),
+                ]
+            )
+        ]
     return layout
 
 
@@ -155,6 +236,7 @@ pos_layout = html.Div(
     ]
     + get_cumulative_acc_layout()
     + get_miss_false_layout()
+    + get_acc_by_sec_layout()
     + [
         card_wrapper(
             [
@@ -402,6 +484,96 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+        hover=True,
+        count_items_name="dps",
+    )
+
+
+@callback(
+    Output({"id": PATH_NET_SCENE_ACC_HOST, "filter": MATCH}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input({"id": "sec-slider", "filter": MATCH}, "value"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input(PATHNET_INCLUDE_MATCHED_HOST, "on"),
+    State({"id": PATH_NET_SCENE_ACC_HOST, "filter": MATCH}, "id"),
+)
+def get_path_net_scene_sec_acc(
+    meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id
+):
+    if not nets:
+        return no_update
+    if include_unmatched:
+        role = ["'host'", "'unmatched-host'"]
+    else:
+        role = "host"
+    filter_name = graph_id["filter"]
+    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
+    sv = float(slider_values[0])
+    query = generate_path_net_scene_by_sec_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        {sv: distances_dict[str(sv)]},
+        interesting_filters=PATHNET_BATCH_BY_SEC_FILTERS[filter_name],
+        meta_data_filters=meta_data_filters,
+        extra_filters=pathnet_filters,
+        role=role,
+    )
+
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_meta_data_filters(
+        df,
+        title="<b>Host Scene Accuracy<b>",
+        yaxis="Acc rate",
+        xaxis="",
+        interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
+        score_func=lambda row, score_filter: row[f"score_{score_filter}"],
+        hover=True,
+        count_items_name="dps",
+    )
+
+
+@callback(
+    Output({"id": PATH_NET_SCENE_ACC_NEXT, "filter": MATCH}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input({"id": "sec-slider", "filter": MATCH}, "value"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input(PATHNET_INCLUDE_MATCHED_NON_HOST, "on"),
+    State({"id": PATH_NET_SCENE_ACC_NEXT, "filter": MATCH}, "id"),
+)
+def get_path_net_scene_sec_acc(
+    meta_data_filters, pathnet_filters, nets, slider_values, distances_dict, include_unmatched, graph_id
+):
+    if not nets:
+        return no_update
+    if include_unmatched:
+        role = ["'non-host'", "'unmatched-non-host'"]
+    else:
+        role = "non-host"
+    filter_name = graph_id["filter"]
+    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
+    sv = float(slider_values[0])
+    query = generate_path_net_scene_by_sec_query(
+        nets[PATHNET_GT],
+        nets["meta_data"],
+        {sv: distances_dict[str(sv)]},
+        interesting_filters=PATHNET_BATCH_BY_SEC_FILTERS[filter_name],
+        meta_data_filters=meta_data_filters,
+        extra_filters=pathnet_filters,
+        role=role,
+    )
+
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_meta_data_filters(
+        df,
+        title="<b>Non-Host Scene Accuracy<b>",
+        yaxis="Acc rate",
+        xaxis="",
+        interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",

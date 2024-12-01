@@ -4,13 +4,6 @@ ROAD_TYPE_FILTERS = {
     "urban": "mdbi_road_city = TRUE",
 }
 
-PATHNET_ROAD_FILTERS = {
-    "highway": "highway = TRUE",
-    "country": "country = TRUE",
-    "urban": "urban = TRUE",
-    "other": "(highway OR country OR urban) = FALSE",
-    "all": "(urban = TRUE or urban = FALSE)",
-}
 
 LANE_MARK_TYPE_FILTERS = {
     "dashed": "rightType_dashed = TRUE OR leftType_dashed = TRUE",
@@ -132,22 +125,39 @@ LM_3D_FILTERS = {
 }
 
 PATHNET_MD_FILTERS = {
-    "highway": "highway = TRUE OR mdbi_road_highway = TRUE OR mdbi_road_freeway = TRUE",
-    "country": "country = TRUE OR mdbi_road_country = TRUE",
-    "urban": "urban = TRUE OR mdbi_road_city = TRUE",
+    "highway": "highway = TRUE OR freeway = TRUE",
+    "country": "country = TRUE",
+    "urban": "urban = TRUE",
     "in_curve": "curve_rad_ahead BETWEEN 0 AND 300",
     "close_curve": "curve_rad_ahead_40_90 BETWEEN 0 AND 250",
     "far_curve": "curve_rad_ahead_150 BETWEEN 0 AND 200",
+    "ramp": "ramp = TRUE AND curve_rad_ahead_40_90 < 800 AND dist_to_cipv_rpw > 10",
     "close_merge": "dist_to_merge_rpw BETWEEN 6.5 AND 80",
     "far_merge": "dist_to_merge_rpw BETWEEN 80 AND 150",
     "close_split": "dist_to_split_rpw BETWEEN 6.5 AND 80",
     "far_split": "dist_to_split_rpw BETWEEN 80 AND 150",
-    "junction": "dist_to_intersection BETWEEN 0 AND 40",
-    "roundabout": "dist_to_roundabout BETWEEN 0 AND 40",
-    "CA": "dist_to_constarea_true < 40",
+    "junction": "dist_to_intersection BETWEEN 0 AND 50 AND dist_to_cipv_rpw > 10",
+    "roundabout": "dist_to_roundabout BETWEEN 0 AND 30 AND dist_to_cipv_rpw > 10",
+    "CA": "(CAST(is_rem_rpw AS BOOLEAN) or urban) = FALSE AND (dist_to_constarea_true BETWEEN 0 AND 60) AND (dist_to_cipv_rpw > 10)",
+}
+
+PATHNET_BATCH_FILTERS = {
+    "curve": "(curve_rad_ahead_150 BETWEEN 0 AND 800) AND dist_to_intersection > 150",
+    "junction_avail": PATHNET_MD_FILTERS["junction"],
+    "ramp": PATHNET_MD_FILTERS["ramp"],
+    "ca": PATHNET_MD_FILTERS["CA"],
+}
+
+PATHNET_ROAD_FILTERS = {
+    "highway": PATHNET_MD_FILTERS["highway"],
+    "country": PATHNET_MD_FILTERS["country"],
+    "urban": PATHNET_MD_FILTERS["urban"],
+    "other": "(highway OR country OR urban) = FALSE",
+    "all": "(urban = TRUE or urban = FALSE)",
 }
 
 PATHNET_MISS_FALSE_FILTERS = {"road_type": PATHNET_ROAD_FILTERS}
+PATHNET_BATCH_BY_SEC_FILTERS = {"rel_batch_type": PATHNET_BATCH_FILTERS}
 LM_3D_INTRESTING_FILTERS = {
     extra_filter_name: f"({extra_filter})"
     for filters_names, filters in LM_3D_FILTERS.items()

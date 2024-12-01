@@ -392,6 +392,17 @@ class MetaData(Base):
     map_source: Column = Column("map_source", str)
     raas_is_path_safe: Column = Column("raas_is_path_safe", bool)
     raas_is_trustable: Column = Column("raas_is_trustable", bool)
+    avail_exist_rpw: Column = Column("avail_exist_rpw", int)
+    is_crossing_host: Column = Column("is_crossing_host", bool)
+    is_crossing_rl: Column = Column("is_crossing_rl", bool)
+    is_crossing_oncoming: Column = Column("is_crossing_oncoming", bool)
+    is_horizontal_merge: Column = Column("is_horizontal_merge", bool)
+    is_ego_turning: Column = Column("is_ego_turning", bool)
+    valid_roles_rpw: Column = Column("valid_roles_rpw", bool)
+    no_host_in_frame_rpw: Column = Column("no_host_in_frame_rpw", int)
+    host_junc_delta_heading_rpw: Column = Column("host_junc_delta_heading_rpw", float)
+    host_junc_delta_x_rpw: Column = Column("host_junc_delta_x_rpw", float)
+    in_junction_turning_rpw: Column = Column("in_junction_turning_rpw", int)
 
     road_type: Case = (
         Case(alias="road_type")
