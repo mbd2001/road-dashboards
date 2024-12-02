@@ -1,33 +1,18 @@
 from abc import abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
-from road_dashboards.workflows_dashboard.components.base.chart import BaseChart
+from road_dashboards.workflows_dashboard.components.base.chart import Chart
 from road_dashboards.workflows_dashboard.utils.chart_utils import add_center_annotation
 
 
-class BasePieChart(BaseChart):
+class PieChart(Chart):
     def __init__(self, chart_id: str, workflow_name: str):
         super().__init__(chart_id)
         self.workflow_name = workflow_name
-
-    @abstractmethod
-    def prepare_data(self, filters: dict) -> Optional[pd.DataFrame]:
-        """
-        Prepare data for visualization.
-
-        Args:
-            filters (dict): Filter parameters from BaseChart.create_chart
-
-        Returns:
-            Optional[pd.DataFrame]: DataFrame with columns:
-                - message: Label for the pie slice
-                - count: Value for the pie slice
-                Returns None if no data available
-        """
-        pass
 
     @abstractmethod
     def get_chart_title(self) -> str:
@@ -43,24 +28,23 @@ class BasePieChart(BaseChart):
         """Get additional chart parameters."""
         return {}
 
-    def create_chart(self, filters: dict) -> px.pie:
+    def create_chart(
+        self,
+        data: pd.DataFrame,
+    ) -> go.Figure:
         """
-        Create a pie chart based on the provided filters.
+        Create a pie chart based on the provided data.
 
         Args:
-            filters (dict): Filter parameters from BaseChart.create_chart
+            data: DataFrame with 'message' and 'count' columns
 
         Returns:
-            px.pie: A plotly pie chart figure
+            go.Figure: A plotly pie chart figure
         """
-        plot_df = self.prepare_data(filters)
-        if plot_df is None:
-            return self.create_empty_chart()
-
-        total_count = plot_df["count"].sum()
+        total_count = data["count"].sum()
         chart_params = self.get_chart_params()
 
-        fig = px.pie(plot_df, values="count", names="message", title=self.get_chart_title(), **chart_params)
+        fig = px.pie(data, values="count", names="message", title=self.get_chart_title(), **chart_params)
 
         add_center_annotation(fig, f"Total Clips:<br><b>{total_count}</b>")
         self._update_traces(fig)

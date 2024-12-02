@@ -5,7 +5,7 @@ from boto3.dynamodb.conditions import Attr
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, WorkflowFields
-from road_dashboards.workflows_dashboard.core_settings.settings import DatabaseSettings, Status
+from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings, DatabaseSettings, Status
 
 
 class WorkflowsDBManager(DBManager):
@@ -63,7 +63,7 @@ class WorkflowsDBManager(DBManager):
                 self._workflow_dfs[workflow] = df
 
     def _get_filtered_df(
-        self, workflow_name: str = None, brain_types=None, start_date=None, end_date=None
+        self, workflow_name: str = None, brain_types=None, start_date=None, end_date=None, statuses=None
     ) -> pd.DataFrame:
         """
         Get filtered DataFrame based on common filters.
@@ -91,6 +91,8 @@ class WorkflowsDBManager(DBManager):
             mask &= df[WorkflowFields.last_update] >= pd.to_datetime(start_date)
         if end_date:
             mask &= df[WorkflowFields.last_update] <= pd.to_datetime(end_date)
+        if statuses:
+            mask &= df[WorkflowFields.status].isin(statuses)
 
         return df[mask]
 
@@ -149,9 +151,14 @@ class WorkflowsDBManager(DBManager):
         error_df = filtered_df[filtered_df[WorkflowFields.status] == Status.FAILED]
         error_counts = error_df[WorkflowFields.message].value_counts()
 
+        error_counts.index = [
+            f"{x[:ChartSettings.max_error_message_length]}..." if len(x) > ChartSettings.max_error_message_length else x
+            for x in error_counts.index
+        ]
+
         return pd.DataFrame({"message": error_counts.index, "count": error_counts.values})
 
-    def get_weekly_success_data(self, brain_types=None, start_date=None, end_date=None) -> dict:
+    def get_weekly_success_data(self, brain_types=None, start_date=None, end_date=None) -> pd.DataFrame:
         """
         Get weekly success rate data for all workflows.
 
@@ -161,20 +168,17 @@ class WorkflowsDBManager(DBManager):
             end_date (str, optional): End date for filtering in ISO format
 
         Returns:
-            dict: Dictionary with workflow names as keys and weekly statistics as values
-                  {
-                      'workflow_name': {
-                          'week_start': [list of week start dates],
-                          'success_count': [list of success counts],
-                          'failed_count': [list of failure counts],
-                          'success_rate': [list of success rates as percentages]
-                      }
-                  }
+            pd.DataFrame: DataFrame with columns:
+                - week_start: Week start date
+                - workflow: Workflow name
+                - success_count: Number of successful runs
+                - failed_count: Number of failed runs
+                - success_rate: Success rate as percentage
         """
-        result = {}
-
+        result_data = []
+        statuses = [Status.SUCCESS.value, Status.FAILED.value]
         for workflow_name in self._workflow_dfs:
-            filtered_df = self._get_filtered_df(workflow_name, brain_types, start_date, end_date)
+            filtered_df = self._get_filtered_df(workflow_name, brain_types, start_date, end_date, statuses)
             if filtered_df.empty:
                 continue
 
@@ -196,14 +200,18 @@ class WorkflowsDBManager(DBManager):
             total_count = weekly_stats[Status.SUCCESS] + weekly_stats[Status.FAILED]
             success_rate = (weekly_stats[Status.SUCCESS.value] / total_count * 100).fillna(0)
 
-            result[workflow_name] = {
-                "week_start": weekly_stats.index,
-                "success_count": weekly_stats[Status.SUCCESS.value].tolist(),
-                "failed_count": weekly_stats[Status.FAILED.value].tolist(),
-                "success_rate": success_rate.tolist(),
-            }
+            for week_start, row in weekly_stats.iterrows():
+                result_data.append(
+                    {
+                        "week_start": week_start,
+                        "workflow": workflow_name,
+                        "success_count": row[Status.SUCCESS.value],
+                        "failed_count": row[Status.FAILED.value],
+                        "success_rate": success_rate[week_start],
+                    }
+                )
 
-        return result
+        return pd.DataFrame(result_data)
 
     def get_workflow_export_data(
         self, workflows: list[str], brain_types=None, start_date=None, end_date=None

@@ -2,39 +2,41 @@ from abc import ABC, abstractmethod
 from typing import Union
 
 import dash_bootstrap_components as dbc
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from dash import Input, Output, callback, dcc, html
 
 from road_dashboards.workflows_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
+from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
 
-class BaseChart(ABC):
+class Chart(ABC):
     def __init__(self, chart_id: str):
         self.chart_id = chart_id
         self.store_id = f"{self.chart_id}-store"
         self.chart_cache = {}
+        self.db_manager = WorkflowsDBManager()
         self.register_callbacks()
 
     @abstractmethod
-    def create_chart(self, filters: dict) -> Union[go.Figure, px.pie]:
+    def create_chart(
+        self,
+        data: pd.DataFrame,
+    ) -> go.Figure:
         """
-        Create a chart based on the provided filters.
+        Create a chart based on the provided data.
 
         Args:
-            filters (dict): Dictionary containing filter parameters:
-                - brain_types (list[str]): List of brain types to filter by
-                - start_date (str): Start date for filtering in ISO format
-                - end_date (str): End date for filtering in ISO format
-                - selected_workflow (str): Currently selected workflow
+            data:  data for the chart
 
         Returns:
-            Union[go.Figure, px.pie]: A plotly figure object
+            A plotly figure object
         """
         pass
 
-    def create_empty_chart(self) -> px.pie:
+    def create_empty_chart(self) -> go.Figure:
         fig = px.pie(values=[], names=[], title="No data to display")
         return fig
 
@@ -64,14 +66,25 @@ class BaseChart(ABC):
             ],
         )
         def update_chart(brain_types, start_date, end_date, selected_workflow):
-            if hasattr(self, "workflow_name") and selected_workflow != self.workflow_name:
+            data = self.get_chart_data(
+                brain_types=brain_types,
+                start_date=start_date,
+                end_date=end_date,
+                selected_workflow=selected_workflow,
+            )
+
+            if data.empty:
                 return self.create_empty_chart()
 
-            filters = {
-                "brain_types": brain_types,
-                "start_date": start_date,
-                "end_date": end_date,
-                "selected_workflow": selected_workflow,
-            }
+            return self.create_chart(data=data)
 
-            return self.create_chart(filters)
+    @abstractmethod
+    def get_chart_data(
+        self,
+        brain_types: list[str],
+        start_date: str | None,
+        end_date: str | None,
+        selected_workflow: str,
+    ) -> pd.DataFrame:
+        """Get the data needed for the chart."""
+        pass
