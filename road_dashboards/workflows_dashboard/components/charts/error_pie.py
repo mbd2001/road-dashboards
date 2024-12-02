@@ -2,6 +2,7 @@ import pandas as pd
 
 from road_dashboards.workflows_dashboard.components.base.pie_chart import PieChart
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
+from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
 
 
 class ErrorPieChart(PieChart):
@@ -20,4 +21,4 @@ class ErrorPieChart(PieChart):
         if selected_workflow != self.workflow_name:
             return pd.DataFrame()
 
-        return self.db_manager.get_error_distribution(self.workflow_name, brain_types, start_date, end_date)
+        return db_manager.get_error_distribution(self.workflow_name, brain_types, start_date, end_date)

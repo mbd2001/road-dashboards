@@ -4,6 +4,7 @@ import plotly.graph_objects as go
 from road_dashboards.workflows_dashboard.components.base.chart import Chart
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings
+from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
 from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
 
 
@@ -76,7 +77,7 @@ class WeeklySuccessChart(Chart):
         end_date: str | None,
         selected_workflow: str,
     ) -> pd.DataFrame:
-        return self.db_manager.get_weekly_success_data(
+        return db_manager.get_weekly_success_data(
             brain_types=brain_types,
             start_date=start_date,
             end_date=end_date,

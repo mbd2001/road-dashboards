@@ -12,9 +12,7 @@ class WorkflowsDBManager(DBManager):
     def __init__(self):
         super().__init__(table_name=DatabaseSettings.table_name, primary_key=DatabaseSettings.primary_key)
         self._workflow_dfs: dict[str, pd.DataFrame] = {}
-        self.is_loading = True
         self._load_workflow_data()
-        self.is_loading = False
 
     def _load_workflow_data(self) -> None:
         """Loads all data as df for each workflow."""
@@ -50,17 +48,19 @@ class WorkflowsDBManager(DBManager):
             results = list(executor.map(fetch_workflow_data, WORKFLOWS))
 
         for workflow, df in results:
-            if not df.empty:
-                column_mapping = {
-                    f"{workflow}_{WorkflowFields.status}": WorkflowFields.status,
-                    f"{workflow}_{WorkflowFields.message}": WorkflowFields.message,
-                    f"{workflow}_{WorkflowFields.last_update}": WorkflowFields.last_update,
-                }
-                df.rename(columns=column_mapping, inplace=True)
-                df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
-                df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
+            if df.empty:
+                continue
 
-                self._workflow_dfs[workflow] = df
+            column_mapping = {
+                f"{workflow}_{WorkflowFields.status}": WorkflowFields.status,
+                f"{workflow}_{WorkflowFields.message}": WorkflowFields.message,
+                f"{workflow}_{WorkflowFields.last_update}": WorkflowFields.last_update,
+            }
+            df = df.rename(columns=column_mapping)
+            df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
+            df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
+
+            self._workflow_dfs[workflow] = df
 
     def _get_filtered_df(
         self, workflow_name: str = None, brain_types=None, start_date=None, end_date=None, statuses=None
@@ -77,24 +77,23 @@ class WorkflowsDBManager(DBManager):
         Returns:
             pd.DataFrame: Filtered DataFrame
         """
-        if workflow_name:
-            df = self._workflow_dfs.get(workflow_name, pd.DataFrame())
-            if df.empty:
-                return df
-        else:
+        if not workflow_name:
             return pd.DataFrame()
 
-        mask = pd.Series(True, index=df.index)
-        if brain_types:
-            mask &= df["brain_type"].isin(brain_types)
-        if start_date:
-            mask &= df[WorkflowFields.last_update] >= pd.to_datetime(start_date)
-        if end_date:
-            mask &= df[WorkflowFields.last_update] <= pd.to_datetime(end_date)
-        if statuses:
-            mask &= df[WorkflowFields.status].isin(statuses)
+        df = self._workflow_dfs.get(workflow_name, pd.DataFrame())
+        if df.empty:
+            return df
 
-        return df[mask]
+        if brain_types:
+            df = df[df[WorkflowFields.brain_type].isin(brain_types)]
+        if start_date:
+            df = df[df[WorkflowFields.last_update] >= pd.to_datetime(start_date)]
+        if end_date:
+            df = df[df[WorkflowFields.last_update] <= pd.to_datetime(end_date)]
+        if statuses:
+            df = df[df[WorkflowFields.status].isin(statuses)]
+
+        return df
 
     def get_status_distribution(
         self, workflow_name: str, brain_types=None, start_date=None, end_date=None
@@ -260,3 +259,6 @@ class WorkflowsDBManager(DBManager):
         result_df = result_df[columns + other_columns]
 
         return result_df
+
+
+db_manager = WorkflowsDBManager()

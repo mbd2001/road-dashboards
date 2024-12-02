@@ -24,16 +24,3 @@ def set_active_tab(hash_value):
         active_workflow = WORKFLOWS[0]
 
     return [workflow == active_workflow for workflow in WORKFLOWS]
-
-
-@callback(
-    [
-        Output(ComponentIds.LOADING_OVERLAY, "style"),
-        Output(ComponentIds.MAIN_CONTENT, "style"),
-    ],
-    Input("url", "pathname"),
-)
-def update_loading_state(pathname):
-    if workflow_db_handler.is_loading:
-        return LoadingStyles.overlay, LoadingStyles.blurred_content
-    return LoadingStyles.hidden, LoadingStyles.normal_content

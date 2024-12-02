@@ -9,15 +9,11 @@ from dash import Input, Output, callback, dcc, html
 
 from road_dashboards.workflows_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
-from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
 
 class Chart(ABC):
     def __init__(self, chart_id: str):
         self.chart_id = chart_id
-        self.store_id = f"{self.chart_id}-store"
-        self.chart_cache = {}
-        self.db_manager = WorkflowsDBManager()
         self.register_callbacks()
 
     @abstractmethod
