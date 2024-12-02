@@ -37,8 +37,13 @@ class WeeklySuccessChart(Chart):
         hover_text = [
             f"{format_workflow_name(workflow)}<br>"
             f"{start.strftime('%d.%m')} - {(start + pd.Timedelta(days=6)).strftime('%d.%m')}<br>"
-            f"Success Rate: {rate:.2f}%"
-            for start, rate in zip(workflow_data["week_start"], workflow_data["success_rate"])
+            f"Success Rate: {rate:.2f}% ({success_count}/{success_count + failed_count})"
+            for start, rate, success_count, failed_count in zip(
+                workflow_data["week_start"], 
+                workflow_data["success_rate"],
+                workflow_data["success_count"],
+                workflow_data["failed_count"]
+            )
         ]
 
         fig.add_trace(
