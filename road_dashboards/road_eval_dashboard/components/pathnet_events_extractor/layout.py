@@ -4,6 +4,8 @@ from dash import dash_table, dcc, html
 
 import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.components_ids import (
+    PATH_NET_RE_OOL_EVENTS_SWITCH,
+    PATH_NET_RE_OOL_EVENTS_SWITCH_DIV,
     PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
@@ -14,6 +16,9 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
+    PATHNET_EVENTS_RE_REF_THRESHOLD,
+    PATHNET_EVENTS_RE_THRESHOLD,
+    PATHNET_EVENTS_RE_THRESHOLDS_DIV,
     PATHNET_EVENTS_REF_DIV,
     PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_REF_NET_ID_DROPDOWN,
@@ -162,28 +167,43 @@ def create_filtering_dropdowns_row():
                     hidden=True,
                 )
             ),
+            dbc.Col(
+                html.Div(
+                    id=PATH_NET_RE_OOL_EVENTS_SWITCH_DIV,
+                    children=[
+                        daq.BooleanSwitch(
+                            id=PATH_NET_RE_OOL_EVENTS_SWITCH,
+                            on=False,
+                            label="Road edges only",
+                            labelPosition="left",
+                            style={"margin-left": "0px", "display": "inline-block"},
+                        )
+                    ],
+                    hidden=True,
+                ),
+                width=2,
+                style={"text-align": "left"},
+            ),
         ],
         style={"margin-bottom": "10px"},
     )
 
 
-def create_unique_thresholds_row():
+def create_unique_thresholds_row(re_thresholds=False):
     return html.Div(
-        id=PATHNET_EVENTS_THRESHOLDS_DIV,
+        id=PATHNET_EVENTS_RE_THRESHOLDS_DIV if re_thresholds else PATHNET_EVENTS_THRESHOLDS_DIV,
         children=dbc.Row(
             [
                 dbc.Col(
                     dcc.Input(
-                        id=PATHNET_EVENTS_THRESHOLD,
-                        placeholder="Specify metric-threshold in meters (optional)",
+                        id=PATHNET_EVENTS_RE_THRESHOLD if re_thresholds else PATHNET_EVENTS_THRESHOLD,
                         type="number",
                         style={"width": "inherit", "height": "100%", "appearance": "textfield"},
                     ),
                 ),
                 dbc.Col(
                     dcc.Input(
-                        id=PATHNET_EVENTS_REF_THRESHOLD,
-                        placeholder="Specify ref metric-threshold in meters (optional)",
+                        id=PATHNET_EVENTS_RE_REF_THRESHOLD if re_thresholds else PATHNET_EVENTS_REF_THRESHOLD,
                         type="number",
                         style={"width": "inherit", "height": "100%", "appearance": "textfield"},
                     )
@@ -241,6 +261,8 @@ def create_events_extractor_layout():
 
     unique_thresholds_row = create_unique_thresholds_row()
 
+    unique_re_threshold_row = create_unique_thresholds_row(re_thresholds=True)
+
     log_msg_div = loading_wrapper(html.Div(id=PATHNET_EXTRACT_EVENTS_LOG_MESSAGE))
 
     events_datatable_div = dash_table.DataTable(id=PATHNET_EVENTS_DATA_TABLE, page_size=20)
@@ -252,6 +274,7 @@ def create_events_extractor_layout():
             ref_net_options_dropdowns_row,
             filtering_dropdowns_row,
             unique_thresholds_row,
+            unique_re_threshold_row,
             submit_events_filtering_row,
             log_msg_div,
             events_datatable_div,

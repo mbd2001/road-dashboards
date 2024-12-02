@@ -876,7 +876,7 @@ def generate_extract_ool_events_query(
     re_threshold,
     operator,
     order_by,
-    only_re=False,
+    re_only=False,
 ):
     boundary_dist_column = f"dp_dist_from_boundaries_gt_{dist}"
     re_dist_column = f"dp_dist_from_road_edges_gt_{dist}"
@@ -885,13 +885,14 @@ def generate_extract_ool_events_query(
     population_cond = f"bin_population = '{chosen_source}'"
     re_ool = BASIC_OOL_METRIC.format(dist_col_name=re_dist_column, operator=operator, threshold=re_threshold)
     ool_columns = [f"closer_road_edge_to_dp_{dist}", re_dist_column]
-    if only_re:
+    if re_only:
         ool_cmd = f"{population_cond} AND {re_ool}"
     else:
         boundary_ool = BASIC_OOL_METRIC.format(
             dist_col_name=boundary_dist_column, operator=operator, threshold=threshold
         )
-        ool_cmd = f"{population_cond} AND (({re_ool}) OR ({boundary_ool}))"
+        re_boundary_op = "OR" if operator == "<" else "AND"
+        ool_cmd = f"{population_cond} AND (({re_ool}) {re_boundary_op} ({boundary_ool}))"
         ool_columns += [f"closer_boundary_to_dp_{dist}", boundary_dist_column]
 
     ool_columns = [f'"{col}"' for col in ool_columns]
@@ -904,7 +905,7 @@ def generate_extract_ool_events_query(
         extra_filters=ool_cmd,
     )
     final_columns = bookmarks_columns + dp_id_columns
-    order_cmd = f'ORDER BY "{re_dist_column if only_re else boundary_dist_column}" {order_by}'
+    order_cmd = f'ORDER BY "{re_dist_column if re_only else boundary_dist_column}" {order_by}'
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns + ool_columns), base_query=base_query, order_cmd=order_cmd
     )
