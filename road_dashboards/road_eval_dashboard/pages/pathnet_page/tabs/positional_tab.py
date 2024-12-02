@@ -253,7 +253,7 @@ pos_layout = html.Div(
                             "minimum distance between dp and border (m)",
                             style={"text-align": "center", "fontSize": "20px"},
                         ),
-                        dcc.Slider(id=PATH_NET_OOL_BORDER_DIST_SLIDER, min=0, max=2, step=0.1, value=1),
+                        dcc.Slider(id=PATH_NET_OOL_BORDER_DIST_SLIDER, min=0.7, max=1.7, step=0.1, value=1),
                     ]
                 ),
                 dbc.Row(
@@ -262,7 +262,7 @@ pos_layout = html.Div(
                             "minimum distance between dp and road-edge (m)",
                             style={"text-align": "center", "fontSize": "20px"},
                         ),
-                        dcc.Slider(id=PATH_NET_OOL_RE_DIST_SLIDER, min=0, max=2, step=0.1, value=1.2),
+                        dcc.Slider(id=PATH_NET_OOL_RE_DIST_SLIDER, min=0.7, max=1.7, step=0.1, value=1.2),
                     ]
                 ),
             ]
