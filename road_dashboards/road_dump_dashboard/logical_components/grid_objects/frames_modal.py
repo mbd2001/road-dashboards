@@ -29,9 +29,9 @@ class FramesModal(GridObject):
     def __init__(
         self,
         page_filters_id: str,
-        triggering_conf_mats: list[ConfMatGraph] = None,
-        triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] = None,
-        triggering_filters: list[DataFilters] = None,
+        triggering_conf_mats: list[ConfMatGraph] | None = None,
+        triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] | None = None,
+        triggering_filters: list[DataFilters] | None = None,
         component_id: str = "",
     ):
         self.page_filters_id = page_filters_id

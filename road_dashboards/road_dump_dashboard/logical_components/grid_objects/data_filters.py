@@ -353,7 +353,7 @@ class DataFilters(GridObject):
         return distinct_values
 
     @staticmethod
-    def get_united_columns_dict(main_data: str, md_table: str = None) -> list[str]:
+    def get_united_columns_dict(main_data: str, md_table: str | None = None) -> list[str]:
         columns = EXISTING_TABLES[main_data].get_columns()
         if md_table:
             md_columns = EXISTING_TABLES[md_table].get_columns()
@@ -362,7 +362,7 @@ class DataFilters(GridObject):
         return columns
 
     @staticmethod
-    def get_column_from_tables(column_name: str, main_data: str, md_table: str = None) -> Column:
+    def get_column_from_tables(column_name: str, main_data: str, md_table: str | None = None) -> Column:
         column = getattr(EXISTING_TABLES[main_data], column_name, None)
         if (not column) and md_table:
             column = getattr(EXISTING_TABLES[md_table], column_name, None)

@@ -33,14 +33,14 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 class JumpModal(GridObject):
     LINES_LIMIT = 4096
-    DIFF_TOLERANCE = 8
+    DIFF_TOLERANCE = 32
 
     def __init__(
         self,
         page_filters_id: str,
-        triggering_conf_mats: list[ConfMatGraph] = None,
-        triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] = None,
-        triggering_filters: list[DataFilters] = None,
+        triggering_conf_mats: list[ConfMatGraph] | None = None,
+        triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] | None = None,
+        triggering_filters: list[DataFilters] | None = None,
         component_id: str = "",
     ):
         self.page_filters_id = page_filters_id

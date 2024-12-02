@@ -20,7 +20,7 @@ class PageProperties:
     icon: str
     path: str
     title: str
-    main_table: str = None
+    main_table: str | None = None
 
     def __post_init__(self):
         if self.main_table:

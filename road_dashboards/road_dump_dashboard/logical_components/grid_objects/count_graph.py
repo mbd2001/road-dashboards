@@ -163,7 +163,7 @@ def pie_or_line_graph(data, names, values, title="", hover=None, color="dump_nam
     return fig
 
 
-def round_term(column: Term, round_n_decimal_place: int = None):
+def round_term(column: Term, round_n_decimal_place: int | None = None):
     return (
         Round(column, round_n_decimal_place, alias=column.alias)
         if isinstance(column, Column) and column.type in [int, float] and round_n_decimal_place is not None

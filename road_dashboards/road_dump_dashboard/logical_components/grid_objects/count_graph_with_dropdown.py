@@ -140,6 +140,6 @@ class CountGraphWithDropdown(GridObject):
             data = execute(query)
             y_col = "percentage" if compute_percentage else "overall"
             fig = pie_or_line_graph(
-                data, column.alias, y_col, title=f"{column.alias.title()} Distribution", color="dump_name"
+                data, column.alias, y_col, title=f"{column.alias.title()} Distribution", color=dump_name.alias
             )
             return fig

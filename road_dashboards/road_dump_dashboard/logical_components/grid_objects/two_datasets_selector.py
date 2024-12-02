@@ -10,7 +10,7 @@ class TwoDatasetsSelector(DatasetSelector):
     def __init__(
         self,
         main_table: str,
-        obj_to_hide_ids: list[str] = None,
+        obj_to_hide_ids: list[str] | None = None,
         full_grid_row: bool = True,
         component_id: str = "",
     ):

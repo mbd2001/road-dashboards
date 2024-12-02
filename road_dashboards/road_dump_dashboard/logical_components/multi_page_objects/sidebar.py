@@ -4,12 +4,7 @@ from dash import Input, Output, State, callback, html, page_registry
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import SIDEBAR, URL
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 
-
-def sidebar():
-    return html.Div(
-        id=SIDEBAR,
-        className="sidebar",
-    )
+layout = html.Div(id=SIDEBAR, className="sidebar")
 
 
 @callback(
@@ -41,7 +36,7 @@ def update_sidebar(url, *args):
                 dbc.NavLink(
                     [
                         html.I(className=f"fas fa-{page['icon']} me-2"),
-                        html.Span(page["name"], className="ms-2"),
+                        html.Span(page["title"], className="ms-2"),
                     ],
                     href=page["path"] + url,
                     active="exact",

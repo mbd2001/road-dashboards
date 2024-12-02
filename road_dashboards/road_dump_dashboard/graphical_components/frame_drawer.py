@@ -22,11 +22,11 @@ class CandidateParams:
     color: str
     x: np.array
     y: np.array
-    type: Optional[str] = None
-    role: Optional[str] = None
+    type: str | None = None
+    role: str | None = None
     half_width: Optional[np.array] = None
-    view_range: Optional[int] = None
-    max_view_range_idx: Optional[int] = None
+    view_range: int | None = None
+    max_view_range_idx: int | None = None
     dashed_y: Optional[np.array] = None
 
     def __post_init__(self):

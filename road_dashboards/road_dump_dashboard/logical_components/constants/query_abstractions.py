@@ -24,8 +24,8 @@ def base_data_subquery(
     filters = Criterion.all([data_filter, page_filters, intersection_filter])
     joint_tables = [
         join_main_and_md(main_table, md_table)
-        .select(*resolve_unambiguous(md_table, terms))
-        .where(*resolve_unambiguous(md_table, [filters]))
+        .select(*resolve_unambiguous(main_table, terms))
+        .where(*resolve_unambiguous(main_table, [filters]))
         .orderby(md_table.dump_name)
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
@@ -33,8 +33,8 @@ def base_data_subquery(
     return union_table
 
 
-def resolve_unambiguous(md_table: Base, terms: list[Term]) -> list[Term]:
-    return [term.replace_table(current_table=None, new_table=md_table) for term in terms]
+def resolve_unambiguous(main_table: Base, terms: list[Term]) -> list[Term]:
+    return [term.replace_table(current_table=None, new_table=main_table) for term in terms]
 
 
 def get_intersection_filter(meta_data_tables: list[Base], intersection_on: bool) -> Criterion:
@@ -174,7 +174,7 @@ def ids_query_wrapper(
                 .over()
                 .orderby(unique_ind_query.clip_name, unique_ind_query.grabindex)
             )
-            >= diff_tolerance,
+            > diff_tolerance,
             1,
         )
         .else_(0),
@@ -207,7 +207,7 @@ def diff_terms_subquery(
     main_md: list[Base],
     secondary_md: list[Base],
     diff_column: Term,
-    terms: list[Term] = None,
+    terms: list[Term] | None = None,
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
 ) -> QueryBuilder:

@@ -2,7 +2,7 @@ import uuid
 from abc import abstractmethod
 from dataclasses import FrozenInstanceError
 
-from dash import html
+from dash.development.base_component import Component
 
 
 class GridObject:
@@ -18,7 +18,7 @@ class GridObject:
 
     def __init__(self, full_grid_row: bool = False, component_id: str = ""):
         self.full_grid_row = full_grid_row
-        self.component_id = component_id or f"{type(self).__name__}_{uuid.uuid4().hex[:6]}"
+        self.component_id = component_id if component_id else f"{type(self).__name__}_{uuid.uuid4().hex[:6]}"
         self._generate_ids()
         self._frozen = True
         self._callbacks()
@@ -28,7 +28,7 @@ class GridObject:
         """Generate the ids for this class"""
 
     @abstractmethod
-    def layout(self) -> html.Div:
+    def layout(self) -> Component:
         """Defines the layout of this object"""
 
     @abstractmethod

@@ -3,6 +3,7 @@ import pickle as pkl
 from typing import Any
 
 import pandas as pd
+from dash.dependencies import DashDependency
 from pypika.queries import QueryBuilder
 from pypika.terms import Function, Term
 from road_database_toolkit.athena.athena_utils import query_athena
@@ -31,6 +32,11 @@ def get_main_and_secondary_columns(term: Term) -> tuple[Column, Column]:
     main_field = Column(f"main_{term.alias}", str)
     secondary_field = Column(f"secondary_{term.alias}", str)
     return main_field, secondary_field
+
+
+def optional_inputs(**kwargs: DashDependency) -> dict[str, DashDependency]:
+    final_dict = {k: v for k, v in kwargs.items() if v.component_id}
+    return final_dict
 
 
 class Round(Function):

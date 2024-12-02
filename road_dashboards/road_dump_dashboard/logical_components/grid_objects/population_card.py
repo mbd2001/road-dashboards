@@ -13,7 +13,7 @@ class PopulationCard(GridObject):
 
     def __init__(
         self,
-        populations: list[str] = None,
+        populations: list[str] | None = None,
         full_grid_row: bool = False,
         component_id: str = "",
     ):
