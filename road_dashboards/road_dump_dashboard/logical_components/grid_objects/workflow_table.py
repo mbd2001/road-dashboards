@@ -1,7 +1,13 @@
-import pandas as pd
-from dash import Input, Output, callback, dash_table
+from typing import Any
 
-from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
+import pandas as pd
+from dash import Input, Output, callback, dash_table, dcc, html
+
+from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.catalog_table import dump_db_manager
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 
@@ -17,12 +23,13 @@ class WorkflowTable(GridObject):
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
-        pass
+        self.status_table_id = self._generate_id("status_table")
+        self.state_pie_id = self._generate_id("state_pie")
 
     def layout(self):
         shown_columns = ["exit_code", "count", "example_clip_name"]
         workflow_details_table = dash_table.DataTable(
-            id=self.component_id,
+            id=self.status_table_id,
             columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in shown_columns],
             data=[],
             filter_action="native",
@@ -47,14 +54,30 @@ class WorkflowTable(GridObject):
                 "border": "1px solid rgb(230, 230, 230)",
             },
         )
-        return card_wrapper(workflow_details_table)
+        pie_graph = dcc.Graph(
+            id=self.state_pie_id,
+            config={"displayModeBar": False},
+        )
+        final_layout = html.Div(
+            [card_wrapper(loading_wrapper(workflow_details_table)), card_wrapper(loading_wrapper(pie_graph))]
+        )
+        return final_layout
 
     def _callbacks(self):
-        @callback(Output(self.component_id, "data"), Input(self.datasets_dropdown_id, "value"))
+        @callback(Output(self.status_table_id, "data"), Input(self.datasets_dropdown_id, "value"))
         def update_workflow_data(chosen_dump):
-            workflow_dict = dump_db_manager.get_item(chosen_dump).get("common_exit_codes", None)
-            workflow_dict.pop("0", None)
-            if not workflow_dict:
-                return pd.DataFrame()
-
+            workflow_dict = self.get_workflow_dict(chosen_dump)
             return list(workflow_dict.values())
+
+        @callback(Output(self.state_pie_id, "figure"), Input(self.datasets_dropdown_id, "value"))
+        def update_workflow_data(chosen_dump):
+            workflow_dict = self.get_workflow_dict(chosen_dump)
+            workflow_df = pd.DataFrame(list(workflow_dict.values()))
+            fig = basic_pie_chart(workflow_df, "exit_code", "count", title="Exit Codes Distribution")
+            return fig
+
+    @staticmethod
+    def get_workflow_dict(chosen_dump) -> dict[str, Any]:
+        workflow_dict = dump_db_manager.get_item(chosen_dump).get("common_exit_codes", {})
+        workflow_dict.pop("0", None)
+        return workflow_dict
