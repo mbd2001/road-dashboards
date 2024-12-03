@@ -143,8 +143,8 @@ jump_modal = JumpModal(
 countries_dataset_selector = DatasetSelector(main_table=page.main_table)
 countries_heatmap = CountriesHeatMap(
     main_table=conf_columns_dropdown.main_table,
-    page_filters_id=filters_agg.final_filter_id,
     datasets_dropdown_id=countries_dataset_selector.main_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
 )
 
 

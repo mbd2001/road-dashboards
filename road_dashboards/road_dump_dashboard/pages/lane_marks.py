@@ -94,8 +94,8 @@ dashed_gap_hist = CountGraph(
 )
 obj_count = ObjCountGraph(
     main_table=page.main_table,
-    page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
+    page_filters_id=filters_agg.final_filter_id,
 )
 count_columns_dropdown = ColumnsDropdown(main_table=page.main_table, full_grid_row=True)
 wildcard_count = CountGraph(

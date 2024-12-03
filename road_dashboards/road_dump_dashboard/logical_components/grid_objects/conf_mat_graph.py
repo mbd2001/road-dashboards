@@ -112,7 +112,7 @@ class ConfMatGraph(GridObject):
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            page_filters = optional.get("page_filters", None)
+            page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
             column: Term = self.column or getattr(EXISTING_TABLES[self.main_table], optional["column"])
 

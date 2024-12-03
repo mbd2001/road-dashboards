@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, State, callback, dcc, no_update
-from pypika import Criterion, functions
+from pypika import Criterion, EmptyCriterion, functions
 from pypika.queries import Query
 
 from road_dashboards.road_dump_dashboard.graphical_components.histogram_plot import basic_histogram_plot
@@ -16,7 +16,7 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.query_abst
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
@@ -28,8 +28,8 @@ class ObjCountGraph(GridObject):
     def __init__(
         self,
         main_table: str,
-        page_filters_id: str,
-        intersection_switch_id: str,
+        intersection_switch_id: str = "",
+        page_filters_id: str = "",
         full_grid_row: bool = True,
         component_id: str = "",
     ):
@@ -68,28 +68,31 @@ class ObjCountGraph(GridObject):
             Input(self.percentage_switch_id, "on"),
             Input(self.main_table, "data"),
             State(META_DATA, "data"),
-            Input(self.intersection_switch_id, "on"),
-            Input(self.page_filters_id, "data"),
+            optional_inputs(
+                intersection_on=Input(self.intersection_switch_id, "on"),
+                page_filters=Input(self.page_filters_id, "data"),
+            ),
         )
         def get_dynamic_chart(
             compute_percentage,
             main_tables,
             md_tables,
-            intersection_on,
-            page_filters,
+            optional,
         ):
             if not main_tables:
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            page_filters: Criterion = load_object(page_filters)
+            page_filters: str = optional.get("page_filters", None)
+            page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
+
             base = base_data_subquery(
                 main_tables=main_tables,
                 meta_data_tables=md_tables,
                 terms=[MetaData.dump_name, MetaData.clip_name, MetaData.grabindex],
                 page_filters=page_filters,
-                intersection_on=intersection_on,
+                intersection_on=optional.get("intersection_on", False),
             )
             obj_query = (
                 Query.from_(base)
