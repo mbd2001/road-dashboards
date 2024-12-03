@@ -16,9 +16,6 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.query_abst
     ids_query_wrapper,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
-    ConfMatGraphWithDropdown,
-)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
@@ -27,6 +24,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
     dump_object,
     execute,
     load_object,
+    optional_inputs,
 )
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
@@ -37,15 +35,13 @@ class JumpModal(GridObject):
 
     def __init__(
         self,
-        page_filters_id: str,
+        page_filters_id: str = "",
         triggering_conf_mats: list[ConfMatGraph] | None = None,
-        triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] | None = None,
         triggering_filters: list[DataFilters] | None = None,
         component_id: str = "",
     ):
         self.page_filters_id = page_filters_id
         self.triggering_conf_mats = triggering_conf_mats if triggering_conf_mats else []
-        self.triggering_dropdown_conf_mats = triggering_dropdown_conf_mats if triggering_dropdown_conf_mats else []
         self.triggering_filters = triggering_filters if triggering_filters else []
         super().__init__(full_grid_row=True, component_id=component_id)
 
@@ -109,57 +105,23 @@ class JumpModal(GridObject):
                 State(conf_mat.filter_ignores_btn_id, "on"),
                 State(conf_mat.main_table, "data"),
                 State(META_DATA, "data"),
-                State(self.page_filters_id, "data"),
+                optional_inputs(
+                    page_filters=Input(conf_mat.page_filters_id, "data"),
+                    column=Input(conf_mat.columns_dropdown_id, "value"),
+                ),
                 prevent_initial_call=True,
             )
             def generic_diff_jump_file(
-                n_clicks, main_dump, secondary_dump, filter_ignores, main_tables, md_tables, page_filters
+                n_clicks, main_dump, secondary_dump, filter_ignores, main_tables, md_tables, optional
             ):
-                if not n_clicks or not main_tables:
+                if not n_clicks or not main_tables or (not conf_mat.column and not optional["column"]):
                     return no_update, no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
-                page_filters: Criterion = load_object(page_filters)
-
-                partial_query = partial(
-                    diff_terms_subquery,
-                    main_tables=[table for table in main_tables if table.dataset_name == main_dump],
-                    secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
-                    main_md=[table for table in md_tables if table.dataset_name == main_dump],
-                    secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
-                    diff_column=conf_mat.column,
-                    data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
-                    page_filters=page_filters,
-                )
-                extra_columns = DataFilters.get_united_columns_dict(conf_mat.main_table, META_DATA)
-                return dump_object(partial_query), True, extra_columns
-
-        for dropdown_conf_mat in self.triggering_dropdown_conf_mats:
-
-            @callback(
-                Output(self.curr_query_id, "data", allow_duplicate=True),
-                Output(self.component_id, "is_open", allow_duplicate=True),
-                Output(self.extra_columns_dropdown_id, "options", allow_duplicate=True),
-                Input(dropdown_conf_mat.generate_jump_btn_id, "n_clicks"),
-                State(dropdown_conf_mat.main_dataset_dropdown_id, "value"),
-                State(dropdown_conf_mat.secondary_dataset_dropdown_id, "value"),
-                State(dropdown_conf_mat.main_table, "data"),
-                State(META_DATA, "data"),
-                State(self.page_filters_id, "data"),
-                State(dropdown_conf_mat.columns_dropdown_id, "value"),
-                prevent_initial_call=True,
-            )
-            def dynamic_diff_jump_file(
-                n_clicks, main_dump, secondary_dump, main_tables, md_tables, page_filters, column
-            ):
-                if not n_clicks or not main_tables:
-                    return no_update, no_update, no_update
-
-                main_tables: list[Base] = load_object(main_tables)
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
-                page_filters: Criterion = load_object(page_filters)
-                column: Column = getattr(EXISTING_TABLES[dropdown_conf_mat.main_table], column, None)
+                page_filters = optional.get("page_filters", None)
+                page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
+                column: Term = conf_mat.column or getattr(EXISTING_TABLES[conf_mat.main_table], optional["column"])
 
                 partial_query = partial(
                     diff_terms_subquery,
@@ -168,9 +130,10 @@ class JumpModal(GridObject):
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
                     diff_column=column,
+                    data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
                     page_filters=page_filters,
                 )
-                extra_columns = DataFilters.get_united_columns_dict(dropdown_conf_mat.main_table, META_DATA)
+                extra_columns = DataFilters.get_united_columns_dict(conf_mat.main_table, META_DATA)
                 return dump_object(partial_query), True, extra_columns
 
         for triggering_filter in self.triggering_filters:

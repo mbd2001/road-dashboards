@@ -25,10 +25,10 @@ class ObjCountCard(GridObject):
         self,
         main_table: str,
         objs_name: str,
-        page_filters_id: str | None = None,
-        intersection_switch_id: str | None = None,
+        page_filters_id: str = "",
+        intersection_switch_id: str = "",
         distinct_objs: list[Term] | None = None,
-        datasets_dropdown_id: str | None = None,
+        datasets_dropdown_id: str = "",
         full_grid_row: bool = False,
         component_id: str = "",
     ):

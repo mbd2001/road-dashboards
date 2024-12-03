@@ -6,6 +6,7 @@ from pypika.terms import Term
 
 from road_dashboards.road_dump_dashboard.graphical_components.confusion_matrix import get_confusion_matrix
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
@@ -17,6 +18,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
     execute,
     get_main_and_secondary_columns,
     load_object,
+    optional_inputs,
 )
 
 
@@ -33,21 +35,24 @@ class ConfMatGraph(GridObject):
         self,
         main_dataset_dropdown_id: str,
         secondary_dataset_dropdown_id: str,
-        page_filters_id: str,
         main_table: str,
-        title: str,
-        column: Term,
+        page_filters_id: str = "",
+        title: str = "",
+        column: Term | None = None,
+        columns_dropdown_id: str = "",
         filter: Criterion = EmptyCriterion(),
         full_grid_row: bool = False,
         component_id: str = "",
     ):
-        self.title = title
-        self.column = column
-        self.filter = filter
         self.main_dataset_dropdown_id = main_dataset_dropdown_id
         self.secondary_dataset_dropdown_id = secondary_dataset_dropdown_id
-        self.page_filters_id = page_filters_id
         self.main_table = main_table
+        self.page_filters_id = page_filters_id
+        self.title = title
+        self.column = column
+        self.columns_dropdown_id = columns_dropdown_id
+        self.filter = filter
+        assert column or columns_dropdown_id, "you have to provide input column, explicitly or through dropdown"
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -91,33 +96,39 @@ class ConfMatGraph(GridObject):
     def _callbacks(self):
         @callback(
             Output(self.conf_mat_id, "figure"),
-            Input(self.page_filters_id, "data"),
             Input(self.main_dataset_dropdown_id, "value"),
             Input(self.secondary_dataset_dropdown_id, "value"),
             Input(self.filter_ignores_btn_id, "on"),
             Input(self.main_table, "data"),
             State(META_DATA, "data"),
+            optional_inputs(
+                page_filters=Input(self.page_filters_id, "data"),
+                column=Input(self.columns_dropdown_id, "value"),
+            ),
         )
-        def get_conf_mat(page_filters, main_dump, secondary_dump, filter_ignores, main_tables, md_tables):
-            if not main_tables or not main_dump or not secondary_dump:
+        def get_conf_mat(main_dump, secondary_dump, filter_ignores, main_tables, md_tables, optional):
+            if not main_tables or not main_dump or not secondary_dump or (not self.column and not optional["column"]):
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            page_filters: Criterion = load_object(page_filters)
+            page_filters = optional.get("page_filters", None)
+            page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
+            column: Term = self.column or getattr(EXISTING_TABLES[self.main_table], optional["column"])
 
             conf_query = conf_mat_subquery(
                 main_labels=[table for table in main_tables if table.dataset_name == main_dump],
                 secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
                 main_md=[table for table in md_tables if table.dataset_name == main_dump],
                 secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
-                group_by_column=self.column,
+                group_by_column=column,
                 data_filter=self.filter if filter_ignores else EmptyCriterion(),
                 page_filters=page_filters,
             )
             data = execute(conf_query)
-            main_val, secondary_val = get_main_and_secondary_columns(self.column)
+            main_val, secondary_val = get_main_and_secondary_columns(column)
+            title = self.title or f"{column.alias.title()} Classification"
             fig = get_confusion_matrix(
-                data, main_val.alias, secondary_val.alias, x_label=secondary_dump, y_label=main_dump, title=self.title
+                data, main_val.alias, secondary_val.alias, x_label=secondary_dump, y_label=main_dump, title=title
             )
             return fig

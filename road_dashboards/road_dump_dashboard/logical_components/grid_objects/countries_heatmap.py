@@ -36,13 +36,13 @@ class CountriesHeatMap(GridObject):
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
-        self.heatmap_id = self._generate_id("heatmap")
+        pass
 
     def layout(self):
         countries_layout = dbc.Row(
             loading_wrapper(
                 dcc.Graph(
-                    id=self.heatmap_id,
+                    id=self.component_id,
                     config={"displayModeBar": False},
                 )
             )
@@ -51,7 +51,7 @@ class CountriesHeatMap(GridObject):
 
     def _callbacks(self):
         @callback(
-            Output(self.heatmap_id, "figure"),
+            Output(self.component_id, "figure"),
             Input(self.page_filters_id, "data"),
             Input(self.main_table, "data"),
             State(META_DATA, "data"),
