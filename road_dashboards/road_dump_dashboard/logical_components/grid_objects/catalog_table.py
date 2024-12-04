@@ -38,11 +38,12 @@ class CatalogTable(GridObject):
         self.update_runs_btn_id = self._generate_id("update_runs_btn")
 
     def layout(self):
+        column_selector = self.get_column_selector(self.column_selector_id)
+        data_table = self.get_data_table(self.dump_catalog_id)
         catalog_layout = card_wrapper(
             [
-                dbc.Row(html.H2("Datasets Catalog", className="mb-5")),
-                dbc.Row(dbc.Col(self.get_column_selector(self.column_selector_id), width={"size": 12})),
-                dbc.Row(self.get_data_table(self.dump_catalog_id)),
+                dbc.Row([dbc.Col(html.H2("Datasets Catalog", className="mb-5")), dbc.Col(column_selector)]),
+                dbc.Row(data_table),
                 dbc.Row(
                     dbc.Col(
                         dbc.Button(

@@ -1,14 +1,9 @@
 from dash import register_page
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.columns_dropdown import ColumnsDropdown
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
-    ConfMatGraphWithDropdown,
-)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph import CountGraph
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph_with_dropdown import (
-    CountGraphWithDropdown,
-)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.countries_heatmap import CountriesHeatMap
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
@@ -23,7 +18,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_dat
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
-page = PageProperties(order=1, icon="search", path="/meta_data", title="Meta Data", main_table="meta_data")
+page = PageProperties(order=2, icon="search", path="/meta_data", title="Meta Data", main_table="meta_data")
 register_page(__name__, **page.__dict__)
 
 data_filters = DataFilters(main_table=page.main_table)
@@ -37,55 +32,58 @@ obj_count_card = ObjCountCard(
     intersection_switch_id=population_card.intersection_switch_id,
 )
 tv_prefects_count = CountGraph(
-    column=MetaData.is_tv_perfect,
-    title="Top View Perfects Exists",
     main_table=page.main_table,
+    title="Top View Perfects Exists",
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
+    column=MetaData.is_tv_perfect,
 )
 gtem_count = CountGraph(
-    column=MetaData.gtem_labels_exist,
-    title="Gtem Exists",
     main_table=page.main_table,
+    title="Gtem Exists",
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
+    column=MetaData.gtem_labels_exist,
 )
 curve_rad_hist = CountGraph(
-    column=MetaData.curve_rad_ahead,
-    title="Curve Rad Distribution",
     main_table=page.main_table,
+    title="Curve Rad Distribution",
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
-    slider_value=-2,
+    column=MetaData.curve_rad_ahead,
     filter=MetaData.curve_rad_ahead != 99999,
+    slider_value=-2,
     full_grid_row=True,
 )
 batches_hist = CountGraph(
-    column=MetaData.batch_num,
-    title="Batches Distribution",
     main_table=page.main_table,
+    title="Batches Distribution",
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
+    column=MetaData.batch_num,
     full_grid_row=True,
 )
 road_type_hist = CountGraph(
-    column=MetaData.road_type,
-    title="Road Type Distribution",
     main_table=page.main_table,
+    title="Road Type Distribution",
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
+    column=MetaData.road_type,
 )
 lm_color_hist = CountGraph(
-    column=MetaData.lm_color,
+    main_table=page.main_table,
     title="Lane Mark Color Distribution",
-    main_table=page.main_table,
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
+    column=MetaData.lm_color,
 )
-wildcard_count = CountGraphWithDropdown(
-    main_table=page.main_table,
+count_columns_dropdown = ColumnsDropdown(main_table=page.main_table, full_grid_row=True)
+wildcard_count = CountGraph(
+    main_table=count_columns_dropdown.main_table,
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=population_card.intersection_switch_id,
+    columns_dropdown_id=count_columns_dropdown.component_id,
+    full_grid_row=True,
 )
 
 obj_to_hide_id = "meta_data_conf_mats"
@@ -93,59 +91,60 @@ two_datasets_selector = TwoDatasetsSelector(main_table=page.main_table, obj_to_h
 tv_perfects_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    main_table=two_datasets_selector.main_table,
     page_filters_id=filters_agg.final_filter_id,
     title="Top View Perfects Classification",
-    main_table=page.main_table,
     column=MetaData.is_tv_perfect,
 )
 gtem_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    main_table=two_datasets_selector.main_table,
     page_filters_id=filters_agg.final_filter_id,
     title="Gtem Classification",
-    main_table=page.main_table,
     column=MetaData.gtem_labels_exist,
 )
 road_type_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    main_table=two_datasets_selector.main_table,
     page_filters_id=filters_agg.final_filter_id,
     title="Road Type Classification",
-    main_table=page.main_table,
     column=MetaData.road_type,
 )
 lm_color_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    main_table=two_datasets_selector.main_table,
     page_filters_id=filters_agg.final_filter_id,
     title="Lane Marks Color Classification",
-    main_table=page.main_table,
     column=MetaData.lm_color,
 )
-wildcard_conf = ConfMatGraphWithDropdown(
+conf_columns_dropdown = ColumnsDropdown(main_table=two_datasets_selector.main_table, full_grid_row=True)
+wildcard_conf = ConfMatGraph(
     main_dataset_dropdown_id=two_datasets_selector.main_dataset_dropdown_id,
     secondary_dataset_dropdown_id=two_datasets_selector.secondary_dataset_dropdown_id,
+    main_table=two_datasets_selector.main_table,
     page_filters_id=filters_agg.final_filter_id,
-    main_table=page.main_table,
+    columns_dropdown_id=conf_columns_dropdown.component_id,
 )
+
 frames_modal = FramesModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf],
-    triggering_dropdown_conf_mats=[wildcard_conf],
+    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 jump_modal = JumpModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf],
-    triggering_dropdown_conf_mats=[wildcard_conf],
+    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 
 countries_dataset_selector = DatasetSelector(main_table=page.main_table)
 countries_heatmap = CountriesHeatMap(
-    main_table=page.main_table,
-    page_filters_id=filters_agg.final_filter_id,
+    main_table=conf_columns_dropdown.main_table,
     datasets_dropdown_id=countries_dataset_selector.main_dataset_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
 )
 
 
@@ -162,14 +161,17 @@ layout = GridGenerator(
     batches_hist,
     road_type_hist,
     lm_color_hist,
-    wildcard_count,
+    GridGenerator(
+        count_columns_dropdown,
+        wildcard_count,
+    ),
     GridGenerator(
         two_datasets_selector,
         tv_perfects_conf,
         gtem_conf,
         road_type_conf,
         lm_color_conf,
-        wildcard_conf,
+        GridGenerator(conf_columns_dropdown, wildcard_conf),
         component_id=obj_to_hide_id,
     ),
     GridGenerator(countries_dataset_selector, countries_heatmap),

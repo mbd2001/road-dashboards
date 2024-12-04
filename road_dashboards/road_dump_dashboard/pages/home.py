@@ -8,9 +8,12 @@ page_properties = PageProperties(
     order=0,
     icon="home",
     path="/home",
-    title="RoadE2E Data Exploration Dashboard",
+    title="Data Exploration",
 )
 register_page(__name__, **page_properties.__dict__)
 
 
-layout = GridGenerator(CatalogTable()).layout()
+layout = GridGenerator(
+    CatalogTable(),
+    warp_sub_objects=False,
+).layout()

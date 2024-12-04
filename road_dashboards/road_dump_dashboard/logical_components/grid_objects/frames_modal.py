@@ -3,24 +3,28 @@ import numpy as np
 import orjson
 import pandas as pd
 from dash import Input, Output, Patch, State, callback, callback_context, clientside_callback, dcc, html, no_update
-from pypika import EmptyCriterion
+from pypika import Criterion, EmptyCriterion
+from pypika.terms import Term
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dashboards.road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
     diff_labels_subquery,
     general_labels_subquery,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_with_dropdown import (
-    ConfMatGraphWithDropdown,
-)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
+    dump_object,
+    execute,
+    load_object,
+    optional_inputs,
+)
 
 
 class FramesModal(GridObject):
@@ -28,15 +32,13 @@ class FramesModal(GridObject):
 
     def __init__(
         self,
-        page_filters_id: str,
-        triggering_conf_mats: list[ConfMatGraph] = None,
-        triggering_dropdown_conf_mats: list[ConfMatGraphWithDropdown] = None,
-        triggering_filters: list[DataFilters] = None,
+        page_filters_id: str = "",
+        triggering_conf_mats: list[ConfMatGraph] | None = None,
+        triggering_filters: list[DataFilters] | None = None,
         component_id: str = "",
     ):
         self.page_filters_id = page_filters_id
         self.triggering_conf_mats = triggering_conf_mats if triggering_conf_mats else []
-        self.triggering_dropdown_conf_mats = triggering_dropdown_conf_mats if triggering_dropdown_conf_mats else []
         self.triggering_filters = triggering_filters if triggering_filters else []
         super().__init__(full_grid_row=True, component_id=component_id)
 
@@ -72,30 +74,41 @@ class FramesModal(GridObject):
                 Output(self.curr_query_id, "data", allow_duplicate=True),
                 Output(self.component_id, "is_open", allow_duplicate=True),
                 Input(conf_mat.show_diff_btn_id, "n_clicks"),
-                Input(conf_mat.filter_ignores_btn_id, "on"),
-                State(self.page_filters_id, "data"),
+                State(conf_mat.filter_ignores_btn_id, "on"),
                 State(conf_mat.main_table, "data"),
                 State(META_DATA, "data"),
                 State(conf_mat.main_dataset_dropdown_id, "value"),
                 State(conf_mat.secondary_dataset_dropdown_id, "value"),
+                optional_inputs(
+                    page_filters=State(conf_mat.page_filters_id, "data"),
+                    column=State(conf_mat.columns_dropdown_id, "value"),
+                ),
                 prevent_initial_call=True,
             )
             def draw_diffs_generic_case(
                 show_diff_n_clicks,
                 filter_ignores,
-                filters,
                 main_tables,
                 md_tables,
                 main_dump,
                 secondary_dump,
+                optional,
+                column=conf_mat.column,
+                filter=conf_mat.filter,
             ):
-                if not show_diff_n_clicks or not main_tables or not md_tables or not main_dump or not secondary_dump:
+                if not show_diff_n_clicks or not main_tables:
                     return no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
+                column: Term = column or getattr(type(main_tables[0]), optional["column"], None)
+                if not column:
+                    return no_update
+
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                page_filters: str = optional.get("page_filters", None)
+                page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
                 extra_columns = list(
-                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+                    type(main_tables[0]).get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
                 query = diff_labels_subquery(
                     main_tables=[table for table in main_tables if table.dataset_name == main_dump],
@@ -103,64 +116,12 @@ class FramesModal(GridObject):
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
                     label_columns=extra_columns,
-                    diff_column=conf_mat.column,
-                    data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
-                    page_filters=load_object(filters),
+                    diff_column=column,
+                    data_filter=filter if filter_ignores else EmptyCriterion(),
+                    page_filters=page_filters,
                     limit=self.IMG_LIMIT,
                 )
                 return dump_object(query), True
-
-        for dropdown_conf_mat in self.triggering_dropdown_conf_mats:
-
-            @callback(
-                Output(self.curr_query_id, "data", allow_duplicate=True),
-                Output(self.component_id, "is_open", allow_duplicate=True),
-                State(self.page_filters_id, "data"),
-                State(dropdown_conf_mat.main_table, "data"),
-                State(META_DATA, "data"),
-                State(dropdown_conf_mat.main_dataset_dropdown_id, "value"),
-                State(dropdown_conf_mat.secondary_dataset_dropdown_id, "value"),
-                Input(dropdown_conf_mat.columns_dropdown_id, "value"),
-                Input(dropdown_conf_mat.show_diff_btn_id, "n_clicks"),
-                prevent_initial_call=True,
-            )
-            def draw_diffs_dynamic_case(
-                filters,
-                main_tables,
-                md_tables,
-                main_dump,
-                secondary_dump,
-                dynamic_column,
-                show_diff_n_clicks,
-            ):
-                if (
-                    not show_diff_n_clicks
-                    or not main_tables
-                    or not md_tables
-                    or not main_dump
-                    or not secondary_dump
-                    or not dynamic_column
-                ):
-                    return no_update, no_update
-
-                main_tables: list[Base] = load_object(main_tables)
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
-                extra_columns = list(
-                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
-                )
-                dynamic_column = load_object(dynamic_column)
-                query = diff_labels_subquery(
-                    main_tables=[table for table in main_tables if table.dataset_name == main_dump],
-                    secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
-                    main_md=[table for table in md_tables if table.dataset_name == main_dump],
-                    secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
-                    label_columns=extra_columns,
-                    diff_column=dynamic_column,
-                    page_filters=load_object(filters),
-                    limit=self.IMG_LIMIT,
-                )
-
-                return query, True
 
         for triggering_filter in self.triggering_filters:
 
@@ -185,7 +146,7 @@ class FramesModal(GridObject):
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
                 extra_columns = list(
-                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+                    type(main_tables[0]).get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
                 query = general_labels_subquery(
                     main_tables=main_tables,

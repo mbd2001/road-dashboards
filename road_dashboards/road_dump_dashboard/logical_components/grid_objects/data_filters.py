@@ -12,6 +12,7 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.query_abst
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class DataFilters(GridObject):
@@ -55,7 +56,9 @@ class DataFilters(GridObject):
                     id=self.component_id,
                     children=[
                         self.get_group_layout(
-                            1, self.get_united_columns_dict(self.main_table, META_DATA), self.MAX_FILTERS_PER_GROUP
+                            1,
+                            self.get_united_columns_dict_from_table_strings(self.main_table),
+                            self.MAX_FILTERS_PER_GROUP,
                         )
                     ],
                 ),
@@ -101,7 +104,7 @@ class DataFilters(GridObject):
                 empty_index = self.get_empty_index(base_ind, filters_list, self.MAX_FILTERS_PER_GROUP)
 
             button_type = callback_context.triggered_id["type"]
-            columns_options = self.get_united_columns_dict(self.main_table, META_DATA)
+            columns_options = self.get_united_columns_dict_from_table_strings(self.main_table)
             if button_type == self.add_filter_btn_id and empty_index:
                 patched_children.append(self.get_filter_row_initial_layout(empty_index, columns_options))
             elif button_type == self.add_subgroup_btn_id and empty_index:
@@ -148,7 +151,7 @@ class DataFilters(GridObject):
             if not callback_context.triggered_id:
                 return no_update, no_update
 
-            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
+            column: Column = self.get_column_from_tables(column, self.main_table)
             if column.type is str:
                 options = {
                     "eq": "Equal",
@@ -201,7 +204,7 @@ class DataFilters(GridObject):
             if not callback_context.triggered_id:
                 return no_update
 
-            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
+            column: Column = self.get_column_from_tables(column, self.main_table)
             if operation in ["isnull", "isnotnull"]:
                 return dcc.Input(
                     id={"type": self.filter_val_id, "index": curr_index},
@@ -353,19 +356,23 @@ class DataFilters(GridObject):
         return distinct_values
 
     @staticmethod
-    def get_united_columns_dict(main_data: str, md_table: str = None) -> list[str]:
-        columns = EXISTING_TABLES[main_data].get_columns()
-        if md_table:
-            md_columns = EXISTING_TABLES[md_table].get_columns()
-            columns = list(set(columns + md_columns))
-
+    def get_united_columns_dict_from_table_strings(main_data: str) -> list[str]:
+        main_table: type[Base] = EXISTING_TABLES[main_data]
+        columns = DataFilters.get_united_columns_dict(main_table)
         return columns
 
     @staticmethod
-    def get_column_from_tables(column_name: str, main_data: str, md_table: str = None) -> Column:
+    def get_united_columns_dict(main_data: type[Base]) -> list[str]:
+        columns = main_data.get_columns()
+        md_columns = MetaData.get_columns()
+        columns = list(set(columns + md_columns))
+        return columns
+
+    @staticmethod
+    def get_column_from_tables(column_name: str, main_data: str) -> Column:
         column = getattr(EXISTING_TABLES[main_data], column_name, None)
-        if (not column) and md_table:
-            column = getattr(EXISTING_TABLES[md_table], column_name, None)
+        if column is None:
+            column = getattr(MetaData, column_name)
 
         return column
 
@@ -382,7 +389,7 @@ class DataFilters(GridObject):
             if not column or not operation:
                 return EmptyCriterion()
 
-            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
+            column: Column = self.get_column_from_tables(column, self.main_table)
             operation: Callable = getattr(column, operation)
             value: str = row["children"][2]["props"]["children"]["props"]["value"]
             single_filter = operation(column.type(value)) if value is not None else operation()

@@ -41,7 +41,7 @@ app.layout = html.Div(
     [
         init_dcc_stores(),
         dcc.Location(id=URL),
-        sidebar.sidebar(),
+        sidebar.layout,
         load_datasets_modal.layout,
         page_content.layout,
     ]
