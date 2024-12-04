@@ -151,7 +151,7 @@ class DataFilters(GridObject):
             if not callback_context.triggered_id:
                 return no_update, no_update
 
-            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
+            column: Column = self.get_column_from_tables(column, self.main_table)
             if column.type is str:
                 options = {
                     "eq": "Equal",
@@ -204,7 +204,7 @@ class DataFilters(GridObject):
             if not callback_context.triggered_id:
                 return no_update
 
-            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
+            column: Column = self.get_column_from_tables(column, self.main_table)
             if operation in ["isnull", "isnotnull"]:
                 return dcc.Input(
                     id={"type": self.filter_val_id, "index": curr_index},
@@ -362,7 +362,7 @@ class DataFilters(GridObject):
         return columns
 
     @staticmethod
-    def get_united_columns_dict(main_data: type[Base] | Base) -> list[str]:
+    def get_united_columns_dict(main_data: type[Base]) -> list[str]:
         columns = main_data.get_columns()
         md_columns = MetaData.get_columns()
         columns = list(set(columns + md_columns))
@@ -372,7 +372,7 @@ class DataFilters(GridObject):
     def get_column_from_tables(column_name: str, main_data: str) -> Column:
         column = getattr(EXISTING_TABLES[main_data], column_name, None)
         if column is None:
-            column = getattr(MetaData, column_name, None)
+            column = getattr(MetaData, column_name)
 
         return column
 
@@ -389,7 +389,7 @@ class DataFilters(GridObject):
             if not column or not operation:
                 return EmptyCriterion()
 
-            column: Column = self.get_column_from_tables(column, self.main_table, META_DATA)
+            column: Column = self.get_column_from_tables(column, self.main_table)
             operation: Callable = getattr(column, operation)
             value: str = row["children"][2]["props"]["children"]["props"]["value"]
             single_filter = operation(column.type(value)) if value is not None else operation()

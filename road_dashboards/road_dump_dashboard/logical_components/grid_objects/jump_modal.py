@@ -144,7 +144,7 @@ class JumpModal(GridObject):
                     data_filter=filter if filter_ignores else EmptyCriterion(),
                     page_filters=page_filters,
                 )
-                extra_columns = DataFilters.get_united_columns_dict(main_tables[0])
+                extra_columns = DataFilters.get_united_columns_dict(type(main_tables[0]))
                 return dump_object(partial_query), True, extra_columns
 
         for triggering_filter in self.triggering_filters:
@@ -174,7 +174,7 @@ class JumpModal(GridObject):
                     intersection_on=True,
                     page_filters=page_filters,
                 )
-                extra_columns = DataFilters.get_united_columns_dict(main_tables[0])
+                extra_columns = DataFilters.get_united_columns_dict(type(main_tables[0]))
                 return dump_object(partial_query), True, extra_columns
 
         @callback(

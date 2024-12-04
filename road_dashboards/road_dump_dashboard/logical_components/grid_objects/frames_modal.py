@@ -108,7 +108,7 @@ class FramesModal(GridObject):
                 page_filters: str = optional.get("page_filters", None)
                 page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
                 extra_columns = list(
-                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+                    type(main_tables[0]).get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
                 query = diff_labels_subquery(
                     main_tables=[table for table in main_tables if table.dataset_name == main_dump],
@@ -146,7 +146,7 @@ class FramesModal(GridObject):
                 main_tables: list[Base] = load_object(main_tables)
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
                 extra_columns = list(
-                    main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
+                    type(main_tables[0]).get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
                 query = general_labels_subquery(
                     main_tables=main_tables,
