@@ -26,7 +26,7 @@ def update_sidebar(url, *args):
                         html.I(className="fas fa-book me-2"),
                         html.Span("Maffe Bins Docs", className="ms-2"),
                     ],
-                    href="https://algoobjd-prod-1-backstage.sddc.mobileye.com/docs/your-group/component/maffe_bins",
+                    href="https://road_algo.gitpages.mobileye.com/maffe-bins/",
                     active="exact",
                     target="_blank",
                     external_link=True,
