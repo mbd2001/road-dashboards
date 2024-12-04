@@ -140,12 +140,12 @@ wildcard_conf = ConfMatGraph(
 
 frames_modal = FramesModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[role_conf, split_conf, primary_conf, merge_conf, oncoming_conf],
+    triggering_conf_mats=[role_conf, split_conf, primary_conf, merge_conf, oncoming_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 jump_modal = JumpModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[role_conf, split_conf, primary_conf, merge_conf, oncoming_conf],
+    triggering_conf_mats=[role_conf, split_conf, primary_conf, merge_conf, oncoming_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 

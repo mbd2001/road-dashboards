@@ -59,7 +59,9 @@ class CountGraph(GridObject):
         self.columns_dropdown_id = columns_dropdown_id
         self.filter = filter
         self.slider_value = slider_value
-        assert column or columns_dropdown_id, "you have to provide input column, explicitly or through dropdown"
+        assert (
+            self.column or self.columns_dropdown_id
+        ), "you have to provide input column, explicitly or through dropdown"
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -133,15 +135,18 @@ class CountGraph(GridObject):
             filter_ignores,
             optional,
         ):
-            if not main_tables or (not self.column and not optional["column"]):
+            if not main_tables:
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
+            column: Term = self.column or getattr(type(main_tables[0]), optional["column"], None)
+            if not column:
+                return no_update
+
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
             intersection_on: bool = optional.get("intersection_on", False)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
-            column: Term = self.column or getattr(EXISTING_TABLES[self.main_table], optional["column"])
 
             dump_name = MetaData.dump_name
             base = base_data_subquery(

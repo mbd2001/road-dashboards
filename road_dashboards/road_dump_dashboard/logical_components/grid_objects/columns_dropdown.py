@@ -38,7 +38,7 @@ class ColumnsDropdown(GridObject):
             multi=False,
             placeholder="Attribute",
             options=EXISTING_TABLES[self.main_table].get_columns(),
-            value=None,
+            value="",
         )
         return columns_dropdown
 

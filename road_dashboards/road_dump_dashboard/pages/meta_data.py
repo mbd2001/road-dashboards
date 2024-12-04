@@ -131,12 +131,12 @@ wildcard_conf = ConfMatGraph(
 
 frames_modal = FramesModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf],
+    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 jump_modal = JumpModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf],
+    triggering_conf_mats=[tv_perfects_conf, gtem_conf, road_type_conf, lm_color_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 

@@ -145,12 +145,12 @@ wildcard_conf = ConfMatGraph(
 
 frames_modal = FramesModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[type_conf, color_conf, role_conf],
+    triggering_conf_mats=[type_conf, color_conf, role_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 jump_modal = JumpModal(
     page_filters_id=filters_agg.final_filter_id,
-    triggering_conf_mats=[type_conf, color_conf, role_conf],
+    triggering_conf_mats=[type_conf, color_conf, role_conf, wildcard_conf],
     triggering_filters=[data_filters],
 )
 

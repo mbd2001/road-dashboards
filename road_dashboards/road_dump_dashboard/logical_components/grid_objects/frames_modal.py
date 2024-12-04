@@ -74,14 +74,14 @@ class FramesModal(GridObject):
                 Output(self.curr_query_id, "data", allow_duplicate=True),
                 Output(self.component_id, "is_open", allow_duplicate=True),
                 Input(conf_mat.show_diff_btn_id, "n_clicks"),
-                Input(conf_mat.filter_ignores_btn_id, "on"),
+                State(conf_mat.filter_ignores_btn_id, "on"),
                 State(conf_mat.main_table, "data"),
                 State(META_DATA, "data"),
                 State(conf_mat.main_dataset_dropdown_id, "value"),
                 State(conf_mat.secondary_dataset_dropdown_id, "value"),
                 optional_inputs(
-                    page_filters=Input(conf_mat.page_filters_id, "data"),
-                    column=Input(conf_mat.columns_dropdown_id, "value"),
+                    page_filters=State(conf_mat.page_filters_id, "data"),
+                    column=State(conf_mat.columns_dropdown_id, "value"),
                 ),
                 prevent_initial_call=True,
             )
@@ -93,15 +93,20 @@ class FramesModal(GridObject):
                 main_dump,
                 secondary_dump,
                 optional,
+                column=conf_mat.column,
+                filter=conf_mat.filter,
             ):
-                if not show_diff_n_clicks or not main_tables or (not conf_mat.column and not optional["column"]):
+                if not show_diff_n_clicks or not main_tables:
                     return no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
+                column: Term = column or getattr(type(main_tables[0]), optional["column"], None)
+                if not column:
+                    return no_update
+
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
                 page_filters: str = optional.get("page_filters", None)
                 page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
-                column: Term = conf_mat.column or getattr(EXISTING_TABLES[conf_mat.main_table], optional["column"])
                 extra_columns = list(
                     main_tables[0].get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
@@ -112,7 +117,7 @@ class FramesModal(GridObject):
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
                     label_columns=extra_columns,
                     diff_column=column,
-                    data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
+                    data_filter=filter if filter_ignores else EmptyCriterion(),
                     page_filters=page_filters,
                     limit=self.IMG_LIMIT,
                 )

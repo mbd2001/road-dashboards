@@ -52,7 +52,9 @@ class ConfMatGraph(GridObject):
         self.column = column
         self.columns_dropdown_id = columns_dropdown_id
         self.filter = filter
-        assert column or columns_dropdown_id, "you have to provide input column, explicitly or through dropdown"
+        assert (
+            self.column or self.columns_dropdown_id
+        ), "you have to provide input column, explicitly or through dropdown"
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -107,14 +109,17 @@ class ConfMatGraph(GridObject):
             ),
         )
         def get_conf_mat(main_dump, secondary_dump, filter_ignores, main_tables, md_tables, optional):
-            if not main_tables or not main_dump or not secondary_dump or (not self.column and not optional["column"]):
+            if not main_tables or not main_dump or not secondary_dump:
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
+            column: Term = self.column or getattr(type(main_tables[0]), optional["column"], None)
+            if not column:
+                return no_update
+
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
-            column: Term = self.column or getattr(EXISTING_TABLES[self.main_table], optional["column"])
 
             conf_query = conf_mat_subquery(
                 main_labels=[table for table in main_tables if table.dataset_name == main_dump],

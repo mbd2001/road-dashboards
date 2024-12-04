@@ -106,22 +106,33 @@ class JumpModal(GridObject):
                 State(conf_mat.main_table, "data"),
                 State(META_DATA, "data"),
                 optional_inputs(
-                    page_filters=Input(conf_mat.page_filters_id, "data"),
-                    column=Input(conf_mat.columns_dropdown_id, "value"),
+                    page_filters=State(conf_mat.page_filters_id, "data"),
+                    column=State(conf_mat.columns_dropdown_id, "value"),
                 ),
                 prevent_initial_call=True,
             )
             def generic_diff_jump_file(
-                n_clicks, main_dump, secondary_dump, filter_ignores, main_tables, md_tables, optional
+                n_clicks,
+                main_dump,
+                secondary_dump,
+                filter_ignores,
+                main_tables,
+                md_tables,
+                optional,
+                column=conf_mat.column,
+                filter=conf_mat.filter,
             ):
-                if not n_clicks or not main_tables or (not conf_mat.column and not optional["column"]):
+                if not n_clicks or not main_tables:
                     return no_update, no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
+                column: Term = column or getattr(type(main_tables[0]), optional["column"], None)
+                if not column:
+                    return no_update
+
                 md_tables: list[Base] = load_object(md_tables) if md_tables else None
                 page_filters: str = optional.get("page_filters", None)
                 page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
-                column: Term = conf_mat.column or getattr(EXISTING_TABLES[conf_mat.main_table], optional["column"])
 
                 partial_query = partial(
                     diff_terms_subquery,
@@ -130,10 +141,10 @@ class JumpModal(GridObject):
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
                     secondary_md=[table for table in md_tables if table.dataset_name == secondary_dump],
                     diff_column=column,
-                    data_filter=conf_mat.filter if filter_ignores else EmptyCriterion(),
+                    data_filter=filter if filter_ignores else EmptyCriterion(),
                     page_filters=page_filters,
                 )
-                extra_columns = DataFilters.get_united_columns_dict(conf_mat.main_table, META_DATA)
+                extra_columns = DataFilters.get_united_columns_dict(main_tables[0])
                 return dump_object(partial_query), True, extra_columns
 
         for triggering_filter in self.triggering_filters:
@@ -163,7 +174,7 @@ class JumpModal(GridObject):
                     intersection_on=True,
                     page_filters=page_filters,
                 )
-                extra_columns = DataFilters.get_united_columns_dict(triggering_filter.main_table, META_DATA)
+                extra_columns = DataFilters.get_united_columns_dict(main_tables[0])
                 return dump_object(partial_query), True, extra_columns
 
         @callback(
