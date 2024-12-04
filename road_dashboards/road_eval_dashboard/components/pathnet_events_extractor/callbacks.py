@@ -136,6 +136,7 @@ def update_chosen_net_data(nets, chosen_net_id):
     net["frame_tables"]["paths"] = net["frame_tables"]["paths"][net_id_ind : net_id_ind + 1]
     net[PATHNET_PRED]["paths"] = net[PATHNET_PRED]["paths"][net_id_ind : net_id_ind + 1]
     net[PATHNET_GT]["paths"] = net[PATHNET_GT]["paths"][net_id_ind : net_id_ind + 1]
+    net[PATHNET_BOUNDARIES]["paths"] = net[PATHNET_BOUNDARIES]["paths"][net_id_ind : net_id_ind + 1]
     net["nets_info"] = net["nets_info"][net_id_ind]
     return net
 
