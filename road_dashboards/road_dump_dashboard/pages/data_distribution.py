@@ -1,6 +1,7 @@
 from dash import html, register_page
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.batches_table import BatchesTable
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
@@ -21,6 +22,11 @@ scenes_table = ScenesTable(
     datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
     page_filters_id=filters_agg.final_filter_id,
 )
+bathes_table = BatchesTable(
+    datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
+    population_dropdown_id=population_card.populations_dropdown_id,
+    page_filters_id=filters_agg.final_filter_id,
+)
 
 layout = GridGenerator(
     data_filters,
@@ -28,5 +34,6 @@ layout = GridGenerator(
     GridGenerator(html.H3("Dataset Selection"), dataset_selector, full_grid_row=False),
     GridGenerator(html.H3("Population"), population_card, full_grid_row=False),
     scenes_table,
+    bathes_table,
     warp_sub_objects=False,
 ).layout()

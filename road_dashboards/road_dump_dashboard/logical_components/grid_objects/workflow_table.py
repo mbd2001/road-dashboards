@@ -1,7 +1,7 @@
 from typing import Any
 
 import pandas as pd
-from dash import Input, Output, callback, dash_table, dcc, html
+from dash import Input, Output, callback, dash_table, dcc, html, no_update
 
 from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
@@ -68,19 +68,25 @@ class WorkflowTable(GridObject):
 
     def _callbacks(self):
         @callback(Output(self.status_table_id, "data"), Input(self.datasets_dropdown_id, "value"))
-        def update_workflow_data(chosen_dump):
+        def update_workflow_table(chosen_dump):
+            if not chosen_dump:
+                return no_update
+
             workflow_dict = self.get_workflow_dict(chosen_dump)
             return list(workflow_dict.values())
 
         @callback(Output(self.state_pie_id, "figure"), Input(self.datasets_dropdown_id, "value"))
-        def update_workflow_data(chosen_dump):
+        def update_workflow_pie_chart(chosen_dump):
+            if not chosen_dump:
+                return no_update
+
             workflow_dict = self.get_workflow_dict(chosen_dump)
             workflow_df = pd.DataFrame(list(workflow_dict.values()))
             fig = basic_pie_chart(workflow_df, "exit_code", "count", title="Exit Codes Distribution")
             return fig
 
     @staticmethod
-    def get_workflow_dict(chosen_dump) -> dict[str, Any]:
+    def get_workflow_dict(chosen_dump: str) -> dict[str, Any]:
         workflow_dict = dump_db_manager.get_item(chosen_dump).get("common_exit_codes", {})
         workflow_dict.pop("0", None)
         return workflow_dict
