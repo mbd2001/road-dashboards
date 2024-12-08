@@ -7,11 +7,11 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_g
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.frames_modal import FramesModal
-from road_dashboards.road_dump_dashboard.logical_components.grid_objects.intersection_switch import IntersectionSwitch
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.jump_modal import JumpModal
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.switch import Switch
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
     TwoDatasetsSelector,
 )
@@ -23,7 +23,7 @@ register_page(__name__, **page.__dict__)
 
 data_filters = DataFilters(main_table=page.main_table)
 population_card = PopulationCard()
-intersection_switch = IntersectionSwitch()
+intersection_switch = Switch("Intersection")
 filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
 
 obj_count_card = ObjCountCard(

@@ -37,11 +37,13 @@ class ScenesTable(GridObject):
         self,
         datasets_dropdown_id: str,
         page_filters_id: str = "",
+        only_failed_id: str = "",
         full_grid_row: bool = True,
         component_id: str = "",
     ):
         self.datasets_dropdown_id = datasets_dropdown_id
         self.page_filters_id = page_filters_id
+        self.only_failed_id = only_failed_id
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -56,7 +58,7 @@ class ScenesTable(GridObject):
             filter_action="native",
             sort_action="native",
             sort_mode="multi",
-            sort_by=[{"column_id": "count", "direction": "desc"}],
+            sort_by=[{"column_id": "percentage", "direction": "desc"}],
             page_action="native",
             page_current=0,
             page_size=20,
@@ -99,7 +101,9 @@ class ScenesTable(GridObject):
             Output(self.scenes_table_id, "tooltip_data"),
             Input(self.datasets_dropdown_id, "value"),
             Input(META_DATA, "data"),
-            optional_inputs(page_filters=Input(self.page_filters_id, "data")),
+            optional_inputs(
+                page_filters=Input(self.page_filters_id, "data"), only_failed=Input(self.only_failed_id, "on")
+            ),
         )
         def update_scenes_data(chosen_dump, md_tables, optional):
             if not md_tables or not chosen_dump:
@@ -108,6 +112,7 @@ class ScenesTable(GridObject):
             md_tables: list[Base] = load_object(md_tables)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
+            only_failed: bool = optional.get("only_failed", False)
 
             tables = [table for table in md_tables if table.dataset_name == chosen_dump]
             base = base_data_subquery(
@@ -127,5 +132,8 @@ class ScenesTable(GridObject):
                 }
                 for scene in self.SCENES
             ]
+            if only_failed:
+                table_data = [scene for scene in table_data if scene["percentage"] < 90]
+
             tooltip_data = [{"scene": {"value": str(scene.definition), "type": "markdown"}} for scene in self.SCENES]
             return table_data, tooltip_data
