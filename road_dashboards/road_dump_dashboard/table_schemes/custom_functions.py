@@ -4,7 +4,7 @@ from typing import Any
 
 import pandas as pd
 from dash.dependencies import DashDependency
-from pypika.queries import QueryBuilder
+from pypika.queries import Selectable
 from pypika.terms import Function, Term
 from road_database_toolkit.athena.athena_utils import query_athena
 
@@ -19,7 +19,7 @@ def load_object(dump_obj: str) -> Any:
     return pkl.loads(base64.b64decode(dump_obj))
 
 
-def execute(query: QueryBuilder) -> pd.DataFrame:
+def execute(query: Selectable) -> pd.DataFrame:
     results, _ = query_athena(query=str(query), database="run_eval_db")
     return results
 

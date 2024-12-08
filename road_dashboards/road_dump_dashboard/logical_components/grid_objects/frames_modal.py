@@ -104,7 +104,7 @@ class FramesModal(GridObject):
                 if not column:
                     return no_update
 
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                md_tables: list[Base] = load_object(md_tables)
                 page_filters: str = optional.get("page_filters", None)
                 page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
                 extra_columns = list(
@@ -140,11 +140,11 @@ class FramesModal(GridObject):
                 main_tables,
                 md_tables,
             ):
-                if not n_clicks or not main_tables or not md_tables:
+                if not n_clicks or not main_tables:
                     return no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                md_tables: list[Base] = load_object(md_tables)
                 extra_columns = list(
                     type(main_tables[0]).get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )

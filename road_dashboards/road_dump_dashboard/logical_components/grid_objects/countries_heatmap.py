@@ -64,7 +64,7 @@ class CountriesHeatMap(GridObject):
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
-            md_tables: list[Base] = load_object(md_tables) if md_tables else None
+            md_tables: list[Base] = load_object(md_tables)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 
@@ -74,6 +74,7 @@ class CountriesHeatMap(GridObject):
                 meta_data_tables=[table for table in md_tables if table.dataset_name == chosen_dump],
                 terms=[country_col],
                 page_filters=page_filters,
+                to_order=False,
             )
             query = Query.from_(base).groupby(country_col).select(country_col, functions.Count("*", "overall"))
             data = execute(query)

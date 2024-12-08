@@ -143,7 +143,7 @@ class CountGraph(GridObject):
             if not column:
                 return no_update
 
-            md_tables: list[Base] = load_object(md_tables) if md_tables else None
+            md_tables: list[Base] = load_object(md_tables)
             intersection_on: bool = optional.get("intersection_on", False)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()

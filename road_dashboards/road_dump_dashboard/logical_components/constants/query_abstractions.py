@@ -1,6 +1,7 @@
 from functools import reduce
 from operator import mul
 
+from PIL.ImageChops import offset
 from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
 from pypika import analytics as an
 from pypika.enums import SqlTypes
@@ -19,6 +20,7 @@ def base_data_subquery(
     data_filter: Criterion = EmptyCriterion(),
     page_filters: Criterion = EmptyCriterion(),
     intersection_on: bool = False,
+    to_order: bool = True,
 ) -> Selectable:
     intersection_filter = get_intersection_filter(meta_data_tables, intersection_on)
     filters = Criterion.all([data_filter, page_filters, intersection_filter])
@@ -26,7 +28,7 @@ def base_data_subquery(
         join_main_and_md(main_table, md_table)
         .select(*resolve_unambiguous(main_table, terms))
         .where(*resolve_unambiguous(main_table, [filters]))
-        .orderby(md_table.dump_name)
+        .orderby(*[md_table.dump_name] if to_order else [])
         for main_table, md_table in zip(main_tables, meta_data_tables)
     ]
     union_table = union_all_query_list(joint_tables)
@@ -95,6 +97,7 @@ def join_on_obj_id(
             terms=base_terms,
             data_filter=data_filter,
             page_filters=page_filters,
+            to_order=False,
         )
         for main_table, md_table in [[main_tables, main_md], [secondary_tables, secondary_md]]
     ]

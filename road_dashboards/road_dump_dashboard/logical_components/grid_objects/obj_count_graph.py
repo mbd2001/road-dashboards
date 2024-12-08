@@ -83,7 +83,7 @@ class ObjCountGraph(GridObject):
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
-            md_tables: list[Base] = load_object(md_tables) if md_tables else None
+            md_tables: list[Base] = load_object(md_tables)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 
