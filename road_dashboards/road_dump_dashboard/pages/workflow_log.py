@@ -7,7 +7,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.workflo
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
-page = PageProperties(order=2, icon="table", path="/workflow_log", title="Workflow Log", main_table="meta_data")
+page = PageProperties(order=5, icon="table", path="/workflow_log", title="Workflow Log", main_table="meta_data")
 register_page(__name__, **page.__dict__)
 
 dataset_selector = DatasetSelector(main_table=page.main_table)

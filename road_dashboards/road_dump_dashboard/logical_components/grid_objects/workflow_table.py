@@ -81,6 +81,9 @@ class WorkflowTable(GridObject):
                 return no_update
 
             workflow_dict = self.get_workflow_dict(chosen_dump)
+            if not workflow_dict:
+                return {}
+
             workflow_df = pd.DataFrame(list(workflow_dict.values()))
             fig = basic_pie_chart(workflow_df, "exit_code", "count", title="Exit Codes Distribution")
             return fig

@@ -95,7 +95,7 @@ class ScenesTable(GridObject):
             ],
         )
         only_failed_switch = daq.BooleanSwitch(
-            id=self.only_failed_id, on=False, label="Failed Scenes Only", labelPosition="top", className="me-2"
+            id=self.only_failed_id, on=False, label="Insufficient Scenes", labelPosition="top", className="me-2"
         )
         return card_wrapper(
             [

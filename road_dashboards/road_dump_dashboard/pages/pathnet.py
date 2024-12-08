@@ -18,7 +18,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_dat
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 from road_dashboards.road_dump_dashboard.table_schemes.pathnet import PathNet
 
-page = PageProperties(order=5, icon="search", path="/pathnet", title="Pathnet", main_table="rpw_meta_data")
+page = PageProperties(order=4, icon="search", path="/pathnet", title="Pathnet", main_table="rpw_meta_data")
 register_page(__name__, **page.__dict__)
 
 data_filters = DataFilters(main_table=page.main_table)
