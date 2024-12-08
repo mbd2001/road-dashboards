@@ -5,7 +5,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import load_object
 
 
-class DatasetsSelector(GridObject):
+class DatasetSelector(GridObject):
     def __init__(
         self,
         main_table: str,
@@ -21,7 +21,6 @@ class DatasetsSelector(GridObject):
     def layout(self):
         selector_layout = dcc.Dropdown(
             id=self.main_dataset_dropdown_id,
-            style={"minWidth": "100%"},
             multi=False,
             placeholder="----",
             value=None,

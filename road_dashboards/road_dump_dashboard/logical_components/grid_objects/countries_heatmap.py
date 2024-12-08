@@ -1,6 +1,6 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, callback, dcc, no_update
-from pypika import Criterion, Query, functions
+from dash import Input, Output, State, callback, dcc, no_update
+from pypika import Criterion, EmptyCriterion, Query, functions
 
 from road_dashboards.road_dump_dashboard.graphical_components.countries_map import (
     generate_world_map,
@@ -13,7 +13,7 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
@@ -25,8 +25,8 @@ class CountriesHeatMap(GridObject):
     def __init__(
         self,
         main_table: str,
-        page_filters_id: str,
         datasets_dropdown_id: str,
+        page_filters_id: str = "",
         full_grid_row: bool = True,
         component_id: str = "",
     ):
@@ -36,13 +36,13 @@ class CountriesHeatMap(GridObject):
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
-        self.heatmap_id = self._generate_id("heatmap")
+        pass
 
     def layout(self):
         countries_layout = dbc.Row(
             loading_wrapper(
                 dcc.Graph(
-                    id=self.heatmap_id,
+                    id=self.component_id,
                     config={"displayModeBar": False},
                 )
             )
@@ -51,24 +51,28 @@ class CountriesHeatMap(GridObject):
 
     def _callbacks(self):
         @callback(
-            Output(self.heatmap_id, "figure"),
-            Input(self.page_filters_id, "data"),
+            Output(self.component_id, "figure"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
             Input(self.datasets_dropdown_id, "value"),
+            optional_inputs(
+                page_filters=Input(self.page_filters_id, "data"),
+            ),
         )
-        def get_countries_heat_map(page_filters, main_tables, md_tables, chosen_dump):
+        def get_countries_heat_map(main_tables, md_tables, chosen_dump, optional):
             if not main_tables or not chosen_dump:
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            page_filters: Criterion = load_object(page_filters)
+            page_filters: str = optional.get("page_filters", None)
+            page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
+
             country_col = MetaData.mdbi_country
             base = base_data_subquery(
                 main_tables=[table for table in main_tables if table.dataset_name == chosen_dump],
-                terms=[country_col],
                 meta_data_tables=[table for table in md_tables if table.dataset_name == chosen_dump],
+                terms=[country_col],
                 page_filters=page_filters,
             )
             query = Query.from_(base).groupby(country_col).select(country_col, functions.Count("*", "overall"))

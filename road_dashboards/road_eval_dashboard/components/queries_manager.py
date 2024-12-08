@@ -815,6 +815,32 @@ def generate_path_net_miss_false_query(
     return query
 
 
+def generate_path_net_scene_by_sec_query(
+    data_tables,
+    meta_data,
+    distances_dict,
+    interesting_filters,
+    meta_data_filters="",
+    role="",
+    extra_filters="",
+    base_dist_column_name="dist",
+    operator="<",
+):
+    query = get_dist_query(
+        base_dist_column_name,
+        data_tables,
+        distances_dict,
+        meta_data,
+        meta_data_filters,
+        operator,
+        role,
+        intresting_filters=interesting_filters,
+        is_add_filters_count=True,
+        base_extra_filters=extra_filters,
+    )
+    return query
+
+
 def generate_extract_acc_events_query(
     data_tables,
     meta_data,

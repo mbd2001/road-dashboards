@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
-from dash import Input, Output, callback, html, no_update
+from dash import Input, Output, State, callback, html, no_update
 from pypika import Criterion, Query, functions
+from pypika.terms import EmptyCriterion, Term
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
@@ -10,7 +11,12 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import FormatNumber, execute, load_object
+from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
+    FormatNumber,
+    execute,
+    load_object,
+    optional_inputs,
+)
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
@@ -19,8 +25,10 @@ class ObjCountCard(GridObject):
         self,
         main_table: str,
         objs_name: str,
-        page_filters_id: str,
-        intersection_switch_id: str,
+        page_filters_id: str = "",
+        intersection_switch_id: str = "",
+        distinct_objs: list[Term] | None = None,
+        datasets_dropdown_id: str = "",
         full_grid_row: bool = False,
         component_id: str = "",
     ):
@@ -28,6 +36,8 @@ class ObjCountCard(GridObject):
         self.objs_name = objs_name
         self.page_filters_id = page_filters_id
         self.intersection_switch_id = intersection_switch_id
+        self.distinct_objs = distinct_objs if distinct_objs else []
+        self.datasets_dropdown_id = datasets_dropdown_id
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -40,25 +50,41 @@ class ObjCountCard(GridObject):
         @callback(
             Output(self.obj_count_id, "children"),
             Output(self.obj_count_id, "active_item"),
-            Input(self.page_filters_id, "data"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
-            Input(self.intersection_switch_id, "on"),
+            State(META_DATA, "data"),
+            optional_inputs(
+                page_filters=Input(self.page_filters_id, "data"),
+                intersection_on=Input(self.intersection_switch_id, "on"),
+                chosen_dump=Input(self.datasets_dropdown_id, "value"),
+            ),
         )
-        def get_obj_count(page_filters, main_tables, md_tables, intersection_on):
+        def get_obj_count(main_tables, md_tables, optional):
             if not main_tables:
                 return no_update, no_update
 
             main_tables: list[Base] = load_object(main_tables)
             md_tables: list[Base] = load_object(md_tables) if md_tables else None
-            page_filters: Criterion = load_object(page_filters)
+            page_filters: str = optional.get("page_filters", None)
+            page_filters: Criterion = load_object(page_filters) if page_filters is not None else EmptyCriterion()
+            intersection_on: bool = optional.get("intersection_on", False)
+            chosen_dump: str | None = optional.get("chosen_dump", None)
+            main_tables = (
+                [table for table in main_tables if table.dataset_name == chosen_dump] if chosen_dump else main_tables
+            )
+            md_tables = (
+                [table for table in md_tables if table.dataset_name == chosen_dump] if chosen_dump else md_tables
+            )
+
             base = base_data_subquery(
                 main_tables=main_tables,
-                terms=[MetaData.dump_name],
                 meta_data_tables=md_tables,
+                terms=[MetaData.dump_name, *self.distinct_objs],
                 page_filters=page_filters,
                 intersection_on=intersection_on,
             )
+            if self.distinct_objs:
+                base = Query.from_(base).select(MetaData.dump_name, *self.distinct_objs).distinct()
+
             query = (
                 Query.from_(base)
                 .groupby(MetaData.dump_name)
