@@ -59,7 +59,10 @@ class WorkflowTable(GridObject):
             config={"displayModeBar": False},
         )
         final_layout = html.Div(
-            [card_wrapper(loading_wrapper(workflow_details_table)), card_wrapper(loading_wrapper(pie_graph))]
+            [
+                card_wrapper([html.H2("Exit Codes", className="mb-5"), loading_wrapper(workflow_details_table)]),
+                card_wrapper(loading_wrapper(pie_graph)),
+            ]
         )
         return final_layout
 

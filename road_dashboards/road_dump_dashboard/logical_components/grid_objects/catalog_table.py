@@ -68,8 +68,7 @@ class CatalogTable(GridObject):
                     value=[col for col in table_columns.keys() if col not in default_unchecked_columns],
                     id=obj_id,
                     inline=False,
-                    className="dropdown-item",
-                    inputClassName="me-2",
+                    className="me-2",
                 )
             ],
             right=True,
