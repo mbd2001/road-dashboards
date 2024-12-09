@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from typing import Union
 
 import dash_bootstrap_components as dbc
 import pandas as pd

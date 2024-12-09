@@ -1,6 +1,6 @@
 from dash import Input, Output, callback
 
-from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds, LoadingStyles
+from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds
 from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
 workflow_db_handler = WorkflowsDBManager()
