@@ -30,6 +30,7 @@ class WorkflowFields:
     brain_type: str = "brain_type"
     clip_name: str = "clip_name"
     exit_code: str = "exit_code"
+    job_id: str = "job_id"
 
 
 class Status(str, Enum):

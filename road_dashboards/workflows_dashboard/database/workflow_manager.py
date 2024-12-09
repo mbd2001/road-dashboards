@@ -20,7 +20,10 @@ class WorkflowsDBManager(DBManager):
         def fetch_workflow_data(workflow: str) -> tuple[str, pd.DataFrame]:
             """Helper function to fetch data for a single workflow."""
             filter_expr = Attr("workflows").contains(workflow)
-            projection_expr = f"#pk, brain_type, {workflow}_{WorkflowFields.status}, {workflow}_{WorkflowFields.message}, {workflow}_{WorkflowFields.last_update}"
+            projection_expr = (
+                f"#pk, brain_type, {workflow}_{WorkflowFields.status}, {workflow}_{WorkflowFields.message}, "
+                f"{workflow}_{WorkflowFields.last_update}, {workflow}_{WorkflowFields.job_id}, {workflow}_{WorkflowFields.exit_code}"
+            )
             expr_names = {"#pk": DatabaseSettings.primary_key}
 
             items = []
@@ -56,6 +59,11 @@ class WorkflowsDBManager(DBManager):
                 f"{workflow}_{WorkflowFields.message}": WorkflowFields.message,
                 f"{workflow}_{WorkflowFields.last_update}": WorkflowFields.last_update,
             }
+
+            for col in [WorkflowFields.job_id, WorkflowFields.exit_code]:
+                if col in df.columns:
+                    column_mapping[col] = f"{workflow}_{col}"
+
             df = df.rename(columns=column_mapping)
             df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
             df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
@@ -73,6 +81,7 @@ class WorkflowsDBManager(DBManager):
             brain_types (list[str], optional): List of brain types to filter by
             start_date (str, optional): Start date for filtering in ISO format
             end_date (str, optional): End date for filtering in ISO format
+            statuses (list[str], optional): List of statuses to filter by
 
         Returns:
             pd.DataFrame: Filtered DataFrame
@@ -242,6 +251,10 @@ class WorkflowsDBManager(DBManager):
                 WorkflowFields.message: f"{workflow}_{WorkflowFields.message}",
                 WorkflowFields.last_update: f"{workflow}_{WorkflowFields.last_update}",
             }
+            for col in [WorkflowFields.job_id, WorkflowFields.exit_code]:
+                if col in filtered_df.columns:
+                    column_mapping[col] = f"{workflow}_{col}"
+
             filtered_df = filtered_df.rename(columns=column_mapping)
 
             if result_df is None:
