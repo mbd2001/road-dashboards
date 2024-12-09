@@ -61,8 +61,8 @@ class WorkflowsDBManager(DBManager):
             }
 
             for col in [WorkflowFields.job_id, WorkflowFields.exit_code]:
-                if col in df.columns:
-                    column_mapping[col] = f"{workflow}_{col}"
+                if f"{workflow}_{col}" in df.columns:
+                    column_mapping[f"{workflow}_{col}"] = col
 
             df = df.rename(columns=column_mapping)
             df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
