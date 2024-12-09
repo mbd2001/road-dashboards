@@ -9,7 +9,6 @@ app = Dash(
     suppress_callback_exceptions=True,
 )
 
-
 app.layout = html.Div(
     [dcc.Location(id="url"), dbc.Container(dash.page_container, fluid=True, className="px-4 vh-100")],
     className="wrapper h-100",
