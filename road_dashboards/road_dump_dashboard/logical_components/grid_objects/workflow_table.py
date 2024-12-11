@@ -1,5 +1,3 @@
-from typing import Any
-
 import pandas as pd
 from dash import Input, Output, callback, dash_table, dcc, html, no_update
 
@@ -27,7 +25,7 @@ class WorkflowTable(GridObject):
         self.state_pie_id = self._generate_id("state_pie")
 
     def layout(self):
-        shown_columns = ["exit_code", "count", "example_clip_name"]
+        shown_columns = ["exit_code", "count", "example_clip_name", "error_msg"]
         workflow_details_table = dash_table.DataTable(
             id=self.status_table_id,
             columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in shown_columns],
@@ -40,7 +38,12 @@ class WorkflowTable(GridObject):
             page_current=0,
             page_size=20,
             css=[{"selector": ".show-hide", "rule": "display: none"}],
-            style_cell={"textAlign": "left"},
+            style_cell={
+                "textAlign": "left",
+                "overflow": "hidden",
+                "textOverflow": "ellipsis",
+                "maxWidth": 0,
+            },
             style_header={
                 "background-color": "#4e4e50",
                 "fontWeight": "bold",
@@ -67,13 +70,19 @@ class WorkflowTable(GridObject):
         return final_layout
 
     def _callbacks(self):
-        @callback(Output(self.status_table_id, "data"), Input(self.datasets_dropdown_id, "value"))
+        @callback(
+            Output(self.status_table_id, "data"),
+            Output(self.status_table_id, "tooltip_data"),
+            Input(self.datasets_dropdown_id, "value"),
+        )
         def update_workflow_table(chosen_dump):
             if not chosen_dump:
-                return no_update
+                return no_update, no_update
 
             workflow_dict = self.get_workflow_dict(chosen_dump)
-            return list(workflow_dict.values())
+            tooltip_columns = ["example_clip_name", "error_msg"]
+            tooltip_data = [{col: exit_code[col] for col in tooltip_columns} for exit_code in workflow_dict.values()]
+            return list(workflow_dict.values()), tooltip_data
 
         @callback(Output(self.state_pie_id, "figure"), Input(self.datasets_dropdown_id, "value"))
         def update_workflow_pie_chart(chosen_dump):
@@ -85,11 +94,11 @@ class WorkflowTable(GridObject):
                 return {}
 
             workflow_df = pd.DataFrame(list(workflow_dict.values()))
-            fig = basic_pie_chart(workflow_df, "exit_code", "count", title="Exit Codes Distribution")
+            fig = basic_pie_chart(workflow_df, "exit_code", "count", title="Exit Codes Distribution", hover="error_msg")
             return fig
 
     @staticmethod
-    def get_workflow_dict(chosen_dump: str) -> dict[str, Any]:
+    def get_workflow_dict(chosen_dump: str) -> dict[str, any]:
         workflow_dict = dump_db_manager.get_item(chosen_dump).get("common_exit_codes", {})
         workflow_dict.pop("0", None)
         return workflow_dict
