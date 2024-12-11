@@ -105,6 +105,7 @@ wildcard_count = CountGraph(
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=intersection_switch.component_id,
     columns_dropdown_id=count_columns_dropdown.component_id,
+    slider_value=1,
     full_grid_row=True,
 )
 
