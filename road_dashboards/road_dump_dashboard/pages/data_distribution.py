@@ -29,7 +29,7 @@ scenes_table = ScenesTable(
     datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
     page_filters_id=filters_agg.final_filter_id,
 )
-bathes_table = BatchesTable(
+batches_table = BatchesTable(
     datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
     population_dropdown_id=population_card.populations_dropdown_id,
     page_filters_id=filters_agg.final_filter_id,
@@ -43,7 +43,7 @@ layout = GridGenerator(
     GridGenerator(
         dataset_selector,
         scenes_table,
-        bathes_table,
+        batches_table,
     ),
     warp_sub_objects=False,
 ).layout()

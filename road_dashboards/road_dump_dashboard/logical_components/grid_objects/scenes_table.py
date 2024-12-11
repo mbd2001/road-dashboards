@@ -13,7 +13,7 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
 )
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
@@ -29,8 +29,32 @@ class Scene:
 
 
 SCENES: list[Scene] = [
-    Scene(MetaData.hwe == False, "HWE", 100),
-    Scene(MetaData.hwe == True, "TEST", 100),
+    Scene(
+        (MetaData.righttype_decelerationsolid == True) | (MetaData.lefttype_decelerationsolid == True),
+        "DecelerationSolid",
+        10000,
+    ),
+    Scene(
+        (MetaData.righttype_decelerationdashed == True) | (MetaData.lefttype_decelerationdashed == True),
+        "DecelerationDashed",
+        10000,
+    ),
+    Scene((MetaData.righttype_deceleration == True) | (MetaData.lefttype_deceleration == True), "Deceleration", 10000),
+    Scene((MetaData.righttype_botsdots == True) | (MetaData.lefttype_botsdots == True), "bottsdots", 10000),
+    Scene((MetaData.righttype_dashedsolid == True) | (MetaData.lefttype_dashedsolid == True), "dashedsolid", 10000),
+    Scene((MetaData.righttype_soliddashed == True) | (MetaData.lefttype_soliddashed == True), "soliddashed", 10000),
+    Scene((MetaData.righttype_dasheddashed == True) | (MetaData.lefttype_dasheddashed == True), "dasheddashed", 10000),
+    Scene((MetaData.righttype_solidsolid == True) | (MetaData.lefttype_solidsolid == True), "solidsolid", 10000),
+    Scene((MetaData.max_lm_width_avg[0.35:0.60]) & (MetaData.dist_to_hwe > 40), "wide_lane_mark", 10000),
+    Scene(
+        (MetaData.mdbi_country == "Japan")
+        & (MetaData.safetyzoneleft == False)
+        & (MetaData.safetyzoneright == False)
+        & ((MetaData.dist_to_polesleft < 20) & (MetaData.dist_from_polesright < 20)),
+        "japanese_poles",
+        10000,
+    ),
+    Scene((MetaData.mdbi_country == "China") & (MetaData.rightcolor_yellowwhite == True), "china_bus_lane", 10000),
 ]
 
 
@@ -48,7 +72,7 @@ class ScenesTable(GridObject):
 
     def _generate_ids(self):
         self.scenes_table_id = self._generate_id("scenes_table")
-        self.only_failed_id = self._generate_id("only_failed")
+        self.insufficient_switch_id = self._generate_id("only_failed")
 
     def layout(self):
         shown_columns = ["scene", "num_of_frames", "required_frames", "percentage"]
@@ -94,12 +118,12 @@ class ScenesTable(GridObject):
                 },
             ],
         )
-        only_failed_switch = daq.BooleanSwitch(
-            id=self.only_failed_id, on=False, label="Insufficient Scenes", labelPosition="top", className="me-2"
+        insufficient_switch = daq.BooleanSwitch(
+            id=self.insufficient_switch_id, on=False, label="Insufficient Scenes", labelPosition="top", className="me-2"
         )
         return card_wrapper(
             [
-                dbc.Row([dbc.Col(html.H2("Scenes Distribution", className="mb-5")), dbc.Col(only_failed_switch)]),
+                dbc.Row([dbc.Col(html.H2("Scenes Distribution", className="mb-5")), dbc.Col(insufficient_switch)]),
                 dbc.Row(loading_wrapper(scenes_table)),
             ]
         )
@@ -110,7 +134,7 @@ class ScenesTable(GridObject):
             Output(self.scenes_table_id, "tooltip_data"),
             Input(self.datasets_dropdown_id, "value"),
             Input(META_DATA, "data"),
-            Input(self.only_failed_id, "on"),
+            Input(self.insufficient_switch_id, "on"),
             optional_inputs(page_filters=Input(self.page_filters_id, "data")),
         )
         def update_scenes_data(chosen_dump, md_tables, only_failed, optional):

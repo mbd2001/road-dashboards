@@ -152,7 +152,7 @@ class CountGraph(GridObject):
             base = base_data_subquery(
                 main_tables=main_tables,
                 meta_data_tables=md_tables,
-                terms=[round_term(column, round_n_decimal_place), dump_name],
+                terms=[self.round_term(column, round_n_decimal_place), dump_name],
                 data_filter=self.filter if filter_ignores else EmptyCriterion(),
                 page_filters=page_filters,
                 intersection_on=intersection_on,
@@ -168,24 +168,24 @@ class CountGraph(GridObject):
             y_col = "percentage" if compute_percentage else "overall"
             data = execute(query)
             title = self.title or f"{column.alias.title()} Distribution"
-            fig = pie_or_line_graph(data, column.alias, y_col, title=title, color=dump_name.alias)
+            fig = self.pie_or_line_graph(data, column.alias, y_col, title=title, color=dump_name.alias)
             return fig
 
+    @staticmethod
+    def pie_or_line_graph(data, names, values, title="", hover=None, color="dump_name"):
+        if data[names].nunique() > 16:
+            fig = basic_histogram_plot(data, names, values, title=title)
+        elif data[color].nunique() == 1:
+            fig = basic_pie_chart(data, names, values, title=title, hover=hover)
+        else:
+            fig = draw_line_graph(data, names, values, title=title, hover=hover, color=color)
 
-def pie_or_line_graph(data, names, values, title="", hover=None, color="dump_name"):
-    if data[names].nunique() > 16:
-        fig = basic_histogram_plot(data, names, values, title=title)
-    elif data[color].nunique() == 1:
-        fig = basic_pie_chart(data, names, values, title=title, hover=hover)
-    else:
-        fig = draw_line_graph(data, names, values, title=title, hover=hover, color=color)
+        return fig
 
-    return fig
-
-
-def round_term(column: Term, round_n_decimal_place: int | None = None):
-    return (
-        Round(column, round_n_decimal_place, alias=column.alias)
-        if isinstance(column, Column) and column.type in [int, float] and round_n_decimal_place is not None
-        else column
-    )
+    @staticmethod
+    def round_term(column: Term, round_n_decimal_place: int | None = None):
+        return (
+            Round(column, round_n_decimal_place, alias=column.alias)
+            if isinstance(column, Column) and column.type in [int, float] and round_n_decimal_place is not None
+            else column
+        )

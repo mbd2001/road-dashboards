@@ -9,7 +9,6 @@ from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneVi
 
 from road_dashboards.road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
     diff_labels_subquery,
