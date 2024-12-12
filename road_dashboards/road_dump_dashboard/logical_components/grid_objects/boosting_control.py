@@ -4,7 +4,10 @@ from dash import Input, Output, callback, dash_table, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query, functions
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.catalog_table import dump_db_manager
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
@@ -13,7 +16,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import e
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
-class BatchesTable(GridObject):
+class BoostingControl(GridObject):
     def __init__(
         self,
         datasets_dropdown_id: str,
@@ -62,10 +65,16 @@ class BatchesTable(GridObject):
                 "border": "1px solid rgb(230, 230, 230)",
             },
         )
-        final_layout = dbc.Row(
+        final_layout = card_wrapper(
             [
-                dbc.Col(loading_wrapper(batches_table)),
-                dbc.Col(loading_wrapper(html.Div(id=self.sliders_div_id, style={"margin-top": "75px"}))),
+                html.H2("Boosting Control"),
+                dbc.Row(
+                    [
+                        dbc.Col(loading_wrapper(batches_table)),
+                        dbc.Col(loading_wrapper(html.Div(id=self.sliders_div_id, style={"margin-top": "75px"}))),
+                    ],
+                    className="mt-5",
+                ),
             ]
         )
         return final_layout
@@ -73,6 +82,7 @@ class BatchesTable(GridObject):
     def _callbacks(self):
         @callback(
             Output(self.batches_table_id, "data"),
+            Output(self.batches_table_id, "tooltip_data"),
             Output(self.sliders_div_id, "children"),
             Input(META_DATA, "data"),
             Input(self.datasets_dropdown_id, "value"),
@@ -81,7 +91,7 @@ class BatchesTable(GridObject):
         )
         def update_batches_table(tables, chosen_dump, population, optional):
             if not tables or not chosen_dump or not population:
-                return no_update, no_update
+                return no_update, no_update, no_update
 
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
@@ -89,7 +99,9 @@ class BatchesTable(GridObject):
 
             conditions_list = self.get_conditions_list(chosen_dump, population)
             batches_df = self.get_batches_count(chosen_dump, tables, page_filters)
-            batches_df["batch_name"] = batches_df["batch_num"].apply(lambda x: conditions_list[x])
+            batches_df["batch_name"] = batches_df["batch_num"].apply(
+                lambda batch_num: next(iter(conditions_list[batch_num]))
+            )
 
             default_value = 1 / len(batches_df.index)
             sliders = [
@@ -102,14 +114,17 @@ class BatchesTable(GridObject):
                 )
                 for batch_num in batches_df["batch_num"]
             ]
-            # tooltip_data=[{"batch_name": {"value": str(conditions_list[batch_name]), "type": "markdown"}} for batch_name in batches_df["batch_name"]]
-            return batches_df.to_dict("records"), sliders
+            tooltip_data = [
+                {"batch_name": {"value": next(iter(conditions_list[batch_num].values())), "type": "markdown"}}
+                for batch_num in batches_df["batch_num"]
+            ]
+            return batches_df.to_dict("records"), tooltip_data, sliders
 
     @staticmethod
-    def get_conditions_list(chosen_dump: str, population: str) -> list[str]:
+    def get_conditions_list(chosen_dump: str, population: str) -> list[dict[str, str]]:
         conditions_dict = dump_db_manager.get_item(chosen_dump).get("split_conditions", {})
         conditions = conditions_dict.get(f"{population}_batch_conditions", {})
-        return ["unfiltered"] + [next(iter(cond)) for cond in conditions]
+        return [{"unfiltered": ""}] + conditions
 
     @staticmethod
     def get_batches_count(chosen_dump: str, tables: list[Base], page_filters: Criterion) -> pd.DataFrame:

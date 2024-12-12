@@ -36,6 +36,7 @@ class MetaData(Base):
     curve_rad_ahead_40_90: Column = Column("curve_rad_ahead_40_90", float)
     curve_rad_ahead_90_120: Column = Column("curve_rad_ahead_90_120", float)
     curve_rad_ahead_gt_120: Column = Column("curve_rad_ahead_gt_120", float)
+    curve_rad_ahead_150: Column = Column("curve_rad_ahead_150", float)
     curvedarrow: Column = Column("curvedarrow", float)
     diagonalshadow: Column = Column("diagonalshadow", float)
     diagonalshadow_hostleft: Column = Column("diagonalshadow_hostleft", bool)

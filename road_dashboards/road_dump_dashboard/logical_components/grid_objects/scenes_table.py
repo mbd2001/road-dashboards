@@ -1,10 +1,7 @@
-from dataclasses import dataclass
-
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, callback, dash_table, html, no_update
-from pypika import Case, Criterion, EmptyCriterion, functions
-from pypika.terms import Term
+from pypika import Criterion, EmptyCriterion
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
@@ -15,58 +12,20 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.query_abst
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
-from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
-
-
-@dataclass
-class Scene:
-    definition: Criterion
-    name: str
-    required_frames: int
-
-    def count(self) -> Term:
-        return functions.Sum(Case().when(self.definition, 1).else_(0)).as_(self.name)
-
-
-SCENES: list[Scene] = [
-    Scene(
-        (MetaData.righttype_decelerationsolid == True) | (MetaData.lefttype_decelerationsolid == True),
-        "DecelerationSolid",
-        10000,
-    ),
-    Scene(
-        (MetaData.righttype_decelerationdashed == True) | (MetaData.lefttype_decelerationdashed == True),
-        "DecelerationDashed",
-        10000,
-    ),
-    Scene((MetaData.righttype_deceleration == True) | (MetaData.lefttype_deceleration == True), "Deceleration", 10000),
-    Scene((MetaData.righttype_botsdots == True) | (MetaData.lefttype_botsdots == True), "bottsdots", 10000),
-    Scene((MetaData.righttype_dashedsolid == True) | (MetaData.lefttype_dashedsolid == True), "dashedsolid", 10000),
-    Scene((MetaData.righttype_soliddashed == True) | (MetaData.lefttype_soliddashed == True), "soliddashed", 10000),
-    Scene((MetaData.righttype_dasheddashed == True) | (MetaData.lefttype_dasheddashed == True), "dasheddashed", 10000),
-    Scene((MetaData.righttype_solidsolid == True) | (MetaData.lefttype_solidsolid == True), "solidsolid", 10000),
-    Scene((MetaData.max_lm_width_avg[0.35:0.60]) & (MetaData.dist_to_hwe > 40), "wide_lane_mark", 10000),
-    Scene(
-        (MetaData.mdbi_country == "Japan")
-        & (MetaData.safetyzoneleft == False)
-        & (MetaData.safetyzoneright == False)
-        & ((MetaData.dist_to_polesleft < 20) & (MetaData.dist_from_polesright < 20)),
-        "japanese_poles",
-        10000,
-    ),
-    Scene((MetaData.mdbi_country == "China") & (MetaData.rightcolor_yellowwhite == True), "china_bus_lane", 10000),
-]
+from road_dashboards.road_dump_dashboard.table_schemes.scenes import Scene
 
 
 class ScenesTable(GridObject):
     def __init__(
         self,
         datasets_dropdown_id: str,
+        scenes: list[Scene],
         page_filters_id: str = "",
         full_grid_row: bool = True,
         component_id: str = "",
     ):
         self.datasets_dropdown_id = datasets_dropdown_id
+        self.scenes = scenes
         self.page_filters_id = page_filters_id
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
@@ -149,7 +108,7 @@ class ScenesTable(GridObject):
             base = base_data_subquery(
                 main_tables=tables,
                 meta_data_tables=tables,
-                terms=[scene.count() for scene in SCENES],
+                terms=[scene.count() for scene in self.scenes],
                 page_filters=page_filters,
                 to_order=False,
             )
@@ -161,10 +120,10 @@ class ScenesTable(GridObject):
                     "required_frames": scene.required_frames,
                     "percentage": results[scene.name][0] / scene.required_frames * 100.0,
                 }
-                for scene in SCENES
+                for scene in self.scenes
             ]
             if only_failed:
                 table_data = [scene for scene in table_data if scene["percentage"] < 90]
 
-            tooltip_data = [{"scene": {"value": str(scene.definition), "type": "markdown"}} for scene in SCENES]
+            tooltip_data = [{"scene": {"value": str(scene.definition), "type": "markdown"}} for scene in self.scenes]
             return table_data, tooltip_data

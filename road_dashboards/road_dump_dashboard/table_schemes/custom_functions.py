@@ -1,6 +1,5 @@
 import base64
 import pickle as pkl
-from typing import Any
 
 import pandas as pd
 from dash.dependencies import DashDependency
@@ -11,11 +10,11 @@ from road_database_toolkit.athena.athena_utils import query_athena
 from road_dashboards.road_dump_dashboard.table_schemes.base import Column
 
 
-def dump_object(obj: Any) -> str:
+def dump_object(obj: any) -> str:
     return base64.b64encode(pkl.dumps(obj)).decode("utf-8")
 
 
-def load_object(dump_obj: str) -> Any:
+def load_object(dump_obj: str) -> any:
     return pkl.loads(base64.b64decode(dump_obj))
 
 

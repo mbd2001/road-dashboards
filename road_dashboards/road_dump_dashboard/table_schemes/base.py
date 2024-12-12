@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Literal, get_origin, overload
+from typing import Literal, get_origin, overload
 
 from pypika import Field, Table
 from pypika.queries import Selectable
@@ -71,7 +71,7 @@ class Base(Table):
         super().__init__(table_name)
         self.dataset_name = dataset_name
 
-    def __getattribute__(self, item: str) -> Any:
+    def __getattribute__(self, item: str) -> any:
         try:
             attr = super().__getattribute__(item)
             return attr.replace_table(current_table=None, new_table=self) if isinstance(attr, Term) else attr
