@@ -48,6 +48,7 @@ def draw_meta_data_filters(
     interesting_columns,
     score_func,
     hover=False,
+    interesting_filters=None,
     effective_samples={},
     title="",
     xaxis="Filter",
@@ -60,6 +61,14 @@ def draw_meta_data_filters(
         greens, reds = {}, {}
 
     fig = go.Figure()
+    if interesting_filters is None:
+        new_interesting_filters = [""] * len(interesting_columns)
+    else:
+        new_interesting_filters = []
+        for filter in interesting_filters:
+            new_filter = wrap_text(filter, 60)
+            new_interesting_filters.append(new_filter)
+
     for ind, row in data.iterrows():
         fig.add_trace(
             go.Scatter(
@@ -78,7 +87,10 @@ def draw_meta_data_filters(
                 ),
                 name=row.net_id,
                 hovertext=(
-                    [f"{count_items_name}: " + str(row[f"count_{col}"]) for col in interesting_columns]
+                    [
+                        f"{count_items_name}: " + str(row[f"count_{col}"]) + new_interesting_filters[i]
+                        for i, col in enumerate(interesting_columns)
+                    ]
                     if hover
                     else None
                 ),
@@ -93,6 +105,21 @@ def draw_meta_data_filters(
         legend=dict(orientation="h", yanchor="bottom", y=-1, xanchor="center", x=0.5),
     )
     return fig
+
+
+def wrap_text(text, max_len):
+    text_wrapped = ""
+    line = ""
+    split_text = text.split(" ")
+    for i, filter in enumerate(split_text):
+        line += filter + " "
+        if len(line) > max_len:
+            text_wrapped += "<br>" + line
+            line = ""
+        elif i == len(split_text) - 1:
+            text_wrapped += "<br>" + line
+            line = ""
+    return text_wrapped
 
 
 def calc_fb_per_row(row, filter):
