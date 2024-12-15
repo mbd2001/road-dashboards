@@ -1,7 +1,6 @@
 from functools import reduce
 from operator import mul
 
-from PIL.ImageChops import offset
 from pypika import Criterion, EmptyCriterion, Query, Tuple, functions
 from pypika import analytics as an
 from pypika.enums import SqlTypes

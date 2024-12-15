@@ -146,7 +146,7 @@ class BoostingControl(GridObject):
                 for batch_name, _ in json_file["data"][population]["batch_sampling_rate"].items()
             }
             jump_name = "tmp_name"
-            return dict(content=json_file, filename=f"{jump_name}.jump")
+            return dict(content=json.dumps(json_file, indent=4), filename=f"{jump_name}.json")
 
     @staticmethod
     def get_conditions_list(chosen_dump: str, population: str) -> list[dict[str, str]]:
