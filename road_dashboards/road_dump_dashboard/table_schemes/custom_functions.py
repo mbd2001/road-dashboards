@@ -24,7 +24,9 @@ def execute(query: Selectable) -> pd.DataFrame:
 
 
 def df_to_jump(df: pd.DataFrame):
-    return df.to_string(header=False, index=False) + f"\n#format: {' '.join(df.columns)}"
+    formatters = {col: lambda x: x.replace(" ", "_") for col in df.select_dtypes(include="object").columns}
+    formatters.update({col: lambda x: str(x.round(3)) for col in df.select_dtypes(include="float").columns})
+    return df.to_string(header=False, index=False, formatters=formatters) + f"\n#format: {' '.join(df.columns)}"
 
 
 def get_main_and_secondary_columns(term: Term) -> tuple[Column, Column]:

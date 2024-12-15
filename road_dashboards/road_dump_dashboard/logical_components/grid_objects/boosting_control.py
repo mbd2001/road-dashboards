@@ -100,6 +100,10 @@ class BoostingControl(GridObject):
             for row in table_data:
                 row["weight"] = weights_dict.get(row["batch_name"], 0)
 
+            weights_sum = sum(row["weight"] for row in table_data)
+            for row in table_data:
+                row["normalized_weight"] = round(row["weight"] / weights_sum, 3)
+
             return table_data
 
         @callback(

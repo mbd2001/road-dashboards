@@ -56,14 +56,6 @@ LM_COLORS: list[Scene] = [
 ]
 
 
-# LM_COLORS: list[Scene] = [
-#     Scene(LaneMarks.color == "yellow", "yellow", 10000),
-#     Scene(LaneMarks.color == "blue", "blue", 10000),
-#     Scene(LaneMarks.color == "white", "white", 10000),
-#     # Scene("", "contrast_lane_marks", 10000),
-# ]
-
-
 DRIVING_CONDITIONS: list[Scene] = [
     Scene(
         (MetaData.mdbi_time_of_day == "Night")
