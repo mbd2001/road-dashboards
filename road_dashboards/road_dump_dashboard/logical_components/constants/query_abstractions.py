@@ -189,13 +189,16 @@ def ids_query_wrapper(
         Query.from_(sum_groups)
         .select(
             MetaData.clip_name,
+            functions.Cast(functions.Min(sum_groups.grabindex), SqlTypes.INTEGER).as_("startframe"),
+            functions.Cast(functions.Max(sum_groups.grabindex), SqlTypes.INTEGER).as_("endframe"),
+            functions.Cast(
+                functions.Max(sum_groups.grabindex) - functions.Min(sum_groups.grabindex) + 1, SqlTypes.INTEGER
+            ).as_("event_length"),
             *[
                 Arbitrary(term, alias=term.alias)
                 for term in terms
                 if term.alias not in ["clip_name", "grabindex", "obj_id"]
             ],
-            functions.Cast(functions.Min(sum_groups.grabindex), SqlTypes.INTEGER).as_("startframe"),
-            functions.Cast(functions.Max(sum_groups.grabindex), SqlTypes.INTEGER).as_("endframe"),
         )
         .groupby(sum_groups.clip_name, sum_groups.group_id)
         .limit(limit)

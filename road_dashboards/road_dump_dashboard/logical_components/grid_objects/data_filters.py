@@ -158,7 +158,9 @@ class DataFilters(GridObject):
                     "ne": "Not Equal",
                     "isnull": "Is NULL",
                     "isnotnull": "Is not NULL",
-                    "like": "Like",
+                    "contains": "Contains",
+                    "startswith": "Startswith",
+                    "endswith": "Endswith",
                     "isin": "In",
                     "notin": "Not In",
                 }
