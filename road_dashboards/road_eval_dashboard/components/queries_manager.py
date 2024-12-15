@@ -620,7 +620,7 @@ def generate_sum_bins_by_diff_cols_metric_query(
 def get_compare_count_metrics(label_col, pred_col, intresting_filters, operator):
     count_metrics = {}
     for extra_filter_name, extra_filter in intresting_filters.items():
-        extra_filter_str = f"AND {extra_filter}" if extra_filter_name else ""
+        extra_filter_str = f"AND ({extra_filter})" if extra_filter_name else ""
         count_metrics[extra_filter_name] = (
             f'"{label_col}" IS NOT NULL AND "{label_col}" {operator} {pred_col} {extra_filter_str}'
         )
@@ -995,7 +995,7 @@ def get_dist_query(
             thresh_filter=f"{operator} {thresh}",
             dist=sec,
             extra_filters=(
-                f"{extra_filters.format(dist=sec)} AND {intresting_filter}"
+                f"{extra_filters.format(dist=sec)} AND ({intresting_filter})"
                 if intresting_filter_name
                 else extra_filters.format(dist=sec)
             ),
@@ -1027,7 +1027,7 @@ def get_dist_count_metrics(base_dist_column_name, distances_dict, intresting_fil
     for sec, thresh in distances_dict.items():
         for extra_filter_name, extra_filter in intresting_filters.items():
             filter_name = extra_filter_name if extra_filter_name else f"{sec}"
-            extra_filter_str = f"AND {extra_filter}" if extra_filter_name else ""
+            extra_filter_str = f"AND ({extra_filter})" if extra_filter_name else ""
             count_metrics[filter_name] = (
                 f'"{base_dist_column_name}_{sec}" IS NOT NULL AND "{base_dist_column_name}_{sec}" {operator} {thresh} {extra_filter_str}'
             )
