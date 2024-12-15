@@ -24,7 +24,7 @@ class ScenesPie(GridObject):
         self,
         datasets_dropdown_id: str,
         population_dropdown_id: str,
-        slider_id: str,
+        batches_table_id: str,
         scenes: list[Scene],
         page_filters_id: str = "",
         full_grid_row: bool = False,
@@ -32,7 +32,7 @@ class ScenesPie(GridObject):
     ):
         self.datasets_dropdown_id = datasets_dropdown_id
         self.population_dropdown_id = population_dropdown_id
-        self.slider_id = slider_id
+        self.batches_table_id = batches_table_id
         self.scenes = scenes
         self.page_filters_id = page_filters_id
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
@@ -50,29 +50,28 @@ class ScenesPie(GridObject):
     def _callbacks(self):
         @callback(
             Output(self.scenes_pie_id, "figure"),
-            Input({"type": self.slider_id, "index": ALL}, "value"),
-            State({"type": self.slider_id, "index": ALL}, "id"),
+            Input(self.batches_table_id, "data"),
             State(META_DATA, "data"),
             State(self.datasets_dropdown_id, "value"),
             State(self.population_dropdown_id, "value"),
             optional_inputs(page_filters=State(self.page_filters_id, "data")),
         )
-        def update_batches_table(slider_values, slider_indices, tables, chosen_dump, population, optional):
+        def update_scenes_pie(table_data, tables, chosen_dump, population, optional):
             if not tables or not chosen_dump or not population:
                 return no_update
 
-            slider_indices = [idx["index"] for idx in slider_indices]
             batch_num = MetaData.batch_num
             batches_weight_case = Case(alias="batch_weight")
-            for val, idx in zip(slider_values, slider_indices):
-                batches_weight_case = batches_weight_case.when(batch_num == idx, val)
+            for row in table_data:
+                curr_batch = row["batch_num"]
+                curr_weight = row["weight"]
+                batches_weight_case = batches_weight_case.when(batch_num == curr_batch, curr_weight)
 
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
             tables: list[Base] = load_object(tables)
 
             data = self.weighted_scenes_query(chosen_dump, tables, page_filters, batches_weight_case, self.scenes)
-
             definitions_dict = {scene.name: str(scene.definition) for scene in self.scenes}
             definitions_dict.update({"other": "non of the above", "mixed": "combination of the above"})
             data["definition"] = data["categories"].apply(lambda x: definitions_dict[x])

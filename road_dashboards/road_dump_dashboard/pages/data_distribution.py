@@ -54,7 +54,7 @@ scene_pies = [
     ScenesPie(
         datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
         population_dropdown_id=population_card.populations_dropdown_id,
-        slider_id=boosting_control.slider_id,
+        batches_table_id=boosting_control.batches_table_id,
         scenes=scene,
         page_filters_id=filters_agg.final_filter_id,
     )
