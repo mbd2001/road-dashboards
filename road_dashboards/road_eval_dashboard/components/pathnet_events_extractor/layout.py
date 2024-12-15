@@ -4,8 +4,6 @@ from dash import dash_table, dcc, html
 
 import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.components_ids import (
-    PATH_NET_RE_OOL_EVENTS_SWITCH,
-    PATH_NET_RE_OOL_EVENTS_SWITCH_DIV,
     PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
     PATHNET_EVENTS_DATA_TABLE,
     PATHNET_EVENTS_DIST_DROPDOWN,
@@ -17,6 +15,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
     PATHNET_EVENTS_RE_REF_THRESHOLD,
+    PATHNET_EVENTS_RE_SWITCH,
+    PATHNET_EVENTS_RE_SWITCH_DIV,
     PATHNET_EVENTS_RE_THRESHOLD,
     PATHNET_EVENTS_RE_THRESHOLDS_DIV,
     PATHNET_EVENTS_REF_DIV,
@@ -169,10 +169,10 @@ def create_filtering_dropdowns_row():
             ),
             dbc.Col(
                 html.Div(
-                    id=PATH_NET_RE_OOL_EVENTS_SWITCH_DIV,
+                    id=PATHNET_EVENTS_RE_SWITCH_DIV,
                     children=[
                         daq.BooleanSwitch(
-                            id=PATH_NET_RE_OOL_EVENTS_SWITCH,
+                            id=PATHNET_EVENTS_RE_SWITCH,
                             on=False,
                             label="Road edges only",
                             labelPosition="left",

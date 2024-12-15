@@ -15,8 +15,6 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     NETS,
     PATH_NET_OOL_BORDER_DIST_SLIDER,
     PATH_NET_OOL_RE_DIST_SLIDER,
-    PATH_NET_RE_OOL_EVENTS_SWITCH,
-    PATH_NET_RE_OOL_EVENTS_SWITCH_DIV,
     PATHNET_BOUNDARIES,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_EVENTS_BOOKMARKS_JSON,
@@ -33,6 +31,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
     PATHNET_EVENTS_RE_REF_THRESHOLD,
+    PATHNET_EVENTS_RE_SWITCH,
+    PATHNET_EVENTS_RE_SWITCH_DIV,
     PATHNET_EVENTS_RE_THRESHOLD,
     PATHNET_EVENTS_RE_THRESHOLDS_DIV,
     PATHNET_EVENTS_REF_CHOSEN_NET,
@@ -410,7 +410,7 @@ def show_events_order_by_dropdown(metric):
 
 
 @callback(
-    Output(PATH_NET_RE_OOL_EVENTS_SWITCH_DIV, "hidden"),
+    Output(PATHNET_EVENTS_RE_SWITCH_DIV, "hidden"),
     Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
     prevent_initial_call=True,
 )
@@ -426,7 +426,7 @@ def show_events_ool_re_switch(metric):
     Output(PATHNET_EVENTS_RE_THRESHOLDS_DIV, "hidden"),
     Input(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
     Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
-    Input(PATH_NET_RE_OOL_EVENTS_SWITCH, "on"),
+    Input(PATHNET_EVENTS_RE_SWITCH, "on"),
     prevent_initial_call=True,
 )
 def show_unique_choices(is_unique_on, metric, is_re_only):
@@ -502,7 +502,7 @@ def get_specified_thresholds_placeholders(
     State(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
     State(PATHNET_EVENTS_RE_THRESHOLD, "value"),
     State(PATHNET_EVENTS_RE_REF_THRESHOLD, "value"),
-    State(PATH_NET_RE_OOL_EVENTS_SWITCH, "on"),
+    State(PATHNET_EVENTS_RE_SWITCH, "on"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
