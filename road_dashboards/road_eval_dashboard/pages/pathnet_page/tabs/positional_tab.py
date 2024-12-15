@@ -510,7 +510,6 @@ def get_path_net_scene_sec_acc(
     else:
         role = "host"
     filter_name = graph_id["filter"]
-    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
     sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
@@ -525,7 +524,7 @@ def get_path_net_scene_sec_acc(
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title="<b>Host Scene Accuracy<b>",
+        title=f"<b>Host {filter_name} Scene Accuracy<b>",
         yaxis="Acc rate",
         xaxis="",
         interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
@@ -555,7 +554,6 @@ def get_path_net_scene_sec_acc(
     else:
         role = "non-host"
     filter_name = graph_id["filter"]
-    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
     sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
@@ -570,7 +568,7 @@ def get_path_net_scene_sec_acc(
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title="<b>Non-Host Scene Accuracy<b>",
+        title=f"<b>Non-Host {filter_name} Scene Accuracy<b>",
         yaxis="Acc rate",
         xaxis="",
         interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
