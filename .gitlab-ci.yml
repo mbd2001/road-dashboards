@@ -132,6 +132,24 @@ deploy:docs:
       - public
   extends: .only-master-pushes
 
+deploy:docker:data-exploration:
+  stage: deploy
+  tags:
+    - road-algo-md
+  variables:
+    DOCKER_BUILDKIT: "0"
+    IMAGE_NAME: road-data-exploration
+    DOCKERFILE_NAME: ./docker/Dockerfile.data-exploration
+  script:
+    - task docker:build_and_push
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - road_dashboards/road_dump_dashboard/**/*
+        - docker/Dockerfile.data-exploration
+
 deploy:docker:eval-dashboard:
   stage: deploy
   tags:
@@ -150,14 +168,14 @@ deploy:docker:eval-dashboard:
         - road_dashboards/road_eval_dashboard/**/*
         - docker/Dockerfile.eval-dashboard
 
-deploy:docker:data-exploration:
+deploy:docker:workflows-dashboard:
   stage: deploy
   tags:
     - road-algo-md
   variables:
     DOCKER_BUILDKIT: "0"
-    IMAGE_NAME: road-data-exploration
-    DOCKERFILE_NAME: ./docker/Dockerfile.data-exploration
+    IMAGE_NAME: workflows-dashboard
+    DOCKERFILE_NAME: ./docker/Dockerfile.workflows-dashboard
   script:
     - task docker:build_and_push
   rules:
@@ -165,8 +183,8 @@ deploy:docker:data-exploration:
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
       changes:
-        - road_dashboards/road_dump_dashboard/**/*
-        - docker/Dockerfile.data-exploration
+        - road_dashboards/workflows_dashboard/**/*
+        - docker/Dockerfile.workflows-dashboard
 
 post:reload-data-exploration:
   stage: post
@@ -193,7 +211,7 @@ post:reload-eval-dashboard:
     - road-algo-sm
   script:
     - echo "Reloading the Dynamic Stats container."
-    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007 --memory=4g --memory-swap=4g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007 --memory=3g --memory-swap=3g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
     - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
     - echo "Dynamic Stats container reloaded."
   rules:
@@ -205,3 +223,22 @@ post:reload-eval-dashboard:
         - docker/Dockerfile.eval-dashboard
   needs:
     - deploy:docker:eval-dashboard
+
+post:reload-workflows-dashboard:
+  stage: post
+  tags:
+    - road-algo-sm
+  script:
+    - echo "Reloading the Workflows container."
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-workflows-dashboard_latest"],"containerName":["workflows_dashboard"],"dockerRunArgs":["-p 80:6009 --memory=1g --memory-swap=1g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
+    - echo "Workflows container reloaded."
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "pipeline"
+      when: never
+    - if: $CI_COMMIT_BRANCH == "master"
+      changes:
+        - road_dashboards/workflows_dashboard/**/*
+        - docker/Dockerfile.workflows-dashboard
+  needs:
+    - deploy:docker:workflows-dashboard

@@ -1,0 +1,31 @@
+# Use an official Python runtime as a parent image
+FROM python:3.10-slim
+
+# Set the working directory to /app
+WORKDIR /app/road_dashboards/workflows_dashboard
+
+# Copy the current directory contents into the container at /app
+COPY ./road_dashboards/workflows_dashboard /app/road_dashboards/workflows_dashboard
+
+RUN chmod 777 -R /app
+
+
+# git installation
+RUN apt-get update && apt-get upgrade -y && apt-get install -y git
+
+# pip installations
+RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
+    pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
+RUN pip install --upgrade pip
+RUN pip install -r /app/road_dashboards/workflows_dashboard/requirements.txt
+
+ENV PYTHONPATH=/app
+ENV AWS_STS_REGIONAL_ENDPOINTS=regional
+ENV DEBUG=false
+USER root
+
+# Make port 6009 available to the world outside this container
+EXPOSE 6009
+
+# Run app.py when the container launches
+CMD ["python", "app.py"]
