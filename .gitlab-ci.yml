@@ -230,7 +230,7 @@ post:reload-workflows-dashboard:
     - road-algo-sm
   script:
     - echo "Reloading the Workflows container."
-    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-workflows-dashboard_latest"],"containerName":["workflows_dashboard"],"dockerRunArgs":["-p 80:6007 --memory=1g --memory-swap=1g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
+    - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-workflows-dashboard_latest"],"containerName":["workflows_dashboard"],"dockerRunArgs":["-p 80:6009 --memory=1g --memory-swap=1g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
     - aws ssm wait command-executed --command-id ${COMMAND_ID} --instance-id i-0c2b0271e14bd0c8d
     - echo "Workflows container reloaded."
   rules:
