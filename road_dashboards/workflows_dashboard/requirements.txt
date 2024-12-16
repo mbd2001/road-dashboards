@@ -1,0 +1,13 @@
+pycountry
+dash-bootstrap-components
+dash-daq
+numpy
+pandas
+boto3
+tqdm
+fsspec
+orjson
+s3fs==0.4.2
+road-database-toolkit>=0.1.16
+scipy
+git+https://github.com/kayak/pypika.git@master

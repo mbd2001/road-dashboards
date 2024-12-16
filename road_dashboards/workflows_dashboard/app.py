@@ -1,6 +1,14 @@
+import os
+import sys
+
 import dash
 import dash_bootstrap_components as dbc
 from dash import Dash, dcc, html
+
+debug = False if os.environ.get("DEBUG") == "false" else True
+if not debug:
+    sys.stdout = open(os.devnull, "w")
+    sys.stderr = open(os.devnull, "w")
 
 app = Dash(
     __name__,
@@ -15,4 +23,4 @@ app.layout = html.Div(
 )
 
 if __name__ == "__main__":
-    app.run_server(debug=True)
+    app.run_server(host="0.0.0.0", port="6009", debug=debug, use_reloader=debug)
