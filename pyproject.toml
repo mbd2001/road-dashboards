@@ -7,14 +7,14 @@ name = "road-dashboards"
 dynamic = ["version"]
 description = ''
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = "MIT"
 keywords = []
 authors = [
   { name = "Nadav Shemesh", email = "nadav.shemesh@mobileye.com" },
 ]
 classifiers = [
-  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.12",
 ]
 dependencies = [
   "fire",
