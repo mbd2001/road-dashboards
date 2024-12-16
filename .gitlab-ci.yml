@@ -68,34 +68,6 @@ build:conda:
     paths:
       - $CONDA_BUILD_OUTPUT_FOLDER
 
-build:pypi:
-  stage: build
-  script:
-    - task pypi:build
-  artifacts:
-    name: "build-pypi-artifacts"
-    paths:
-      - $HATCH_BUILD_OUTPUT_FOLDER
-
-test:pypi:
-  stage: test
-  script:
-    - task pypi:test
-  # Gitlab ci pattern for coverage message on merge requests:
-  coverage: '/(?i)total.*? (100(?:\.0+)?\%|[1-9]?\d(?:\.\d+)?\%)$/'
-  artifacts:
-    name: "test-pypi-coverage"
-    paths:
-      - __localbuild__/coverage/
-    reports:
-      coverage_report:
-        coverage_format: cobertura
-        path: ./__localbuild__/coverage/coverage.xml
-      junit:
-        - ./__localbuild__/pytest/pytest.*.junit.xml
-  needs:
-    - build:pypi
-
 test:conda:
   stage: test
   script:
