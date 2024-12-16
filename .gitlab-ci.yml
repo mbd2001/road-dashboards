@@ -2,7 +2,6 @@ variables:
   PACKAGE_FOLDER: "road_dashboards"
   HATCH_BUILD_OUTPUT_FOLDER: "./__localbuild__/pypi" # Also configured in task.yaml
   CONDA_BUILD_OUTPUT_FOLDER: "./__localbuild__/conda" # Also configured in task.yaml
-  PYPI_REPO: "https://artifactory.sddc.mobileye.com/artifactory/api/pypi/me-pypi-dev"
 
 default:
   image: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda-py310
@@ -99,7 +98,6 @@ deploy:package:
   script:
     - pip install pookam
     - hatch publish --publisher me-conda -o username="$FACELESS_ONPREM_USER" -o password="$FACELESS_PASS"
-    - hatch publish $HATCH_BUILD_OUTPUT_FOLDER/*.whl -r $PYPI_REPO -u $FACELESS_ONPREM_USER --auth $FACELESS_PASS
   extends: .only-master-pushes
 
 deploy:bump_version:
