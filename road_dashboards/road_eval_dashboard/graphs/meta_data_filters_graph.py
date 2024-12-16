@@ -1,4 +1,5 @@
 import itertools
+import textwrap
 
 import numpy as np
 import plotly.graph_objects as go
@@ -66,7 +67,8 @@ def draw_meta_data_filters(
     else:
         new_interesting_filters = []
         for filter in interesting_filters:
-            new_filter = wrap_text(filter, 60)
+            split_text = textwrap.wrap(filter, width=60)
+            new_filter = "<br>".join(split_text)
             new_interesting_filters.append(new_filter)
 
     for ind, row in data.iterrows():
@@ -105,21 +107,6 @@ def draw_meta_data_filters(
         legend=dict(orientation="h", yanchor="bottom", y=-1, xanchor="center", x=0.5),
     )
     return fig
-
-
-def wrap_text(text, max_len):
-    text_wrapped = ""
-    line = ""
-    split_text = text.split(" ")
-    for i, filter in enumerate(split_text):
-        line += filter + " "
-        if len(line) > max_len:
-            text_wrapped += "<br>" + line
-            line = ""
-        elif i == len(split_text) - 1:
-            text_wrapped += "<br>" + line
-            line = ""
-    return text_wrapped
 
 
 def calc_fb_per_row(row, filter):
