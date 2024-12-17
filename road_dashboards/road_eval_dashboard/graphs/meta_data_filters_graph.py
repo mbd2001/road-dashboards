@@ -69,7 +69,7 @@ def draw_meta_data_filters(
         for filter in interesting_filters:
             split_text = textwrap.wrap(filter, width=60)
             new_filter = "<br>".join(split_text)
-            new_interesting_filters.append(new_filter)
+            new_interesting_filters.append("<br>" + new_filter)
 
     for ind, row in data.iterrows():
         fig.add_trace(
