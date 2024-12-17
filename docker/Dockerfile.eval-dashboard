@@ -17,8 +17,8 @@ RUN pip install --upgrade pip
 RUN pip install -r /app/road_dashboards/road_eval_dashboard/requirements.txt
 
 ENV PYTHONPATH=/app
-ENV DEBUG=false
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
+ENV DEBUG=false
 USER root
 
 # Make port 6007 available to the world outside this container
