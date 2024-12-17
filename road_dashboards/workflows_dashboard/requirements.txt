@@ -6,5 +6,4 @@ boto3
 tqdm
 fsspec
 orjson
-s3fs==0.4.2
-road-database-toolkit>=0.1.16
+road-database-toolkit
