@@ -36,7 +36,6 @@ requirements:
     - pandas
     - boto3
     - tqdm
-    - s3fs
     - fsspec
     - road-database-toolkit
     - jira
