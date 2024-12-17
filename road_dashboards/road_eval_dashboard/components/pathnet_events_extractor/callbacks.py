@@ -382,9 +382,7 @@ def get_events_df(
     prevent_initial_call=True,
 )
 def show_events_role_dropdown(metric):
-    if metric == "false":
-        return True
-    return False
+    return metric == "false"
 
 
 @callback(
@@ -415,9 +413,7 @@ def show_events_order_by_dropdown(metric):
     prevent_initial_call=True,
 )
 def show_events_ool_re_switch(metric):
-    if metric == "out-of-lane":
-        return False
-    return True
+    return metric != "out-of-lane"
 
 
 @callback(

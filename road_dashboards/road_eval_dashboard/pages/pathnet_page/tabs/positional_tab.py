@@ -26,9 +26,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
     PATH_NET_MONOTONE_ACC_NEXT,
+    PATH_NET_OOL,
     PATH_NET_OOL_BORDER_DIST_SLIDER,
-    PATH_NET_OOL_HOST,
-    PATH_NET_OOL_NEXT,
     PATH_NET_OOL_RE_DIST_SLIDER,
     PATH_NET_SCENE_ACC_HOST,
     PATH_NET_SCENE_ACC_NEXT,
@@ -243,8 +242,8 @@ pos_layout = html.Div(
             [
                 dbc.Row(
                     [
-                        dbc.Col(graph_wrapper(PATH_NET_OOL_HOST), width=4),
-                        dbc.Col(graph_wrapper(PATH_NET_OOL_NEXT), width=4),
+                        dbc.Col(graph_wrapper({"id": PATH_NET_OOL, "role": "host"}), width=6),
+                        dbc.Col(graph_wrapper({"id": PATH_NET_OOL, "role": "non-host"}), width=6),
                     ]
                 ),
                 dbc.Row(
@@ -770,7 +769,16 @@ def in_lane_hover_txt(row, col):
     return f"in-lane dps: {count}<br>out-of-lane dps: {comp_count}"
 
 
-def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re, role):
+@callback(
+    Output({"id": PATH_NET_OOL, "role": MATCH}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+    State({"id": PATH_NET_OOL, "role": MATCH}, "id"),
+)
+def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re, graph_id):
     if not nets:
         return no_update
     boundaries_dist_col_name = "dp_dist_from_boundaries_gt"
@@ -778,6 +786,7 @@ def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold
 
     boundaries_dist_columns = [f'"{boundaries_dist_col_name}_{sec}"' for sec in distances]
     boundaries_dist_columns += [f'"{re_dist_col_name}_{sec}"' for sec in distances]
+    role = graph_id["role"]
 
     query = get_in_lane_query(
         data_tables=nets[PATHNET_BOUNDARIES],
@@ -797,37 +806,4 @@ def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(
         df, distances, "in-lane accuracy", role=role, yaxis="% accurate dps", hover=True, hover_func=in_lane_hover_txt
-    )
-
-
-@callback(
-    Output(PATH_NET_OOL_HOST, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(PATHNET_FILTERS, "data"),
-    Input(NETS, "data"),
-    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
-    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
-)
-def get_path_net_in_lane_host(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re):
-    return get_path_net_in_lane_fig(
-        meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re, role="host"
-    )
-
-
-@callback(
-    Output(PATH_NET_OOL_NEXT, "figure"),
-    Input(MD_FILTERS, "data"),
-    Input(PATHNET_FILTERS, "data"),
-    Input(NETS, "data"),
-    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
-    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
-)
-def get_path_net_in_lane_next(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re):
-    return get_path_net_in_lane_fig(
-        meta_data_filters,
-        pathnet_filters,
-        nets,
-        threshold_boundary,
-        threshold_re,
-        role="non-host",
     )
