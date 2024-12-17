@@ -10,9 +10,6 @@ COPY ./road_dashboards/workflows_dashboard /app/road_dashboards/workflows_dashbo
 RUN chmod 777 -R /app
 
 
-# git installation
-RUN apt-get update && apt-get upgrade -y && apt-get install -y git
-
 # pip installations
 RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
     pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
