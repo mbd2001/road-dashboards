@@ -45,8 +45,8 @@ class CatalogTable(GridObject):
         data_table = self.get_data_table(self.dump_catalog_id)
         catalog_layout = card_wrapper(
             [
-                dbc.Row([dbc.Col(html.H2("Datasets Catalog", className="mb-5")), dbc.Col(column_selector)]),
-                dbc.Row(loading_wrapper(data_table)),
+                dbc.Row([dbc.Col(html.H2("Datasets Catalog")), dbc.Col(column_selector)]),
+                dbc.Row(loading_wrapper(data_table), className="mt-5"),
                 dbc.Row(
                     dbc.Col(
                         dbc.Button(

@@ -81,6 +81,7 @@ class ObjCountCard(GridObject):
                 terms=[MetaData.dump_name, *self.distinct_objs],
                 page_filters=page_filters,
                 intersection_on=intersection_on,
+                to_order=False,
             )
             if self.distinct_objs:
                 base = Query.from_(base).select(MetaData.dump_name, *self.distinct_objs).distinct()

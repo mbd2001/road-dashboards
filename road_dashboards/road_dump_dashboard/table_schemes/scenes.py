@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from pypika import Case, Criterion, functions
 from pypika.terms import Term
 
-from road_dashboards.road_dump_dashboard.table_schemes.lane_marks import LaneMarks
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 

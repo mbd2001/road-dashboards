@@ -8,7 +8,6 @@ from road_dashboards.road_dump_dashboard.graphical_components.histogram_plot imp
 from road_dashboards.road_dump_dashboard.graphical_components.line_graph import draw_line_graph
 from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
     card_wrapper,
     loading_wrapper,

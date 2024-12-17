@@ -1,14 +1,20 @@
+import dash_bootstrap_components as dbc
 from dash import html, register_page
 
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.boosting_control import BoostingControl
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.filters_aggregator import FiltersAggregator
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.frames_modal import FramesModal
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.jump_modal import JumpModal
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.scenes_pie import ScenesPie
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.scenes_table import ScenesTable
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.switch import Switch
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 from road_dashboards.road_dump_dashboard.table_schemes.scenes import (
     CA_SCENES,
@@ -21,7 +27,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.scenes import (
 )
 
 page = PageProperties(
-    order=1, icon="bell", path="/data_distribution", title="Data Distribution", main_table="meta_data"
+    order=1, icon="bell", path="/scenes_distribution", title="Scenes Distribution", main_table=META_DATA
 )
 register_page(__name__, **page.__dict__)
 
@@ -35,16 +41,37 @@ obj_count_card = ObjCountCard(
     page_filters_id=filters_agg.final_filter_id,
 )
 
-dataset_selector = DatasetSelector(main_table=page.main_table)
-scenes = [LM_TYPES, LM_COLORS, DRIVING_CONDITIONS, CURVES, ROAD_EVENTS, SENSORS, CA_SCENES]
-scenes_tables = [
-    ScenesTable(
-        datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
-        scenes=scene,
-        page_filters_id=filters_agg.final_filter_id,
-    )
-    for scene in scenes
-]
+dataset_selector = DatasetSelector(main_table=page.main_table, full_grid_row=False)
+insufficient_switch = Switch(label="Insufficient Scenes", full_grid_row=False)
+scenes_name_dict = {
+    "Lane Mark Types": LM_TYPES,
+    "Lane Mark Colors": LM_COLORS,
+    "Driving Conditions": DRIVING_CONDITIONS,
+    "Curves": CURVES,
+    "Events": ROAD_EVENTS,
+    "Sensors": SENSORS,
+    "CA": CA_SCENES,
+}
+accordion = dbc.Accordion(
+    [
+        dbc.AccordionItem(
+            ScenesTable(
+                datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
+                scenes=scene,
+                page_filters_id=filters_agg.final_filter_id,
+                insufficient_switch_id=insufficient_switch.component_id,
+            ).layout(),
+            title=name,
+            item_id=name,
+            className="slim-accordion",
+        )
+        for name, scene in scenes_name_dict.items()
+    ],
+    always_open=True,
+    active_item=list(scenes_name_dict.keys()),
+    className="mt-5",
+)
+
 boosting_control = BoostingControl(
     datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
     population_dropdown_id=population_card.populations_dropdown_id,
@@ -57,20 +84,37 @@ scene_pies = [
         batches_table_id=boosting_control.batches_table_id,
         scenes=scene,
         page_filters_id=filters_agg.final_filter_id,
+        title=f"{name} Distribution",
     )
-    for scene in scenes
+    for name, scene in scenes_name_dict.items()
 ]
 
+frames_modal = FramesModal(
+    page_filters_id=filters_agg.final_filter_id,
+    triggering_filters=[data_filters],
+)
+jump_modal = JumpModal(
+    page_filters_id=filters_agg.final_filter_id,
+    triggering_filters=[data_filters],
+)
+
 layout = GridGenerator(
+    frames_modal,
+    jump_modal,
     data_filters,
     filters_agg,
     obj_count_card,
     GridGenerator(html.H3("Population"), population_card, full_grid_row=False),
-    GridGenerator(
-        dataset_selector,
-        *scenes_tables,
-        boosting_control,
-        *scene_pies,
+    GridGenerator(dataset_selector, insufficient_switch, accordion).layout(),
+    card_wrapper(
+        dbc.Tabs(
+            [
+                dbc.Tab(GridGenerator(boosting_control, warp_sub_objects=False).layout(), label="Boosting Control"),
+                dbc.Tab(
+                    GridGenerator(*scene_pies, warp_sub_objects=False).layout(), label="Weighted Data Distribution"
+                ),
+            ]
+        )
     ),
     warp_sub_objects=False,
 ).layout()

@@ -8,7 +8,6 @@ from pypika.queries import QueryBuilder, Selectable
 from pypika.terms import Term
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
     base_data_subquery,
@@ -48,6 +47,7 @@ class JumpModal(GridObject):
     def _generate_ids(self):
         self.extra_columns_dropdown_id = self._generate_id("extra_columns_dropdown")
         self.diff_tolerance_input_id = self._generate_id("diff_tolerance_input")
+        self.limit_input_id = self._generate_id("limit_input")
         self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
         self.download_jump_id = self._generate_id("download_jump")
         self.curr_query_id = self._generate_id("curr_query")
@@ -60,25 +60,34 @@ class JumpModal(GridObject):
                     [
                         dcc.Store(id=self.curr_query_id),
                         dbc.Row(
+                            dcc.Dropdown(
+                                id=self.extra_columns_dropdown_id,
+                                multi=True,
+                                clearable=True,
+                                placeholder="Extra columns to export",
+                                value=None,
+                            )
+                        ),
+                        dbc.Row(
                             [
-                                dbc.Col(
-                                    dcc.Dropdown(
-                                        id=self.extra_columns_dropdown_id,
-                                        multi=True,
-                                        clearable=True,
-                                        placeholder="Extra columns to export",
-                                        value=None,
-                                    )
-                                ),
                                 dbc.Col(
                                     dcc.Input(
                                         id=self.diff_tolerance_input_id,
                                         style={"minWidth": "100%"},
-                                        placeholder=f"Sequence if gis diff smaller than (default {self.DIFF_TOLERANCE}):",
+                                        placeholder=f"Merge diffs smaller than (default {self.DIFF_TOLERANCE}):",
+                                        type="number",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dcc.Input(
+                                        id=self.limit_input_id,
+                                        style={"minWidth": "100%"},
+                                        placeholder=f"Max lines in jump file (default {self.LINES_LIMIT}):",
                                         type="number",
                                     )
                                 ),
                             ],
+                            className="mt-3",
                         ),
                         dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary", className="mt-3"),
                         loading_wrapper(dcc.Download(id=self.download_jump_id)),
@@ -182,10 +191,11 @@ class JumpModal(GridObject):
             Input(self.generate_jump_btn_id, "n_clicks"),
             State(self.curr_query_id, "data"),
             State(self.diff_tolerance_input_id, "value"),
+            State(self.limit_input_id, "value"),
             State(self.extra_columns_dropdown_id, "value"),
             State(self.page_filters_id, "data"),
         )
-        def generate_jump(n_clicks, curr_query, diff_tolerance, extra_terms, page_filters):
+        def generate_jump(n_clicks, curr_query, diff_tolerance, lines_limit, extra_terms, page_filters):
             if not n_clicks or not curr_query:
                 return no_update
 
@@ -203,10 +213,11 @@ class JumpModal(GridObject):
                 else terms
             )
             diff_tolerance = diff_tolerance if diff_tolerance is not None else self.DIFF_TOLERANCE
+            lines_limit = lines_limit if lines_limit is not None else self.LINES_LIMIT
             query = ids_query_wrapper(
                 sub_query=subquery,
                 terms=updated_terms,
-                limit=self.LINES_LIMIT,
+                limit=lines_limit,
                 diff_tolerance=diff_tolerance,
             )
             jump_frames = execute(query)

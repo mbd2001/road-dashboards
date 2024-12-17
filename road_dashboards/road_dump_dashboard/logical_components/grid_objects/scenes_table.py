@@ -1,13 +1,8 @@
-import dash_bootstrap_components as dbc
-import dash_daq as daq
-from dash import Input, Output, callback, dash_table, html, no_update
+from dash import Input, Output, callback, dash_table, no_update
 from pypika import Criterion, EmptyCriterion
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
-    card_wrapper,
-    loading_wrapper,
-)
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
@@ -21,25 +16,25 @@ class ScenesTable(GridObject):
         datasets_dropdown_id: str,
         scenes: list[Scene],
         page_filters_id: str = "",
+        insufficient_switch_id: str = "",
         full_grid_row: bool = True,
         component_id: str = "",
     ):
         self.datasets_dropdown_id = datasets_dropdown_id
         self.scenes = scenes
         self.page_filters_id = page_filters_id
+        self.insufficient_switch_id = insufficient_switch_id
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
         self.scenes_table_id = self._generate_id("scenes_table")
-        self.insufficient_switch_id = self._generate_id("only_failed")
 
     def layout(self):
-        shown_columns = ["scene", "num_of_frames", "required_frames", "percentage"]
+        shown_columns = ["scene", "num_of_frames", "required_frames", "percentage", "valid"]
         scenes_table = dash_table.DataTable(
             id=self.scenes_table_id,
             columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in shown_columns],
             data=[],
-            filter_action="native",
             sort_action="native",
             sort_mode="multi",
             sort_by=[{"column_id": "percentage", "direction": "desc"}],
@@ -49,9 +44,9 @@ class ScenesTable(GridObject):
             css=[{"selector": ".show-hide", "rule": "display: none"}],
             style_cell={"textAlign": "left"},
             style_header={
-                "background-color": "#4e4e50",
+                "background-color": "white",
                 "fontWeight": "bold",
-                "color": "white",
+                "color": "rgb(102, 102, 102)",
             },
             style_data={
                 "backgroundColor": "white",
@@ -63,29 +58,30 @@ class ScenesTable(GridObject):
             style_data_conditional=[
                 {
                     "if": {
+                        "column_id": "valid",
                         "filter_query": "{percentage} < 90",
                     },
-                    "backgroundColor": "OrangeRed",
+                    "backgroundColor": "Tomato",
                     "color": "white",
                 },
                 {
                     "if": {
+                        "column_id": "valid",
                         "filter_query": "{percentage} >= 100",
                     },
-                    "backgroundColor": "ForestGreen",
+                    "backgroundColor": "LimeGreen",
                     "color": "white",
                 },
             ],
+            style_cell_conditional=[
+                {"if": {"column_id": "scene"}, "width": "30%"},
+                {"if": {"column_id": "num_of_frames"}, "width": "20%"},
+                {"if": {"column_id": "required_frames"}, "width": "20%"},
+                {"if": {"column_id": "percentage"}, "width": "20%"},
+                {"if": {"column_id": "valid"}, "width": "10%"},
+            ],
         )
-        insufficient_switch = daq.BooleanSwitch(
-            id=self.insufficient_switch_id, on=False, label="Insufficient Scenes", labelPosition="top", className="me-2"
-        )
-        return card_wrapper(
-            [
-                dbc.Row([dbc.Col(html.H2("Scenes Distribution", className="mb-5")), dbc.Col(insufficient_switch)]),
-                dbc.Row(loading_wrapper(scenes_table)),
-            ]
-        )
+        return loading_wrapper(scenes_table)
 
     def _callbacks(self):
         @callback(
@@ -93,14 +89,17 @@ class ScenesTable(GridObject):
             Output(self.scenes_table_id, "tooltip_data"),
             Input(self.datasets_dropdown_id, "value"),
             Input(META_DATA, "data"),
-            Input(self.insufficient_switch_id, "on"),
-            optional_inputs(page_filters=Input(self.page_filters_id, "data")),
+            optional_inputs(
+                page_filters=Input(self.page_filters_id, "data"),
+                only_failed=Input(self.insufficient_switch_id, "on"),
+            ),
         )
-        def update_scenes_data(chosen_dump, md_tables, only_failed, optional):
+        def update_scenes_data(chosen_dump, md_tables, optional):
             if not md_tables or not chosen_dump:
                 return no_update, no_update
 
             md_tables: list[Base] = load_object(md_tables)
+            only_failed: str = optional.get("only_failed", False)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 

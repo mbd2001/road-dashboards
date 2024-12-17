@@ -27,6 +27,7 @@ class ScenesPie(GridObject):
         batches_table_id: str,
         scenes: list[Scene],
         page_filters_id: str = "",
+        title: str = "",
         full_grid_row: bool = False,
         component_id: str = "",
     ):
@@ -35,6 +36,7 @@ class ScenesPie(GridObject):
         self.batches_table_id = batches_table_id
         self.scenes = scenes
         self.page_filters_id = page_filters_id
+        self.title = title or "Scenes Distribution"
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -75,7 +77,7 @@ class ScenesPie(GridObject):
             definitions_dict = {scene.name: str(scene.definition) for scene in self.scenes}
             definitions_dict.update({"other": "non of the above", "mixed": "combination of the above"})
             data["definition"] = data["categories"].apply(lambda x: definitions_dict[x])
-            fig = basic_pie_chart(data, "categories", "weight", title="Scenes Distribution", hover="definition")
+            fig = basic_pie_chart(data, "categories", "weight", title=self.title, hover="definition")
             return fig
 
     @staticmethod
@@ -94,6 +96,7 @@ class ScenesPie(GridObject):
             meta_data_tables=tables,
             terms=list({*base_terms, batches_weight_case}),
             page_filters=page_filters,
+            to_order=False,
         )
         mixed_case = reduce(add, [Case().when(scene.definition, 1).else_(0) for scene in scenes]) > 1
         cases = Case("categories").when(mixed_case, "mixed")

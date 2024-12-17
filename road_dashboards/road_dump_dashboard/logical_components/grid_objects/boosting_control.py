@@ -7,10 +7,7 @@ from dash import Input, Output, State, callback, dash_table, dcc, html, no_updat
 from pypika import Criterion, EmptyCriterion, Query, functions
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
-    card_wrapper,
-    loading_wrapper,
-)
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.catalog_table import dump_db_manager
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
@@ -41,11 +38,12 @@ class BoostingControl(GridObject):
         self.download_data_id = self._generate_id("download_data")
 
     def layout(self):
-        header = self.get_header_layout(self.upload_boosting_btn_id, self.download_boosting_btn_id)
+        header = self.get_header_layout(
+            self.upload_boosting_btn_id, self.download_boosting_btn_id, self.download_data_id
+        )
         batches_table = self.get_table_layout(self.batches_table_id)
         upload_data = dcc.Store(id=self.upload_data_id)
-        download_data = loading_wrapper(dcc.Download(id=self.download_data_id))
-        final_layout = card_wrapper([header, upload_data, download_data, batches_table])
+        final_layout = html.Div([header, batches_table, upload_data])
         return final_layout
 
     def _callbacks(self):
@@ -167,6 +165,7 @@ class BoostingControl(GridObject):
             meta_data_tables=tables,
             terms=[batch_num],
             page_filters=page_filters,
+            to_order=False,
         )
         query = (
             Query.from_(base)
@@ -178,7 +177,7 @@ class BoostingControl(GridObject):
         return data
 
     @staticmethod
-    def get_header_layout(load_boosting_btn_id, download_boosting_btn_id):
+    def get_header_layout(load_boosting_btn_id, download_boosting_btn_id, download_data_id):
         load_boosting_btn = dcc.Upload(
             children=html.Div("Drag and Drop or Select Json"),
             id=load_boosting_btn_id,
@@ -195,19 +194,12 @@ class BoostingControl(GridObject):
             },
         )
         download_boosting_btn = dbc.Button("Download New Boosting", id=download_boosting_btn_id, color="primary")
-        header = dbc.Row(
-            [
-                dbc.Col(html.H2("Boosting Control")),
-                dbc.Col(
-                    dbc.Stack(
-                        [load_boosting_btn, download_boosting_btn],
-                        direction="horizontal",
-                        gap=4,
-                        style={"position": "absolute", "right": "10px", "top": "10px"},
-                        className="me-2",
-                    )
-                ),
-            ]
+        download_data = loading_wrapper(dcc.Download(id=download_data_id))
+        header = dbc.Stack(
+            [load_boosting_btn, download_boosting_btn, download_data],
+            direction="horizontal",
+            gap=4,
+            className="mt-3",
         )
         return header
 
@@ -227,7 +219,6 @@ class BoostingControl(GridObject):
                 for i in shown_columns
             ],
             data=[],
-            filter_action="native",
             sort_action="native",
             sort_mode="multi",
             sort_by=[{"column_id": "batch_num", "direction": "asc"}],
@@ -250,5 +241,4 @@ class BoostingControl(GridObject):
                 "border": "1px solid rgb(230, 230, 230)",
             },
         )
-        batches_table = html.Div(batches_table, className="mt-5")
-        return batches_table
+        return html.Div(batches_table, className="mt-3")

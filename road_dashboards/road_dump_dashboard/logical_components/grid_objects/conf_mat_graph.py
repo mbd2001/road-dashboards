@@ -6,7 +6,6 @@ from pypika.terms import Term
 
 from road_dashboards.road_dump_dashboard.graphical_components.confusion_matrix import get_confusion_matrix
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
     card_wrapper,
     loading_wrapper,

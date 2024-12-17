@@ -1,5 +1,6 @@
 pycountry
 dash-bootstrap-components
+dash-mantine-components
 dash-daq
 numpy
 pandas

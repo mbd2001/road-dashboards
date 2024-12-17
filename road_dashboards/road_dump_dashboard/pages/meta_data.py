@@ -1,5 +1,6 @@
 from dash import html, register_page
 
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.columns_dropdown import ColumnsDropdown
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
@@ -19,7 +20,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_dat
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
-page = PageProperties(order=2, icon="search", path="/meta_data", title="Meta Data", main_table="meta_data")
+page = PageProperties(order=2, icon="search", path="/meta_data", title="Meta Data", main_table=META_DATA)
 register_page(__name__, **page.__dict__)
 
 data_filters = DataFilters(main_table=page.main_table)

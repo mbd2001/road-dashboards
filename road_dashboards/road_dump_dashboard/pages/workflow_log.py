@@ -1,5 +1,6 @@
 from dash import html, register_page
 
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.dataset_selector import DatasetSelector
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
@@ -7,7 +8,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.workflo
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
-page = PageProperties(order=5, icon="table", path="/workflow_log", title="Workflow Log", main_table="meta_data")
+page = PageProperties(order=5, icon="table", path="/workflow_log", title="Workflow Log", main_table=META_DATA)
 register_page(__name__, **page.__dict__)
 
 dataset_selector = DatasetSelector(main_table=page.main_table)
