@@ -29,6 +29,8 @@ LM_TYPES: list[Scene] = [
         10000,
     ),
     Scene((MetaData.righttype_deceleration == True) | (MetaData.lefttype_deceleration == True), "Deceleration", 10000),
+    Scene((MetaData.righttype_dashed == True) | (MetaData.lefttype_dashed == True), "dashed", 10000),
+    Scene((MetaData.righttype_solid == True) | (MetaData.lefttype_solid == True), "solid", 10000),
     Scene((MetaData.righttype_botsdots == True) | (MetaData.lefttype_botsdots == True), "bottsdots", 10000),
     Scene((MetaData.righttype_dashedsolid == True) | (MetaData.lefttype_dashedsolid == True), "dashedsolid", 10000),
     Scene((MetaData.righttype_soliddashed == True) | (MetaData.lefttype_soliddashed == True), "soliddashed", 10000),
@@ -86,9 +88,9 @@ DRIVING_CONDITIONS: list[Scene] = [
 
 CURVES: list[Scene] = [
     Scene(MetaData.vertical_change_50m > 1, "crest_seg", 10000),
-    Scene((MetaData.curve_rad_ahead_150 >= 0) & (MetaData.curve_rad_ahead_150 < 250), "strong_curves", 10000),
-    Scene((MetaData.curve_rad_ahead_150 >= 250) & (MetaData.curve_rad_ahead_150 < 500), "medium_curves", 10000),
-    Scene((MetaData.curve_rad_ahead_150 >= 500) & (MetaData.curve_rad_ahead_150 < 800), "light_curves", 10000),
+    Scene((MetaData.curve_rad_ahead_gt_120 >= 0) & (MetaData.curve_rad_ahead_gt_120 < 250), "strong_curves", 10000),
+    Scene((MetaData.curve_rad_ahead_gt_120 >= 250) & (MetaData.curve_rad_ahead_gt_120 < 500), "medium_curves", 10000),
+    Scene((MetaData.curve_rad_ahead_gt_120 >= 500) & (MetaData.curve_rad_ahead_gt_120 < 800), "light_curves", 10000),
     Scene(MetaData.ramp == True, "ramp", 10000),
     # Scene("", "hilly_road_curves", 10000),
 ]
@@ -135,7 +137,7 @@ ROAD_EVENTS: list[Scene] = [
 
 
 SENSORS: list[Scene] = [
-    # Scene(MetaData.ramp == True, "Mono8", 10000),
+    # Scene("", "Mono8", 10000),
     Scene(MetaData.is_eyeq6 == True, "EyeQ6", 10000),
     Scene(
         (MetaData.is_eyeq6 == True) & (MetaData.image_sensor_type.isin(["SONY_IMX324", "SONY_IMX728"])),
@@ -147,9 +149,9 @@ SENSORS: list[Scene] = [
 
 
 CA_SCENES: list[Scene] = [
-    Scene(MetaData.dist_to_constarea_optional != 0, "CA", 10000),
+    Scene((MetaData.dist_to_constarea_true < 40) & (MetaData.dist_to_constarea_optional != 0), "CA", 10000),
     Scene(
-        ((MetaData.dist_to_constarea_optional < 40) | (MetaData.dist_to_constarea_true < 40))
+        ((MetaData.dist_to_constarea_true < 40) | (MetaData.dist_to_constarea_optional < 40))
         & ((MetaData.is_yellow_right == True) | (MetaData.is_yellow_left == True)),
         "CA_yellow",
         10000,

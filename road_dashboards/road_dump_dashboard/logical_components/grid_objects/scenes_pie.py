@@ -74,8 +74,9 @@ class ScenesPie(GridObject):
             tables: list[Base] = load_object(tables)
 
             data = self.weighted_scenes_query(chosen_dump, tables, page_filters, batches_weight_case, self.scenes)
+            data = pd.melt(data, var_name="categories", value_name="weight")
             definitions_dict = {scene.name: str(scene.definition) for scene in self.scenes}
-            definitions_dict.update({"other": "non of the above", "mixed": "combination of the above"})
+            definitions_dict.update({"other": "non of the above"})
             data["definition"] = data["categories"].apply(lambda x: definitions_dict[x])
             fig = basic_pie_chart(data, "categories", "weight", title=self.title, hover="definition")
             return fig
@@ -98,17 +99,12 @@ class ScenesPie(GridObject):
             page_filters=page_filters,
             to_order=False,
         )
-        mixed_case = reduce(add, [Case().when(scene.definition, 1).else_(0) for scene in scenes]) > 1
-        cases = Case("categories").when(mixed_case, "mixed")
-        for scene in scenes:
-            cases = cases.when(scene.definition, scene.name)
-
-        cases = cases.else_("other")
-        categories_query = Query.from_(base).select(base.batch_weight, cases)
-        group_by_query = (
-            Query.from_(categories_query)
-            .select(categories_query.categories, functions.Sum(categories_query.batch_weight).as_("weight"))
-            .groupby(categories_query.categories)
+        none_scene = Scene(~Criterion.any([scene.definition for scene in scenes]), "other", 0)
+        scenes_query = Query.from_(base).select(
+            *[
+                functions.Sum(Case().when(scene.definition, base.batch_weight).else_(0)).as_(scene.name)
+                for scene in scenes + [none_scene]
+            ]
         )
-        data = execute(group_by_query)
+        data = execute(scenes_query)
         return data

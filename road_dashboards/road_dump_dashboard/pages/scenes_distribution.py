@@ -52,7 +52,7 @@ scenes_name_dict = {
     "Sensors": SENSORS,
     "CA": CA_SCENES,
 }
-accordion = dbc.Accordion(
+tables_accordion = dbc.Accordion(
     [
         dbc.AccordionItem(
             ScenesTable(
@@ -89,14 +89,8 @@ scene_pies = [
     for name, scene in scenes_name_dict.items()
 ]
 
-frames_modal = FramesModal(
-    page_filters_id=filters_agg.final_filter_id,
-    triggering_filters=[data_filters],
-)
-jump_modal = JumpModal(
-    page_filters_id=filters_agg.final_filter_id,
-    triggering_filters=[data_filters],
-)
+frames_modal = FramesModal(page_filters_id=filters_agg.final_filter_id, triggering_filters=[data_filters])
+jump_modal = JumpModal(page_filters_id=filters_agg.final_filter_id, triggering_filters=[data_filters])
 
 layout = GridGenerator(
     frames_modal,
@@ -105,7 +99,7 @@ layout = GridGenerator(
     filters_agg,
     obj_count_card,
     GridGenerator(html.H3("Population"), population_card, full_grid_row=False),
-    GridGenerator(dataset_selector, insufficient_switch, accordion).layout(),
+    GridGenerator(dataset_selector, insufficient_switch, tables_accordion).layout(),
     card_wrapper(
         dbc.Tabs(
             [
