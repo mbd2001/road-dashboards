@@ -7,21 +7,21 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.query_abst
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
-from road_dashboards.road_dump_dashboard.table_schemes.scenes import Scene
+from road_dashboards.road_dump_dashboard.table_schemes.scenes import ScenesCategory
 
 
 class ScenesTable(GridObject):
     def __init__(
         self,
         datasets_dropdown_id: str,
-        scenes: list[Scene],
+        scenes_categories: list[ScenesCategory],
         page_filters_id: str = "",
         insufficient_switch_id: str = "",
         full_grid_row: bool = True,
         component_id: str = "",
     ):
         self.datasets_dropdown_id = datasets_dropdown_id
-        self.scenes = scenes
+        self.scenes_categories = scenes_categories
         self.page_filters_id = page_filters_id
         self.insufficient_switch_id = insufficient_switch_id
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
@@ -30,7 +30,7 @@ class ScenesTable(GridObject):
         self.scenes_table_id = self._generate_id("scenes_table")
 
     def layout(self):
-        shown_columns = ["scene", "num_of_frames", "required_frames", "percentage", "valid"]
+        shown_columns = ["scene", "num_of_objects", "required_objects", "percentage", "valid"]
         scenes_table = dash_table.DataTable(
             id=self.scenes_table_id,
             columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in shown_columns],
@@ -75,8 +75,8 @@ class ScenesTable(GridObject):
             ],
             style_cell_conditional=[
                 {"if": {"column_id": "scene"}, "width": "30%"},
-                {"if": {"column_id": "num_of_frames"}, "width": "20%"},
-                {"if": {"column_id": "required_frames"}, "width": "20%"},
+                {"if": {"column_id": "num_of_objects"}, "width": "20%"},
+                {"if": {"column_id": "required_objects"}, "width": "20%"},
                 {"if": {"column_id": "percentage"}, "width": "20%"},
                 {"if": {"column_id": "valid"}, "width": "10%"},
             ],
@@ -104,10 +104,15 @@ class ScenesTable(GridObject):
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 
             tables = [table for table in md_tables if table.dataset_name == chosen_dump]
+            weighted_sums = [
+                weighted_sum
+                for scenes_category in self.scenes_categories
+                for weighted_sum in scenes_category.weighted_sums(frame_weight=1, include_other=False)
+            ]
             base = base_data_subquery(
                 main_tables=tables,
                 meta_data_tables=tables,
-                terms=[scene.count() for scene in self.scenes],
+                terms=weighted_sums,
                 page_filters=page_filters,
                 to_order=False,
             )
@@ -115,14 +120,19 @@ class ScenesTable(GridObject):
             table_data = [
                 {
                     "scene": scene.name,
-                    "num_of_frames": results[scene.name][0],
-                    "required_frames": scene.required_frames,
-                    "percentage": results[scene.name][0] / scene.required_frames * 100.0,
+                    "num_of_objects": results[scene.name][0],
+                    "required_objects": scene.required_objects,
+                    "percentage": results[scene.name][0] / scene.required_objects * 100.0,
                 }
-                for scene in self.scenes
+                for scene_category in self.scenes_categories
+                for scene in scene_category.scenes
             ]
             if only_failed:
                 table_data = [scene for scene in table_data if scene["percentage"] < 90]
 
-            tooltip_data = [{"scene": {"value": str(scene.definition), "type": "markdown"}} for scene in self.scenes]
+            tooltip_data = [
+                {"scene": {"value": scene.definition(), "type": "markdown"}}
+                for scene_category in self.scenes_categories
+                for scene in scene_category.scenes
+            ]
             return table_data, tooltip_data

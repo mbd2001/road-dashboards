@@ -1,9 +1,6 @@
-from functools import reduce
-from operator import add
-
 import pandas as pd
-from dash import ALL, Input, Output, State, callback, dcc, no_update
-from pypika import Case, Criterion, EmptyCriterion, Query, functions
+from dash import Input, Output, State, callback, dcc, no_update
+from pypika import Case, Criterion, EmptyCriterion, Query
 
 from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
@@ -13,10 +10,10 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
 )
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
+from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
-from road_dashboards.road_dump_dashboard.table_schemes.scenes import Scene
+from road_dashboards.road_dump_dashboard.table_schemes.scenes import ScenesCategory
 
 
 class ScenesPie(GridObject):
@@ -25,7 +22,7 @@ class ScenesPie(GridObject):
         datasets_dropdown_id: str,
         population_dropdown_id: str,
         batches_table_id: str,
-        scenes: list[Scene],
+        scene_category: ScenesCategory,
         page_filters_id: str = "",
         title: str = "",
         full_grid_row: bool = False,
@@ -34,9 +31,9 @@ class ScenesPie(GridObject):
         self.datasets_dropdown_id = datasets_dropdown_id
         self.population_dropdown_id = population_dropdown_id
         self.batches_table_id = batches_table_id
-        self.scenes = scenes
+        self.scene_category = scene_category
         self.page_filters_id = page_filters_id
-        self.title = title or "Scenes Distribution"
+        self.title = title if title else f"{scene_category.name} Distribution"
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
@@ -73,9 +70,11 @@ class ScenesPie(GridObject):
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
             tables: list[Base] = load_object(tables)
 
-            data = self.weighted_scenes_query(chosen_dump, tables, page_filters, batches_weight_case, self.scenes)
+            data = self.weighted_scenes_query(
+                chosen_dump, tables, page_filters, batches_weight_case, self.scene_category
+            )
             data = pd.melt(data, var_name="categories", value_name="weight")
-            definitions_dict = {scene.name: str(scene.definition) for scene in self.scenes}
+            definitions_dict = {scene.name: scene.definition() for scene in self.scene_category.scenes}
             definitions_dict.update({"other": "non of the above"})
             data["definition"] = data["categories"].apply(lambda x: definitions_dict[x])
             fig = basic_pie_chart(data, "categories", "weight", title=self.title, hover="definition")
@@ -87,24 +86,18 @@ class ScenesPie(GridObject):
         tables: list[Base],
         page_filters: Criterion,
         batches_weight_case: Case,
-        scenes: list[Scene],
+        scenes: ScenesCategory,
     ) -> pd.DataFrame:
         tables = [table for table in tables if table.dataset_name == chosen_dump]
-        base_terms = [col for scene in scenes for col in scene.definition.find_(Column)]
-
         base = base_data_subquery(
             main_tables=tables,
             meta_data_tables=tables,
-            terms=list({*base_terms, batches_weight_case}),
+            terms=list({*scenes.terms(), batches_weight_case}),
             page_filters=page_filters,
             to_order=False,
         )
-        none_scene = Scene(~Criterion.any([scene.definition for scene in scenes]), "other", 0)
         scenes_query = Query.from_(base).select(
-            *[
-                functions.Sum(Case().when(scene.definition, base.batch_weight).else_(0)).as_(scene.name)
-                for scene in scenes + [none_scene]
-            ]
+            *scenes.weighted_sums(frame_weight=base.batch_weight, include_other=True)
         )
         data = execute(scenes_query)
         return data

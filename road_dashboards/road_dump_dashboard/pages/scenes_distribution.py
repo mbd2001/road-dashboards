@@ -18,8 +18,11 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.switch 
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 from road_dashboards.road_dump_dashboard.table_schemes.scenes import (
     CA_SCENES,
+    CAMERAS,
     CURVES,
     DRIVING_CONDITIONS,
+    EXTRA_CURVES,
+    EXTRA_LM_TYPES,
     LM_COLORS,
     LM_TYPES,
     ROAD_EVENTS,
@@ -43,32 +46,34 @@ obj_count_card = ObjCountCard(
 
 dataset_selector = DatasetSelector(main_table=page.main_table, full_grid_row=False)
 insufficient_switch = Switch(label="Insufficient Scenes", full_grid_row=False)
-scenes_name_dict = {
-    "Lane Mark Types": LM_TYPES,
-    "Lane Mark Colors": LM_COLORS,
-    "Driving Conditions": DRIVING_CONDITIONS,
-    "Curves": CURVES,
-    "Events": ROAD_EVENTS,
-    "Sensors": SENSORS,
-    "CA": CA_SCENES,
-}
+
+categories_partition = [
+    [LM_TYPES, EXTRA_LM_TYPES],
+    [LM_COLORS],
+    [DRIVING_CONDITIONS],
+    [CURVES, EXTRA_CURVES],
+    [ROAD_EVENTS],
+    [SENSORS, CAMERAS],
+    [CA_SCENES],
+]
+accordion_items = [
+    dbc.AccordionItem(
+        ScenesTable(
+            datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
+            scenes_categories=scene_categories,
+            page_filters_id=filters_agg.final_filter_id,
+            insufficient_switch_id=insufficient_switch.component_id,
+        ).layout(),
+        title=scene_categories[0].name,
+        item_id=scene_categories[0].name,
+        className="slim-accordion",
+    )
+    for scene_categories in categories_partition
+]
 tables_accordion = dbc.Accordion(
-    [
-        dbc.AccordionItem(
-            ScenesTable(
-                datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
-                scenes=scene,
-                page_filters_id=filters_agg.final_filter_id,
-                insufficient_switch_id=insufficient_switch.component_id,
-            ).layout(),
-            title=name,
-            item_id=name,
-            className="slim-accordion",
-        )
-        for name, scene in scenes_name_dict.items()
-    ],
+    accordion_items,
     always_open=True,
-    active_item=list(scenes_name_dict.keys()),
+    active_item=[accordion_item.item_id for accordion_item in accordion_items],
     className="mt-5",
 )
 
@@ -77,16 +82,16 @@ boosting_control = BoostingControl(
     population_dropdown_id=population_card.populations_dropdown_id,
     page_filters_id=filters_agg.final_filter_id,
 )
+pie_categories = [LM_TYPES, LM_COLORS, DRIVING_CONDITIONS, CURVES, ROAD_EVENTS, SENSORS, CA_SCENES]
 scene_pies = [
     ScenesPie(
         datasets_dropdown_id=dataset_selector.main_dataset_dropdown_id,
         population_dropdown_id=population_card.populations_dropdown_id,
         batches_table_id=boosting_control.batches_table_id,
-        scenes=scene,
+        scene_category=scene,
         page_filters_id=filters_agg.final_filter_id,
-        title=f"{name} Distribution",
     )
-    for name, scene in scenes_name_dict.items()
+    for scene in pie_categories
 ]
 
 frames_modal = FramesModal(page_filters_id=filters_agg.final_filter_id, triggering_filters=[data_filters])
