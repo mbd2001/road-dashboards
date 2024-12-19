@@ -31,7 +31,6 @@ requirements:
     - typing_extensions >=3.7.4
     - pycountry
     - dash-bootstrap-components
-    - dash-mantine-components
     - dash-daq
     - numpy
     - pandas
