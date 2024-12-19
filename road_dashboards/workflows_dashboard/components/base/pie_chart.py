@@ -1,22 +1,18 @@
 from abc import abstractmethod
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
-from road_dashboards.workflows_dashboard.components.base.chart import BaseChart
+from road_dashboards.workflows_dashboard.components.base.chart import Chart
 from road_dashboards.workflows_dashboard.utils.chart_utils import add_center_annotation
 
 
-class BasePieChart(BaseChart):
+class PieChart(Chart):
     def __init__(self, chart_id: str, workflow_name: str):
         super().__init__(chart_id)
         self.workflow_name = workflow_name
-
-    @abstractmethod
-    def prepare_data(self, df: pd.DataFrame) -> Optional[pd.DataFrame]:
-        """Prepare data for visualization."""
-        pass
 
     @abstractmethod
     def get_chart_title(self) -> str:
@@ -32,18 +28,31 @@ class BasePieChart(BaseChart):
         """Get additional chart parameters."""
         return {}
 
-    def create_chart(self, df: pd.DataFrame) -> px.pie:
-        plot_df = self.prepare_data(df)
-        if plot_df is None:
-            return self.create_empty_chart()
+    def create_chart(
+        self,
+        data: pd.DataFrame,
+    ) -> go.Figure:
+        """
+        Create a pie chart based on the provided data.
 
-        total_count = plot_df["count"].sum()
+        Args:
+            data: DataFrame with 'message' and 'count' columns
+
+        Returns:
+            go.Figure: A plotly pie chart figure
+        """
+        total_count = data["count"].sum()
         chart_params = self.get_chart_params()
 
-        fig = px.pie(plot_df, values="count", names="message", title=self.get_chart_title(), **chart_params)
+        fig = px.pie(data, values="count", names="message", title=self.get_chart_title(), **chart_params)
 
         add_center_annotation(fig, f"Total Clips:<br><b>{total_count}</b>")
+        self._update_traces(fig)
 
+        return fig
+
+    def _update_traces(self, fig: px.pie) -> None:
+        """Update the traces with consistent styling."""
         fig.update_traces(
             textposition="inside",
             textinfo="percent",
@@ -56,5 +65,3 @@ class BasePieChart(BaseChart):
                 namelength=-1,
             )
         )
-
-        return fig

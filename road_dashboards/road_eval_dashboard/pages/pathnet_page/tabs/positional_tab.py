@@ -452,6 +452,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="False rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_MISS_FALSE_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -484,6 +485,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_MISS_FALSE_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -510,7 +512,6 @@ def get_path_net_scene_sec_acc(
     else:
         role = "host"
     filter_name = graph_id["filter"]
-    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
     sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
@@ -525,10 +526,11 @@ def get_path_net_scene_sec_acc(
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title="<b>Host Scene Accuracy<b>",
+        title=f"<b>Host {filter_name} Scene Accuracy<b>",
         yaxis="Acc rate",
         xaxis="",
         interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -555,7 +557,6 @@ def get_path_net_scene_sec_acc(
     else:
         role = "non-host"
     filter_name = graph_id["filter"]
-    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
     sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
@@ -570,10 +571,11 @@ def get_path_net_scene_sec_acc(
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title="<b>Non-Host Scene Accuracy<b>",
+        title=f"<b>Non-Host {filter_name} Scene Accuracy<b>",
         yaxis="Acc rate",
         xaxis="",
         interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -606,6 +608,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_MISS_FALSE_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",

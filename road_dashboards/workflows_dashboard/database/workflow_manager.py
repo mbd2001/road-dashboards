@@ -1,162 +1,277 @@
-from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 import pandas as pd
+from boto3.dynamodb.conditions import Attr
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, WorkflowFields
-from road_dashboards.workflows_dashboard.core_settings.settings import DatabaseSettings
+from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings, DatabaseSettings, Status
 
 
 class WorkflowsDBManager(DBManager):
-    """
-    Manages workflow data retrieval and caching from DynamoDB.
-
-    This class extends DBManager to provide specialized functionality for workflow data,
-    including caching, pagination, and filtering capabilities.
-    """
-
     def __init__(self):
         super().__init__(table_name=DatabaseSettings.table_name, primary_key=DatabaseSettings.primary_key)
-        self._cached_data = None
-        self._last_fetch_time = None
+        self._workflow_dfs: dict[str, pd.DataFrame] = {}
+        self._load_workflow_data()
 
-    def get_all_workflow_data(self, brain_types=None, start_date=None, end_date=None) -> dict:
-        """
-        Retrieves and filters workflow data from cache or database.
+    def _load_workflow_data(self) -> None:
+        """Loads all data as df for each workflow."""
 
-        Args:
-            brain_types (list[str], optional): List of brain types to filter by
-            start_date (str, optional): Start date for filtering results
-            end_date (str, optional): End date for filtering results
-
-        Returns:
-            dict: Dictionary mapping workflow names to their filtered records
-        """
-        if self._should_refresh_cache():
-            self._cached_data = self._fetch_all_data()
-
-        return self._filter_cached_data(brain_types, start_date, end_date)
-
-    def _should_refresh_cache(self) -> bool:
-        if not self._last_fetch_time:
-            return True
-        cache_age = datetime.now() - self._last_fetch_time
-        return cache_age.total_seconds() > 300  # 5 minutes
-
-    def _fetch_all_data(self) -> pd.DataFrame:
-        """
-        Fetches all workflow data from DynamoDB using pagination.
-
-        Returns:
-            pd.DataFrame: DataFrame containing all workflow records
-        """
-        all_items = []
-        last_evaluated_key = None
-
-        while True:
-            response = self.get_paginated_workflow_data(page_size=1000, last_evaluated_key=last_evaluated_key)
-
-            items = response["items"]
-            all_items.extend(items)
-
-            last_evaluated_key = response["last_evaluated_key"]
-            if not last_evaluated_key:  # No more pages
-                break
-
-        if not all_items:
-            return pd.DataFrame()
-
-        df = pd.DataFrame(all_items)
-        df["workflows"] = df["workflows"].apply(list)
-        self._last_fetch_time = datetime.now()
-        return df
-
-    def _filter_cached_data(self, brain_types, start_date, end_date) -> dict:
-        """
-        Filters cached workflow data based on specified criteria.
-
-        Args:
-            brain_types (list[str], optional): List of brain types to filter by
-            start_date (str, optional): Start date for filtering results
-            end_date (str, optional): End date for filtering results
-
-        Returns:
-            dict: Dictionary mapping workflow names to their filtered records
-        """
-        if self._cached_data is None or self._cached_data.empty:
-            return {workflow: [] for workflow in WORKFLOWS}
-
-        workflow_data = {}
-        for workflow in WORKFLOWS:
-            workflow_records = self._process_workflow_df(
-                self._cached_data.copy(), workflow, brain_types, start_date, end_date
+        def fetch_workflow_data(workflow: str) -> tuple[str, pd.DataFrame]:
+            """Helper function to fetch data for a single workflow."""
+            filter_expr = Attr("workflows").contains(workflow)
+            projection_expr = (
+                f"#pk, brain_type, {workflow}_{WorkflowFields.status}, {workflow}_{WorkflowFields.message}, "
+                f"{workflow}_{WorkflowFields.last_update}, {workflow}_{WorkflowFields.job_id}, {workflow}_{WorkflowFields.exit_code}"
             )
+            expr_names = {"#pk": DatabaseSettings.primary_key}
 
-            if not workflow_records.empty:
-                if "workflows" in workflow_records.columns:
-                    workflow_records = workflow_records.drop("workflows", axis=1)
-                workflow_data[workflow] = workflow_records.to_dict("records")
-            else:
-                workflow_data[workflow] = []
+            items = []
+            total_segments = 4
 
-        return workflow_data
+            with ThreadPoolExecutor(max_workers=total_segments) as executor:
+                futures = []
+                for segment in range(total_segments):
+                    future = executor.submit(
+                        self.scan,
+                        FilterExpression=filter_expr,
+                        ProjectionExpression=projection_expr,
+                        ExpressionAttributeNames=expr_names,
+                        Segment=segment,
+                        TotalSegments=total_segments,
+                    )
+                    futures.append(future)
 
-    def _process_workflow_df(
-        self, df: pd.DataFrame, workflow_name: str, brain_types=None, start_date=None, end_date=None
+                for future in futures:
+                    items.extend(future.result())
+
+            return workflow, pd.DataFrame(items) if items else pd.DataFrame()
+
+        with ThreadPoolExecutor() as executor:  # One thread per workflow
+            results = list(executor.map(fetch_workflow_data, WORKFLOWS))
+
+        for workflow, df in results:
+            if df.empty:
+                continue
+
+            column_mapping = {
+                f"{workflow}_{WorkflowFields.status}": WorkflowFields.status,
+                f"{workflow}_{WorkflowFields.message}": WorkflowFields.message,
+                f"{workflow}_{WorkflowFields.last_update}": WorkflowFields.last_update,
+            }
+
+            for col in [WorkflowFields.job_id, WorkflowFields.exit_code]:
+                if f"{workflow}_{col}" in df.columns:
+                    column_mapping[f"{workflow}_{col}"] = col
+
+            df = df.rename(columns=column_mapping)
+            df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
+            df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
+
+            self._workflow_dfs[workflow] = df
+
+    def _get_filtered_df(
+        self, workflow_name: str = None, brain_types=None, start_date=None, end_date=None, statuses=None
     ) -> pd.DataFrame:
         """
-        Processes and filters workflow DataFrame based on specified criteria.
+        Get filtered DataFrame based on common filters.
 
         Args:
-            df (pd.DataFrame): Input DataFrame containing workflow data
-            workflow_name (str): Name of the workflow to process
+            workflow_name (str, optional): Name of specific workflow to filter
             brain_types (list[str], optional): List of brain types to filter by
-            start_date (str, optional): Start date for filtering results
-            end_date (str, optional): End date for filtering results
+            start_date (str, optional): Start date for filtering in ISO format
+            end_date (str, optional): End date for filtering in ISO format
+            statuses (list[str], optional): List of statuses to filter by
 
         Returns:
-            pd.DataFrame: Filtered and processed DataFrame with only relevant columns
+            pd.DataFrame: Filtered DataFrame
         """
-        if df.empty:
+        if not workflow_name:
             return pd.DataFrame()
 
-        filtered_df = df[df["workflows"].apply(lambda x: workflow_name in x)].copy()
+        df = self._workflow_dfs.get(workflow_name, pd.DataFrame())
+        if df.empty:
+            return df
 
         if brain_types:
-            filtered_df = filtered_df[filtered_df[WorkflowFields.brain_type].isin(brain_types)]
+            df = df[df[WorkflowFields.brain_type].isin(brain_types)]
+        if start_date:
+            df = df[df[WorkflowFields.last_update] >= pd.to_datetime(start_date)]
+        if end_date:
+            df = df[df[WorkflowFields.last_update] <= pd.to_datetime(end_date)]
+        if statuses:
+            df = df[df[WorkflowFields.status].isin(statuses)]
 
-        prefix = f"{workflow_name}_"
-        workflow_cols = [col for col in filtered_df.columns if col.startswith(prefix)]
-        cols_to_keep = workflow_cols + [WorkflowFields.clip_name, WorkflowFields.brain_type]
-        filtered_df = filtered_df[cols_to_keep]
+        return df
 
-        renamed_columns = {col: col.replace(prefix, "") for col in workflow_cols}
-        filtered_df = filtered_df.rename(columns=renamed_columns)
-
-        if WorkflowFields.last_update in filtered_df.columns:
-            if start_date:
-                filtered_df = filtered_df[filtered_df[WorkflowFields.last_update] >= start_date]
-            if end_date:
-                filtered_df = filtered_df[filtered_df[WorkflowFields.last_update] <= end_date]
-
-        return filtered_df
-
-    def get_paginated_workflow_data(self, page_size: int = 1000, last_evaluated_key: dict = None):
+    def get_status_distribution(
+        self, workflow_name: str, brain_types=None, start_date=None, end_date=None
+    ) -> pd.DataFrame:
         """
-        Retrieves a paginated set of workflow data from DynamoDB.
+        Get status distribution for a specific workflow.
 
         Args:
-            page_size (int, optional): Number of records to retrieve per page. Defaults to 1000.
-            last_evaluated_key (dict, optional): Key for pagination continuation
+            workflow_name (str): Name of the workflow
+            brain_types (list[str], optional): List of brain types to filter by
+            start_date (str, optional): Start date for filtering in ISO format
+            end_date (str, optional): End date for filtering in ISO format
 
         Returns:
-            dict: Dictionary containing:
-                - items: List of workflow records
-                - last_evaluated_key: Key for retrieving the next page of results
+            pd.DataFrame: DataFrame with status counts
+                         Columns: ['message', 'count']
+                         Example:
+                         message      | count
+                         'SUCCESS'    | 42
+                         'FAILED'     | 12
+                         'IN_PROGRESS'| 5
         """
-        scan_kwargs = {"Limit": page_size}
-        if last_evaluated_key:
-            scan_kwargs["ExclusiveStartKey"] = last_evaluated_key
+        filtered_df = self._get_filtered_df(workflow_name, brain_types, start_date, end_date)
+        if filtered_df.empty:
+            return pd.DataFrame(columns=["message", "count"])
 
-        response = self.table.scan(**scan_kwargs)
-        return {"items": response.get("Items", []), "last_evaluated_key": response.get("LastEvaluatedKey")}
+        status_counts = filtered_df[WorkflowFields.status].value_counts()
+        return pd.DataFrame({"message": status_counts.index, "count": status_counts.values})
+
+    def get_error_distribution(
+        self, workflow_name: str, brain_types=None, start_date=None, end_date=None
+    ) -> pd.DataFrame:
+        """
+        Get error distribution for failed cases.
+
+        Args:
+            workflow_name (str): Name of the workflow
+            brain_types (list[str], optional): List of brain types to filter by
+            start_date (str, optional): Start date for filtering in ISO format
+            end_date (str, optional): End date for filtering in ISO format
+
+        Returns:
+            pd.DataFrame: DataFrame with error message counts
+                         Columns: ['message', 'count']
+                         Example:
+                         message                  | count
+                         'Connection timeout'     | 15
+                         'Invalid input format'   | 8
+        """
+        filtered_df = self._get_filtered_df(workflow_name, brain_types, start_date, end_date)
+        if filtered_df.empty:
+            return pd.DataFrame(columns=["message", "count"])
+
+        error_df = filtered_df[filtered_df[WorkflowFields.status] == Status.FAILED]
+        error_counts = error_df[WorkflowFields.message].value_counts()
+
+        error_counts.index = [
+            f"{x[:ChartSettings.max_error_message_length]}..." if len(x) > ChartSettings.max_error_message_length else x
+            for x in error_counts.index
+        ]
+
+        return pd.DataFrame({"message": error_counts.index, "count": error_counts.values})
+
+    def get_weekly_success_data(self, brain_types=None, start_date=None, end_date=None) -> pd.DataFrame:
+        """
+        Get weekly success rate data for all workflows.
+
+        Args:
+            brain_types (list[str], optional): List of brain types to filter by
+            start_date (str, optional): Start date for filtering in ISO format
+            end_date (str, optional): End date for filtering in ISO format
+
+        Returns:
+            pd.DataFrame: DataFrame with columns:
+                - week_start: Week start date
+                - workflow: Workflow name
+                - success_count: Number of successful runs
+                - failed_count: Number of failed runs
+                - success_rate: Success rate as percentage
+        """
+        result_data = []
+        statuses = [Status.SUCCESS.value, Status.FAILED.value]
+        for workflow_name in self._workflow_dfs:
+            filtered_df = self._get_filtered_df(workflow_name, brain_types, start_date, end_date, statuses)
+            if filtered_df.empty:
+                continue
+
+            weekly_stats = (
+                filtered_df.groupby(
+                    [
+                        pd.Grouper(key=WorkflowFields.last_update, freq="W-SUN", closed="left", label="left"),
+                        WorkflowFields.status,
+                    ]
+                )
+                .size()
+                .unstack(fill_value=0)
+            )
+
+            for status in [Status.SUCCESS, Status.FAILED]:
+                if status not in weekly_stats.columns:
+                    weekly_stats[status] = 0
+
+            total_count = weekly_stats[Status.SUCCESS] + weekly_stats[Status.FAILED]
+            success_rate = (weekly_stats[Status.SUCCESS.value] / total_count * 100).fillna(0)
+
+            for week_start, row in weekly_stats.iterrows():
+                result_data.append(
+                    {
+                        "week_start": week_start,
+                        "workflow": workflow_name,
+                        "success_count": row[Status.SUCCESS.value],
+                        "failed_count": row[Status.FAILED.value],
+                        "success_rate": success_rate[week_start],
+                    }
+                )
+
+        return pd.DataFrame(result_data)
+
+    def get_workflow_export_data(
+        self, workflows: list[str], brain_types=None, start_date=None, end_date=None
+    ) -> pd.DataFrame:
+        """
+        Get specific workflow data for export.
+
+        Args:
+            workflows (list[str]): List of workflow names to export
+            brain_types (list[str], optional): List of brain types to filter by
+            start_date (str, optional): Start date for filtering in ISO format
+            end_date (str, optional): End date for filtering in ISO format
+
+        Returns:
+            pd.DataFrame: DataFrame containing workflow data with columns for each workflow
+        """
+        if not workflows:
+            return pd.DataFrame()
+
+        result_df = None
+
+        for workflow in workflows:
+            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date)
+            if filtered_df.empty:
+                continue
+
+            column_mapping = {
+                WorkflowFields.status: f"{workflow}_{WorkflowFields.status}",
+                WorkflowFields.message: f"{workflow}_{WorkflowFields.message}",
+                WorkflowFields.last_update: f"{workflow}_{WorkflowFields.last_update}",
+            }
+            for col in [WorkflowFields.job_id, WorkflowFields.exit_code]:
+                if col in filtered_df.columns:
+                    column_mapping[col] = f"{workflow}_{col}"
+
+            filtered_df = filtered_df.rename(columns=column_mapping)
+
+            if result_df is None:
+                result_df = filtered_df
+            else:
+                result_df = pd.merge(
+                    result_df, filtered_df, on=[DatabaseSettings.primary_key, "brain_type"], how="outer"
+                )
+
+        if result_df is None:
+            return pd.DataFrame()
+
+        columns = [DatabaseSettings.primary_key, "brain_type"]
+        other_columns = [col for col in result_df.columns if col not in columns]
+        result_df = result_df[columns + other_columns]
+
+        return result_df
+
+
+db_manager = WorkflowsDBManager()

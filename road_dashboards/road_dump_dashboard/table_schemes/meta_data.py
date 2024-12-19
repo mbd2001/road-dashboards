@@ -33,6 +33,7 @@ class MetaData(Base):
     crossing_dist_rpw: Column = Column("crossing_dist_rpw", float)
     crosswalk: Column = Column("crosswalk", bool)
     curve_rad_ahead: Column = Column("curve_rad_ahead", float)
+    curve_rad_ahead_150: Column = Column("curve_rad_ahead_150", float)
     curve_rad_ahead_40_90: Column = Column("curve_rad_ahead_40_90", float)
     curve_rad_ahead_90_120: Column = Column("curve_rad_ahead_90_120", float)
     curve_rad_ahead_gt_120: Column = Column("curve_rad_ahead_gt_120", float)
@@ -408,6 +409,9 @@ class MetaData(Base):
     host_junc_delta_heading_rpw: Column = Column("host_junc_delta_heading_rpw", float)
     host_junc_delta_x_rpw: Column = Column("host_junc_delta_x_rpw", float)
     in_junction_turning_rpw: Column = Column("in_junction_turning_rpw", int)
+    num_dp_merges_rpw: Column = Column("num_dp_merges_rpw", float)
+    num_dp_splits_rpw: Column = Column("num_dp_splits_rpw", float)
+    next_junction_length_rpw: Column = Column("next_junction_length_rpw", float)
 
     road_type: Case = (
         Case(alias="road_type")
