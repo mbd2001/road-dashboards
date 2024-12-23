@@ -55,7 +55,7 @@ class ObjCountCard(GridObject):
             optional_inputs(
                 page_filters=Input(self.page_filters_id, "data"),
                 intersection_on=Input(self.intersection_switch_id, "on"),
-                chosen_dump=Input(self.datasets_dropdown_id, "value"),
+                chosen_dataset=Input(self.datasets_dropdown_id, "value"),
             ),
         )
         def get_obj_count(main_tables, md_tables, optional):
@@ -67,12 +67,14 @@ class ObjCountCard(GridObject):
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters is not None else EmptyCriterion()
             intersection_on: bool = optional.get("intersection_on", False)
-            chosen_dump: str | None = optional.get("chosen_dump", None)
+            chosen_dataset: str | None = optional.get("chosen_dataset", None)
             main_tables = (
-                [table for table in main_tables if table.dataset_name == chosen_dump] if chosen_dump else main_tables
+                [table for table in main_tables if table.dataset_name == chosen_dataset]
+                if chosen_dataset
+                else main_tables
             )
             md_tables = (
-                [table for table in md_tables if table.dataset_name == chosen_dump] if chosen_dump else md_tables
+                [table for table in md_tables if table.dataset_name == chosen_dataset] if chosen_dataset else md_tables
             )
 
             base = base_data_subquery(

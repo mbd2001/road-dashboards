@@ -55,8 +55,8 @@ class ScenesPie(GridObject):
             State(self.population_dropdown_id, "value"),
             optional_inputs(page_filters=State(self.page_filters_id, "data")),
         )
-        def update_scenes_pie(table_data, tables, chosen_dump, population, optional):
-            if not tables or not chosen_dump or not population:
+        def update_scenes_pie(table_data, tables, chosen_dataset, population, optional):
+            if not tables or not chosen_dataset or not population:
                 return no_update
 
             batch_num = MetaData.batch_num
@@ -71,7 +71,7 @@ class ScenesPie(GridObject):
             tables: list[Base] = load_object(tables)
 
             data = self.weighted_scenes_query(
-                chosen_dump, tables, page_filters, batches_weight_case, self.scene_category
+                chosen_dataset, tables, page_filters, batches_weight_case, self.scene_category
             )
             data = pd.melt(data, var_name="categories", value_name="weight")
             definitions_dict = {scene.name: scene.definition() for scene in self.scene_category.scenes}
@@ -82,13 +82,13 @@ class ScenesPie(GridObject):
 
     @staticmethod
     def weighted_scenes_query(
-        chosen_dump: str,
+        chosen_dataset: str,
         tables: list[Base],
         page_filters: Criterion,
         batches_weight_case: Case,
         scenes: ScenesCategory,
     ) -> pd.DataFrame:
-        tables = [table for table in tables if table.dataset_name == chosen_dump]
+        tables = [table for table in tables if table.dataset_name == chosen_dataset]
         base = base_data_subquery(
             main_tables=tables,
             meta_data_tables=tables,

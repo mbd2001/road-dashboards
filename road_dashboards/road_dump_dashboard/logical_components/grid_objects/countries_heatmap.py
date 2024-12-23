@@ -59,8 +59,8 @@ class CountriesHeatMap(GridObject):
                 page_filters=Input(self.page_filters_id, "data"),
             ),
         )
-        def get_countries_heat_map(main_tables, md_tables, chosen_dump, optional):
-            if not main_tables or not chosen_dump:
+        def get_countries_heat_map(main_tables, md_tables, chosen_dataset, optional):
+            if not main_tables or not chosen_dataset:
                 return no_update
 
             main_tables: list[Base] = load_object(main_tables)
@@ -70,8 +70,8 @@ class CountriesHeatMap(GridObject):
 
             country_col = MetaData.mdbi_country
             base = base_data_subquery(
-                main_tables=[table for table in main_tables if table.dataset_name == chosen_dump],
-                meta_data_tables=[table for table in md_tables if table.dataset_name == chosen_dump],
+                main_tables=[table for table in main_tables if table.dataset_name == chosen_dataset],
+                meta_data_tables=[table for table in md_tables if table.dataset_name == chosen_dataset],
                 terms=[country_col],
                 page_filters=page_filters,
                 to_order=False,

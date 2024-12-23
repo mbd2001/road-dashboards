@@ -57,16 +57,16 @@ class BoostingControl(GridObject):
             optional_inputs(page_filters=Input(self.page_filters_id, "data")),
             prevent_initial_call=True,
         )
-        def update_batches_table(tables, chosen_dump, population, json_data, optional):
-            if not tables or not chosen_dump or not population:
+        def update_batches_table(tables, chosen_dataset, population, json_data, optional):
+            if not tables or not chosen_dataset or not population:
                 return no_update, no_update
 
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
             tables: list[Base] = load_object(tables)
 
-            conditions_list = self.get_conditions_list(chosen_dump, population)
-            batches_df = self.get_batches_count(chosen_dump, tables, page_filters)
+            conditions_list = self.get_conditions_list(chosen_dataset, population)
+            batches_df = self.get_batches_count(chosen_dataset, tables, page_filters)
             batches_df["batch_name"] = batches_df["batch_num"].apply(
                 lambda batch_num: next(iter(conditions_list[batch_num]))
             )
@@ -151,14 +151,14 @@ class BoostingControl(GridObject):
             return dict(content=json.dumps(json_file, indent=4), filename=f"{jump_name}.json")
 
     @staticmethod
-    def get_conditions_list(chosen_dump: str, population: str) -> list[dict[str, str]]:
-        conditions_dict = dump_db_manager.get_item(chosen_dump).get("split_conditions", {})
+    def get_conditions_list(chosen_dataset: str, population: str) -> list[dict[str, str]]:
+        conditions_dict = dump_db_manager.get_item(chosen_dataset).get("split_conditions", {})
         conditions = conditions_dict.get(f"{population}_batch_conditions", {})
         return [{"unfiltered": ""}] + conditions
 
     @staticmethod
-    def get_batches_count(chosen_dump: str, tables: list[Base], page_filters: Criterion) -> pd.DataFrame:
-        tables = [table for table in tables if table.dataset_name == chosen_dump]
+    def get_batches_count(chosen_dataset: str, tables: list[Base], page_filters: Criterion) -> pd.DataFrame:
+        tables = [table for table in tables if table.dataset_name == chosen_dataset]
         batch_num = MetaData.batch_num
         base = base_data_subquery(
             main_tables=tables,

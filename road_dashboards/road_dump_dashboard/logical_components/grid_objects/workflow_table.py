@@ -75,21 +75,21 @@ class WorkflowTable(GridObject):
             Output(self.status_table_id, "tooltip_data"),
             Input(self.datasets_dropdown_id, "value"),
         )
-        def update_workflow_table(chosen_dump):
-            if not chosen_dump:
+        def update_workflow_table(chosen_dataset):
+            if not chosen_dataset:
                 return no_update, no_update
 
-            workflow_dict = self.get_workflow_dict(chosen_dump)
+            workflow_dict = self.get_workflow_dict(chosen_dataset)
             tooltip_columns = ["example_clip_name", "error_msg"]
             tooltip_data = [{col: exit_code[col] for col in tooltip_columns} for exit_code in workflow_dict.values()]
             return list(workflow_dict.values()), tooltip_data
 
         @callback(Output(self.state_pie_id, "figure"), Input(self.datasets_dropdown_id, "value"))
-        def update_workflow_pie_chart(chosen_dump):
-            if not chosen_dump:
+        def update_workflow_pie_chart(chosen_dataset):
+            if not chosen_dataset:
                 return no_update
 
-            workflow_dict = self.get_workflow_dict(chosen_dump)
+            workflow_dict = self.get_workflow_dict(chosen_dataset)
             if not workflow_dict:
                 return {}
 
@@ -98,7 +98,7 @@ class WorkflowTable(GridObject):
             return fig
 
     @staticmethod
-    def get_workflow_dict(chosen_dump: str) -> dict[str, any]:
-        workflow_dict = dump_db_manager.get_item(chosen_dump).get("common_exit_codes", {})
+    def get_workflow_dict(chosen_dataset: str) -> dict[str, any]:
+        workflow_dict = dump_db_manager.get_item(chosen_dataset).get("common_exit_codes", {})
         workflow_dict.pop("0", None)
         return workflow_dict

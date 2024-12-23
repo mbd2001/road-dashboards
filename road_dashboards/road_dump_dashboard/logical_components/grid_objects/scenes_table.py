@@ -94,8 +94,8 @@ class ScenesTable(GridObject):
                 only_failed=Input(self.insufficient_switch_id, "on"),
             ),
         )
-        def update_scenes_data(chosen_dump, md_tables, optional):
-            if not md_tables or not chosen_dump:
+        def update_scenes_data(chosen_dataset, md_tables, optional):
+            if not md_tables or not chosen_dataset:
                 return no_update, no_update
 
             md_tables: list[Base] = load_object(md_tables)
@@ -103,7 +103,7 @@ class ScenesTable(GridObject):
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 
-            tables = [table for table in md_tables if table.dataset_name == chosen_dump]
+            tables = [table for table in md_tables if table.dataset_name == chosen_dataset]
             weighted_sums = [
                 weighted_sum
                 for scenes_category in self.scenes_categories
