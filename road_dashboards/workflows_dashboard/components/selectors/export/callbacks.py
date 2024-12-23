@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from dash import Input, Output, State, callback, dcc, html   
+from dash import Input, Output, State, callback, dcc, html
 from dash.dependencies import ALL
 
 from road_dashboards.workflows_dashboard.core_settings.constants import (
