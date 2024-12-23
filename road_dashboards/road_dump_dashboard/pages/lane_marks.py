@@ -64,24 +64,14 @@ vr_hist = CountGraph(
     slider_value=0,
     full_grid_row=True,
 )
-painted_len_hist = CountGraph(
+dashed_len_hist = CountGraph(
     main_table=page.main_table,
     title="Dashed Painted Length Distribution",
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.dashed_length,
-    filter=(LaneMarks.type == "dashed") & (LaneMarks.dashed_length[0:20]),
+    filter=LaneMarks.dashed_length[0:20],
     slider_value=1,
-    full_grid_row=True,
-)
-dashed_width_hist = CountGraph(
-    main_table=page.main_table,
-    title="Lane Mark Width Distribution (m)",
-    page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=intersection_switch.component_id,
-    column=LaneMarks.avg_width,
-    filter=(LaneMarks.avg_width > 0) & (LaneMarks.avg_width < 1.5),
-    slider_value=2,
     full_grid_row=True,
 )
 dashed_gap_hist = CountGraph(
@@ -90,8 +80,18 @@ dashed_gap_hist = CountGraph(
     page_filters_id=filters_agg.final_filter_id,
     intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.dashed_gap,
-    filter=(LaneMarks.type == "dashed") & (LaneMarks.dashed_length[0:25]),
+    filter=LaneMarks.dashed_gap[0:25],
     slider_value=1,
+    full_grid_row=True,
+)
+lm_width_hist = CountGraph(
+    main_table=page.main_table,
+    title="Lane Mark Width Distribution (m)",
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=intersection_switch.component_id,
+    column=LaneMarks.avg_width,
+    filter=(LaneMarks.avg_width > 0) & (LaneMarks.avg_width < 1.5),
+    slider_value=2,
     full_grid_row=True,
 )
 obj_count = ObjCountGraph(
@@ -168,9 +168,9 @@ layout = GridGenerator(
     color_count,
     role_count,
     vr_hist,
-    painted_len_hist,
-    dashed_width_hist,
+    dashed_len_hist,
     dashed_gap_hist,
+    lm_width_hist,
     obj_count,
     GridGenerator(
         count_columns_dropdown,
