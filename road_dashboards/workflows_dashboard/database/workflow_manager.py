@@ -4,7 +4,7 @@ import pandas as pd
 from boto3.dynamodb.conditions import Attr
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
-from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, WorkflowFields
+from road_dashboards.workflows_dashboard.core_settings.constants import BRAIN_OPTIONS, WORKFLOWS, WorkflowFields
 from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings, DatabaseSettings, Status
 
 
@@ -54,24 +54,21 @@ class WorkflowsDBManager(DBManager):
             if df.empty:
                 continue
 
-            column_mapping = {
-                f"{workflow}_{WorkflowFields.status}": WorkflowFields.status,
-                f"{workflow}_{WorkflowFields.message}": WorkflowFields.message,
-                f"{workflow}_{WorkflowFields.last_update}": WorkflowFields.last_update,
-            }
+            df = self._remove_workflow_prefix_mapping(workflow, df)
 
-            for col in [WorkflowFields.job_id, WorkflowFields.exit_code]:
-                if f"{workflow}_{col}" in df.columns:
-                    column_mapping[f"{workflow}_{col}"] = col
-
-            df = df.rename(columns=column_mapping)
             df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
             df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
 
             self._workflow_dfs[workflow] = df
 
     def _get_filtered_df(
-        self, workflow_name: str = None, brain_types=None, start_date=None, end_date=None, statuses=None
+        self,
+        workflow_name: str = None,
+        brain_types=None,
+        start_date=None,
+        end_date=None,
+        statuses=None,
+        column_filters=None,
     ) -> pd.DataFrame:
         """
         Get filtered DataFrame based on common filters.
@@ -82,6 +79,9 @@ class WorkflowsDBManager(DBManager):
             start_date (str, optional): Start date for filtering in ISO format
             end_date (str, optional): End date for filtering in ISO format
             statuses (list[str], optional): List of statuses to filter by
+            column_filters (dict, optional): Dictionary of column filters in the format:
+                {column_name: list_of_values}
+                Example: {"exit_code": ["0", "1"]}
 
         Returns:
             pd.DataFrame: Filtered DataFrame
@@ -101,6 +101,11 @@ class WorkflowsDBManager(DBManager):
             df = df[df[WorkflowFields.last_update] <= pd.to_datetime(end_date)]
         if statuses:
             df = df[df[WorkflowFields.status].isin(statuses)]
+
+        if column_filters:
+            for col, values in column_filters.items():
+                if col in df.columns and values:
+                    df = df[df[col].astype(str).isin(values)]
 
         return df
 
@@ -221,8 +226,34 @@ class WorkflowsDBManager(DBManager):
 
         return pd.DataFrame(result_data)
 
+    def _add_workflow_prefix_mapping(self, workflow: str, df: pd.DataFrame) -> dict:
+        """Get column mapping for workflow DataFrame.
+
+        Args:
+            workflow: Name of the workflow
+            df: DataFrame containing workflow data
+
+        Returns:
+            Dictionary mapping original column names to workflow-specific names
+        """
+        non_workflow_columns = [DatabaseSettings.primary_key, WorkflowFields.brain_type]
+        return df.rename(columns=lambda col: f"{workflow}_{col}" if col not in non_workflow_columns else col)
+
+    def _remove_workflow_prefix_mapping(self, workflow: str, df: pd.DataFrame) -> pd.DataFrame:
+        """Remove workflow-specific prefix from column names.
+
+        Args:
+            workflow: Name of the workflow
+            df: DataFrame containing workflow data
+
+        Returns:
+            DataFrame with column names without workflow-specific prefix
+        """
+
+        return df.rename(columns=lambda col: col.replace(f"{workflow}_", ""))
+
     def get_workflow_export_data(
-        self, workflows: list[str], brain_types=None, start_date=None, end_date=None
+        self, workflows: list[str], brain_types=None, start_date=None, end_date=None, statuses=None, column_filters=None
     ) -> pd.DataFrame:
         """
         Get specific workflow data for export.
@@ -232,6 +263,10 @@ class WorkflowsDBManager(DBManager):
             brain_types (list[str], optional): List of brain types to filter by
             start_date (str, optional): Start date for filtering in ISO format
             end_date (str, optional): End date for filtering in ISO format
+            statuses (list[str], optional): List of statuses to filter by
+            column_filters (dict, optional): Dictionary of column filters in the format:
+                {column_name: list_of_values}
+                Example: {"exit_code": ["0", "1"]}
 
         Returns:
             pd.DataFrame: DataFrame containing workflow data with columns for each workflow
@@ -240,38 +275,118 @@ class WorkflowsDBManager(DBManager):
             return pd.DataFrame()
 
         result_df = None
+        merge_keys = [DatabaseSettings.primary_key, WorkflowFields.brain_type]
 
         for workflow in workflows:
-            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date)
+            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date, statuses, column_filters)
             if filtered_df.empty:
                 continue
 
-            column_mapping = {
-                WorkflowFields.status: f"{workflow}_{WorkflowFields.status}",
-                WorkflowFields.message: f"{workflow}_{WorkflowFields.message}",
-                WorkflowFields.last_update: f"{workflow}_{WorkflowFields.last_update}",
-            }
-            for col in [WorkflowFields.job_id, WorkflowFields.exit_code]:
-                if col in filtered_df.columns:
-                    column_mapping[col] = f"{workflow}_{col}"
-
-            filtered_df = filtered_df.rename(columns=column_mapping)
+            filtered_df = self._add_workflow_prefix_mapping(workflow, filtered_df)
 
             if result_df is None:
                 result_df = filtered_df
             else:
-                result_df = pd.merge(
-                    result_df, filtered_df, on=[DatabaseSettings.primary_key, "brain_type"], how="outer"
-                )
+                result_df = pd.merge(result_df, filtered_df, on=merge_keys, how="outer")
 
         if result_df is None:
             return pd.DataFrame()
 
-        columns = [DatabaseSettings.primary_key, "brain_type"]
-        other_columns = [col for col in result_df.columns if col not in columns]
-        result_df = result_df[columns + other_columns]
-
+        result_df = result_df[merge_keys + [col for col in result_df.columns if col not in merge_keys]]
         return result_df
+
+    def get_workflow_success_count_data(
+        self,
+        brain_types: list[str],
+        start_date: str | None = None,
+        end_date: str | None = None,
+    ) -> pd.DataFrame:
+        """
+        Get the success count for each workflow and brain type combination.
+
+        Args:
+            brain_types: List of brain types to filter by
+            start_date: Optional start date to filter by
+            end_date: Optional end date to filter by
+
+        Returns:
+            DataFrame with workflow and brain type success count data
+        """
+        success_data = []
+
+        for workflow in WORKFLOWS:
+            total_df = self._get_filtered_df(
+                workflow_name=workflow,
+                brain_types=brain_types,
+                start_date=start_date,
+                end_date=end_date,
+                statuses=[Status.SUCCESS.value, Status.FAILED.value],
+            )
+
+            if total_df.empty:
+                for brain in brain_types:
+                    success_data.append({"workflow": workflow, "brain_type": brain, "success_count": 0})
+                continue
+
+            success_df = total_df[total_df[WorkflowFields.status] == Status.SUCCESS.value]
+
+            if brain_types is None or len(brain_types) == 0:
+                brain_types = BRAIN_OPTIONS
+
+            for brain_type in brain_types:
+                brain_success_df = success_df[success_df[WorkflowFields.brain_type] == brain_type]
+                brain_success = len(brain_success_df)
+
+                success_data.append({"workflow": workflow, "brain_type": brain_type, "success_count": brain_success})
+
+        return pd.DataFrame(success_data)
+
+    def get_workflow_columns(self, workflow_name: str) -> list[str]:
+        df = self._workflow_dfs.get(workflow_name, pd.DataFrame())
+        return list(df.columns)
+
+    def get_unique_column_values(
+        self,
+        workflow_name: str,
+        column_name: str,
+        brain_types=None,
+        start_date=None,
+        end_date=None,
+        statuses=None,
+        column_filters=None,
+    ) -> list:
+        """
+        Get unique values for a specific column in a workflow.
+
+        Args:
+            workflow_name (str): Name of the workflow
+            column_name (str): Name of the column
+            brain_types (list[str], optional): List of brain types to filter by
+            start_date (str, optional): Start date for filtering in ISO format
+            end_date (str, optional): End date for filtering in ISO format
+            statuses (list[str], optional): List of statuses to filter by
+            column_filters (dict, optional): Dictionary of column filters
+
+        Returns:
+            list: List of unique values in the column, sorted
+        """
+        filtered_df = self._get_filtered_df(
+            workflow_name=workflow_name,
+            brain_types=brain_types,
+            start_date=start_date,
+            end_date=end_date,
+            statuses=statuses,
+            column_filters=column_filters,
+        )
+
+        if filtered_df.empty or column_name not in filtered_df.columns:
+            return []
+
+        values = filtered_df[column_name].dropna().unique()
+        try:
+            return [str(x) for x in sorted(values.astype(int))]
+        except:
+            return sorted(values.astype(str).tolist())
 
 
 db_manager = WorkflowsDBManager()

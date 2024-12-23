@@ -4,6 +4,7 @@ from dash import html
 from road_dashboards.workflows_dashboard.components.charts.error_pie import ErrorPieChart
 from road_dashboards.workflows_dashboard.components.charts.status_pie import StatusPieChart
 from road_dashboards.workflows_dashboard.components.charts.weekly_success import WeeklySuccessChart
+from road_dashboards.workflows_dashboard.components.charts.workflow_success_count import WorkflowSuccessCountChart
 from road_dashboards.workflows_dashboard.components.selectors.workflow_selector import create_workflow_selector
 from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS
 
@@ -12,6 +13,7 @@ def create_charts_container():
     return html.Div(
         [
             dbc.Row([WeeklySuccessChart().render()], className="g-4 mb-4"),
+            dbc.Row([WorkflowSuccessCountChart().render()], className="g-4 mb-4"),
             create_workflow_selector(),
             *[create_workflow_charts(workflow) for workflow in WORKFLOWS],
         ]
