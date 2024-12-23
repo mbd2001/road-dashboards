@@ -1,7 +1,10 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
+import pandas as pd
 from dash import Input, Output, State, callback, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query, functions
+from pypika import analytics as an
+from pypika.queries import QueryBuilder, Selectable
 from pypika.terms import Term
 
 from road_dashboards.road_dump_dashboard.graphical_components.histogram_plot import basic_histogram_plot
@@ -12,10 +15,7 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
     card_wrapper,
     loading_wrapper,
 )
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
-    base_data_subquery,
-    percentage_wrapper,
-)
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
@@ -162,7 +162,7 @@ class CountGraph(GridObject):
                 .select(column.alias, dump_name, functions.Count("*", "overall"))
             )
             if compute_percentage:
-                query = percentage_wrapper(query, query.overall, [dump_name], [column])
+                query = self.percentage_wrapper(query, query.overall, [dump_name], [column])
 
             y_col = "percentage" if compute_percentage else "overall"
             data = execute(query)
@@ -171,7 +171,14 @@ class CountGraph(GridObject):
             return fig
 
     @staticmethod
-    def pie_or_line_graph(data, names, values, title="", hover=None, color="dump_name"):
+    def pie_or_line_graph(
+        data: pd.DataFrame,
+        names: str,
+        values: str,
+        title: str = "",
+        hover: str | None = None,
+        color: str | None = "dump_name",
+    ):
         if data[names].nunique() > 16:
             fig = basic_histogram_plot(data, names, values, title=title)
         elif data[color].nunique() == 1:
@@ -188,3 +195,15 @@ class CountGraph(GridObject):
             if isinstance(column, Column) and column.type in [int, float] and round_n_decimal_place is not None
             else column
         )
+
+    @staticmethod
+    def percentage_wrapper(
+        sub_query: Selectable,
+        percentage_column: Term,
+        partition_columns: list[Term],
+        terms: list[Term],
+    ) -> QueryBuilder:
+        percentage_calc = (percentage_column * 100.0 / an.Sum(percentage_column).over(*partition_columns)).as_(
+            "percentage"
+        )
+        return Query.from_(sub_query).select(*partition_columns, *[term.alias for term in terms], percentage_calc)

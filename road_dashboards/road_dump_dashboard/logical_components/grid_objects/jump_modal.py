@@ -3,22 +3,24 @@ from typing import Callable
 
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, callback, dcc, no_update
-from pypika import Criterion, EmptyCriterion
+from pypika import Criterion, EmptyCriterion, Query, functions
+from pypika import analytics as an
+from pypika.enums import SqlTypes
 from pypika.queries import QueryBuilder, Selectable
-from pypika.terms import Term
+from pypika.terms import Case, Term
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
     base_data_subquery,
     diff_terms_subquery,
-    ids_query_wrapper,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
+    Arbitrary,
     df_to_jump,
     dump_object,
     execute,
@@ -214,7 +216,7 @@ class JumpModal(GridObject):
             )
             diff_tolerance = diff_tolerance if diff_tolerance is not None else self.DIFF_TOLERANCE
             lines_limit = lines_limit if lines_limit is not None else self.LINES_LIMIT
-            query = ids_query_wrapper(
+            query = self.group_frames_with_gi_below_diff_query_wrapper(
                 sub_query=subquery,
                 terms=updated_terms,
                 limit=lines_limit,
@@ -226,3 +228,76 @@ class JumpModal(GridObject):
 
             jump_name = "tmp_name"
             return dict(content=df_to_jump(jump_frames), filename=f"{jump_name}.jump")
+
+    @staticmethod
+    def group_frames_with_gi_below_diff_query_wrapper(
+        sub_query: Selectable,
+        terms: list[Term],
+        limit: int | None = None,
+        diff_tolerance: int = 0,
+    ) -> QueryBuilder:
+        unique_frames_query = JumpModal.select_unique_frames(sub_query, terms)
+        group_ids_query = JumpModal.add_groups_ids_based_on_diff(unique_frames_query, terms, diff_tolerance)
+        final_query = JumpModal.select_one_term_per_group(group_ids_query, terms, limit)
+        return final_query
+
+    @staticmethod
+    def select_unique_frames(base_data_query: Selectable, terms: list[Term]) -> QueryBuilder:
+        query = (
+            Query.from_(base_data_query)
+            .select(*[Arbitrary(term, alias=term.alias) for term in terms])
+            .groupby(base_data_query.clip_name, base_data_query.grabindex)
+        )
+        return query
+
+    @staticmethod
+    def add_groups_ids_based_on_diff(
+        unique_frames_query: QueryBuilder, terms: list[Term], diff_tolerance: int
+    ) -> QueryBuilder:
+        new_groups_query = Query.from_(unique_frames_query).select(
+            *terms,
+            Case(alias="is_new_group")
+            .when(
+                (
+                    unique_frames_query.grabindex
+                    - an.Lag(unique_frames_query.grabindex)
+                    .over()
+                    .orderby(unique_frames_query.clip_name, unique_frames_query.grabindex)
+                )
+                > diff_tolerance,
+                1,
+            )
+            .else_(0),
+        )
+        cum_sum_groups_query = Query.from_(new_groups_query).select(
+            *terms,
+            an.Sum(new_groups_query.is_new_group)
+            .orderby(new_groups_query.clip_name, new_groups_query.grabindex)
+            .as_("group_id"),
+        )
+        return cum_sum_groups_query
+
+    @staticmethod
+    def select_one_term_per_group(
+        sum_groups_query: QueryBuilder, terms: list[Term], limit: int | None = None
+    ) -> QueryBuilder:
+        final_query = (
+            Query.from_(sum_groups_query)
+            .select(
+                MetaData.clip_name,
+                functions.Cast(functions.Min(sum_groups_query.grabindex), SqlTypes.INTEGER).as_("startframe"),
+                functions.Cast(functions.Max(sum_groups_query.grabindex), SqlTypes.INTEGER).as_("endframe"),
+                functions.Cast(
+                    functions.Max(sum_groups_query.grabindex) - functions.Min(sum_groups_query.grabindex) + 1,
+                    SqlTypes.INTEGER,
+                ).as_("event_length"),
+                *[
+                    Arbitrary(term, alias=term.alias)
+                    for term in terms
+                    if term.alias not in ["clip_name", "grabindex", "obj_id"]
+                ],
+            )
+            .groupby(sum_groups_query.clip_name, sum_groups_query.group_id)
+            .limit(limit)
+        )
+        return final_query

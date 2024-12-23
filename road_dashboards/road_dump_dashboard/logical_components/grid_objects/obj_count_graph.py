@@ -10,10 +10,8 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wra
     card_wrapper,
     loading_wrapper,
 )
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
-    base_data_subquery,
-    percentage_wrapper,
-)
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.count_graph import CountGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
@@ -105,7 +103,7 @@ class ObjCountGraph(GridObject):
                 .select(obj_query.dump_name, obj_query.objects_per_frame, functions.Count("*", "overall"))
             )
             if compute_percentage:
-                query = percentage_wrapper(
+                query = CountGraph.percentage_wrapper(
                     query, query.overall, [query.dump_name], [query.objects_per_frame.as_("objects_per_frame")]
                 )
 
