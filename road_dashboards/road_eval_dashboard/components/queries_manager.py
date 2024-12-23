@@ -118,6 +118,14 @@ DIST_METRIC = """
     AS "score_{ind}"
     """
 
+BASIC_OOL_METRIC = (
+    '"{dist_col_name}" IS NOT NULL AND ABS("{dist_col_name}") <> 999 AND "{dist_col_name}" {operator} {threshold}'
+)
+
+VALID_OOL_METRIC = '"{dist_col_name}" IS NOT NULL AND ABS("{dist_col_name}") <> 999'
+
+INVALID_OOL_METRIC = '"{dist_col_name}" IS NULL OR ABS("{dist_col_name}") = 999'
+
 BOUNDARY_DIST_METRIC = """
     CAST(
         (
@@ -657,8 +665,8 @@ def generate_path_net_query(
     role="",
     extra_filters="",
     base_dist_column_name="dist",
+    operator="<",
 ):
-    operator = "<"
     query = get_dist_query(
         base_dist_column_name,
         data_tables,
@@ -856,6 +864,54 @@ def generate_extract_acc_events_query(
     return query, final_columns
 
 
+def generate_extract_ool_events_query(
+    data_tables,
+    meta_data,
+    meta_data_filters,
+    bookmarks_columns,
+    chosen_source,
+    role,
+    dist,
+    threshold,
+    re_threshold,
+    operator,
+    order_by,
+    re_only=False,
+):
+    boundary_dist_column = f"dp_dist_from_boundaries_gt_{dist}"
+    re_dist_column = f"dp_dist_from_road_edges_gt_{dist}"
+    dp_id_columns = ["matched_dp_id", "dp_id"]
+
+    population_cond = f"bin_population = '{chosen_source}'"
+    re_ool = BASIC_OOL_METRIC.format(dist_col_name=re_dist_column, operator=operator, threshold=re_threshold)
+    ool_columns = [f"closer_road_edge_to_dp_{dist}", re_dist_column]
+    if re_only:
+        ool_cmd = f"{population_cond} AND {re_ool}"
+    else:
+        boundary_ool = BASIC_OOL_METRIC.format(
+            dist_col_name=boundary_dist_column, operator=operator, threshold=threshold
+        )
+        re_boundary_op = "OR" if operator == "<" else "AND"
+        ool_cmd = f"{population_cond} AND (({re_ool}) {re_boundary_op} ({boundary_ool}))"
+        ool_columns += [f"closer_boundary_to_dp_{dist}", boundary_dist_column]
+
+    ool_columns = [f'"{col}"' for col in ool_columns]
+    base_query = generate_base_query(
+        data_tables,
+        meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=dp_id_columns + ool_columns,
+        extra_filters=ool_cmd,
+    )
+    final_columns = bookmarks_columns + dp_id_columns
+    order_cmd = f'ORDER BY "{re_dist_column if re_only else boundary_dist_column}" {order_by}'
+    query = EXTRACT_EVENT_QUERY.format(
+        final_columns=", ".join(final_columns + ool_columns), base_query=base_query, order_cmd=order_cmd
+    )
+    return query, final_columns
+
+
 def generate_extract_miss_false_events_query(
     data_tables, meta_data, meta_data_filters, bookmarks_columns, chosen_source, role
 ):
@@ -1019,6 +1075,52 @@ def get_dist_query(
         extra_filters=base_extra_filters,
         role=role,
         extra_columns=extra_columns,
+    )
+
+
+def get_in_lane_query(
+    data_tables,
+    meta_data,
+    boundary_dist_column_name,
+    boundary_dist_threshold,
+    re_dist_column_name,
+    re_dist_threshold,
+    sec_samples,
+    meta_data_filters,
+    operator,
+    role,
+    base_extra_filters="",
+    extra_columns=None,
+):
+    metrics = []
+    count_metrics = {}
+    for sec in sec_samples:
+        boundary_in_lane_metric = BASIC_OOL_METRIC.format(
+            dist_col_name=f"{boundary_dist_column_name}_{sec}", operator=operator, threshold=boundary_dist_threshold
+        )
+        re_in_lane_metric = BASIC_OOL_METRIC.format(
+            dist_col_name=f"{re_dist_column_name}_{sec}", operator=operator, threshold=re_dist_threshold
+        )
+        valid_boundary_dist = VALID_OOL_METRIC.format(dist_col_name=f"{boundary_dist_column_name}_{sec}")
+        invalid_re_dist = INVALID_OOL_METRIC.format(dist_col_name=f"{re_dist_column_name}_{sec}")
+        in_lane_metric = f"({boundary_in_lane_metric}) AND (({re_in_lane_metric}) OR ({invalid_re_dist}))"
+        in_lane_score_metric = (
+            f"CAST(COUNT(CASE WHEN ({in_lane_metric}) THEN 1 ELSE NULL END) AS DOUBLE) / "
+            f'COUNT(CASE WHEN ({valid_boundary_dist}) THEN 1 ELSE NULL END) AS "score_{sec}"'
+        )
+        metrics.append(in_lane_score_metric)
+        count_metrics[sec] = in_lane_metric
+
+    metrics = ", ".join(metrics)
+    return get_query_by_metrics(
+        data_tables,
+        meta_data,
+        metrics,
+        count_metrics=count_metrics,
+        meta_data_filters=meta_data_filters,
+        extra_filters=base_extra_filters,
+        extra_columns=extra_columns,
+        role=role,
     )
 
 
