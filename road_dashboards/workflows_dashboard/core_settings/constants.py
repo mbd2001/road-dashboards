@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-WORKFLOWS = ["drone_view_workflow", "gtrm_workflow", "emdp_workflow"]
+WORKFLOWS = ["drone_view_workflow", "gtrm_workflow", "emdp_workflow", "panoptic_workflow"]
 BRAIN_OPTIONS = ["8mp", "wono", "mono"]
 DEFAULT_BRAIN = "8mp"
 
@@ -40,6 +40,7 @@ class WorkflowFields:
     clip_name: str = "clip_name"
     exit_code: str = "exit_code"
     job_id: str = "job_id"
+    jira_key: str = "jira_key"
 
 
 class Status(str, Enum):

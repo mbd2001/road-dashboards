@@ -22,7 +22,7 @@ class WorkflowsDBManager(DBManager):
             filter_expr = Attr("workflows").contains(workflow)
             projection_expr = (
                 f"#pk, brain_type, {workflow}_{WorkflowFields.status}, {workflow}_{WorkflowFields.message}, "
-                f"{workflow}_{WorkflowFields.last_update}, {workflow}_{WorkflowFields.job_id}, {workflow}_{WorkflowFields.exit_code}"
+                f"{workflow}_{WorkflowFields.last_update}, {workflow}_{WorkflowFields.job_id}, {workflow}_{WorkflowFields.exit_code}, {workflow}_{WorkflowFields.jira_key}"
             )
             expr_names = {"#pk": DatabaseSettings.primary_key}
 
@@ -274,8 +274,19 @@ class WorkflowsDBManager(DBManager):
         if not workflows:
             return pd.DataFrame()
 
-        result_df = None
         merge_keys = [DatabaseSettings.primary_key, WorkflowFields.brain_type]
+
+        # For single workflow export, don't add workflow prefix
+        if len(workflows) == 1:
+            workflow = workflows[0]
+            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date, statuses, column_filters)
+            if filtered_df.empty:
+                return pd.DataFrame()
+            filtered_df = filtered_df[merge_keys + [col for col in filtered_df.columns if col not in merge_keys]]
+            return filtered_df
+
+        # For multiple workflows, add prefix to distinguish between workflows
+        result_df = None
 
         for workflow in workflows:
             filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date, statuses, column_filters)

@@ -24,24 +24,24 @@ def update_columns_selector(selected_workflows):
     if not selected_workflows or len(selected_workflows) != 1:
         return {"display": "none"}, []
 
-    workflow = selected_workflows[0]
-    workflow_columns = db_manager.get_workflow_columns(workflow)
-    if len(workflow_columns) == 0:
+    current_workflow = selected_workflows[0]
+    current_workflow_columns = db_manager.get_workflow_columns(current_workflow)
+    if len(current_workflow_columns) == 0:
         return {"display": "none"}, []
 
     # Get cloud columns if exist
-    cloud_columns = {
-        WorkflowFields.exit_code,
-        WorkflowFields.job_id,
-    }
-    additional_cols = [cloud_col for cloud_col in cloud_columns if cloud_col in workflow_columns]
+    workflow_specific_columns = {WorkflowFields.exit_code, WorkflowFields.job_id, WorkflowFields.jira_key}
+    additional_cols = [col for col in workflow_specific_columns if col in current_workflow_columns]
     column_options = [{"label": col, "value": col} for col in additional_cols]
 
     return {"display": "block"}, column_options
 
 
 @callback(
-    Output(ComponentIds.EXPORT_COLUMN_VALUES_CONTAINER, "children"),
+    [
+        Output(ComponentIds.EXPORT_COLUMN_VALUES_CONTAINER, "children"),
+        Output(ComponentIds.EXPORT_STATUS_SELECTOR, "options"),
+    ],
     [
         Input(ComponentIds.EXPORT_WORKFLOW_SELECTOR, "value"),
         Input(ComponentIds.EXPORT_COLUMNS_SELECTOR, "value"),
@@ -64,11 +64,10 @@ def update_column_values_selectors(
     column_ids,
 ):
     """Create value selectors for each selected column."""
-    if not selected_workflows or len(selected_workflows) != 1 or not selected_columns:
-        return []
+    if not selected_workflows or len(selected_workflows) != 1:
+        return [], []
 
     workflow = selected_workflows[0]
-    value_selectors = []
 
     # Build column filters from current selections
     column_filters = {}
@@ -77,9 +76,23 @@ def update_column_values_selectors(
             if values:  # Only add filters that have selected values
                 column_filters[col_id["column"]] = values
 
+    # Get unique statuses with current filters
+    unique_statuses = db_manager.get_unique_column_values(
+        workflow, WorkflowFields.status, brain_types, start_date, end_date, None, column_filters
+    )
+    status_options = [{"label": status, "value": status} for status in unique_statuses]
+
+    if not selected_columns:
+        return [], status_options
+
+    value_selectors = []
+
     for col in selected_columns:
         # Don't include the current column in filters when getting its options
         current_filters = {k: v for k, v in column_filters.items() if k != col}
+        if selected_statuses:
+            current_filters[WorkflowFields.status] = selected_statuses
+
         unique_values = db_manager.get_unique_column_values(
             workflow, col, brain_types, start_date, end_date, selected_statuses, current_filters
         )
@@ -111,8 +124,8 @@ def update_column_values_selectors(
                 "borderRadius": "4px",
                 "backgroundColor": "#f8f9fa",
             },
-        )
-    return value_selectors
+        ), status_options
+    return value_selectors, status_options
 
 
 def _build_column_filters(selected_columns: list[str], column_values: list, column_ids: list) -> dict:
