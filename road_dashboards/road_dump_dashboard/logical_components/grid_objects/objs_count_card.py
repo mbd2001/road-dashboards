@@ -97,7 +97,7 @@ class ObjCountCard(GridObject):
             frame_count_accordion = [
                 dbc.AccordionItem(
                     html.H5(f"{amount} {self.objs_name.title()}"),
-                    title=dump_name.title(),
+                    title=dump_name,
                     item_id=dump_name,
                 )
                 for dump_name, amount in zip(data.dump_name, data.overall)
