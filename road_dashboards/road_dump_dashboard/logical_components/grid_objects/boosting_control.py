@@ -17,7 +17,15 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class BoostingControl(GridObject):
-    """Grid object for controlling boosting weights"""
+    """
+    Grid object that contains 3 main components:
+        1. Table with batches and their weights (default 1)
+        2. Upload button for boosting json file
+        3. Download button for updated boosting json file
+
+    The table is updated based on the chosen dataset and population, and can be edited by the user.
+    The user can upload a json file with existing boosting weights, and download a json file with updated weights.
+    """
 
     def __init__(
         self,
@@ -59,7 +67,9 @@ class BoostingControl(GridObject):
             optional_inputs(page_filters=Input(self.page_filters_id, "data")),
             prevent_initial_call=True,
         )
-        def update_batches_table(tables, chosen_dataset, population, json_data, optional):
+        def update_batches_table(
+            tables: str, chosen_dataset: str, population: str, json_data: dict | None, optional: dict
+        ):
             """Update table from page inputs"""
             if not tables or not chosen_dataset or not population:
                 return no_update, no_update
@@ -93,7 +103,7 @@ class BoostingControl(GridObject):
             State(self.batches_table_id, "data"),
             prevent_initial_call=True,
         )
-        def update_batches_table_from_json(json_data, population, table_data):
+        def update_batches_table_from_json(json_data: dict, population: str, table_data: dict):
             """Update table with weights from uploaded json"""
             if not json_data:
                 return no_update
@@ -113,7 +123,7 @@ class BoostingControl(GridObject):
             Input(self.batches_table_id, "data_timestamp"),
             State(self.batches_table_id, "data"),
         )
-        def update_batches_table_from_user_input(timestamp, table_data):
+        def update_batches_table_from_user_input(timestamp: int, table_data: dict):
             """Update normalized weights after user input"""
             if not table_data:
                 return no_update
@@ -128,7 +138,7 @@ class BoostingControl(GridObject):
             Output(self.upload_data_id, "data"),
             Input(self.upload_boosting_btn_id, "contents"),
         )
-        def upload_existing_boosting(data):
+        def upload_existing_boosting(data: str):
             """Upload json file with existing weights"""
             if not data:
                 return no_update
@@ -144,12 +154,12 @@ class BoostingControl(GridObject):
             State(self.batches_table_id, "data"),
             State(self.population_dropdown_id, "value"),
         )
-        def download_boosting(n_clicks, json_file, bathes_table, population):
+        def download_boosting(n_clicks: int, json_file: dict, batches_table: dict, population: str):
             """Download json file with updated weights"""
-            if not json_file or not bathes_table:
+            if not json_file or not batches_table:
                 return no_update
 
-            updated_batch_to_weight = {row["batch_name"]: row["weight"] for row in bathes_table}
+            updated_batch_to_weight = {row["batch_name"]: row["weight"] for row in batches_table}
             json_file["data"][population]["batch_sampling_rate"] = {
                 batch_name: updated_batch_to_weight.get(batch_name, 0)
                 for batch_name, _ in json_file["data"][population]["batch_sampling_rate"].items()
@@ -166,6 +176,7 @@ class BoostingControl(GridObject):
     @staticmethod
     def get_batches_count(chosen_dataset: str, tables: list[Base], page_filters: Criterion) -> pd.DataFrame:
         tables = [table for table in tables if table.dataset_name == chosen_dataset]
+        assert len(tables) == 1, f"Expected one table for dataset {chosen_dataset}, got {len(tables)}"
         batch_num = MetaData.batch_num
         base = base_data_subquery(
             main_tables=tables,
@@ -184,7 +195,7 @@ class BoostingControl(GridObject):
         return data
 
     @staticmethod
-    def get_header_layout(load_boosting_btn_id, download_boosting_btn_id, download_data_id):
+    def get_header_layout(load_boosting_btn_id: str, download_boosting_btn_id: str, download_data_id: str):
         load_boosting_btn = dcc.Upload(
             children=html.Div("Drag and Drop or Select Json"),
             id=load_boosting_btn_id,
@@ -211,7 +222,7 @@ class BoostingControl(GridObject):
         return header
 
     @staticmethod
-    def get_table_layout(batches_table_id):
+    def get_table_layout(batches_table_id: str):
         shown_columns = ["batch_num", "batch_name", "num_frames", "weight", "normalized_weight"]
         batches_table = dash_table.DataTable(
             id=batches_table_id,

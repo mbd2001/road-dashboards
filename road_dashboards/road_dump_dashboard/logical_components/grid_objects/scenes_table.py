@@ -104,6 +104,7 @@ class ScenesTable(GridObject):
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 
             tables = [table for table in md_tables if table.dataset_name == chosen_dataset]
+            assert len(tables) == 1, f"Expected one table for dataset {chosen_dataset}, got {len(tables)}"
             weighted_sums = [
                 weighted_sum
                 for scenes_category in self.scenes_categories

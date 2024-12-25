@@ -89,6 +89,7 @@ class ScenesPie(GridObject):
         scenes: ScenesCategory,
     ) -> pd.DataFrame:
         tables = [table for table in tables if table.dataset_name == chosen_dataset]
+        assert len(tables) == 1, f"Expected one table for dataset {chosen_dataset}, got {len(tables)}"
         base = base_data_subquery(
             main_tables=tables,
             meta_data_tables=tables,
