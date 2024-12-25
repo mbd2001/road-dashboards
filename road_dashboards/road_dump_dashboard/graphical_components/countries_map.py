@@ -54,9 +54,7 @@ def generate_world_map(
 
 
 def normalize_countries_names(name: str) -> str:
-    normalized_name = re.sub("([A-Z]+)", r" \1", name)
-    normalized_name = re.sub("  +", " ", normalized_name)
-    normalized_name = normalized_name.strip()
+    normalized_name = re.sub("([a-z])([A-Z])", r"\1 \2", name)
     normalized_name = COUNTRIES_NORMALIZATION.get(normalized_name, normalized_name)
     return normalized_name
 
