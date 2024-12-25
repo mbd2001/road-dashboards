@@ -31,8 +31,8 @@ class BoostingControl(GridObject):
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):
-        self.batches_table_id = self._generate_id("status_table")
-        self.upload_boosting_btn_id = self._generate_id("load_boosting_btn")
+        self.batches_table_id = self._generate_id("batches_table")
+        self.upload_boosting_btn_id = self._generate_id("upload_boosting_btn")
         self.download_boosting_btn_id = self._generate_id("download_boosting_btn")
         self.upload_data_id = self._generate_id("upload_data")
         self.download_data_id = self._generate_id("download_data")
