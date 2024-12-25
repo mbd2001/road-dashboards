@@ -414,10 +414,10 @@ class MetaData(Base):
 
     road_type: Case = (
         Case(alias="road_type")
-        .when(mdbi_road_highway == True, "highway")
-        .when(mdbi_road_country == True, "country")
-        .when(mdbi_road_city == True, "urban")
-        .when(mdbi_road_freeway == True, "freeway")
+        .when((mdbi_road_highway == True) | (highway == True), "highway")
+        .when((mdbi_road_country == True) | (country == True), "country")
+        .when((mdbi_road_city == True) | (urban == True), "urban")
+        .when((mdbi_road_freeway == True) | (freeway == True), "freeway")
         .else_("other")
     )
     lm_color: Case = (
