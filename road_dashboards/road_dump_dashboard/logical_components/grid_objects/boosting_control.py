@@ -17,6 +17,8 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class BoostingControl(GridObject):
+    """Grid object for controlling boosting weights"""
+
     def __init__(
         self,
         datasets_dropdown_id: str,
@@ -58,6 +60,7 @@ class BoostingControl(GridObject):
             prevent_initial_call=True,
         )
         def update_batches_table(tables, chosen_dataset, population, json_data, optional):
+            """Update table from page inputs"""
             if not tables or not chosen_dataset or not population:
                 return no_update, no_update
 
@@ -91,6 +94,7 @@ class BoostingControl(GridObject):
             prevent_initial_call=True,
         )
         def update_batches_table_from_json(json_data, population, table_data):
+            """Update table with weights from uploaded json"""
             if not json_data:
                 return no_update
 
@@ -110,6 +114,7 @@ class BoostingControl(GridObject):
             State(self.batches_table_id, "data"),
         )
         def update_batches_table_from_user_input(timestamp, table_data):
+            """Update normalized weights after user input"""
             if not table_data:
                 return no_update
 
@@ -124,6 +129,7 @@ class BoostingControl(GridObject):
             Input(self.upload_boosting_btn_id, "contents"),
         )
         def upload_existing_boosting(data):
+            """Upload json file with existing weights"""
             if not data:
                 return no_update
 
@@ -139,6 +145,7 @@ class BoostingControl(GridObject):
             State(self.population_dropdown_id, "value"),
         )
         def download_boosting(n_clicks, json_file, bathes_table, population):
+            """Download json file with updated weights"""
             if not json_file or not bathes_table:
                 return no_update
 
