@@ -123,7 +123,9 @@ class ScenesTable(GridObject):
                     "scene": scene.name,
                     "num_of_objects": results[scene.name][0],
                     "required_objects": scene.required_objects,
-                    "percentage": round(results[scene.name][0] / max(scene.required_objects, 1) * 100.0, 1),
+                    "percentage": round(results[scene.name][0] / scene.required_objects * 100.0, 1)
+                    if scene.required_objects != 0
+                    else 100,
                 }
                 for scene_category in self.scenes_categories
                 for scene in scene_category.scenes
