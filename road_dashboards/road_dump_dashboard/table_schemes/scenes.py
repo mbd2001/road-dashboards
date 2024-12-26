@@ -10,6 +10,8 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_
 from road_dashboards.road_dump_dashboard.table_schemes.base import Column
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
+DEFAULT_MIN_REQUIRED_OBJECTS = 500000
+
 
 @dataclass
 class Scene:
@@ -70,17 +72,31 @@ LM_TYPES: ScenesCategory = ScenesCategory(
             42000,
         ),
         Scene("Deceleration", [MetaData.righttype_deceleration == True, MetaData.lefttype_deceleration == True], 1500),
-        Scene("dashed", [MetaData.righttype_dashed == True, MetaData.lefttype_dashed == True], 4531000),
-        Scene("solid", [MetaData.righttype_solid == True, MetaData.lefttype_solid == True], 3774000),
+        Scene(
+            "dashed",
+            [MetaData.righttype_dashed == True, MetaData.lefttype_dashed == True],
+            DEFAULT_MIN_REQUIRED_OBJECTS,
+        ),
+        Scene(
+            "solid", [MetaData.righttype_solid == True, MetaData.lefttype_solid == True], DEFAULT_MIN_REQUIRED_OBJECTS
+        ),
         Scene("bottsdots", [MetaData.righttype_botsdots == True, MetaData.lefttype_botsdots == True], 66000),
         Scene("dashedsolid", [MetaData.righttype_dashedsolid == True, MetaData.lefttype_dashedsolid == True], 79000),
-        Scene("soliddashed", [MetaData.righttype_soliddashed == True, MetaData.lefttype_soliddashed == True], 114000),
+        Scene(
+            "soliddashed",
+            [MetaData.righttype_soliddashed == True, MetaData.lefttype_soliddashed == True],
+            100000,
+        ),
         Scene("dasheddashed", [MetaData.righttype_dasheddashed == True, MetaData.lefttype_dasheddashed == True], 13000),
-        Scene("solidsolid", [MetaData.righttype_solidsolid == True, MetaData.lefttype_solidsolid == True], 351000),
+        Scene(
+            "solidsolid",
+            [MetaData.righttype_solidsolid == True, MetaData.lefttype_solidsolid == True],
+            DEFAULT_MIN_REQUIRED_OBJECTS,
+        ),
         Scene("snowonlane", [MetaData.righttype_snowonlane == True, MetaData.lefttype_snowonlane == True], 18000),
         Scene("fence", [MetaData.righttype_fence == True, MetaData.lefttype_fence == True], 22000),
         Scene("otherre", [MetaData.righttype_otherre == True, MetaData.lefttype_otherre == True], 47000),
-        Scene("curb", [MetaData.righttype_curb == True, MetaData.lefttype_curb == True], 440000),
+        Scene("curb", [MetaData.righttype_curb == True, MetaData.lefttype_curb == True], DEFAULT_MIN_REQUIRED_OBJECTS),
         Scene("barrier", [MetaData.righttype_barrier == True, MetaData.lefttype_barrier == True], 61000),
         Scene("grass", [MetaData.righttype_grass == True, MetaData.lefttype_grass == True], 69000),
     ],
@@ -89,7 +105,11 @@ LM_TYPES: ScenesCategory = ScenesCategory(
 EXTRA_LM_TYPES: ScenesCategory = ScenesCategory(
     "Lane Mark Types",
     [
-        Scene("wide_lane_mark", [(MetaData.max_lm_width_avg[0.35:0.60]) & (MetaData.dist_to_hwe > 40)], 394000),
+        # Scene(
+        #     "wide_lane_mark",
+        #     [(MetaData.max_lm_width_avg[0.35:0.60]) & (MetaData.dist_to_hwe > 40)],
+        #     DEFAULT_MIN_REQUIRED_OBJECTS,
+        # ),
         Scene(
             "japanese_poles",
             [
@@ -108,9 +128,15 @@ EXTRA_LM_TYPES: ScenesCategory = ScenesCategory(
 LM_COLORS: ScenesCategory = ScenesCategory(
     "Lane Mark Colors",
     [
-        Scene("yellow", [MetaData.rightcolor_yellow == True, MetaData.leftcolor_yellow == True], 1405000),
-        Scene("blue", [MetaData.rightcolor_blue == True, MetaData.leftcolor_blue == True], 51000),
-        Scene("white", [MetaData.rightcolor_white == True, MetaData.leftcolor_white == True], 7743000),
+        Scene(
+            "yellow",
+            [MetaData.rightcolor_yellow == True, MetaData.leftcolor_yellow == True],
+            DEFAULT_MIN_REQUIRED_OBJECTS,
+        ),
+        Scene("blue", [MetaData.rightcolor_blue == True, MetaData.leftcolor_blue == True], 50000),
+        Scene(
+            "white", [MetaData.rightcolor_white == True, MetaData.leftcolor_white == True], DEFAULT_MIN_REQUIRED_OBJECTS
+        ),
         # Scene("contrast_lane_marks", [""], 10000),
     ],
 )
@@ -125,9 +151,9 @@ DRIVING_CONDITIONS: ScenesCategory = ScenesCategory(
                 (MetaData.mdbi_time_of_day == "Night")
                 & ((MetaData.rain == True) | (MetaData.rainy == True) | (MetaData.wetroad == True))
             ],
-            487000,
+            DEFAULT_MIN_REQUIRED_OBJECTS,
         ),
-        Scene("low_sun", [(MetaData.suninimage == True) | (MetaData.lowsun == True)], 101000),
+        Scene("low_sun", [(MetaData.suninimage == True) | (MetaData.lowsun == True)], 100000),
         Scene(
             "guard_rail_shadows",
             [(MetaData.dist_to_shadowsguardrail_hostleft < 30) | (MetaData.dist_to_shadowsguardrail_hostright < 30)],
@@ -155,15 +181,19 @@ CURVES: ScenesCategory = ScenesCategory(
     "Curves",
     [
         Scene(
-            "strong_curves", [(MetaData.curve_rad_ahead_gt_120 >= 0) & (MetaData.curve_rad_ahead_gt_120 < 250)], 775000
+            "strong_curves",
+            [(MetaData.curve_rad_ahead_gt_120 >= 0) & (MetaData.curve_rad_ahead_gt_120 < 250)],
+            DEFAULT_MIN_REQUIRED_OBJECTS,
         ),
         Scene(
             "medium_curves",
             [(MetaData.curve_rad_ahead_gt_120 >= 250) & (MetaData.curve_rad_ahead_gt_120 < 500)],
-            450000,
+            DEFAULT_MIN_REQUIRED_OBJECTS,
         ),
         Scene(
-            "light_curves", [(MetaData.curve_rad_ahead_gt_120 >= 500) & (MetaData.curve_rad_ahead_gt_120 < 800)], 443000
+            "light_curves",
+            [(MetaData.curve_rad_ahead_gt_120 >= 500) & (MetaData.curve_rad_ahead_gt_120 < 800)],
+            DEFAULT_MIN_REQUIRED_OBJECTS,
         ),
     ],
 )
@@ -171,8 +201,8 @@ CURVES: ScenesCategory = ScenesCategory(
 EXTRA_CURVES: ScenesCategory = ScenesCategory(
     "Curves",
     [
-        Scene("crest_seg", [MetaData.vertical_change_50m > 1], 83000),
-        Scene("ramp", [MetaData.ramp == True], 168000),
+        Scene("crest_seg", [MetaData.vertical_change_50m > 1], 80000),
+        Scene("ramp", [MetaData.ramp == True], 150000),
         # Scene([""], "hilly_road_curves", 10000),
     ],
 )
@@ -181,7 +211,7 @@ ROAD_EVENTS: ScenesCategory = ScenesCategory(
     "Events",
     [
         Scene(
-            "marked",
+            "hwe_marked",
             [
                 ((MetaData.dist_to_hwemarked_hostleft < 60) & (MetaData.dist_to_hwemarked_hostleft > 0))
                 | ((MetaData.dist_to_hwemarked_hostright < 60) & (MetaData.dist_to_hwemarked_hostright > 0))
@@ -189,7 +219,7 @@ ROAD_EVENTS: ScenesCategory = ScenesCategory(
             74000,
         ),
         Scene(
-            "semimarked",
+            "hwe_semi_marked",
             [
                 ((MetaData.dist_to_hwesemimarked_hostleft < 60) & (MetaData.dist_to_hwesemimarked_hostleft > 0))
                 | ((MetaData.dist_to_hwesemimarked_hostright < 60) & (MetaData.dist_to_hwesemimarked_hostright > 0))
@@ -197,7 +227,7 @@ ROAD_EVENTS: ScenesCategory = ScenesCategory(
             61000,
         ),
         Scene(
-            "unmarked",
+            "hwe_unmarked",
             [
                 ((MetaData.dist_to_hweunmarked_hostleft < 60) & (MetaData.dist_to_hweunmarked_hostleft > 0))
                 | ((MetaData.dist_to_hweunmarked_hostright < 60) & (MetaData.dist_to_hweunmarked_hostright > 0))
@@ -231,16 +261,20 @@ ROAD_EVENTS: ScenesCategory = ScenesCategory(
 SENSORS: ScenesCategory = ScenesCategory(
     "Sensors",
     [
-        Scene("Mono8", [MetaData.is_eyeq6 == False], 10000),
+        Scene("EyeQ4 Mono", [(MetaData.is_100_deg == False) & (MetaData.is_120_deg == False)], 0),
+        Scene("EyeQ4 Wono", [MetaData.is_100_deg == True], 0),
+        Scene(
+            "EyeQ5 Mono8", [(MetaData.is_eyeq6 == False) & (MetaData.is_120_deg == True)], DEFAULT_MIN_REQUIRED_OBJECTS
+        ),
         Scene(
             "EyeQ6",
             [(MetaData.is_eyeq6 == True) & (MetaData.image_sensor_type.notin(["SONY_IMX324", "SONY_IMX728"]))],
-            10000,
+            DEFAULT_MIN_REQUIRED_OBJECTS,
         ),
         Scene(
-            "EyeQ6_sony",
+            "EyeQ6 Sony",
             [(MetaData.is_eyeq6 == True) & (MetaData.image_sensor_type.isin(["SONY_IMX324", "SONY_IMX728"]))],
-            10000,
+            100000,
         ),
     ],
 )
@@ -248,7 +282,7 @@ SENSORS: ScenesCategory = ScenesCategory(
 CAMERAS: ScenesCategory = ScenesCategory(
     "Cameras",
     [
-        Scene("high_camera", [MetaData.camh > 1.5], 881000),
+        Scene("high_camera", [MetaData.camh > 1.5], DEFAULT_MIN_REQUIRED_OBJECTS),
     ],
 )
 
@@ -260,17 +294,9 @@ CA_SCENES: ScenesCategory = ScenesCategory(
             "CA_yellow",
             [
                 ((MetaData.dist_to_constarea_true < 40) | (MetaData.dist_to_constarea_optional < 40))
-                & ((MetaData.is_yellow_right == True) | (MetaData.is_yellow_left == True))
+                & ((MetaData.rightcolor_yellow == True) | (MetaData.leftcolor_yellow == True))
             ],
             264000,
-        ),
-        Scene(
-            "CA_right_left_conesbarrels",
-            [
-                ((MetaData.righttype_conesbarrels == True) & (MetaData.dp_boundary_right_type_has_re == True))
-                | ((MetaData.lefttype_conesbarrels == True) & (MetaData.dp_boundary_left_type_has_re == True))
-            ],
-            1000,
         ),
         Scene("CA_crossing", [MetaData.dist_to_cacrossing < 60], 9000),
     ],

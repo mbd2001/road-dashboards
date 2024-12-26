@@ -72,6 +72,35 @@ lm_color_hist = CountGraph(
     intersection_switch_id=intersection_switch.component_id,
     column=MetaData.lm_color,
 )
+hwe_hist = CountGraph(
+    main_table=page.main_table,
+    title="HWE Events Distribution",
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=intersection_switch.component_id,
+    column=MetaData.hwe_event,
+)
+curve_hist = CountGraph(
+    main_table=page.main_table,
+    title="Curve Distribution",
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=intersection_switch.component_id,
+    column=MetaData.curve,
+)
+driving_conditions_hist = CountGraph(
+    main_table=page.main_table,
+    title="Driving Conditions Distribution",
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=intersection_switch.component_id,
+    column=MetaData.driving_conditions,
+)
+sensors_hist = CountGraph(
+    main_table=page.main_table,
+    title="Sensors Distribution",
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=intersection_switch.component_id,
+    column=MetaData.sensors,
+)
+
 count_columns_dropdown = ColumnsDropdown(main_table=page.main_table, full_grid_row=True)
 wildcard_count = CountGraph(
     main_table=count_columns_dropdown.main_table,
@@ -155,6 +184,10 @@ layout = GridGenerator(
     curve_rad_hist,
     road_type_hist,
     lm_color_hist,
+    hwe_hist,
+    curve_hist,
+    sensors_hist,
+    driving_conditions_hist,
     GridGenerator(
         count_columns_dropdown,
         wildcard_count,
