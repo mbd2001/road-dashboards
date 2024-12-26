@@ -19,17 +19,6 @@ class ComponentIds:
     LOADING_OVERLAY = "loading-overlay"
     MAIN_CONTENT = "main-content"
 
-    # Export-related IDs
-    EXPORT_BUTTON = "export-button"
-    EXPORT_ALL_DATA = "export-all-data"
-    EXPORT_WORKFLOW_SELECTOR = "export-workflow-selector"
-    EXPORT_STATUS_SELECTOR = "export-status-selector"
-    EXPORT_COLUMNS_SELECTOR = "export-columns-selector"
-    EXPORT_COLUMN_VALUES_CONTAINER = "export-column-values-container"
-    EXPORT_COLUMN_VALUES_SELECTOR = "export-column-values-selector"
-    DOWNLOAD_DATAFRAME = "download-dataframe-csv"
-    ADDITIONAL_COLUMNS_CONTAINER = "additional-columns-container"
-
 
 @dataclass
 class WorkflowFields:

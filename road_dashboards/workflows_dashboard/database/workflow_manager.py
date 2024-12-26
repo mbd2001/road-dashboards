@@ -10,7 +10,6 @@ from road_database_toolkit.dynamo_db.db_manager import DBManager
 from road_dashboards.workflows_dashboard.core_settings.constants import BRAIN_OPTIONS, WORKFLOWS, WorkflowFields
 from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings, DatabaseSettings, Status
 
-# Constants
 TOTAL_SCAN_SEGMENTS = 4
 MAX_WORKERS_PER_WORKFLOW = 4
 CACHE_EXPIRATION_HOURS = 24
@@ -126,7 +125,7 @@ class WorkflowsDBManager(DBManager):
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         statuses: Optional[List[str]] = None,
-        column_filters: Optional[Dict[str, List[str]]] = None,
+        allowed_values_per_column: Optional[Dict[str, List[str]]] = None,
     ) -> pd.DataFrame:
         """
         Get filtered DataFrame based on common filters.
@@ -137,12 +136,12 @@ class WorkflowsDBManager(DBManager):
             start_date: Start date for filtering in ISO format
             end_date: End date for filtering in ISO format
             statuses: List of statuses to filter by
-            column_filters: Dictionary mapping column names to list of allowed values
+            allowed_values_per_column: Dictionary mapping column names to list of allowed values
 
         Returns:
             Filtered DataFrame
         """
-        self._ensure_fresh_data()  # Ensure data is fresh before filtering
+        # self._ensure_fresh_data()  # Ensure data is fresh before filtering
 
         if not workflow_name:
             return pd.DataFrame()
@@ -160,10 +159,9 @@ class WorkflowsDBManager(DBManager):
             df = df[df[WorkflowFields.last_update] <= pd.to_datetime(end_date)]
         if statuses:
             df = df[df[WorkflowFields.status].isin(statuses)]
-        if column_filters:
-            for col, values in column_filters.items():
-                if col in df.columns and values:
-                    df = df[df[col].astype(str).isin(values)]
+        if allowed_values_per_column:
+            for col, values in allowed_values_per_column.items():
+                df = df[df[col].astype(str).isin(values)]
 
         return df
 
@@ -349,7 +347,7 @@ class WorkflowsDBManager(DBManager):
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         statuses: Optional[List[str]] = None,
-        column_filters: Optional[Dict[str, List[str]]] = None,
+        allowed_values_per_column: Optional[Dict[str, List[str]]] = None,
     ) -> pd.DataFrame:
         """
         Get specific workflow data for export.
@@ -360,7 +358,7 @@ class WorkflowsDBManager(DBManager):
             start_date: Start date for filtering in ISO format
             end_date: End date for filtering in ISO format
             statuses: List of statuses to filter by
-            column_filters: Dictionary of column filters
+            allowed_values_per_column: Dictionary of column filters
 
         Returns:
             DataFrame containing workflow data with columns for each workflow
@@ -370,28 +368,22 @@ class WorkflowsDBManager(DBManager):
 
         merge_keys = [DatabaseSettings.primary_key, WorkflowFields.brain_type]
 
-        # For single workflow export, don't add workflow prefix
-        if len(workflows) == 1:
-            workflow = workflows[0]
-            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date, statuses, column_filters)
-            if filtered_df.empty:
-                return pd.DataFrame()
-            return filtered_df[merge_keys + [col for col in filtered_df.columns if col not in merge_keys]]
-
-        # For multiple workflows, add prefix to distinguish between workflows
-        result_df = None
+        result_df = pd.DataFrame(columns=merge_keys)
+        
         for workflow in workflows:
-            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date, statuses, column_filters)
+            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date, statuses, allowed_values_per_column)
             if filtered_df.empty:
                 continue
 
-            filtered_df = self._add_workflow_prefix_mapping(workflow, filtered_df)
-            result_df = filtered_df if result_df is None else pd.merge(result_df, filtered_df, on=merge_keys, how="outer")
+            # Add workflow prefix if exporting multiple workflows
+            if len(workflows) > 1: 
+                filtered_df = self._add_workflow_prefix_mapping(workflow, filtered_df)
 
-        if result_df is None:
-            return pd.DataFrame()
+            result_df = pd.merge(result_df, filtered_df, on=merge_keys, how="outer")
 
-        return result_df[merge_keys + [col for col in result_df.columns if col not in merge_keys]]
+        non_key_columns = [col for col in result_df.columns if col not in merge_keys]
+ 
+        return result_df[merge_keys + non_key_columns]
 
     def get_workflow_success_count_data(
         self,
@@ -462,7 +454,7 @@ class WorkflowsDBManager(DBManager):
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         statuses: Optional[List[str]] = None,
-        column_filters: Optional[Dict[str, List[str]]] = None,
+        allowed_values_per_column: Optional[Dict[str, List[str]]] = None,
     ) -> List[str]:
         """
         Get unique values for a specific column in a workflow.
@@ -474,7 +466,7 @@ class WorkflowsDBManager(DBManager):
             start_date: Start date for filtering in ISO format
             end_date: End date for filtering in ISO format
             statuses: List of statuses to filter by
-            column_filters: Dictionary of column filters
+            allowed_values_per_column: Dictionary of column filters
 
         Returns:
             List of unique values in the column, sorted
@@ -485,7 +477,7 @@ class WorkflowsDBManager(DBManager):
             start_date=start_date,
             end_date=end_date,
             statuses=statuses,
-            column_filters=column_filters,
+            allowed_values_per_column=allowed_values_per_column,
         )
 
         if filtered_df.empty or column_name not in filtered_df.columns:
