@@ -89,12 +89,13 @@ class BoostingControl(GridObject):
             else:
                 batches_df["weight"] = [1] * len(batches_df.index)
 
-            batches_df["normalized_weight"] = (batches_df["weight"] / batches_df["weight"].sum()).round(3)
+            table_data = batches_df.to_dict("records")
+            self.update_normalized_weight(table_data)
             tooltip_data = [
-                {"batch_name": {"value": next(iter(conditions_list[batch_num].values())), "type": "markdown"}}
-                for batch_num in batches_df["batch_num"]
+                {"batch_name": {"value": next(iter(conditions_list[row["batch_num"]].values())), "type": "markdown"}}
+                for row in table_data
             ]
-            return batches_df.to_dict("records"), tooltip_data
+            return table_data, tooltip_data
 
         @callback(
             Output(self.batches_table_id, "data", allow_duplicate=True),
@@ -103,7 +104,7 @@ class BoostingControl(GridObject):
             State(self.batches_table_id, "data"),
             prevent_initial_call=True,
         )
-        def update_batches_table_from_json(json_data: dict, population: str, table_data: dict):
+        def update_batches_table_from_json(json_data: dict, population: str, table_data: list[dict]):
             """Update table with weights from uploaded json"""
             if not json_data:
                 return no_update
@@ -112,10 +113,7 @@ class BoostingControl(GridObject):
             for row in table_data:
                 row["weight"] = weights_dict.get(row["batch_name"], 0)
 
-            weights_sum = sum(row["weight"] for row in table_data)
-            for row in table_data:
-                row["normalized_weight"] = round(row["weight"] / weights_sum, 3)
-
+            self.update_normalized_weight(table_data)
             return table_data
 
         @callback(
@@ -123,15 +121,12 @@ class BoostingControl(GridObject):
             Input(self.batches_table_id, "data_timestamp"),
             State(self.batches_table_id, "data"),
         )
-        def update_batches_table_from_user_input(timestamp: int, table_data: dict):
+        def update_batches_table_from_user_input(timestamp: int, table_data: list[dict]):
             """Update normalized weights after user input"""
             if not table_data:
                 return no_update
 
-            weights_sum = sum(row["weight"] for row in table_data)
-            for row in table_data:
-                row["normalized_weight"] = round(row["weight"] / weights_sum, 3)
-
+            self.update_normalized_weight(table_data)
             return table_data
 
         @callback(
@@ -166,6 +161,12 @@ class BoostingControl(GridObject):
             }
             jump_name = "tmp_name"
             return dict(content=json.dumps(json_file, indent=4), filename=f"{jump_name}.json")
+
+    @staticmethod
+    def update_normalized_weight(table_data: list[dict]):
+        weights_sum = sum(row["weight"] for row in table_data)
+        for row in table_data:
+            row["normalized_weight"] = round(row["weight"] / weights_sum, 3)
 
     @staticmethod
     def get_conditions_list(chosen_dataset: str, population: str) -> list[dict[str, str]]:

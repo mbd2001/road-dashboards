@@ -30,7 +30,7 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class FramesModal(GridObject):
-    IMG_LIMIT = 64
+    IMG_LIMIT: int = 64
 
     def __init__(
         self,

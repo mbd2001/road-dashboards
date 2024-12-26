@@ -31,8 +31,8 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class JumpModal(GridObject):
-    LINES_LIMIT = 4096
-    DIFF_TOLERANCE = 32
+    LINES_LIMIT: int = 4096
+    DIFF_TOLERANCE: int = 32
 
     def __init__(
         self,
