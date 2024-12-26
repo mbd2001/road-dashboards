@@ -3,23 +3,24 @@ from typing import Callable
 
 import dash_bootstrap_components as dbc
 from dash import Input, Output, State, callback, dcc, no_update
-from pypika import Criterion, EmptyCriterion
+from pypika import Criterion, EmptyCriterion, Query, functions
+from pypika import analytics as an
+from pypika.enums import SqlTypes
 from pypika.queries import QueryBuilder, Selectable
-from pypika.terms import Term
+from pypika.terms import Case, Term
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
     base_data_subquery,
     diff_terms_subquery,
-    ids_query_wrapper,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
+    Arbitrary,
     df_to_jump,
     dump_object,
     execute,
@@ -30,8 +31,8 @@ from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class JumpModal(GridObject):
-    LINES_LIMIT = 4096
-    DIFF_TOLERANCE = 32
+    LINES_LIMIT: int = 4096
+    DIFF_TOLERANCE: int = 32
 
     def __init__(
         self,
@@ -48,6 +49,7 @@ class JumpModal(GridObject):
     def _generate_ids(self):
         self.extra_columns_dropdown_id = self._generate_id("extra_columns_dropdown")
         self.diff_tolerance_input_id = self._generate_id("diff_tolerance_input")
+        self.limit_input_id = self._generate_id("limit_input")
         self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
         self.download_jump_id = self._generate_id("download_jump")
         self.curr_query_id = self._generate_id("curr_query")
@@ -60,25 +62,34 @@ class JumpModal(GridObject):
                     [
                         dcc.Store(id=self.curr_query_id),
                         dbc.Row(
+                            dcc.Dropdown(
+                                id=self.extra_columns_dropdown_id,
+                                multi=True,
+                                clearable=True,
+                                placeholder="Extra columns to export",
+                                value=None,
+                            )
+                        ),
+                        dbc.Row(
                             [
-                                dbc.Col(
-                                    dcc.Dropdown(
-                                        id=self.extra_columns_dropdown_id,
-                                        multi=True,
-                                        clearable=True,
-                                        placeholder="Extra columns to export",
-                                        value=None,
-                                    )
-                                ),
                                 dbc.Col(
                                     dcc.Input(
                                         id=self.diff_tolerance_input_id,
                                         style={"minWidth": "100%"},
-                                        placeholder=f"Sequence if gis diff smaller than (default {self.DIFF_TOLERANCE}):",
+                                        placeholder=f"Merge diffs smaller than (default {self.DIFF_TOLERANCE}):",
+                                        type="number",
+                                    )
+                                ),
+                                dbc.Col(
+                                    dcc.Input(
+                                        id=self.limit_input_id,
+                                        style={"minWidth": "100%"},
+                                        placeholder=f"Max lines in jump file (default {self.LINES_LIMIT}):",
                                         type="number",
                                     )
                                 ),
                             ],
+                            className="mt-3",
                         ),
                         dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary", className="mt-3"),
                         loading_wrapper(dcc.Download(id=self.download_jump_id)),
@@ -130,7 +141,7 @@ class JumpModal(GridObject):
                 if not column:
                     return no_update
 
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                md_tables: list[Base] = load_object(md_tables)
                 page_filters: str = optional.get("page_filters", None)
                 page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 
@@ -164,7 +175,7 @@ class JumpModal(GridObject):
                     return no_update, no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                md_tables: list[Base] = load_object(md_tables)
                 page_filters: Criterion = load_object(page_filters)
 
                 partial_query = partial(
@@ -182,10 +193,11 @@ class JumpModal(GridObject):
             Input(self.generate_jump_btn_id, "n_clicks"),
             State(self.curr_query_id, "data"),
             State(self.diff_tolerance_input_id, "value"),
+            State(self.limit_input_id, "value"),
             State(self.extra_columns_dropdown_id, "value"),
             State(self.page_filters_id, "data"),
         )
-        def generate_jump(n_clicks, curr_query, diff_tolerance, extra_terms, page_filters):
+        def generate_jump(n_clicks, curr_query, diff_tolerance, lines_limit, extra_terms, page_filters):
             if not n_clicks or not curr_query:
                 return no_update
 
@@ -203,10 +215,11 @@ class JumpModal(GridObject):
                 else terms
             )
             diff_tolerance = diff_tolerance if diff_tolerance is not None else self.DIFF_TOLERANCE
-            query = ids_query_wrapper(
+            lines_limit = lines_limit if lines_limit is not None else self.LINES_LIMIT
+            query = self.group_frames_with_gi_below_diff_query_wrapper(
                 sub_query=subquery,
                 terms=updated_terms,
-                limit=self.LINES_LIMIT,
+                limit=lines_limit,
                 diff_tolerance=diff_tolerance,
             )
             jump_frames = execute(query)
@@ -215,3 +228,76 @@ class JumpModal(GridObject):
 
             jump_name = "tmp_name"
             return dict(content=df_to_jump(jump_frames), filename=f"{jump_name}.jump")
+
+    @staticmethod
+    def group_frames_with_gi_below_diff_query_wrapper(
+        sub_query: Selectable,
+        terms: list[Term],
+        limit: int | None = None,
+        diff_tolerance: int = 0,
+    ) -> QueryBuilder:
+        unique_frames_query = JumpModal.select_unique_frames(sub_query, terms)
+        group_ids_query = JumpModal.add_groups_ids_based_on_diff(unique_frames_query, terms, diff_tolerance)
+        final_query = JumpModal.select_one_term_per_group(group_ids_query, terms, limit)
+        return final_query
+
+    @staticmethod
+    def select_unique_frames(base_data_query: Selectable, terms: list[Term]) -> QueryBuilder:
+        query = (
+            Query.from_(base_data_query)
+            .select(*[Arbitrary(term, alias=term.alias) for term in terms])
+            .groupby(base_data_query.clip_name, base_data_query.grabindex)
+        )
+        return query
+
+    @staticmethod
+    def add_groups_ids_based_on_diff(
+        unique_frames_query: QueryBuilder, terms: list[Term], diff_tolerance: int
+    ) -> QueryBuilder:
+        new_groups_query = Query.from_(unique_frames_query).select(
+            *terms,
+            Case(alias="is_new_group")
+            .when(
+                (
+                    unique_frames_query.grabindex
+                    - an.Lag(unique_frames_query.grabindex)
+                    .over()
+                    .orderby(unique_frames_query.clip_name, unique_frames_query.grabindex)
+                )
+                > diff_tolerance,
+                1,
+            )
+            .else_(0),
+        )
+        cum_sum_groups_query = Query.from_(new_groups_query).select(
+            *terms,
+            an.Sum(new_groups_query.is_new_group)
+            .orderby(new_groups_query.clip_name, new_groups_query.grabindex)
+            .as_("group_id"),
+        )
+        return cum_sum_groups_query
+
+    @staticmethod
+    def select_one_term_per_group(
+        sum_groups_query: QueryBuilder, terms: list[Term], limit: int | None = None
+    ) -> QueryBuilder:
+        final_query = (
+            Query.from_(sum_groups_query)
+            .select(
+                MetaData.clip_name,
+                functions.Cast(functions.Min(sum_groups_query.grabindex), SqlTypes.INTEGER).as_("startframe"),
+                functions.Cast(functions.Max(sum_groups_query.grabindex), SqlTypes.INTEGER).as_("endframe"),
+                functions.Cast(
+                    functions.Max(sum_groups_query.grabindex) - functions.Min(sum_groups_query.grabindex) + 1,
+                    SqlTypes.INTEGER,
+                ).as_("event_length"),
+                *[
+                    Arbitrary(term, alias=term.alias)
+                    for term in terms
+                    if term.alias not in ["clip_name", "grabindex", "obj_id"]
+                ],
+            )
+            .groupby(sum_groups_query.clip_name, sum_groups_query.group_id)
+            .limit(limit)
+        )
+        return final_query

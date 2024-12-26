@@ -1,11 +1,12 @@
 from __future__ import annotations
 
 import inspect
-from typing import Any, Literal, get_origin, overload
+from typing import Literal, get_origin, overload
 
 from pypika import Field, Table
+from pypika.enums import Matching
 from pypika.queries import Selectable
-from pypika.terms import Criterion, Term
+from pypika.terms import BasicCriterion, Criterion, Term
 from pypika.utils import builder
 
 
@@ -27,6 +28,15 @@ class Column(Field):
     @builder
     def replace_table(self, current_table: Table, new_table: Table) -> Column:
         self.table = new_table if self.table == current_table and self in new_table else self.table
+
+    def contains(self, expr: str) -> "BasicCriterion":
+        return self.like(f"%{expr}%")
+
+    def startswith(self, expr: str) -> "BasicCriterion":
+        return self.like(f"{expr}%")
+
+    def endswith(self, expr: str) -> "BasicCriterion":
+        return self.like(f"%{expr}")
 
 
 class Base(Table):
@@ -71,7 +81,7 @@ class Base(Table):
         super().__init__(table_name)
         self.dataset_name = dataset_name
 
-    def __getattribute__(self, item: str) -> Any:
+    def __getattribute__(self, item: str) -> any:
         try:
             attr = super().__getattribute__(item)
             return attr.replace_table(current_table=None, new_table=self) if isinstance(attr, Term) else attr

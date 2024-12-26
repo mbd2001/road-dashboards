@@ -1,31 +1,32 @@
 import base64
 import pickle as pkl
-from typing import Any
 
 import pandas as pd
 from dash.dependencies import DashDependency
-from pypika.queries import QueryBuilder
+from pypika.queries import Selectable
 from pypika.terms import Function, Term
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_dump_dashboard.table_schemes.base import Column
 
 
-def dump_object(obj: Any) -> str:
+def dump_object(obj: any) -> str:
     return base64.b64encode(pkl.dumps(obj)).decode("utf-8")
 
 
-def load_object(dump_obj: str) -> Any:
+def load_object(dump_obj: str) -> any:
     return pkl.loads(base64.b64decode(dump_obj))
 
 
-def execute(query: QueryBuilder) -> pd.DataFrame:
+def execute(query: Selectable) -> pd.DataFrame:
     results, _ = query_athena(query=str(query), database="run_eval_db")
     return results
 
 
 def df_to_jump(df: pd.DataFrame):
-    return df.to_string(header=False, index=False) + f"\n#format: {' '.join(df.columns)}"
+    formatters = {col: lambda x: x.replace(" ", "_") for col in df.select_dtypes(include="object").columns}
+    formatters.update({col: lambda x: str(x.round(3)) for col in df.select_dtypes(include="float").columns})
+    return df.to_string(header=False, index=False, formatters=formatters) + f"\n#format: {' '.join(df.columns)}"
 
 
 def get_main_and_secondary_columns(term: Term) -> tuple[Column, Column]:

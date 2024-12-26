@@ -7,7 +7,10 @@ from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import URL
-from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
+from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
+    card_wrapper,
+    loading_wrapper,
+)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
@@ -42,8 +45,8 @@ class CatalogTable(GridObject):
         data_table = self.get_data_table(self.dump_catalog_id)
         catalog_layout = card_wrapper(
             [
-                dbc.Row([dbc.Col(html.H2("Datasets Catalog", className="mb-5")), dbc.Col(column_selector)]),
-                dbc.Row(data_table),
+                dbc.Row([dbc.Col(html.H2("Datasets Catalog")), dbc.Col(column_selector)]),
+                dbc.Row(loading_wrapper(data_table), className="mt-5"),
                 dbc.Row(
                     dbc.Col(
                         dbc.Button(
@@ -65,8 +68,7 @@ class CatalogTable(GridObject):
                     value=[col for col in table_columns.keys() if col not in default_unchecked_columns],
                     id=obj_id,
                     inline=False,
-                    className="dropdown-item",
-                    inputClassName="me-2",
+                    className="me-2",
                 )
             ],
             right=True,

@@ -1,4 +1,4 @@
-from dash import register_page
+from dash import html, register_page
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.columns_dropdown import ColumnsDropdown
@@ -11,6 +11,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.jump_mo
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.switch import Switch
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
     TwoDatasetsSelector,
 )
@@ -22,19 +23,20 @@ register_page(__name__, **page.__dict__)
 
 data_filters = DataFilters(main_table=page.main_table)
 population_card = PopulationCard()
+intersection_switch = Switch("Intersection")
 filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
 
 obj_count_card = ObjCountCard(
     main_table=page.main_table,
     objs_name="Lane marks",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
 )
 type_count = CountGraph(
     main_table=page.main_table,
     title="Type Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.type,
     full_grid_row=True,
 )
@@ -42,67 +44,68 @@ color_count = CountGraph(
     main_table=page.main_table,
     title="Color Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.color,
 )
 role_count = CountGraph(
     main_table=page.main_table,
     title="Role Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.role,
 )
 vr_hist = CountGraph(
     main_table=page.main_table,
     title="Max View Range Distribution (m)",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.max_view_range,
     filter=LaneMarks.max_view_range < 250,
     slider_value=0,
     full_grid_row=True,
 )
-painted_len_hist = CountGraph(
+dashed_len_hist = CountGraph(
     main_table=page.main_table,
     title="Dashed Painted Length Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.dashed_length,
-    filter=(LaneMarks.type == "dashed") & (LaneMarks.dashed_length[0:20]),
+    filter=LaneMarks.dashed_length[0:20],
     slider_value=1,
-    full_grid_row=True,
-)
-dashed_width_hist = CountGraph(
-    main_table=page.main_table,
-    title="Lane Mark Width Distribution (m)",
-    page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
-    column=LaneMarks.avg_width,
-    filter=(LaneMarks.avg_width > 0) & (LaneMarks.avg_width < 1.5),
-    slider_value=2,
     full_grid_row=True,
 )
 dashed_gap_hist = CountGraph(
     main_table=page.main_table,
     title="Dashed Gap Length Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=LaneMarks.dashed_gap,
-    filter=(LaneMarks.type == "dashed") & (LaneMarks.dashed_length[0:25]),
+    filter=LaneMarks.dashed_gap[0:25],
     slider_value=1,
+    full_grid_row=True,
+)
+lm_width_hist = CountGraph(
+    main_table=page.main_table,
+    title="Lane Mark Width Distribution (m)",
+    page_filters_id=filters_agg.final_filter_id,
+    intersection_switch_id=intersection_switch.component_id,
+    column=LaneMarks.avg_width,
+    filter=(LaneMarks.avg_width > 0) & (LaneMarks.avg_width < 1.5),
+    slider_value=2,
     full_grid_row=True,
 )
 obj_count = ObjCountGraph(
     main_table=page.main_table,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     page_filters_id=filters_agg.final_filter_id,
 )
 count_columns_dropdown = ColumnsDropdown(main_table=page.main_table, full_grid_row=True)
 wildcard_count = CountGraph(
     main_table=page.main_table,
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     columns_dropdown_id=count_columns_dropdown.component_id,
+    slider_value=1,
     full_grid_row=True,
 )
 
@@ -159,15 +162,15 @@ layout = GridGenerator(
     jump_modal,
     data_filters,
     obj_count_card,
-    population_card,
+    GridGenerator(html.H3("Population"), population_card, intersection_switch, full_grid_row=False),
     filters_agg,
     type_count,
     color_count,
     role_count,
     vr_hist,
-    painted_len_hist,
-    dashed_width_hist,
+    dashed_len_hist,
     dashed_gap_hist,
+    lm_width_hist,
     obj_count,
     GridGenerator(
         count_columns_dropdown,

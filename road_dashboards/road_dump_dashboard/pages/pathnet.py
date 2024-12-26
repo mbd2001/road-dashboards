@@ -1,4 +1,4 @@
-from dash import register_page
+from dash import html, register_page
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.page_properties import PageProperties
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.columns_dropdown import ColumnsDropdown
@@ -11,6 +11,7 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.jump_mo
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.obj_count_graph import ObjCountGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.objs_count_card import ObjCountCard
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.population_card import PopulationCard
+from road_dashboards.road_dump_dashboard.logical_components.grid_objects.switch import Switch
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.two_datasets_selector import (
     TwoDatasetsSelector,
 )
@@ -22,26 +23,27 @@ register_page(__name__, **page.__dict__)
 
 data_filters = DataFilters(main_table=page.main_table)
 population_card = PopulationCard()
+intersection_switch = Switch("Intersection")
 filters_agg = FiltersAggregator(population_card.final_filter_id, data_filters.final_filter_id)
 
 obj_count_card = ObjCountCard(
     main_table=page.main_table,
     objs_name="DPs",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
 )
 role_count = CountGraph(
     main_table=page.main_table,
     title="Role Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=PathNet.dp_role,
 )
 split_count = CountGraph(
     main_table=page.main_table,
     title="Split Role Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=PathNet.dp_split_role,
     filter=PathNet.dp_split_role != "IGNORE",
 )
@@ -49,7 +51,7 @@ primary_count = CountGraph(
     main_table=page.main_table,
     title="Primary Role Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=PathNet.dp_primary_role,
     filter=PathNet.dp_primary_role != "IGNORE",
 )
@@ -57,7 +59,7 @@ merge_count = CountGraph(
     main_table=page.main_table,
     title="Merge Role Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=PathNet.dp_merge_role,
     filter=PathNet.dp_merge_role != "IGNORE",
 )
@@ -65,20 +67,21 @@ oncoming_count = CountGraph(
     main_table=page.main_table,
     title="Oncoming Distribution",
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     column=PathNet.dp_points_oncoming,
 )
 obj_count = ObjCountGraph(
     main_table=page.main_table,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     page_filters_id=filters_agg.final_filter_id,
 )
 count_columns_dropdown = ColumnsDropdown(main_table=page.main_table, full_grid_row=True)
 wildcard_count = CountGraph(
     main_table=page.main_table,
     page_filters_id=filters_agg.final_filter_id,
-    intersection_switch_id=population_card.intersection_switch_id,
+    intersection_switch_id=intersection_switch.component_id,
     columns_dropdown_id=count_columns_dropdown.component_id,
+    slider_value=1,
     full_grid_row=True,
 )
 
@@ -154,7 +157,7 @@ layout = GridGenerator(
     jump_modal,
     data_filters,
     obj_count_card,
-    population_card,
+    GridGenerator(html.H3("Population"), population_card, intersection_switch, full_grid_row=False),
     filters_agg,
     role_count,
     split_count,
