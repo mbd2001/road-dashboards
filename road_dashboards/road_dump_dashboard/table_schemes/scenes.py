@@ -105,11 +105,6 @@ LM_TYPES: ScenesCategory = ScenesCategory(
 EXTRA_LM_TYPES: ScenesCategory = ScenesCategory(
     "Lane Mark Types",
     [
-        # Scene(
-        #     "wide_lane_mark",
-        #     [(MetaData.max_lm_width_avg[0.35:0.60]) & (MetaData.dist_to_hwe > 40)],
-        #     DEFAULT_MIN_REQUIRED_OBJECTS,
-        # ),
         Scene(
             "japanese_poles",
             [
@@ -121,7 +116,6 @@ EXTRA_LM_TYPES: ScenesCategory = ScenesCategory(
             1000,
         ),
         Scene("china_bus_lane", [(MetaData.mdbi_country == "China") & (MetaData.rightcolor_yellowwhite == True)], 1000),
-        # Scene("HOV", [""], 10000),
     ],
 )
 
@@ -137,7 +131,6 @@ LM_COLORS: ScenesCategory = ScenesCategory(
         Scene(
             "white", [MetaData.rightcolor_white == True, MetaData.leftcolor_white == True], DEFAULT_MIN_REQUIRED_OBJECTS
         ),
-        # Scene("contrast_lane_marks", [""], 10000),
     ],
 )
 
@@ -172,7 +165,6 @@ DRIVING_CONDITIONS: ScenesCategory = ScenesCategory(
             [(MetaData.dist_to_diagonalshadow_hostleft < 30) | (MetaData.dist_to_diagonalshadow_hostright < 30)],
             1000,
         ),
-        # Scene([""], "sun_ray", 10000),
     ],
 )
 
@@ -203,7 +195,6 @@ EXTRA_CURVES: ScenesCategory = ScenesCategory(
     [
         Scene("crest_seg", [MetaData.vertical_change_50m > 1], 80000),
         Scene("ramp", [MetaData.ramp == True], 150000),
-        # Scene([""], "hilly_road_curves", 10000),
     ],
 )
 

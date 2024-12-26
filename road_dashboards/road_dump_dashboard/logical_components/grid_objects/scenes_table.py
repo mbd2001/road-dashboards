@@ -31,35 +31,31 @@ class ScenesTable(GridObject):
 
     def layout(self):
         shown_columns = ["scene", "num_of_objects", "required_objects", "percentage", "valid"]
-        style_data_conditional = (
-            [
-                {
-                    "if": {
-                        "column_id": "valid",
-                        "filter_query": "{percentage} < 90",
-                    },
-                    "backgroundColor": "Tomato",
-                    "color": "white",
+        style_data_conditional = [
+            {
+                "if": {
+                    "column_id": "valid",
+                    "filter_query": "{percentage} < 90",
                 },
-                {
-                    "if": {
-                        "column_id": "valid",
-                        "filter_query": "{percentage} >= 100",
-                    },
-                    "backgroundColor": "LimeGreen",
-                    "color": "white",
+                "backgroundColor": "Tomato",
+                "color": "white",
+            },
+            {
+                "if": {
+                    "column_id": "valid",
+                    "filter_query": "{percentage} >= 100",
                 },
-            ],
-        )
-        style_cell_conditional = (
-            [
-                {"if": {"column_id": "scene"}, "width": "30%"},
-                {"if": {"column_id": "num_of_objects"}, "width": "20%"},
-                {"if": {"column_id": "required_objects"}, "width": "20%"},
-                {"if": {"column_id": "percentage"}, "width": "20%"},
-                {"if": {"column_id": "valid"}, "width": "10%"},
-            ],
-        )
+                "backgroundColor": "LimeGreen",
+                "color": "white",
+            },
+        ]
+        style_cell_conditional = [
+            {"if": {"column_id": "scene"}, "width": "30%"},
+            {"if": {"column_id": "num_of_objects"}, "width": "20%"},
+            {"if": {"column_id": "required_objects"}, "width": "20%"},
+            {"if": {"column_id": "percentage"}, "width": "20%"},
+            {"if": {"column_id": "valid"}, "width": "10%"},
+        ]
         scenes_table = dash_table.DataTable(
             id=self.scenes_table_id,
             columns=[{"name": i, "id": i, "deletable": False, "selectable": True} for i in shown_columns],
