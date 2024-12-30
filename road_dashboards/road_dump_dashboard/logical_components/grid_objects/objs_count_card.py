@@ -55,7 +55,7 @@ class ObjCountCard(GridObject):
             optional_inputs(
                 page_filters=Input(self.page_filters_id, "data"),
                 intersection_on=Input(self.intersection_switch_id, "on"),
-                chosen_dump=Input(self.datasets_dropdown_id, "value"),
+                chosen_dataset=Input(self.datasets_dropdown_id, "value"),
             ),
         )
         def get_obj_count(main_tables, md_tables, optional):
@@ -63,16 +63,18 @@ class ObjCountCard(GridObject):
                 return no_update, no_update
 
             main_tables: list[Base] = load_object(main_tables)
-            md_tables: list[Base] = load_object(md_tables) if md_tables else None
+            md_tables: list[Base] = load_object(md_tables)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters is not None else EmptyCriterion()
             intersection_on: bool = optional.get("intersection_on", False)
-            chosen_dump: str | None = optional.get("chosen_dump", None)
+            chosen_dataset: str | None = optional.get("chosen_dataset", None)
             main_tables = (
-                [table for table in main_tables if table.dataset_name == chosen_dump] if chosen_dump else main_tables
+                [table for table in main_tables if table.dataset_name == chosen_dataset]
+                if chosen_dataset
+                else main_tables
             )
             md_tables = (
-                [table for table in md_tables if table.dataset_name == chosen_dump] if chosen_dump else md_tables
+                [table for table in md_tables if table.dataset_name == chosen_dataset] if chosen_dataset else md_tables
             )
 
             base = base_data_subquery(
@@ -81,6 +83,7 @@ class ObjCountCard(GridObject):
                 terms=[MetaData.dump_name, *self.distinct_objs],
                 page_filters=page_filters,
                 intersection_on=intersection_on,
+                to_order=False,
             )
             if self.distinct_objs:
                 base = Query.from_(base).select(MetaData.dump_name, *self.distinct_objs).distinct()
@@ -94,7 +97,7 @@ class ObjCountCard(GridObject):
             frame_count_accordion = [
                 dbc.AccordionItem(
                     html.H5(f"{amount} {self.objs_name.title()}"),
-                    title=dump_name.title(),
+                    title=dump_name,
                     item_id=dump_name,
                 )
                 for dump_name, amount in zip(data.dump_name, data.overall)

@@ -1,17 +1,17 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import Input, Output, State, callback, dcc, html, no_update
-from pypika import Criterion, EmptyCriterion
+from pypika import Criterion, EmptyCriterion, Query, functions
+from pypika.queries import QueryBuilder
 from pypika.terms import Term
 
 from road_dashboards.road_dump_dashboard.graphical_components.confusion_matrix import get_confusion_matrix
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
 )
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import conf_mat_subquery
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import join_on_obj_id
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
@@ -117,11 +117,11 @@ class ConfMatGraph(GridObject):
             if not column:
                 return no_update
 
-            md_tables: list[Base] = load_object(md_tables) if md_tables else None
+            md_tables: list[Base] = load_object(md_tables)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
 
-            conf_query = conf_mat_subquery(
+            conf_query = self.conf_mat_subquery(
                 main_labels=[table for table in main_tables if table.dataset_name == main_dump],
                 secondary_labels=[table for table in main_tables if table.dataset_name == secondary_dump],
                 main_md=[table for table in md_tables if table.dataset_name == main_dump],
@@ -137,3 +137,30 @@ class ConfMatGraph(GridObject):
                 data, main_val.alias, secondary_val.alias, x_label=secondary_dump, y_label=main_dump, title=title
             )
             return fig
+
+    @staticmethod
+    def conf_mat_subquery(
+        main_labels: list[Base],
+        secondary_labels: list[Base],
+        main_md: list[Base],
+        secondary_md: list[Base],
+        group_by_column: Term,
+        data_filter: Criterion = EmptyCriterion(),
+        page_filters: Criterion = EmptyCriterion(),
+    ) -> QueryBuilder:
+        join_query, _, _ = join_on_obj_id(
+            main_tables=main_labels,
+            main_md=main_md,
+            secondary_tables=secondary_labels,
+            secondary_md=secondary_md,
+            diff_terms=[group_by_column],
+            data_filter=data_filter,
+            page_filters=page_filters,
+        )
+        first_group_by_column, second_group_by_column = get_main_and_secondary_columns(group_by_column)
+        group_by_query = (
+            Query.from_(join_query)
+            .groupby(first_group_by_column, second_group_by_column)
+            .select(first_group_by_column, second_group_by_column, functions.Count("*", "overall"))
+        )
+        return group_by_query

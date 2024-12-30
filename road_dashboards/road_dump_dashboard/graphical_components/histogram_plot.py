@@ -1,7 +1,11 @@
+import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 
 
-def basic_histogram_plot(data, x, y, title="", color="dump_name"):
+def basic_histogram_plot(
+    data: pd.DataFrame, x: str, y: str, title: str = "", color: str | None = "dump_name"
+) -> go.Figure:
     fig = px.bar(data, x=x, y=y, title=f"<b>{title}<b>", color=color)
     fig.update_layout(
         font=dict(size=16),
