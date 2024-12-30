@@ -13,7 +13,7 @@ class ErrorPieChart(PieChart):
         return "Error Distribution"
 
     def get_hover_template(self) -> str:
-        return "<b>Error Message:</b><br>%{label}<br><br>Count: %{value}<br>%{percent}<extra></extra>"
+        return "<b>Error Message:</b><br>%{customdata}<br><br>Count: %{value}<br>%{percent}<extra></extra>"
 
     def get_chart_data(
         self, brain_types: list[str], start_date: str | None, end_date: str | None, selected_workflow
@@ -22,3 +22,8 @@ class ErrorPieChart(PieChart):
             return pd.DataFrame()
 
         return db_manager.get_error_distribution(self.workflow_name, brain_types, start_date, end_date)
+
+    def get_chart_params(self) -> dict:
+        params = super().get_chart_params()
+        params["custom_data"] = ["full_message"]
+        return params

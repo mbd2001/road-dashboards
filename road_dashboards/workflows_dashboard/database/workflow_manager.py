@@ -219,15 +219,20 @@ class WorkflowsDBManager(DBManager):
         error_df = filtered_df[filtered_df[WorkflowFields.status] == Status.FAILED]
         error_counts = error_df[WorkflowFields.message].value_counts()
 
-        # Truncate long error messages
-        error_counts.index = [
-            f"{x[:ChartSettings.max_error_message_length]}..."
-            if len(str(x)) > ChartSettings.max_error_message_length
-            else x
-            for x in error_counts.index
-        ]
+        cleaned_messages = [message.replace("Error: ", "") for message in error_counts.index]
 
-        return pd.DataFrame({"message": error_counts.index, "count": error_counts.values})
+        def truncate_message(message: str) -> str:
+            if len(message) > ChartSettings.max_error_message_length:
+                return f"{message[:ChartSettings.max_error_message_length]}..."
+            return message
+
+        truncated_messages = [truncate_message(x) for x in cleaned_messages]
+            
+        return pd.DataFrame({
+            "message": truncated_messages,
+            "full_message": cleaned_messages,
+            "count": error_counts.values
+        })
 
     def get_weekly_success_data(
         self,

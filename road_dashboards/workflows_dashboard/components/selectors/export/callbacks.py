@@ -37,20 +37,25 @@ def update_columns_selector(selected_workflows: Optional[List[str]]) -> Tuple[Di
 
 
 def create_value_selector(col: str, unique_values: List, current_value: Optional[List] = None) -> html.Div:
-    """Create a dropdown selector for filtering column values."""
+    """Create a larger dropdown selector for filtering column values."""
     return html.Div(
         [
-            html.Label(f"Filter values for {col}", className="mb-2"),
+            html.Label(
+                f"Filter values for {col}",
+                className="mb-4 text-lg font-medium"
+            ),
             dcc.Dropdown(
                 id={"type": "column-values", "column": col},
                 options=[{"label": val, "value": val} for val in unique_values],
                 value=current_value,
                 multi=True,
                 placeholder=f"Select values for {col}",
-                className="mb-3",
+                className="mb-8",
             ),
         ],
-        style={"position": "relative"},
+        style={
+            "marginBottom": "10rem",
+        },
     )
 
 
