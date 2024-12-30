@@ -35,7 +35,7 @@ def render_date_range():
                     className="ms-2",
                 ),
                 width="auto",
-                className="d-flex align-items-end", 
+                className="d-flex align-items-end",
             ),
         ],
         className="g-0 align-items-end",

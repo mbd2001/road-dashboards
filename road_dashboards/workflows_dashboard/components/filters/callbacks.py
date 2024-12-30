@@ -10,4 +10,4 @@ from road_dashboards.workflows_dashboard.core_settings.constants import Componen
     prevent_initial_call=True,
 )
 def reset_date_range(_):
-    return None, None 
+    return None, None

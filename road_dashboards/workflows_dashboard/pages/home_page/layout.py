@@ -1,8 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html, register_page
 
-from road_dashboards.workflows_dashboard.components.main_content.layout import render_main_content
 from road_dashboards.workflows_dashboard.components.filters.layout import render_filters
+from road_dashboards.workflows_dashboard.components.main_content.layout import render_main_content
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, LoadingStyles
 from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 

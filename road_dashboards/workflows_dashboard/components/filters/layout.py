@@ -1,8 +1,8 @@
 import dash_bootstrap_components as dbc
 
+from . import callbacks  # DO NOT REMOVE!
 from .brain_selector import render_brain_selector
 from .date_range import render_date_range
-from . import callbacks  # DO NOT REMOVE!
 
 
 def render_filters():
@@ -32,4 +32,4 @@ def render_filters():
             className="p-2",
         ),
         className="mb-4 border-0 shadow-sm",
-    ) 
+    )

@@ -4,8 +4,12 @@ from typing import Dict, List, Optional, Tuple, Union
 from dash import Input, Output, State, callback, dcc, html
 from dash.dependencies import ALL
 
-from road_dashboards.workflows_dashboard.core_settings.constants import WorkflowFields,ComponentIds
-from road_dashboards.workflows_dashboard.components.selectors.export.export_constants import ExportComponentsIds,WORKFLOW_SPECIFIC_COLUMNS,VALUE_SELECTOR_STYLE
+from road_dashboards.workflows_dashboard.components.selectors.export.export_constants import (
+    VALUE_SELECTOR_STYLE,
+    WORKFLOW_SPECIFIC_COLUMNS,
+    ExportComponentsIds,
+)
+from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, WorkflowFields
 from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
 db_manager = WorkflowsDBManager()
@@ -20,7 +24,7 @@ db_manager = WorkflowsDBManager()
 )
 def update_columns_selector(selected_workflows: Optional[List[str]]) -> Tuple[Dict, List]:
     """Update column selector visibility and options based on selected workflow.
-    
+
     Shows additional columns only when a single workflow is selected.
     """
     if not selected_workflows or len(selected_workflows) != 1:
@@ -40,10 +44,7 @@ def create_value_selector(col: str, unique_values: List, current_value: Optional
     """Create a larger dropdown selector for filtering column values."""
     return html.Div(
         [
-            html.Label(
-                f"Filter values for {col}",
-                className="mb-4 text-lg font-medium"
-            ),
+            html.Label(f"Filter values for {col}", className="mb-4 text-lg font-medium"),
             dcc.Dropdown(
                 id={"type": "column-values", "column": col},
                 options=[{"label": val, "value": val} for val in unique_values],
@@ -128,11 +129,7 @@ def _build_allowed_values_per_column(
     if not (selected_columns and column_values and column_ids):
         return {}
 
-    return {
-        col_id["column"]: values
-        for values, col_id in zip(column_values, column_ids)
-        if values
-    }
+    return {col_id["column"]: values for values, col_id in zip(column_values, column_ids) if values}
 
 
 @callback(
@@ -169,12 +166,12 @@ def export_data(
     filters = {
         "statuses": selected_statuses if is_single_workflow else None,
         "allowed_values": _build_allowed_values_per_column(selected_columns, column_values, column_ids)
-        if is_single_workflow else None
+        if is_single_workflow
+        else None,
     }
 
     df = db_manager.get_workflow_export_data(
-        selected_workflows, brain_types, start_date, end_date, 
-        filters["statuses"], filters["allowed_values"]
+        selected_workflows, brain_types, start_date, end_date, filters["statuses"], filters["allowed_values"]
     )
 
     if df.empty:

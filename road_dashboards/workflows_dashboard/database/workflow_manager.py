@@ -1,7 +1,7 @@
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Optional, Dict, List, Tuple, Any
+from typing import Any, Dict, List, Optional, Tuple
 
 import pandas as pd
 from boto3.dynamodb.conditions import Attr
@@ -35,7 +35,7 @@ class WorkflowsDBManager(DBManager):
         """
         if self._last_refresh is None:
             return True
-        
+
         time_since_refresh = datetime.now() - self._last_refresh
         return time_since_refresh > timedelta(hours=CACHE_EXPIRATION_HOURS)
 
@@ -227,12 +227,10 @@ class WorkflowsDBManager(DBManager):
             return message
 
         truncated_messages = [truncate_message(x) for x in cleaned_messages]
-            
-        return pd.DataFrame({
-            "message": truncated_messages,
-            "full_message": cleaned_messages,
-            "count": error_counts.values
-        })
+
+        return pd.DataFrame(
+            {"message": truncated_messages, "full_message": cleaned_messages, "count": error_counts.values}
+        )
 
     def get_weekly_success_data(
         self,
@@ -298,7 +296,7 @@ class WorkflowsDBManager(DBManager):
             List of dictionaries with formatted weekly statistics
         """
         result = []
-        
+
         # Ensure success and failed columns exist
         for status in [Status.SUCCESS, Status.FAILED]:
             if status not in weekly_stats.columns:
@@ -308,13 +306,15 @@ class WorkflowsDBManager(DBManager):
         success_rate = (weekly_stats[Status.SUCCESS.value] / total_count * 100).fillna(0)
 
         for week_start, row in weekly_stats.iterrows():
-            result.append({
-                "week_start": week_start,
-                "workflow": workflow_name,
-                "success_count": row[Status.SUCCESS.value],
-                "failed_count": row[Status.FAILED.value],
-                "success_rate": success_rate[week_start],
-            })
+            result.append(
+                {
+                    "week_start": week_start,
+                    "workflow": workflow_name,
+                    "success_count": row[Status.SUCCESS.value],
+                    "failed_count": row[Status.FAILED.value],
+                    "success_rate": success_rate[week_start],
+                }
+            )
 
         return result
 
@@ -374,20 +374,22 @@ class WorkflowsDBManager(DBManager):
         merge_keys = [DatabaseSettings.primary_key, WorkflowFields.brain_type]
 
         result_df = pd.DataFrame(columns=merge_keys)
-        
+
         for workflow in workflows:
-            filtered_df = self._get_filtered_df(workflow, brain_types, start_date, end_date, statuses, allowed_values_per_column)
+            filtered_df = self._get_filtered_df(
+                workflow, brain_types, start_date, end_date, statuses, allowed_values_per_column
+            )
             if filtered_df.empty:
                 continue
 
             # Add workflow prefix if exporting multiple workflows
-            if len(workflows) > 1: 
+            if len(workflows) > 1:
                 filtered_df = self._add_workflow_prefix_mapping(workflow, filtered_df)
 
             result_df = pd.merge(result_df, filtered_df, on=merge_keys, how="outer")
 
         non_key_columns = [col for col in result_df.columns if col not in merge_keys]
- 
+
         return result_df[merge_keys + non_key_columns]
 
     def get_workflow_success_count_data(
@@ -421,20 +423,16 @@ class WorkflowsDBManager(DBManager):
             )
 
             if success_df.empty:
-                success_data.extend([
-                    {"workflow": workflow, "brain_type": brain, "success_count": 0}
-                    for brain in brain_types
-                ])
+                success_data.extend(
+                    [{"workflow": workflow, "brain_type": brain, "success_count": 0} for brain in brain_types]
+                )
                 continue
-
 
             for brain_type in brain_types:
                 brain_success_df = success_df[success_df[WorkflowFields.brain_type] == brain_type]
-                success_data.append({
-                    "workflow": workflow,
-                    "brain_type": brain_type,
-                    "success_count": len(brain_success_df)
-                })
+                success_data.append(
+                    {"workflow": workflow, "brain_type": brain_type, "success_count": len(brain_success_df)}
+                )
 
         return pd.DataFrame(success_data)
 

@@ -25,8 +25,12 @@ class ChartsContainer:
             [
                 dbc.Row(
                     [
-                        dbc.Col([StatusPieChart(workflow).render()], lg=6, xs=12, className="d-flex align-items-stretch"),
-                        dbc.Col([ErrorPieChart(workflow).render()], lg=6, xs=12, className="d-flex align-items-stretch"),
+                        dbc.Col(
+                            [StatusPieChart(workflow).render()], lg=6, xs=12, className="d-flex align-items-stretch"
+                        ),
+                        dbc.Col(
+                            [ErrorPieChart(workflow).render()], lg=6, xs=12, className="d-flex align-items-stretch"
+                        ),
                     ],
                     className="g-4",
                 )

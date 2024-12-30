@@ -4,23 +4,18 @@ from dash import dcc, html
 from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, Status
 from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
 
-from .export_constants import ExportComponentsIds
 from . import callbacks  # DO NOT REMOVE
+from .export_constants import ExportComponentsIds
 
 
-
-
-class WorkflowSelector():
+class WorkflowSelector:
     def render(self):
         return dbc.Col(
             [
                 html.Label("Select Workflows", className="form-label"),
                 dcc.Dropdown(
                     id=ExportComponentsIds.EXPORT_WORKFLOW_SELECTOR,
-                    options=[
-                        {"label": format_workflow_name(workflow), "value": workflow}
-                        for workflow in WORKFLOWS
-                    ],
+                    options=[{"label": format_workflow_name(workflow), "value": workflow} for workflow in WORKFLOWS],
                     value=[WORKFLOWS[0]],
                     multi=True,
                     clearable=False,
@@ -31,7 +26,7 @@ class WorkflowSelector():
         )
 
 
-class FilterSection():
+class FilterSection:
     def render(self):
         return dbc.Row(
             [
@@ -40,9 +35,7 @@ class FilterSection():
                         html.Label("Filter by Status", className="form-label"),
                         dcc.Dropdown(
                             id=ExportComponentsIds.EXPORT_STATUS_SELECTOR,
-                            options=[
-                                {"label": status.value, "value": status.value} for status in Status
-                            ],
+                            options=[{"label": status.value, "value": status.value} for status in Status],
                             value=None,
                             multi=True,
                             placeholder="Select statuses",
@@ -79,7 +72,7 @@ class FilterSection():
         )
 
 
-class ExportButton():
+class ExportButton:
     def render(self):
         return dbc.Row(
             [
@@ -101,7 +94,7 @@ class ExportButton():
         )
 
 
-class ExportSection():
+class ExportSection:
     def render(self):
         return dbc.Col(
             [
@@ -124,4 +117,3 @@ class ExportSection():
             width=12,
             className="mt-4",
         )
-
