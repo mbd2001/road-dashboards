@@ -411,6 +411,10 @@ class MetaData(Base):
     num_dp_merges_rpw: Column = Column("num_dp_merges_rpw", float)
     num_dp_splits_rpw: Column = Column("num_dp_splits_rpw", float)
     next_junction_length_rpw: Column = Column("next_junction_length_rpw", float)
+    host_width_rpw: Column = Column("host_width_rpw", float)
+    host_extended_width_rpw: Column = Column("host_extended_width_rpw", float)
+    overlap_host_next_rpw: Column = Column("overlap_host_next_rpw", float)
+    overlap_host_oncoming_rpw: Column = Column("overlap_host_oncoming_rpw", float)
 
     road_type: Case = (
         Case(alias="road_type")
