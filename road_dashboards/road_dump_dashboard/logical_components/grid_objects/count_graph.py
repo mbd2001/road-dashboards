@@ -1,22 +1,21 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
+import pandas as pd
 from dash import Input, Output, State, callback, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query, functions
+from pypika import analytics as an
+from pypika.queries import QueryBuilder, Selectable
 from pypika.terms import Term
 
 from road_dashboards.road_dump_dashboard.graphical_components.histogram_plot import basic_histogram_plot
 from road_dashboards.road_dump_dashboard.graphical_components.line_graph import draw_line_graph
 from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
 )
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
-    base_data_subquery,
-    percentage_wrapper,
-)
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
@@ -143,7 +142,7 @@ class CountGraph(GridObject):
             if not column:
                 return no_update
 
-            md_tables: list[Base] = load_object(md_tables) if md_tables else None
+            md_tables: list[Base] = load_object(md_tables)
             intersection_on: bool = optional.get("intersection_on", False)
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
@@ -152,7 +151,7 @@ class CountGraph(GridObject):
             base = base_data_subquery(
                 main_tables=main_tables,
                 meta_data_tables=md_tables,
-                terms=[round_term(column, round_n_decimal_place), dump_name],
+                terms=[self.round_term(column, round_n_decimal_place), dump_name],
                 data_filter=self.filter if filter_ignores else EmptyCriterion(),
                 page_filters=page_filters,
                 intersection_on=intersection_on,
@@ -163,29 +162,48 @@ class CountGraph(GridObject):
                 .select(column.alias, dump_name, functions.Count("*", "overall"))
             )
             if compute_percentage:
-                query = percentage_wrapper(query, query.overall, [dump_name], [column])
+                query = self.percentage_wrapper(query, query.overall, [dump_name], [column])
 
             y_col = "percentage" if compute_percentage else "overall"
             data = execute(query)
             title = self.title or f"{column.alias.title()} Distribution"
-            fig = pie_or_line_graph(data, column.alias, y_col, title=title, color=dump_name.alias)
+            fig = self.pie_or_line_graph(data, column.alias, y_col, title=title, color=dump_name.alias)
             return fig
 
+    @staticmethod
+    def pie_or_line_graph(
+        data: pd.DataFrame,
+        names: str,
+        values: str,
+        title: str = "",
+        hover: str | None = None,
+        color: str | None = "dump_name",
+    ):
+        if data[names].nunique() > 16:
+            fig = basic_histogram_plot(data, names, values, title=title)
+        elif data[color].nunique() == 1:
+            fig = basic_pie_chart(data, names, values, title=title, hover=hover)
+        else:
+            fig = draw_line_graph(data, names, values, title=title, hover=hover, color=color)
 
-def pie_or_line_graph(data, names, values, title="", hover=None, color="dump_name"):
-    if data[names].nunique() > 16:
-        fig = basic_histogram_plot(data, names, values, title=title)
-    elif data[color].nunique() == 1:
-        fig = basic_pie_chart(data, names, values, title=title, hover=hover)
-    else:
-        fig = draw_line_graph(data, names, values, title=title, hover=hover, color=color)
+        return fig
 
-    return fig
+    @staticmethod
+    def round_term(column: Term, round_n_decimal_place: int | None = None):
+        return (
+            Round(column, round_n_decimal_place, alias=column.alias)
+            if isinstance(column, Column) and column.type in [int, float] and round_n_decimal_place is not None
+            else column
+        )
 
-
-def round_term(column: Term, round_n_decimal_place: int | None = None):
-    return (
-        Round(column, round_n_decimal_place, alias=column.alias)
-        if isinstance(column, Column) and column.type in [int, float] and round_n_decimal_place is not None
-        else column
-    )
+    @staticmethod
+    def percentage_wrapper(
+        sub_query: Selectable,
+        percentage_column: Term,
+        partition_columns: list[Term],
+        terms: list[Term],
+    ) -> QueryBuilder:
+        percentage_calc = (percentage_column * 100.0 / an.Sum(percentage_column).over(*partition_columns)).as_(
+            "percentage"
+        )
+        return Query.from_(sub_query).select(*partition_columns, *[term.alias for term in terms], percentage_calc)

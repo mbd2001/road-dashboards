@@ -3,17 +3,18 @@ import numpy as np
 import orjson
 import pandas as pd
 from dash import Input, Output, Patch, State, callback, callback_context, clientside_callback, dcc, html, no_update
-from pypika import Criterion, EmptyCriterion
+from pypika import Criterion, EmptyCriterion, Query, Tuple
+from pypika.queries import QueryBuilder
 from pypika.terms import Term
 from road_database_toolkit.dynamo_db.drone_view_images.db_manager import DroneViewDBManager
 
 from road_dashboards.road_dump_dashboard.graphical_components.frame_drawer import draw_img, draw_top_view
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
-from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
 from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
-    diff_labels_subquery,
-    general_labels_subquery,
+    base_data_subquery,
+    diff_terms_subquery,
+    union_all_query_list,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.conf_mat_graph import ConfMatGraph
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.data_filters import DataFilters
@@ -25,10 +26,11 @@ from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
     load_object,
     optional_inputs,
 )
+from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class FramesModal(GridObject):
-    IMG_LIMIT = 64
+    IMG_LIMIT: int = 64
 
     def __init__(
         self,
@@ -104,13 +106,13 @@ class FramesModal(GridObject):
                 if not column:
                     return no_update
 
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                md_tables: list[Base] = load_object(md_tables)
                 page_filters: str = optional.get("page_filters", None)
                 page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
                 extra_columns = list(
                     type(main_tables[0]).get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
-                query = diff_labels_subquery(
+                query = self.diff_labels_subquery(
                     main_tables=[table for table in main_tables if table.dataset_name == main_dump],
                     secondary_tables=[table for table in main_tables if table.dataset_name == secondary_dump],
                     main_md=[table for table in md_tables if table.dataset_name == main_dump],
@@ -140,15 +142,15 @@ class FramesModal(GridObject):
                 main_tables,
                 md_tables,
             ):
-                if not n_clicks or not main_tables or not md_tables:
+                if not n_clicks or not main_tables:
                     return no_update, no_update
 
                 main_tables: list[Base] = load_object(main_tables)
-                md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                md_tables: list[Base] = load_object(md_tables)
                 extra_columns = list(
                     type(main_tables[0]).get_columns(names_only=False, include_list_columns=True, only_drawable=True)
                 )
-                query = general_labels_subquery(
+                query = self.general_labels_subquery(
                     main_tables=main_tables,
                     meta_data_tables=md_tables,
                     label_columns=extra_columns,
@@ -285,3 +287,83 @@ class FramesModal(GridObject):
             return np.array(orjson.loads(x))
         except orjson.JSONDecodeError:
             return x
+
+    @staticmethod
+    def diff_labels_subquery(
+        main_tables: list[Base],
+        secondary_tables: list[Base],
+        main_md: list[Base],
+        secondary_md: list[Base],
+        label_columns: list[Term],
+        diff_column: Term,
+        data_filter: Criterion = EmptyCriterion(),
+        page_filters: Criterion = EmptyCriterion(),
+        limit: int | None = None,
+    ) -> QueryBuilder:
+        diff_terms = diff_terms_subquery(
+            main_tables=main_tables,
+            secondary_tables=secondary_tables,
+            main_md=main_md,
+            secondary_md=secondary_md,
+            diff_column=diff_column,
+            data_filter=data_filter,
+            page_filters=page_filters,
+        )
+        ids_subquery = (
+            Query.from_(diff_terms).select(diff_terms.clip_name, diff_terms.grabindex).distinct().limit(limit)
+        )
+
+        terms = list({*label_columns})
+        labels_queries = [
+            base_data_subquery(
+                main_tables=main_table,
+                meta_data_tables=md_table,
+                terms=terms,
+                data_filter=data_filter,
+                page_filters=page_filters,
+            )
+            for main_table, md_table in [[main_tables, main_md], [secondary_tables, secondary_md]]
+        ]
+        union_query = union_all_query_list(labels_queries)
+        labels_query = (
+            Query.from_(union_query)
+            .where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(ids_subquery))
+            .select(*terms)
+        )
+        return labels_query
+
+    @staticmethod
+    def general_labels_subquery(
+        main_tables: list[Base],
+        meta_data_tables: list[Base],
+        label_columns: list[Term],
+        data_filter: Criterion = EmptyCriterion(),
+        page_filters: Criterion = EmptyCriterion(),
+        limit: int | None = None,
+    ) -> QueryBuilder:
+        ids_terms = [MetaData.clip_name, MetaData.grabindex]
+        ids_query = base_data_subquery(
+            main_tables=main_tables,
+            meta_data_tables=meta_data_tables,
+            terms=ids_terms,
+            data_filter=data_filter,
+            page_filters=page_filters,
+            intersection_on=True,
+        )
+        ids_subquery = Query.from_(ids_query).select(ids_query.clip_name, ids_query.grabindex).distinct().limit(limit)
+
+        terms = list({*label_columns})
+        labels_query = base_data_subquery(
+            main_tables=main_tables,
+            meta_data_tables=meta_data_tables,
+            terms=terms,
+            data_filter=data_filter,
+            page_filters=page_filters,
+            intersection_on=True,
+        )
+        final_query = (
+            Query.from_(labels_query)
+            .where(Tuple(MetaData.clip_name, MetaData.grabindex).isin(ids_subquery))
+            .select(*terms)
+        )
+        return final_query

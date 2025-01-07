@@ -13,6 +13,9 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     NETS,
+    PATH_NET_OOL_BORDER_DIST_SLIDER,
+    PATH_NET_OOL_RE_DIST_SLIDER,
+    PATHNET_BOUNDARIES,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
@@ -27,6 +30,11 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
+    PATHNET_EVENTS_RE_REF_THRESHOLD,
+    PATHNET_EVENTS_RE_SWITCH,
+    PATHNET_EVENTS_RE_SWITCH_DIV,
+    PATHNET_EVENTS_RE_THRESHOLD,
+    PATHNET_EVENTS_RE_THRESHOLDS_DIV,
     PATHNET_EVENTS_REF_CHOSEN_NET,
     PATHNET_EVENTS_REF_DIV,
     PATHNET_EVENTS_REF_DP_SOURCE_DROPDOWN,
@@ -49,6 +57,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_avail_query,
     generate_extract_acc_events_query,
     generate_extract_miss_false_events_query,
+    generate_extract_ool_events_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_alert_message, create_dropdown_options_list
@@ -127,6 +136,8 @@ def update_chosen_net_data(nets, chosen_net_id):
     net["frame_tables"]["paths"] = net["frame_tables"]["paths"][net_id_ind : net_id_ind + 1]
     net[PATHNET_PRED]["paths"] = net[PATHNET_PRED]["paths"][net_id_ind : net_id_ind + 1]
     net[PATHNET_GT]["paths"] = net[PATHNET_GT]["paths"][net_id_ind : net_id_ind + 1]
+    if net[PATHNET_BOUNDARIES]["paths"]:
+        net[PATHNET_BOUNDARIES]["paths"] = net[PATHNET_BOUNDARIES]["paths"][net_id_ind : net_id_ind + 1]
     net["nets_info"] = net["nets_info"][net_id_ind]
     return net
 
@@ -213,7 +224,7 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
     bookmarks_file_name = f"{metric}_{dp_source}"
     if metric != "false":
         bookmarks_file_name += f"_{role}"
-    if metric == "inaccurate":
+    if metric in ["inaccurate", "out-of-lane"]:
         bookmarks_file_name += f"_dist{dist}"
 
     explorer_params = EXPLORER_PARAMS.format(
@@ -240,9 +251,11 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
     return {"s3_dir_path": s3_dir_path, "bookmarks_name": bookmarks_file_name, "explorer_params": explorer_params}
 
 
-def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, threshold, order_by):
-    if metric == "inaccurate" or metric == "accurate":
-        operator = ">" if metric == "inaccurate" else "<"
+def get_source_events_df(
+    net, dp_source, meta_data_filters, metric, role, dist, threshold, re_threshold, re_only, order_by, is_ref=False
+):
+    if metric == "inaccurate":
+        operator = ">" if not is_ref else "<"
         query, final_columns = generate_extract_acc_events_query(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
@@ -254,6 +267,22 @@ def get_source_events_df(net, dp_source, meta_data_filters, metric, role, dist, 
             threshold=threshold,
             operator=operator,
             order_by=order_by,
+        )
+    elif metric == "out-of-lane":
+        operator = "<" if not is_ref else ">"
+        query, final_columns = generate_extract_ool_events_query(
+            data_tables=net[PATHNET_BOUNDARIES],
+            meta_data=net["meta_data"],
+            meta_data_filters=meta_data_filters,
+            bookmarks_columns=BOOKMARKS_COLUMNS,
+            chosen_source=dp_source,
+            role=role,
+            dist=float(dist),
+            threshold=threshold,
+            re_threshold=re_threshold,
+            operator=operator,
+            order_by=order_by,
+            re_only=re_only,
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -292,6 +321,11 @@ def subtract_events(df_main, df_ref, metric):
         )
         return df_main_filtered
 
+    elif metric == "out-of-lane":
+        df_main_filtered = df_main.merge(df_ref, on=BOOKMARKS_COLUMNS + ["dp_id"], how="inner", suffixes=("", "_ref"))
+        df_main_filtered.drop(columns=[c for c in df_main_filtered.columns if "closer" in c], inplace=True)
+        return df_main_filtered
+
     else:
         return df_main
 
@@ -314,20 +348,24 @@ def get_events_df(
         role,
         dist,
         events_extractor_dict["threshold"],
+        events_extractor_dict["re_threshold"],
+        events_extractor_dict["re_only"],
         events_extractor_dict["order_by"],
     )
 
     if events_extractor_dict["is_unique_on"]:
-        ref_metric = "accurate" if metric == "inaccurate" else metric
         df_ref = get_source_events_df(
             events_extractor_dict["ref_net"],
             events_extractor_dict["ref_dp_source"],
             meta_data_filters,
-            ref_metric,
+            metric,
             role,
             dist,
             events_extractor_dict["ref_threshold"],
+            events_extractor_dict["ref_re_threshold"],
+            events_extractor_dict["re_only"],
             events_extractor_dict["order_by"],
+            is_ref=True,
         )
         df = subtract_events(df, df_ref, metric)
 
@@ -345,9 +383,7 @@ def get_events_df(
     prevent_initial_call=True,
 )
 def show_events_role_dropdown(metric):
-    if metric == "miss" or metric == "inaccurate":
-        return False
-    return True
+    return metric == "false"
 
 
 @callback(
@@ -356,7 +392,7 @@ def show_events_role_dropdown(metric):
     prevent_initial_call=True,
 )
 def show_events_dist_dropdown(metric):
-    if metric == "inaccurate":
+    if metric in ["inaccurate", "out-of-lane"]:
         return False
     return True
 
@@ -367,24 +403,78 @@ def show_events_dist_dropdown(metric):
     prevent_initial_call=True,
 )
 def show_events_order_by_dropdown(metric):
-    if metric == "inaccurate":
+    if metric in ["inaccurate", "out-of-lane"]:
         return False
     return True
 
 
 @callback(
-    Output(PATHNET_EVENTS_REF_DIV, "hidden"),
-    Output(PATHNET_EVENTS_THRESHOLDS_DIV, "hidden"),
-    Input(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
+    Output(PATHNET_EVENTS_RE_SWITCH_DIV, "hidden"),
     Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
     prevent_initial_call=True,
 )
-def show_unique_choices(is_unique_on, metric):
-    if is_unique_on:
-        if metric == "inaccurate":
-            return False, False
-        return False, True
-    return True, True
+def show_events_ool_re_switch(metric):
+    return metric != "out-of-lane"
+
+
+@callback(
+    Output(PATHNET_EVENTS_REF_DIV, "hidden"),
+    Output(PATHNET_EVENTS_THRESHOLDS_DIV, "hidden"),
+    Output(PATHNET_EVENTS_RE_THRESHOLDS_DIV, "hidden"),
+    Input(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    Input(PATHNET_EVENTS_RE_SWITCH, "on"),
+    prevent_initial_call=True,
+)
+def show_unique_choices(is_unique_on, metric, is_re_only):
+    hide_ref_div = not is_unique_on
+    show_thresholds_div = is_unique_on and (metric == "inaccurate" or (metric == "out-of-lane" and not is_re_only))
+    hide_thresholds_div = not show_thresholds_div
+    show_re_thresholds_div = is_unique_on and metric == "out-of-lane"
+    hide_re_thresholds_div = not show_re_thresholds_div
+    return hide_ref_div, hide_thresholds_div, hide_re_thresholds_div
+
+
+@callback(
+    Output(PATHNET_EVENTS_THRESHOLD, "placeholder"),
+    Output(PATHNET_EVENTS_REF_THRESHOLD, "placeholder"),
+    Output(PATHNET_EVENTS_RE_THRESHOLD, "placeholder"),
+    Output(PATHNET_EVENTS_RE_REF_THRESHOLD, "placeholder"),
+    Input(PATHNET_EVENTS_UNIQUE_SWITCH, "on"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    Input(PATHNET_EVENTS_DIST_DROPDOWN, "value"),
+    Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+    prevent_initial_call=True,
+)
+def get_specified_thresholds_placeholders(
+    is_unique_on, metric, dist, thresh_dict, out_of_lane_min_border_dist, out_of_lane_min_re_dist
+):
+    if not is_unique_on or metric not in ["inaccurate", "out-of-lane"]:
+        return "", "", "", ""
+
+    if metric == "inaccurate":
+        main_th_ph = "Specify acc-threshold in meters (optional)"
+        ref_th_ph = "Specify ref acc-threshold in meters (optional)"
+        if dist:
+            main_default_th = thresh_dict[str(float(dist))]
+            main_th_ph += f", default = {main_default_th}"
+            ref_default_thresh = main_default_th - REF_THRESH_DEFAULT_DIFF
+            ref_th_ph += f", default = {ref_default_thresh}"
+        return main_th_ph, ref_th_ph, "", ""
+
+    main_th_ph = f"Specify dp-border min-dist in meters (optional), default = {out_of_lane_min_border_dist}"
+    ref_th_ph = (
+        f"Specify ref dp-border min-dist in meters (optional), default = "
+        f"{out_of_lane_min_border_dist + REF_THRESH_DEFAULT_DIFF}"
+    )
+    main_re_th_ph = f"Specify dp-roadedge min-dist in meters (optional), default = {out_of_lane_min_re_dist}"
+    ref_re_th_ph = (
+        f"Specify ref dp-roadedge min-dist in meters (optional), default = "
+        f"{out_of_lane_min_re_dist + REF_THRESH_DEFAULT_DIFF}"
+    )
+    return main_th_ph, ref_th_ph, main_re_th_ph, ref_re_th_ph
 
 
 @callback(
@@ -405,6 +495,11 @@ def show_unique_choices(is_unique_on, metric):
     State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
     State(PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH, "on"),
+    State(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+    State(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+    State(PATHNET_EVENTS_RE_THRESHOLD, "value"),
+    State(PATHNET_EVENTS_RE_REF_THRESHOLD, "value"),
+    State(PATHNET_EVENTS_RE_SWITCH, "on"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
@@ -424,6 +519,11 @@ def update_extractor_dict(
     thresh_dict,
     order_by,
     clips_unique_on,
+    out_of_lane_min_border_dist,
+    out_of_lane_min_re_dist,
+    specified_re_thresh,
+    ref_specified_re_thresh,
+    is_re_switch_on,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -442,18 +542,34 @@ def update_extractor_dict(
     if specified_thresh is not None:
         events_extractor_dict["threshold"] = specified_thresh
     elif dist is not None:
-        events_extractor_dict["threshold"] = thresh_dict[str(float(dist))]
+        events_extractor_dict["threshold"] = (
+            out_of_lane_min_border_dist if metric == "out-of-lane" else thresh_dict[str(float(dist))]
+        )
     else:
         events_extractor_dict["threshold"] = 0
+
+    events_extractor_dict["re_threshold"] = (
+        specified_re_thresh if specified_re_thresh is not None else out_of_lane_min_re_dist
+    )
 
     if is_unique_on:
         if ref_specified_thresh is not None:
             events_extractor_dict["ref_threshold"] = ref_specified_thresh
+        elif metric == "out-of-lane":
+            events_extractor_dict["ref_threshold"] = events_extractor_dict["threshold"] + REF_THRESH_DEFAULT_DIFF
         else:
             events_extractor_dict["ref_threshold"] = events_extractor_dict["threshold"] - REF_THRESH_DEFAULT_DIFF
 
-    events_extractor_dict["order_by"] = order_by if order_by is not None else "DESC"
+        if ref_specified_re_thresh is not None:
+            events_extractor_dict["ref_re_threshold"] = ref_specified_re_thresh
+        elif metric == "out-of-lane":
+            events_extractor_dict["ref_re_threshold"] = events_extractor_dict["re_threshold"] + REF_THRESH_DEFAULT_DIFF
+
+    default_order_by = "ASC" if metric == "out-of-lane" else "DESC"
+    events_extractor_dict["order_by"] = order_by if order_by is not None else default_order_by
     events_extractor_dict["clips_unique_on"] = clips_unique_on
+
+    events_extractor_dict["re_only"] = is_re_switch_on
 
     return events_extractor_dict
 

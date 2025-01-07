@@ -4,16 +4,9 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.page_prope
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.catalog_table import CatalogTable
 from road_dashboards.road_dump_dashboard.logical_components.multi_page_objects.grid_generator import GridGenerator
 
-page_properties = PageProperties(
-    order=0,
-    icon="home",
-    path="/home",
-    title="Data Exploration",
-)
-register_page(__name__, **page_properties.__dict__)
+page = PageProperties(order=0, icon="home", path="/home", title="Data Exploration")
+register_page(__name__, **page.__dict__)
 
+catalog_table = CatalogTable()
 
-layout = GridGenerator(
-    CatalogTable(),
-    warp_sub_objects=False,
-).layout()
+layout = GridGenerator(catalog_table, warp_sub_objects=False).layout()

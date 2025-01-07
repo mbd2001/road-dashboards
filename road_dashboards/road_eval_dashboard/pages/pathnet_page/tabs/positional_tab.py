@@ -26,10 +26,14 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
     PATH_NET_MONOTONE_ACC_NEXT,
+    PATH_NET_OOL,
+    PATH_NET_OOL_BORDER_DIST_SLIDER,
+    PATH_NET_OOL_RE_DIST_SLIDER,
     PATH_NET_SCENE_ACC_HOST,
     PATH_NET_SCENE_ACC_NEXT,
     PATH_NET_VIEW_RANGES_HOST,
     PATH_NET_VIEW_RANGES_NEXT,
+    PATHNET_BOUNDARIES,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
     PATHNET_FILTERS,
     PATHNET_GT,
@@ -51,6 +55,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_path_net_query,
     generate_path_net_scene_by_sec_query,
     generate_pathnet_cumulative_query,
+    get_in_lane_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
@@ -229,6 +234,34 @@ pos_layout = html.Div(
                                 labelPosition="top",
                             )
                         ),
+                    ]
+                ),
+            ]
+        ),
+        card_wrapper(
+            [
+                dbc.Row(
+                    [
+                        dbc.Col(graph_wrapper({"id": PATH_NET_OOL, "role": "host"}), width=6),
+                        dbc.Col(graph_wrapper({"id": PATH_NET_OOL, "role": "non-host"}), width=6),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label(
+                            "minimum distance between dp and border (m)",
+                            style={"text-align": "center", "fontSize": "20px"},
+                        ),
+                        dcc.Slider(id=PATH_NET_OOL_BORDER_DIST_SLIDER, min=0.7, max=1.7, step=0.1, value=1),
+                    ]
+                ),
+                dbc.Row(
+                    [
+                        html.Label(
+                            "minimum distance between dp and road-edge (m)",
+                            style={"text-align": "center", "fontSize": "20px"},
+                        ),
+                        dcc.Slider(id=PATH_NET_OOL_RE_DIST_SLIDER, min=0.7, max=1.7, step=0.1, value=1.2),
                     ]
                 ),
             ]
@@ -452,6 +485,7 @@ def get_path_net_falses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="False rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_MISS_FALSE_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -484,6 +518,7 @@ def get_path_net_misses_host(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_MISS_FALSE_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -510,7 +545,6 @@ def get_path_net_scene_sec_acc(
     else:
         role = "host"
     filter_name = graph_id["filter"]
-    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
     sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
@@ -525,10 +559,11 @@ def get_path_net_scene_sec_acc(
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title="<b>Host Scene Accuracy<b>",
+        title=f"<b>Host {filter_name} Scene Accuracy<b>",
         yaxis="Acc rate",
         xaxis="",
         interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -555,7 +590,6 @@ def get_path_net_scene_sec_acc(
     else:
         role = "non-host"
     filter_name = graph_id["filter"]
-    distances_dict1 = compute_dynamic_distances_dict([0.2, 0.5])
     sv = float(slider_values[0])
     query = generate_path_net_scene_by_sec_query(
         nets[PATHNET_GT],
@@ -570,10 +604,11 @@ def get_path_net_scene_sec_acc(
     df, _ = run_query_with_nets_names_processing(query)
     return draw_meta_data_filters(
         df,
-        title="<b>Non-Host Scene Accuracy<b>",
+        title=f"<b>Non-Host {filter_name} Scene Accuracy<b>",
         yaxis="Acc rate",
         xaxis="",
         interesting_columns=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_BATCH_BY_SEC_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -606,6 +641,7 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         yaxis="Miss rate",
         xaxis="",
         interesting_columns=list(PATHNET_MISS_FALSE_FILTERS[filter_name].keys()),
+        interesting_filters=list(PATHNET_MISS_FALSE_FILTERS[filter_name].values()),
         score_func=lambda row, score_filter: row[f"score_{score_filter}"],
         hover=True,
         count_items_name="dps",
@@ -723,4 +759,51 @@ def get_path_net_view_ranges_next(meta_data_filters, pathnet_filters, nets):
         min_val=0,
         max_val=10,
         bins_factor=0.1,
+    )
+
+
+def in_lane_hover_txt(row, col):
+    count = row[f"count_{col}"]
+    score = row[f"score_{col}"]
+    comp_count = round(count / score) - count
+    return f"in-lane dps: {count}<br>out-of-lane dps: {comp_count}"
+
+
+@callback(
+    Output({"id": PATH_NET_OOL, "role": MATCH}, "figure"),
+    Input(MD_FILTERS, "data"),
+    Input(PATHNET_FILTERS, "data"),
+    Input(NETS, "data"),
+    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+    State({"id": PATH_NET_OOL, "role": MATCH}, "id"),
+)
+def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re, graph_id):
+    if not nets:
+        return no_update
+    boundaries_dist_col_name = "dp_dist_from_boundaries_gt"
+    re_dist_col_name = "dp_dist_from_road_edges_gt"
+
+    boundaries_dist_columns = [f'"{boundaries_dist_col_name}_{sec}"' for sec in distances]
+    boundaries_dist_columns += [f'"{re_dist_col_name}_{sec}"' for sec in distances]
+    role = graph_id["role"]
+
+    query = get_in_lane_query(
+        data_tables=nets[PATHNET_BOUNDARIES],
+        meta_data=nets["meta_data"],
+        boundary_dist_column_name=boundaries_dist_col_name,
+        boundary_dist_threshold=threshold_boundary,
+        re_dist_column_name=re_dist_col_name,
+        re_dist_threshold=threshold_re,
+        sec_samples=distances,
+        meta_data_filters=meta_data_filters,
+        operator=">",
+        role=role,
+        base_extra_filters=pathnet_filters,
+        extra_columns=boundaries_dist_columns,
+    )
+
+    df, _ = run_query_with_nets_names_processing(query)
+    return draw_path_net_graph(
+        df, distances, "in-lane accuracy", role=role, yaxis="% accurate dps", hover=True, hover_func=in_lane_hover_txt
     )

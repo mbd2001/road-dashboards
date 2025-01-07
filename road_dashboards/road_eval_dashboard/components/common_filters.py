@@ -125,13 +125,13 @@ LM_3D_FILTERS = {
 }
 
 PATHNET_MD_FILTERS = {
-    "highway": "highway = TRUE OR freeway = TRUE",
+    "highway": "(highway = TRUE OR freeway = TRUE)",
     "country": "country = TRUE",
     "urban": "urban = TRUE",
     "in_curve": "curve_rad_ahead BETWEEN 0 AND 300",
     "close_curve": "curve_rad_ahead_40_90 BETWEEN 0 AND 250",
     "far_curve": "curve_rad_ahead_150 BETWEEN 0 AND 200",
-    "ramp": "ramp = TRUE AND curve_rad_ahead_40_90 < 800 AND dist_to_cipv_rpw > 10",
+    "ramp": "ramp = TRUE AND curve_rad_ahead_40_90 < 800",
     "close_merge": "dist_to_merge_rpw BETWEEN 6.5 AND 80",
     "far_merge": "dist_to_merge_rpw BETWEEN 80 AND 150",
     "close_split": "dist_to_split_rpw BETWEEN 6.5 AND 80",
@@ -141,23 +141,97 @@ PATHNET_MD_FILTERS = {
     "CA": "(CAST(is_rem_rpw AS BOOLEAN) or urban) = FALSE AND (dist_to_constarea_true BETWEEN 0 AND 60) AND (dist_to_cipv_rpw > 10)",
 }
 
-PATHNET_BATCH_FILTERS = {
-    "curve": "(curve_rad_ahead_150 BETWEEN 0 AND 800) AND dist_to_intersection > 150",
-    "junction_avail": PATHNET_MD_FILTERS["junction"],
-    "ramp": PATHNET_MD_FILTERS["ramp"],
-    "ca": PATHNET_MD_FILTERS["CA"],
+COMMON_FILTERS = {
+    "is_rem": "CAST(is_rem_rpw AS BOOLEAN) = TRUE",
+    "is_not_rem": "CAST(is_rem_rpw AS BOOLEAN) = FALSE",
+    "is_tvfix": "is_tvfix_rpw = TRUE",
+    "is_dp_perf": "is_tvgt_rpw = TRUE",
+    "CA": "(dist_to_constarea_true BETWEEN 0 AND 60)",
+    "no_CA": "(dist_to_constarea_true BETWEEN 0 AND 60) = FALSE",
+    "far_from_cipv": "dist_to_cipv_rpw > 10",
+    "no_slow_speed": "speed > 5.555",
+    "no_lane_change": "dist_to_host_at_z0_rpw < 0.75 AND CAST(valid_roles_rpw AS BOOLEAN) = TRUE",
+    "CA_to_from_close": "((dist_to_constarea_true BETWEEN 0.1 AND 20) OR (dist_from_constarea_true BETWEEN 0.1 AND 20))",
+    "close_to_cipv": "dist_to_cipv_rpw <= 10",
+    "urban": PATHNET_MD_FILTERS["urban"],
+    "no_intersection": "dist_to_intersection > 150",
+    "yellow": "(rightColor_yellow = TRUE OR leftColor_yellow = TRUE)",
+    "lane_change": "(dist_to_host_at_z0_rpw > 0.75 OR CAST(valid_roles_rpw AS BOOLEAN) = FALSE)",
+    "slow_speed": "speed <= 5.555",
 }
+
+POPULAR_IGNORES = {
+    "no_cipv_ca": f"({COMMON_FILTERS['no_CA']} AND {COMMON_FILTERS['far_from_cipv']})",
+    "no_cipv_slow_ca": f"({COMMON_FILTERS['no_CA']} AND {COMMON_FILTERS['far_from_cipv']} AND {COMMON_FILTERS['no_slow_speed']})",
+    "no_cipv_slow_ca_lc": f"({COMMON_FILTERS['no_CA']} AND {COMMON_FILTERS['far_from_cipv']} AND {COMMON_FILTERS['no_slow_speed']} AND {COMMON_FILTERS['no_lane_change']})",
+    "no_cipv": f"{COMMON_FILTERS['far_from_cipv']}",
+    "no_slow_speed": f"{COMMON_FILTERS['no_slow_speed']}",
+    "no_split_merge": "num_dp_splits_rpw = 0 AND num_dp_merges_rpw = 0",
+    "no_rem_or_urban": f"({COMMON_FILTERS['is_not_rem']} AND urban = FALSE)",
+    "not_urban": "urban = FALSE",
+    "not_all_host_turn_junc": "CAST(all_hosts_turn_in_junction_rpw AS BOOLEAN) = FALSE",
+    "no_in_junction_turning": "CAST(in_junction_turning_rpw AS BOOLEAN) = FALSE",
+    "no_junc_curve": "host_junc_delta_heading_rpw < 5 AND host_junc_delta_x_rpw < 1.5",
+}
+
+
+JUNCTION_SCENE_FILTERS = {
+    "large_junction_no_curve": f"(dist_to_intersection BETWEEN 3 AND 50) AND (next_junction_length_rpw BETWEEN 20 AND 70) AND {POPULAR_IGNORES['no_junc_curve']} AND {POPULAR_IGNORES['not_all_host_turn_junc']} AND {POPULAR_IGNORES['no_cipv_ca']}",
+    "small_junction_no_curve": f"(dist_to_intersection BETWEEN 3 AND 50) AND (next_junction_length_rpw BETWEEN 1 AND 20) AND {POPULAR_IGNORES['no_junc_curve']} AND {POPULAR_IGNORES['not_all_host_turn_junc']} AND {POPULAR_IGNORES['no_cipv_ca']}",
+    "curve_junction": f"(dist_to_intersection BETWEEN 3 AND 50) AND host_junc_delta_heading_rpw > 7 AND {POPULAR_IGNORES['no_cipv_ca']} AND {POPULAR_IGNORES['not_all_host_turn_junc']}",
+    "shift_junction": f"(dist_to_intersection BETWEEN 3 AND 50) AND (host_junc_delta_heading_rpw BETWEEN 0 AND 2) AND (host_junc_delta_x_rpw BETWEEN 1.5 AND 6) AND {POPULAR_IGNORES['no_cipv_ca']}",
+    "in_junction_no_curve": f"dist_to_intersection BETWEEN 0 AND 3 AND {POPULAR_IGNORES['no_cipv_ca']} AND {POPULAR_IGNORES['no_in_junction_turning']} AND {POPULAR_IGNORES['no_junc_curve']}",
+    "in_junction_curve": f"dist_to_intersection BETWEEN 0 AND 3 AND host_junc_delta_heading_rpw > 7 AND {POPULAR_IGNORES['no_cipv_ca']} AND {POPULAR_IGNORES['no_in_junction_turning']}",
+    "in_junction_shift_curve": f"dist_to_intersection BETWEEN 0 AND 3 AND (host_junc_delta_heading_rpw BETWEEN 0 AND 2) AND (host_junc_delta_x_rpw BETWEEN 1.5 AND 6) AND {POPULAR_IGNORES['no_cipv_ca']} AND {POPULAR_IGNORES['no_in_junction_turning']}",
+    "junction_no_curve_no_urban": f"dist_to_intersection BETWEEN 3 AND 50 AND urban = FALSE AND {POPULAR_IGNORES['no_junc_curve']} AND {POPULAR_IGNORES['not_all_host_turn_junc']} AND {POPULAR_IGNORES['no_cipv_ca']}",
+    "curve_junction_no_urban": f"(dist_to_intersection BETWEEN 3 AND 50) AND urban = FALSE AND host_junc_delta_heading_rpw > 7 AND {POPULAR_IGNORES['no_cipv_ca']} AND {POPULAR_IGNORES['not_all_host_turn_junc']}",
+    "shift_junction_no_urban": f"(dist_to_intersection BETWEEN 3 AND 50) AND urban = FALSE AND (host_junc_delta_heading_rpw BETWEEN 0 AND 2) AND (host_junc_delta_x_rpw BETWEEN 1.5 AND 6) AND {POPULAR_IGNORES['no_cipv_ca']}",
+    "in_junction_no_urban": f"(dist_to_intersection BETWEEN 0 AND 3) AND urban = FALSE AND {POPULAR_IGNORES['no_in_junction_turning']} AND {POPULAR_IGNORES['no_cipv_ca']}",
+}
+
+
+CA_SCENE_FILTERS = {
+    "CA_yellow": f"{COMMON_FILTERS["CA"]} AND {COMMON_FILTERS["yellow"]} AND {POPULAR_IGNORES["no_rem_or_urban"]} AND {POPULAR_IGNORES["no_cipv"]}",
+    "CA_crossing": f"({COMMON_FILTERS["CA_to_from_close"]} OR dist_to_cacrossing < 80) AND {POPULAR_IGNORES["no_rem_or_urban"]} AND {POPULAR_IGNORES["no_cipv"]}",
+    "CA": f"{COMMON_FILTERS["CA"]} AND {POPULAR_IGNORES["no_rem_or_urban"]} AND {POPULAR_IGNORES["no_cipv"]}",
+}
+
+
+CURVES_SCENE_FILTERS = {
+    "strong_mid_hilly_curve_rem": f"(curve_rad_ahead_150 BETWEEN 0 AND 500) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']} AND vertical_change_50m_rpw > 1)",
+    "strong_curve_rem": f"(curve_rad_ahead_150 BETWEEN 0 AND 250) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "mid_curve_rem": f"(curve_rad_ahead_150 BETWEEN 250 AND 500) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "weak_curve_rem": f"(curve_rad_ahead_150 BETWEEN 500 AND 800) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "strong_mid_hilly_curve_tv": f"(curve_rad_ahead_150 BETWEEN 0 AND 500) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_not_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']} AND vertical_change_50m_rpw > 1)",
+    "strong_curve_tv": f"(curve_rad_ahead_150 BETWEEN 0 AND 250) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_not_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "mid_curve_tv": f"(curve_rad_ahead_150 BETWEEN 250 AND 500) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_not_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "weak_curve_tv": f"(curve_rad_ahead_150 BETWEEN 500 AND 800) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_not_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "ramp": f"({PATHNET_MD_FILTERS["ramp"]} AND {POPULAR_IGNORES["no_split_merge"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+}
+
+HWE_SCENE_FILTERS = {
+    "marked": "((dist_to_hwemarked_hostleft BETWEEN 0 AND 40) OR (dist_to_hwemarked_hostright BETWEEN 0 AND 40)) AND urban = FALSE",
+    "semi_marked": "((dist_to_hwesemimarked_hostleft BETWEEN 0 AND 40) OR (dist_to_hwesemimarked_hostright BETWEEN 0 AND 40)) AND urban = FALSE",
+    "unmarked": "((dist_to_hweunmarked_hostleft BETWEEN 0 AND 40) OR (dist_to_hweunmarked_hostright BETWEEN 0 AND 40)) AND urban = FALSE",
+    "merge": "(dist_to_lanemerge BETWEEN 0 AND 50) AND urban = FALSE",
+}
+
 
 PATHNET_ROAD_FILTERS = {
     "highway": PATHNET_MD_FILTERS["highway"],
     "country": PATHNET_MD_FILTERS["country"],
     "urban": PATHNET_MD_FILTERS["urban"],
-    "other": "(highway OR country OR urban) = FALSE",
+    "other": "(highway OR country OR urban OR freeway) = FALSE",
     "all": "(urban = TRUE or urban = FALSE)",
 }
 
 PATHNET_MISS_FALSE_FILTERS = {"road_type": PATHNET_ROAD_FILTERS}
-PATHNET_BATCH_BY_SEC_FILTERS = {"rel_batch_type": PATHNET_BATCH_FILTERS}
+PATHNET_BATCH_BY_SEC_FILTERS = {
+    "Curve": CURVES_SCENE_FILTERS,
+    "Junction": JUNCTION_SCENE_FILTERS,
+    "CA": CA_SCENE_FILTERS,
+    "HWE": HWE_SCENE_FILTERS,
+}
 LM_3D_INTRESTING_FILTERS = {
     extra_filter_name: f"({extra_filter})"
     for filters_names, filters in LM_3D_FILTERS.items()

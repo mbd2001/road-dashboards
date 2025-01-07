@@ -1,22 +1,7 @@
-import dash_bootstrap_components as dbc
-from dash import Input, Output, State, callback, dcc, html, no_update
-from pypika import Criterion
+from dash import dcc
 
-from road_dashboards.road_dump_dashboard.graphical_components.confusion_matrix import get_confusion_matrix
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
-from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
-    card_wrapper,
-    loading_wrapper,
-)
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import conf_mat_subquery
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
-from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import (
-    execute,
-    get_main_and_secondary_columns,
-    load_object,
-)
 
 
 class ColumnsDropdown(GridObject):

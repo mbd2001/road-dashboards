@@ -1,22 +1,14 @@
-from typing import Optional
-
 import pandas as pd
 
-from road_dashboards.workflows_dashboard.components.base.pie_chart import BasePieChart
+from road_dashboards.workflows_dashboard.components.base.pie_chart import PieChart
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings
+from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
 
 
-class StatusPieChart(BasePieChart):
+class StatusPieChart(PieChart):
     def __init__(self, workflow_name: str):
         super().__init__(f"{ComponentIds.STATUS_PIE_CHART}-{workflow_name}", workflow_name)
-
-    def prepare_data(self, df: pd.DataFrame) -> Optional[pd.DataFrame]:
-        if df.empty:
-            return None
-
-        status_counts = df["status"].value_counts()
-        return pd.DataFrame({"count": status_counts.values, "message": status_counts.index})
 
     def get_chart_title(self) -> str:
         return "Status Distribution"
@@ -26,3 +18,15 @@ class StatusPieChart(BasePieChart):
 
     def get_chart_params(self) -> dict:
         return {"color_discrete_map": ChartSettings.default_colors, "color": "message"}
+
+    def get_chart_data(
+        self,
+        brain_types: list[str],
+        start_date: str | None,
+        end_date: str | None,
+        selected_workflow: str,
+    ) -> pd.DataFrame:
+        if selected_workflow != self.workflow_name:
+            return pd.DataFrame()
+
+        return db_manager.get_status_distribution(self.workflow_name, brain_types, start_date, end_date)

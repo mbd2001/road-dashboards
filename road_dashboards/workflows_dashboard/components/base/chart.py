@@ -3,34 +3,43 @@ from abc import ABC, abstractmethod
 import dash_bootstrap_components as dbc
 import pandas as pd
 import plotly.express as px
-from dash import Input, Output, State, callback, dcc, html
+import plotly.graph_objects as go
+from dash import Input, Output, callback, dcc, html
 
 from road_dashboards.workflows_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 
 
-class BaseChart(ABC):
+class Chart(ABC):
     def __init__(self, chart_id: str):
         self.chart_id = chart_id
-        self.store_id = f"{self.chart_id}-store"
-        self.chart_cache = {}
         self.register_callbacks()
 
     @abstractmethod
-    def create_chart(self, data):
+    def create_chart(
+        self,
+        data: pd.DataFrame,
+    ) -> go.Figure:
+        """
+        Create a chart based on the provided data.
+
+        Args:
+            data:  data for the chart
+
+        Returns:
+            A plotly figure object
+        """
         pass
 
-    def create_empty_chart(self) -> px.pie:
+    def create_empty_chart(self) -> go.Figure:
         fig = px.pie(values=[], names=[], title="No data to display")
         return fig
 
     def render(self) -> dbc.Col:
         return dbc.Col(
             [
-                dcc.Store(id=self.store_id),
                 card_wrapper(
                     [
-                        # Only show loading on initial load
                         html.Div(id=f"{self.chart_id}-loading-wrapper"),
                         dcc.Graph(id=self.chart_id),
                     ]
@@ -41,33 +50,36 @@ class BaseChart(ABC):
 
     def register_callbacks(self):
         """Register callbacks for the chart."""
-        if self.chart_id == ComponentIds.WEEKLY_SUCCESS_RATE_CHART:
 
-            @callback(Output(self.chart_id, "figure"), Input(ComponentIds.WORKFLOW_DATA_STORE, "data"))
-            def update_chart(store_data):
-                if not store_data:
-                    return self.create_empty_chart()
-                return self.create_chart(store_data)
-
-        else:
-
-            @callback(
-                [Output(self.chart_id, "figure"), Output(f"{self.chart_id}-loading-wrapper", "children")],
-                [Input(ComponentIds.WORKFLOW_DATA_STORE, "data"), Input(ComponentIds.WORKFLOW_SELECTOR, "value")],
-                [State(self.store_id, "data")],
+        @callback(
+            Output(self.chart_id, "figure"),
+            [
+                Input(ComponentIds.BRAIN_SELECTOR, "value"),
+                Input(ComponentIds.DATE_RANGE_PICKER, "start_date"),
+                Input(ComponentIds.DATE_RANGE_PICKER, "end_date"),
+                Input(ComponentIds.WORKFLOW_SELECTOR, "value"),
+            ],
+        )
+        def update_chart(brain_types, start_date, end_date, selected_workflow):
+            data = self.get_chart_data(
+                brain_types=brain_types,
+                start_date=start_date,
+                end_date=end_date,
+                selected_workflow=selected_workflow,
             )
-            def update_chart(store_data, selected_workflow, cached_figure):
-                if not store_data or selected_workflow not in store_data:
-                    return self.create_empty_chart(), None
 
-                # Check if we have a valid cached figure for this data
-                cache_key = (selected_workflow, str(store_data[selected_workflow]))
-                if cached_figure and cached_figure.get("cache_key") == str(cache_key):
-                    return cached_figure["figure"], None
+            if data.empty:
+                return self.create_empty_chart()
 
-                # Create new figure if cache miss
-                df = pd.DataFrame.from_dict(store_data[selected_workflow])
-                figure = self.create_chart(df)
+            return self.create_chart(data=data)
 
-                # Update cache
-                return figure, None
+    @abstractmethod
+    def get_chart_data(
+        self,
+        brain_types: list[str],
+        start_date: str | None,
+        end_date: str | None,
+        selected_workflow: str,
+    ) -> pd.DataFrame:
+        """Get the data needed for the chart."""
+        pass

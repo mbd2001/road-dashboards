@@ -33,6 +33,7 @@ class MetaData(Base):
     crossing_dist_rpw: Column = Column("crossing_dist_rpw", float)
     crosswalk: Column = Column("crosswalk", bool)
     curve_rad_ahead: Column = Column("curve_rad_ahead", float)
+    curve_rad_ahead_150: Column = Column("curve_rad_ahead_150", float)
     curve_rad_ahead_40_90: Column = Column("curve_rad_ahead_40_90", float)
     curve_rad_ahead_90_120: Column = Column("curve_rad_ahead_90_120", float)
     curve_rad_ahead_gt_120: Column = Column("curve_rad_ahead_gt_120", float)
@@ -407,9 +408,20 @@ class MetaData(Base):
     host_junc_delta_heading_rpw: Column = Column("host_junc_delta_heading_rpw", float)
     host_junc_delta_x_rpw: Column = Column("host_junc_delta_x_rpw", float)
     in_junction_turning_rpw: Column = Column("in_junction_turning_rpw", int)
+    num_dp_merges_rpw: Column = Column("num_dp_merges_rpw", float)
+    num_dp_splits_rpw: Column = Column("num_dp_splits_rpw", float)
+    next_junction_length_rpw: Column = Column("next_junction_length_rpw", float)
+    host_width_rpw: Column = Column("host_width_rpw", float)
+    host_extended_width_rpw: Column = Column("host_extended_width_rpw", float)
+    overlap_host_next_rpw: Column = Column("overlap_host_next_rpw", float)
+    overlap_host_oncoming_rpw: Column = Column("overlap_host_oncoming_rpw", float)
 
     road_type: Case = (
         Case(alias="road_type")
+        .when(highway == True, "highway")
+        .when(country == True, "country")
+        .when(urban == True, "urban")
+        .when(freeway == True, "freeway")
         .when(mdbi_road_highway == True, "highway")
         .when(mdbi_road_country == True, "country")
         .when(mdbi_road_city == True, "urban")
@@ -422,4 +434,56 @@ class MetaData(Base):
         .when((rightcolor_white == True) & (leftcolor_white == True), "white")
         .when((rightcolor_blue == True) & (leftcolor_blue == True), "blue")
         .else_("other")
+    )
+    hwe_event: Case = (
+        Case(alias="hwe_event")
+        .when(
+            ((dist_to_hweunmarked_hostleft < 60) & (dist_to_hweunmarked_hostleft > 0))
+            | ((dist_to_hweunmarked_hostright < 60) & (dist_to_hweunmarked_hostright > 0)),
+            "unmarked",
+        )
+        .when(
+            ((dist_to_hwesemimarked_hostleft < 60) & (dist_to_hwesemimarked_hostleft > 0))
+            | ((dist_to_hwesemimarked_hostright < 60) & (dist_to_hwesemimarked_hostright > 0)),
+            "semi_marked",
+        )
+        .when(
+            ((dist_to_hwemarked_hostleft < 60) & (dist_to_hwemarked_hostleft > 0))
+            | ((dist_to_hwemarked_hostright < 60) & (dist_to_hwemarked_hostright > 0)),
+            "marked",
+        )
+        .else_("other")
+    )
+    curve: Case = (
+        Case(alias="curve")
+        .when((curve_rad_ahead_gt_120 >= 0) & (curve_rad_ahead_gt_120 < 250), "strong_curves")
+        .when((curve_rad_ahead_gt_120 >= 250) & (curve_rad_ahead_gt_120 < 500), "medium_curves")
+        .when((curve_rad_ahead_gt_120 >= 500) & (curve_rad_ahead_gt_120 < 800), "light_curves")
+        .else_("straight")
+    )
+    driving_conditions: Case = (
+        Case(alias="driving_conditions")
+        .when((mdbi_time_of_day == "Night") & ((rain == True) | (rainy == True) | (wetroad == True)), "rainy_night")
+        .when((suninimage == True) | (lowsun == True), "low_sun")
+        .when(
+            (dist_to_shadowsguardrail_hostleft < 30) | (dist_to_shadowsguardrail_hostright < 30), "guard_rail_shadows"
+        )
+        .when(
+            (dist_to_shadowguardraildashed_hostleft < 30) | (dist_to_shadowguardraildashed_hostright < 30),
+            "dashed_shape_guard_rail_shadows",
+        )
+        .when(
+            (dist_to_diagonalshadow_hostleft < 30) | (dist_to_diagonalshadow_hostright < 30),
+            "diagonal_guard_rail_shadows",
+        )
+        .else_("other")
+    )
+    sensors: Case = (
+        Case(alias="sensors")
+        .when((is_100_deg == False) & (is_120_deg == False), "EyeQ4 Mono")
+        .when(is_100_deg == True, "EyeQ4 Wono")
+        .when((is_eyeq6 == False) & (is_120_deg == True), "EyeQ5 Mono8")
+        .when((is_eyeq6 == True) & (image_sensor_type.notin(["SONY_IMX324", "SONY_IMX728"])), "EyeQ6")
+        .when((is_eyeq6 == True) & (image_sensor_type.isin(["SONY_IMX324", "SONY_IMX728"])), "EyeQ6 Sony")
+        .else_("straight")
     )

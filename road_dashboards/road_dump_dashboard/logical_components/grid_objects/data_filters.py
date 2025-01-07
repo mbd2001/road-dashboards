@@ -158,7 +158,9 @@ class DataFilters(GridObject):
                     "ne": "Not Equal",
                     "isnull": "Is NULL",
                     "isnotnull": "Is not NULL",
-                    "like": "Like",
+                    "contains": "Contains",
+                    "startswith": "Startswith",
+                    "endswith": "Endswith",
                     "isin": "In",
                     "notin": "Not In",
                 }
@@ -188,7 +190,7 @@ class DataFilters(GridObject):
             State({"type": self.operation_id, "index": MATCH}, "id"),
             State({"type": self.column_id, "index": MATCH}, "value"),
             Input(self.main_table, "data"),
-            Input(META_DATA, "data"),
+            State(META_DATA, "data"),
         )
         def update_meta_data_values_options(operation, index, column, main_tables, md_tables):
             curr_index = index["index"]
@@ -219,7 +221,7 @@ class DataFilters(GridObject):
                     distinguish_values = {"T": "True", "": "False"}
                 else:
                     main_tables: list[Base] = load_object(main_tables)
-                    md_tables: list[Base] = load_object(md_tables) if md_tables else None
+                    md_tables: list[Base] = load_object(md_tables)
                     distinguish_values = self.get_distinct_string_values(column, main_tables, md_tables)
 
                 return dcc.Dropdown(

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Dict
 
 from road_dashboards.workflows_dashboard.core_settings.constants import Status
@@ -11,6 +11,7 @@ class ChartSettings:
         Status.SUCCESS.value: "#28a745",
         Status.FAILED.value: "#dc3545",
         Status.IN_PROGRESS.value: "#007bff",
+        Status.UNPROCESSED.value: "#ffc107",
     }
     marker_symbols: list[str] = ["circle", "square", "diamond", "triangle-up", "star"]
 

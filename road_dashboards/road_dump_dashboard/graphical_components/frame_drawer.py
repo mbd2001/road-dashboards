@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 
 import numpy as np
 import pandas as pd
@@ -24,10 +23,10 @@ class CandidateParams:
     y: np.array
     type: str | None = None
     role: str | None = None
-    half_width: Optional[np.array] = None
+    half_width: np.ndarray | None = None
     view_range: int | None = None
     max_view_range_idx: int | None = None
-    dashed_y: Optional[np.array] = None
+    dashed_y: np.ndarray | None = None
 
     def __post_init__(self):
         self.color = self.select_color(self.color, self.obj_id)
