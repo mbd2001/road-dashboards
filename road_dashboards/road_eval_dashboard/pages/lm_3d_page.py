@@ -11,6 +11,9 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     LM_3D_ACC_NEXT,
     LM_3D_ACC_OVERALL,
     LM_3D_ACC_OVERALL_Z_X,
+    LM_3D_AVG_ERROR_HOST,
+    LM_3D_AVG_ERROR_NEXT,
+    LM_3D_AVG_ERROR_Z_X,
     LM_3D_SOURCE_DROPDOWN,
     MD_FILTERS,
     NETS,
@@ -21,9 +24,12 @@ from road_dashboards.road_eval_dashboard.components.page_properties import PageP
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     ZSources,
     generate_lm_3d_query,
+    generate_sum_bins_by_diff_cols_metric_query,
     lm_3d_distances,
+    lm_3D_sec_to_X_dist_acc,
     run_query_with_nets_names_processing,
 )
+from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.pages.card_generators import get_host_next_graph
 
@@ -59,6 +65,11 @@ layout = html.Div(
             ]
         ),
         get_host_next_graph(
+            {"type": LM_3D_AVG_ERROR_HOST, "extra_filter": ""},
+            {"type": LM_3D_AVG_ERROR_NEXT, "extra_filter": ""},
+            {"type": LM_3D_AVG_ERROR_Z_X, "extra_filter": ""},
+        ),
+        get_host_next_graph(
             {"type": LM_3D_ACC_HOST, "extra_filter": ""},
             {"type": LM_3D_ACC_NEXT, "extra_filter": ""},
             {"type": LM_3D_ACC_HOST_Z_X, "extra_filter": ""},
@@ -73,6 +84,55 @@ layout = html.Div(
         for filter_name in LM_3D_FILTERS
     ]
 )
+
+
+def get_labels_to_preds_with_names(source, Z_or_X):
+    labels_to_preds = {}
+    axis = "Z" if Z_or_X else "X"
+    base_column_name = f"pos_dZ_{source}_{axis}_dists"
+    for sec in lm_3D_sec_to_X_dist_acc:
+        col_name = f"{base_column_name}_{sec}"
+        labels_to_preds[str(sec)] = (col_name, col_name)
+    return labels_to_preds
+
+
+@callback(
+    Output({"type": LM_3D_AVG_ERROR_HOST, "extra_filter": ""}, "figure"),
+    Output({"type": LM_3D_AVG_ERROR_NEXT, "extra_filter": ""}, "figure"),
+    Input({"type": LM_3D_AVG_ERROR_Z_X, "extra_filter": ""}, "value"),
+    Input(LM_3D_SOURCE_DROPDOWN, "value"),
+    Input(MD_FILTERS, "data"),
+    Input(NETS, "data"),
+    State(EFFECTIVE_SAMPLES_PER_BATCH, "data"),
+)
+def get_average_error_graph(Z_or_X, source, meta_data_filters, nets, effective_samples):
+    labels_to_preds = get_labels_to_preds_with_names(source, Z_or_X)
+    figs = []
+    for role in ["host", "next"]:
+        query = generate_sum_bins_by_diff_cols_metric_query(
+            nets["gt_tables"],
+            nets["meta_data"],
+            labels_to_preds=labels_to_preds,
+            meta_data_filters=meta_data_filters,
+            role=role,
+            is_count_lm=True,
+        )
+        data, _ = run_query_with_nets_names_processing(query)
+        data = data.sort_values(by="net_id")
+        for sec in lm_3D_sec_to_X_dist_acc:
+            data[f"score_{sec}"] = data[f"score_{sec}"] / data[f"count_{sec}"]
+        fig = draw_meta_data_filters(
+            data,
+            list(labels_to_preds.keys()),
+            get_lm_3d_score,
+            effective_samples=effective_samples,
+            title=f"Average Error By {source}",
+            xaxis="Sec",
+            yaxis="Avg Error",
+            hover=True,
+        )
+        figs.append(fig)
+    return figs
 
 
 @callback(
@@ -143,3 +203,8 @@ def get_cols_names(intresting_filter):
         intresting_filter_names = list(intresting_filter.keys())
         return [col for col in intresting_filter_names]
     return lm_3d_distances
+
+
+def get_lm_3d_score(row, filter_name):
+    score = row[f"score_{filter_name}"]
+    return score

@@ -72,7 +72,7 @@ COMPARE_METRIC = """
     """
 
 SUM_BY_CASE_METRIC = """
-    CAST(SUM(CASE WHEN ({extra_filters}) THEN {col_name} ELSE 0 END) AS DOUBLE)
+    CAST(SUM(CASE WHEN ({extra_filters}) THEN "{col_name}" ELSE 0 END) AS DOUBLE)
     AS "score_{ind}"
     """
 
@@ -592,9 +592,10 @@ def generate_sum_bins_by_diff_cols_metric_query(
     extra_filters="",
     extra_columns=[],
     role="",
+    is_count_lm=False,
 ):
     metrics = ", ".join(
-        SUM_BY_CASE_METRIC.format(col_name=pred, extra_filters=f"{pred} >= 0 AND {pred} < {IGNORE_VALUE}", ind=name)
+        SUM_BY_CASE_METRIC.format(col_name=pred, extra_filters=f'"{pred}" >= 0 AND "{pred}" < {IGNORE_VALUE}', ind=name)
         for name, (label, pred) in labels_to_preds.items()
     )
 
@@ -603,19 +604,23 @@ def generate_sum_bins_by_diff_cols_metric_query(
         meta_data,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
-        extra_columns=extra_columns + [col for name, label_to_pred in labels_to_preds.items() for col in label_to_pred],
+        extra_columns=extra_columns + get_extra_unique_columns(data_tables, labels_to_preds),
         role=role,
     )
 
     query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by="net_id")
 
     SUM_METRIC = """
-            CAST(SUM(CASE WHEN {extra_filters} THEN "{col}" ELSE 0 END) AS DOUBLE)
+            CAST(SUM(CASE WHEN {extra_filters} THEN {col} ELSE 0 END) AS DOUBLE)
             AS "count_{ind}"
             """
     metrics = ", ".join(
         [
-            SUM_METRIC.format(col=label, ind=name, extra_filters=f"{label} >= 0 AND {label} < {IGNORE_VALUE}")
+            SUM_METRIC.format(
+                col=1 if is_count_lm else f'"{label}"',
+                ind=name,
+                extra_filters=f'"{label}" >= 0 AND "{label}" < {IGNORE_VALUE}',
+            )
             for name, (label, pred) in labels_to_preds.items()
         ]
     )
@@ -623,6 +628,19 @@ def generate_sum_bins_by_diff_cols_metric_query(
     md_count_query = DYNAMIC_METRICS_QUERY.format(metrics=metrics, base_query=base_query, group_by=group_by)
     query = JOIN_QUERY.format(t1=md_count_query, t2=query, col="net_id")
     return query
+
+
+def get_extra_unique_columns(data_tables, labels_to_preds):
+    return list(
+        set(
+            [
+                f'"{col}"'
+                for name, label_to_pred in labels_to_preds.items()
+                for col in label_to_pred
+                if f'"{col}"' not in data_tables["required_columns"]
+            ]
+        )
+    )
 
 
 def get_compare_count_metrics(label_col, pred_col, intresting_filters, operator):
