@@ -53,6 +53,26 @@ class WorkflowTable(GridObject):
                 "backgroundColor": "white",
                 "color": "rgb(102, 102, 102)",
             },
+            style_data_conditional=[
+                {
+                    "if": {"column_id": "exit_code"},
+                    "minWidth": "150px",
+                    "maxWidth": "150px",
+                    "width": "150px",
+                },
+                {
+                    "if": {"column_id": "count"},
+                    "minWidth": "150px",
+                    "maxWidth": "150px",
+                    "width": "150px",
+                },
+                {
+                    "if": {"column_id": "example_clip_name"},
+                    "minWidth": "800px",
+                    "maxWidth": "800px",
+                    "width": "800px",
+                },
+            ],
             style_table={
                 "border": "1px solid rgb(230, 230, 230)",
             },
@@ -80,6 +100,7 @@ class WorkflowTable(GridObject):
                 return no_update, no_update
 
             workflow_dict = self.get_workflow_dict(chosen_dataset)
+
             tooltip_columns = ["example_clip_name", "error_msg"]
             tooltip_data = [{col: exit_code[col] for col in tooltip_columns} for exit_code in workflow_dict.values()]
             return list(workflow_dict.values()), tooltip_data
