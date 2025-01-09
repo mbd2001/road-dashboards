@@ -95,7 +95,6 @@ class ExportButton:
                             style={"width": "10rem", "margin": "0 auto", "display": "inline-block"},
                         ),
                         dcc.Download(id=ExportComponentsIds.DOWNLOAD_DATAFRAME),
-
                         dbc.Modal(
                             [
                                 dbc.ModalHeader(dbc.ModalTitle("Export Data Preview")),
@@ -106,19 +105,17 @@ class ExportButton:
                                         hover=True,
                                         responsive=False,
                                         striped=True,
-
                                     ),
                                     style={
-                                        "maxHeight": "80vh", 
+                                        "maxHeight": "80vh",
                                         "overflowY": "auto",
-                                    },                               
+                                    },
                                 ),
                             ],
                             id=ExportComponentsIds.EXPORT_PREVIEW_MODAL,
                             size="xl",
                             centered=True,
-                            className="mw-100 p-5"
-
+                            className="mw-100 p-5",
                         ),
                     ],
                     width=12,

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
-from dash import Input, Output, State, callback, dcc, html, callback_context
+from dash import Input, Output, State, callback, callback_context, dcc, html
 from dash.dependencies import ALL
 
 from road_dashboards.workflows_dashboard.components.selectors.export.export_constants import (
@@ -230,7 +230,7 @@ def toggle_preview_modal(
         return True, [html.Tr([html.Td("No data found matching the current filters")])]
 
     header = [html.Thead(html.Tr([html.Th(col) for col in df.columns]))]
-    
+
     preview_df = df.head(100)
     rows = []
     for _, row in preview_df.iterrows():
@@ -239,6 +239,10 @@ def toggle_preview_modal(
 
     footer = []
     if len(df) > 100:
-        footer = [html.Tfoot(html.Tr([html.Td(f"Showing first 100 rows out of {len(df)} total rows", colSpan=len(df.columns))]))]
+        footer = [
+            html.Tfoot(
+                html.Tr([html.Td(f"Showing first 100 rows out of {len(df)} total rows", colSpan=len(df.columns))])
+            )
+        ]
 
     return True, header + body + footer
