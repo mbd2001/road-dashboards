@@ -79,16 +79,50 @@ class ExportButton:
                 dbc.Col(
                     [
                         dbc.Button(
+                            "Preview Data",
+                            id=ExportComponentsIds.EXPORT_PREVIEW_BUTTON,
+                            color="secondary",
+                            className="mt-4 mb-2 me-2",
+                            size="lg",
+                            style={"width": "10rem", "margin": "0 auto", "display": "inline-block"},
+                        ),
+                        dbc.Button(
                             "Export Data",
                             id=ExportComponentsIds.EXPORT_BUTTON,
                             color="primary",
                             className="mt-4 mb-2",
                             size="lg",
-                            style={"width": "10rem", "margin": "0 auto", "display": "block"},
+                            style={"width": "10rem", "margin": "0 auto", "display": "inline-block"},
                         ),
                         dcc.Download(id=ExportComponentsIds.DOWNLOAD_DATAFRAME),
+
+                        dbc.Modal(
+                            [
+                                dbc.ModalHeader(dbc.ModalTitle("Export Data Preview")),
+                                dbc.ModalBody(
+                                    dbc.Table(
+                                        id=ExportComponentsIds.EXPORT_PREVIEW_TABLE,
+                                        bordered=True,
+                                        hover=True,
+                                        responsive=False,
+                                        striped=True,
+
+                                    ),
+                                    style={
+                                        "maxHeight": "80vh", 
+                                        "overflowY": "auto",
+                                    },                               
+                                ),
+                            ],
+                            id=ExportComponentsIds.EXPORT_PREVIEW_MODAL,
+                            size="xl",
+                            centered=True,
+                            className="mw-100 p-5"
+
+                        ),
                     ],
                     width=12,
+                    className="text-center",
                 ),
             ]
         )

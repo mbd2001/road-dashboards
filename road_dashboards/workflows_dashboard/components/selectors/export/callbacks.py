@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, List, Optional, Tuple, Union
 
-from dash import Input, Output, State, callback, dcc, html
+from dash import Input, Output, State, callback, dcc, html, callback_context
 from dash.dependencies import ALL
 
 from road_dashboards.workflows_dashboard.components.selectors.export.export_constants import (
@@ -179,3 +179,66 @@ def export_data(
 
     filename = f"{'_'.join(selected_workflows)}_data_{datetime.now().strftime('%d-%m-%Y')}.csv"
     return dcc.send_data_frame(df.to_csv, filename, index=False)
+
+
+@callback(
+    [
+        Output(ExportComponentsIds.EXPORT_PREVIEW_MODAL, "is_open"),
+        Output(ExportComponentsIds.EXPORT_PREVIEW_TABLE, "children"),
+    ],
+    [Input(ExportComponentsIds.EXPORT_PREVIEW_BUTTON, "n_clicks")],
+    [
+        State(ComponentIds.BRAIN_SELECTOR, "value"),
+        State(ComponentIds.DATE_RANGE_PICKER, "start_date"),
+        State(ComponentIds.DATE_RANGE_PICKER, "end_date"),
+        State(ExportComponentsIds.EXPORT_WORKFLOW_SELECTOR, "value"),
+        State(ExportComponentsIds.EXPORT_STATUS_SELECTOR, "value"),
+        State(ExportComponentsIds.EXPORT_COLUMNS_SELECTOR, "value"),
+        State({"type": "column-values", "column": ALL}, "value"),
+        State({"type": "column-values", "column": ALL}, "id"),
+    ],
+)
+def toggle_preview_modal(
+    preview_clicks: int,
+    brain_types: Optional[List[str]],
+    start_date: Optional[str],
+    end_date: Optional[str],
+    selected_workflows: Optional[List[str]],
+    selected_statuses: Optional[List[str]],
+    selected_columns: Optional[List[str]],
+    column_values: List,
+    column_ids: List[Dict],
+) -> Tuple[bool, Optional[List]]:
+    """Toggle the preview modal and populate the preview table with the filtered data."""
+    ctx = callback_context
+    if not ctx.triggered or not preview_clicks or not selected_workflows:
+        return False, None
+
+    is_single_workflow = len(selected_workflows) == 1
+    filters = {
+        "statuses": selected_statuses if is_single_workflow else None,
+        "allowed_values": _build_allowed_values_per_column(selected_columns, column_values, column_ids)
+        if is_single_workflow
+        else None,
+    }
+
+    df = db_manager.get_workflow_export_data(
+        selected_workflows, brain_types, start_date, end_date, filters["statuses"], filters["allowed_values"]
+    )
+
+    if df.empty:
+        return True, [html.Tr([html.Td("No data found matching the current filters")])]
+
+    header = [html.Thead(html.Tr([html.Th(col) for col in df.columns]))]
+    
+    preview_df = df.head(100)
+    rows = []
+    for _, row in preview_df.iterrows():
+        rows.append(html.Tr([html.Td(str(row[col])) for col in df.columns]))
+    body = [html.Tbody(rows)]
+
+    footer = []
+    if len(df) > 100:
+        footer = [html.Tfoot(html.Tr([html.Td(f"Showing first 100 rows out of {len(df)} total rows", colSpan=len(df.columns))]))]
+
+    return True, header + body + footer

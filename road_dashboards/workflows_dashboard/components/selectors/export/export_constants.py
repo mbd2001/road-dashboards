@@ -3,6 +3,9 @@ from road_dashboards.workflows_dashboard.core_settings.constants import Workflow
 
 class ExportComponentsIds:
     EXPORT_BUTTON = "export-button"
+    EXPORT_PREVIEW_BUTTON = "export-preview-button"
+    EXPORT_PREVIEW_MODAL = "export-preview-modal"
+    EXPORT_PREVIEW_TABLE = "export-preview-table"
     EXPORT_ALL_DATA = "export-all-data"
     EXPORT_WORKFLOW_SELECTOR = "export-workflow-selector"
     EXPORT_STATUS_SELECTOR = "export-status-selector"
