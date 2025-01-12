@@ -35,6 +35,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_VIEW_RANGES_NEXT,
     PATHNET_BOUNDARIES,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
+    PATHNET_DYNAMIC_THRESHOLD_OOL,
+    PATHNET_DYNAMIC_THRESHOLD_RE_OOL,
     PATHNET_FILTERS,
     PATHNET_GT,
     PATHNET_INCLUDE_MATCHED_HOST,
@@ -252,7 +254,7 @@ pos_layout = html.Div(
                             "minimum distance between dp and border (m)",
                             style={"text-align": "center", "fontSize": "20px"},
                         ),
-                        dcc.Slider(id=PATH_NET_OOL_BORDER_DIST_SLIDER, min=0.7, max=1.7, step=0.1, value=1),
+                        dcc.RangeSlider(id=PATH_NET_OOL_BORDER_DIST_SLIDER, min=0, max=2, step=0.1, value=[0.8, 1]),
                     ]
                 ),
                 dbc.Row(
@@ -261,7 +263,7 @@ pos_layout = html.Div(
                             "minimum distance between dp and road-edge (m)",
                             style={"text-align": "center", "fontSize": "20px"},
                         ),
-                        dcc.Slider(id=PATH_NET_OOL_RE_DIST_SLIDER, min=0.7, max=1.7, step=0.1, value=1.2),
+                        dcc.RangeSlider(id=PATH_NET_OOL_RE_DIST_SLIDER, min=0, max=2, step=0.1, value=[1, 1.2]),
                     ]
                 ),
             ]
@@ -303,12 +305,35 @@ pos_layout = html.Div(
 )
 
 
-@callback(Output(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"), Input("acc-threshold-slider", "value"))
 def compute_dynamic_distances_dict(slider_values):
     coeff = np.polyfit([1.3, 3], slider_values, deg=1)
     threshold_polynomial = np.poly1d(coeff)
     distances_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in distances}
     return distances_dict
+
+
+@callback(
+    Output(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
+    Input("acc-threshold-slider", "value"),
+)
+def compute_acc_threshold_distances_dict(slider_values):
+    return compute_dynamic_distances_dict(slider_values)
+
+
+@callback(
+    Output(PATHNET_DYNAMIC_THRESHOLD_OOL, "data"),
+    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
+)
+def compute_ool_threshold_distances_dict(slider_values):
+    return compute_dynamic_distances_dict([slider_values[1], slider_values[0]])
+
+
+@callback(
+    Output(PATHNET_DYNAMIC_THRESHOLD_RE_OOL, "data"),
+    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+)
+def compute_re_ool_threshold_distances_dict(slider_values):
+    return compute_dynamic_distances_dict([slider_values[1], slider_values[0]])
 
 
 @callback(
@@ -774,11 +799,13 @@ def in_lane_hover_txt(row, col):
     Input(MD_FILTERS, "data"),
     Input(PATHNET_FILTERS, "data"),
     Input(NETS, "data"),
-    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
-    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+    Input(PATHNET_DYNAMIC_THRESHOLD_OOL, "data"),
+    Input(PATHNET_DYNAMIC_THRESHOLD_RE_OOL, "data"),
     State({"id": PATH_NET_OOL, "role": MATCH}, "id"),
 )
-def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold_boundary, threshold_re, graph_id):
+def get_path_net_in_lane_fig(
+    meta_data_filters, pathnet_filters, nets, threshold_boundary_dict, threshold_re_dict, graph_id
+):
     if not nets:
         return no_update
     boundaries_dist_col_name = "dp_dist_from_boundaries_gt"
@@ -792,10 +819,9 @@ def get_path_net_in_lane_fig(meta_data_filters, pathnet_filters, nets, threshold
         data_tables=nets[PATHNET_BOUNDARIES],
         meta_data=nets["meta_data"],
         boundary_dist_column_name=boundaries_dist_col_name,
-        boundary_dist_threshold=threshold_boundary,
+        boundary_dist_threshold_dict=threshold_boundary_dict,
         re_dist_column_name=re_dist_col_name,
-        re_dist_threshold=threshold_re,
-        sec_samples=distances,
+        re_dist_threshold_dict=threshold_re_dict,
         meta_data_filters=meta_data_filters,
         operator=">",
         role=role,

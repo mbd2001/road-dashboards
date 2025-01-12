@@ -13,10 +13,10 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
     NETS,
-    PATH_NET_OOL_BORDER_DIST_SLIDER,
-    PATH_NET_OOL_RE_DIST_SLIDER,
     PATHNET_BOUNDARIES,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
+    PATHNET_DYNAMIC_THRESHOLD_OOL,
+    PATHNET_DYNAMIC_THRESHOLD_RE_OOL,
     PATHNET_EVENTS_BOOKMARKS_JSON,
     PATHNET_EVENTS_CHOSEN_NET,
     PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
@@ -444,12 +444,12 @@ def show_unique_choices(is_unique_on, metric, is_re_only):
     Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
     Input(PATHNET_EVENTS_DIST_DROPDOWN, "value"),
     Input(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
-    Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
-    Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+    Input(PATHNET_DYNAMIC_THRESHOLD_OOL, "data"),
+    Input(PATHNET_DYNAMIC_THRESHOLD_RE_OOL, "data"),
     prevent_initial_call=True,
 )
 def get_specified_thresholds_placeholders(
-    is_unique_on, metric, dist, thresh_dict, out_of_lane_min_border_dist, out_of_lane_min_re_dist
+    is_unique_on, metric, dist, thresh_dict, ool_min_border_dist_dict, ool_min_re_dist_dict
 ):
     if not is_unique_on or metric not in ["inaccurate", "out-of-lane"]:
         return "", "", "", ""
@@ -459,21 +459,23 @@ def get_specified_thresholds_placeholders(
         ref_th_ph = "Specify ref acc-threshold in meters (optional)"
         if dist:
             main_default_th = thresh_dict[str(float(dist))]
-            main_th_ph += f", default = {main_default_th}"
-            ref_default_thresh = main_default_th - REF_THRESH_DEFAULT_DIFF
-            ref_th_ph += f", default = {ref_default_thresh}"
+            main_th_ph += f", default = {main_default_th:.2f}"
+            ref_th_ph += f", default = {(main_default_th - REF_THRESH_DEFAULT_DIFF):.2f}"
         return main_th_ph, ref_th_ph, "", ""
 
-    main_th_ph = f"Specify dp-border min-dist in meters (optional), default = {out_of_lane_min_border_dist}"
-    ref_th_ph = (
-        f"Specify ref dp-border min-dist in meters (optional), default = "
-        f"{out_of_lane_min_border_dist + REF_THRESH_DEFAULT_DIFF}"
-    )
-    main_re_th_ph = f"Specify dp-roadedge min-dist in meters (optional), default = {out_of_lane_min_re_dist}"
-    ref_re_th_ph = (
-        f"Specify ref dp-roadedge min-dist in meters (optional), default = "
-        f"{out_of_lane_min_re_dist + REF_THRESH_DEFAULT_DIFF}"
-    )
+    main_th_ph = "Specify dp-border min-dist in meters (optional)"
+    ref_th_ph = "Specify ref dp-border min-dist in meters (optional)"
+    main_re_th_ph = "Specify dp-roadedge min-dist in meters (optional)"
+    ref_re_th_ph = "Specify ref dp-roadedge min-dist in meters (optional)"
+
+    if dist:
+        ool_min_border_dist = ool_min_border_dist_dict[str(float(dist))]
+        ool_min_re_dist = ool_min_re_dist_dict[str(float(dist))]
+        main_th_ph += f", default = {ool_min_border_dist:.2f}"
+        ref_th_ph += f", default = {(ool_min_border_dist + REF_THRESH_DEFAULT_DIFF):.2f}"
+        main_re_th_ph += f", default = {ool_min_re_dist:.2f}"
+        ref_re_th_ph += f", default = {(ool_min_re_dist + REF_THRESH_DEFAULT_DIFF):.2f}"
+
     return main_th_ph, ref_th_ph, main_re_th_ph, ref_re_th_ph
 
 
@@ -495,8 +497,8 @@ def get_specified_thresholds_placeholders(
     State(PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD, "data"),
     State(PATHNET_EVENTS_EVENTS_ORDER_BY, "value"),
     State(PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH, "on"),
-    State(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
-    State(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
+    Input(PATHNET_DYNAMIC_THRESHOLD_OOL, "data"),
+    Input(PATHNET_DYNAMIC_THRESHOLD_RE_OOL, "data"),
     State(PATHNET_EVENTS_RE_THRESHOLD, "value"),
     State(PATHNET_EVENTS_RE_REF_THRESHOLD, "value"),
     State(PATHNET_EVENTS_RE_SWITCH, "on"),
@@ -519,8 +521,8 @@ def update_extractor_dict(
     thresh_dict,
     order_by,
     clips_unique_on,
-    out_of_lane_min_border_dist,
-    out_of_lane_min_re_dist,
+    ool_min_border_dist_dict,
+    ool_min_re_dist_dict,
     specified_re_thresh,
     ref_specified_re_thresh,
     is_re_switch_on,
@@ -543,14 +545,17 @@ def update_extractor_dict(
         events_extractor_dict["threshold"] = specified_thresh
     elif dist is not None:
         events_extractor_dict["threshold"] = (
-            out_of_lane_min_border_dist if metric == "out-of-lane" else thresh_dict[str(float(dist))]
+            ool_min_border_dist_dict[str(float(dist))] if metric == "out-of-lane" else thresh_dict[str(float(dist))]
         )
     else:
         events_extractor_dict["threshold"] = 0
 
-    events_extractor_dict["re_threshold"] = (
-        specified_re_thresh if specified_re_thresh is not None else out_of_lane_min_re_dist
-    )
+    if specified_re_thresh is not None:
+        events_extractor_dict["re_threshold"] = specified_re_thresh
+    elif dist is not None:
+        events_extractor_dict["re_threshold"] = ool_min_re_dist_dict[str(float(dist))]
+    else:
+        events_extractor_dict["re_threshold"] = 0
 
     if is_unique_on:
         if ref_specified_thresh is not None:

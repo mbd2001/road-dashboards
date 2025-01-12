@@ -110,7 +110,7 @@ MAX_SPEED_FILTERS = {"hwe": "dist_to_hwe BETWEEN 0 AND 30", **ROAD_TYPE_FILTERS}
 
 INTERSTING_CAM_HEIGHTS = [0, 1.3, 1.8] + [999]
 CAM_HEIGHT_FILTERS = {
-    f"{s}_{INTERSTING_CAM_HEIGHTS[i+1]}": f"camh BETWEEN {s} AND {INTERSTING_CAM_HEIGHTS[i+1]}"
+    f"{s}_{INTERSTING_CAM_HEIGHTS[i + 1]}": f"camh BETWEEN {s} AND {INTERSTING_CAM_HEIGHTS[i + 1]}"
     for i, s in enumerate(INTERSTING_CAM_HEIGHTS[:-1])
 }
 
@@ -191,22 +191,22 @@ JUNCTION_SCENE_FILTERS = {
 
 
 CA_SCENE_FILTERS = {
-    "CA_yellow": f"{COMMON_FILTERS["CA"]} AND {COMMON_FILTERS["yellow"]} AND {POPULAR_IGNORES["no_rem_or_urban"]} AND {POPULAR_IGNORES["no_cipv"]}",
-    "CA_crossing": f"({COMMON_FILTERS["CA_to_from_close"]} OR dist_to_cacrossing < 80) AND {POPULAR_IGNORES["no_rem_or_urban"]} AND {POPULAR_IGNORES["no_cipv"]}",
-    "CA": f"{COMMON_FILTERS["CA"]} AND {POPULAR_IGNORES["no_rem_or_urban"]} AND {POPULAR_IGNORES["no_cipv"]}",
+    "CA_yellow": f"{COMMON_FILTERS['CA']} AND {COMMON_FILTERS['yellow']} AND {POPULAR_IGNORES['no_rem_or_urban']} AND {POPULAR_IGNORES['no_cipv']}",
+    "CA_crossing": f"({COMMON_FILTERS['CA_to_from_close']} OR dist_to_cacrossing < 80) AND {POPULAR_IGNORES['no_rem_or_urban']} AND {POPULAR_IGNORES['no_cipv']}",
+    "CA": f"{COMMON_FILTERS['CA']} AND {POPULAR_IGNORES['no_rem_or_urban']} AND {POPULAR_IGNORES['no_cipv']}",
 }
 
 
 CURVES_SCENE_FILTERS = {
     "strong_mid_hilly_curve_rem": f"(curve_rad_ahead_150 BETWEEN 0 AND 500) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']} AND vertical_change_50m_rpw > 1)",
-    "strong_curve_rem": f"(curve_rad_ahead_150 BETWEEN 0 AND 250) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
-    "mid_curve_rem": f"(curve_rad_ahead_150 BETWEEN 250 AND 500) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
-    "weak_curve_rem": f"(curve_rad_ahead_150 BETWEEN 500 AND 800) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "strong_curve_rem": f"(curve_rad_ahead_150 BETWEEN 0 AND 250) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']})",
+    "mid_curve_rem": f"(curve_rad_ahead_150 BETWEEN 250 AND 500) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']})",
+    "weak_curve_rem": f"(curve_rad_ahead_150 BETWEEN 500 AND 800) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']})",
     "strong_mid_hilly_curve_tv": f"(curve_rad_ahead_150 BETWEEN 0 AND 500) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_not_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']} AND vertical_change_50m_rpw > 1)",
-    "strong_curve_tv": f"(curve_rad_ahead_150 BETWEEN 0 AND 250) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_not_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
-    "mid_curve_tv": f"(curve_rad_ahead_150 BETWEEN 250 AND 500) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_not_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
-    "weak_curve_tv": f"(curve_rad_ahead_150 BETWEEN 500 AND 800) AND ({POPULAR_IGNORES["no_split_merge"]} AND {COMMON_FILTERS["is_not_rem"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
-    "ramp": f"({PATHNET_MD_FILTERS["ramp"]} AND {POPULAR_IGNORES["no_split_merge"]} AND {POPULAR_IGNORES["no_cipv_slow_ca"]})",
+    "strong_curve_tv": f"(curve_rad_ahead_150 BETWEEN 0 AND 250) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_not_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']})",
+    "mid_curve_tv": f"(curve_rad_ahead_150 BETWEEN 250 AND 500) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_not_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']})",
+    "weak_curve_tv": f"(curve_rad_ahead_150 BETWEEN 500 AND 800) AND ({POPULAR_IGNORES['no_split_merge']} AND {COMMON_FILTERS['is_not_rem']} AND {POPULAR_IGNORES['no_cipv_slow_ca']})",
+    "ramp": f"({PATHNET_MD_FILTERS['ramp']} AND {POPULAR_IGNORES['no_split_merge']} AND {POPULAR_IGNORES['no_cipv_slow_ca']})",
 }
 
 HWE_SCENE_FILTERS = {

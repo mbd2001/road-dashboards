@@ -1100,10 +1100,9 @@ def get_in_lane_query(
     data_tables,
     meta_data,
     boundary_dist_column_name,
-    boundary_dist_threshold,
+    boundary_dist_threshold_dict,
     re_dist_column_name,
-    re_dist_threshold,
-    sec_samples,
+    re_dist_threshold_dict,
     meta_data_filters,
     operator,
     role,
@@ -1112,12 +1111,15 @@ def get_in_lane_query(
 ):
     metrics = []
     count_metrics = {}
+    sec_samples = list(boundary_dist_threshold_dict.keys())
     for sec in sec_samples:
         boundary_in_lane_metric = BASIC_OOL_METRIC.format(
-            dist_col_name=f"{boundary_dist_column_name}_{sec}", operator=operator, threshold=boundary_dist_threshold
+            dist_col_name=f"{boundary_dist_column_name}_{sec}",
+            operator=operator,
+            threshold=boundary_dist_threshold_dict[sec],
         )
         re_in_lane_metric = BASIC_OOL_METRIC.format(
-            dist_col_name=f"{re_dist_column_name}_{sec}", operator=operator, threshold=re_dist_threshold
+            dist_col_name=f"{re_dist_column_name}_{sec}", operator=operator, threshold=re_dist_threshold_dict[sec]
         )
         valid_boundary_dist = VALID_OOL_METRIC.format(dist_col_name=f"{boundary_dist_column_name}_{sec}")
         invalid_re_dist = INVALID_OOL_METRIC.format(dist_col_name=f"{re_dist_column_name}_{sec}")

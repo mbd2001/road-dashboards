@@ -14,7 +14,7 @@ def draw_path_net_graph(
     score_func=lambda row, score_filter: row[f"score_{score_filter}"],
     plot_bgcolor=None,
     hover=False,
-    hover_func=lambda row, col: f'lane marks: {row[f"count_{col}"]}',
+    hover_func=lambda row, col: f"lane marks: {row[f'count_{col}']}",
 ):
     fig = go.Figure()
     if all(f"overall_{col}" in effective_samples for col in cols):

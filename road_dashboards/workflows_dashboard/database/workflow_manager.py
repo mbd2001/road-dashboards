@@ -160,7 +160,9 @@ class WorkflowsDBManager(DBManager):
         error_counts = error_df[WorkflowFields.message].value_counts()
 
         error_counts.index = [
-            f"{x[:ChartSettings.max_error_message_length]}..." if len(x) > ChartSettings.max_error_message_length else x
+            f"{x[: ChartSettings.max_error_message_length]}..."
+            if len(x) > ChartSettings.max_error_message_length
+            else x
             for x in error_counts.index
         ]
 
