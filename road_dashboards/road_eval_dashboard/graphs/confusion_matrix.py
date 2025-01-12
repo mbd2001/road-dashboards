@@ -16,7 +16,7 @@ def compute_confusion_matrix(data, labels_col, preds_col, num_classes):
 
 def draw_confusion_matrix(conf_matrix, normalize_mat, class_names, role="", mat_name=""):
     num_classes = len(class_names)
-    title = f'{(mat_name or role or "overall").title()} Confusion Matrix'
+    title = f"{(mat_name or role or 'overall').title()} Confusion Matrix"
     fig = px.imshow(
         normalize_mat,
         text_auto=".2f",
