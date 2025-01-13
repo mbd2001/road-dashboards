@@ -1,3 +1,5 @@
+from typing import override
+
 import pandas as pd
 
 from road_dashboards.workflows_dashboard.components.base.pie_chart import PieChart
@@ -19,6 +21,7 @@ class StatusPieChart(PieChart):
     def get_chart_params(self) -> dict:
         return {"color_discrete_map": ChartSettings.default_colors, "color": "message"}
 
+    @override
     def get_chart_data(
         self,
         brain_types: list[str],

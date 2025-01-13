@@ -134,10 +134,13 @@ class ExportSection:
                         [
                             html.H5("Export Data", className="card-title mb-4"),
                             WorkflowSelector().render(),
-                            dbc.Collapse(
-                                FilterSection().render(),
+                            html.Div(
+                                dbc.Collapse(
+                                    FilterSection().render(),
+                                    is_open=True,
+                                ),
                                 id=ExportComponentsIds.ADDITIONAL_COLUMNS_CONTAINER,
-                                is_open=True,
+                                hidden=False,
                             ),
                             ExportButton().render(),
                         ]

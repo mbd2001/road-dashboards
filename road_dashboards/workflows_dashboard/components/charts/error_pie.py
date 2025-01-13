@@ -1,3 +1,5 @@
+from typing import override
+
 import pandas as pd
 
 from road_dashboards.workflows_dashboard.components.base.pie_chart import PieChart
@@ -15,6 +17,7 @@ class ErrorPieChart(PieChart):
     def get_hover_template(self) -> str:
         return "<b>Error Message:</b><br>%{customdata}<br><br>Count: %{value}<br>%{percent}<extra></extra>"
 
+    @override
     def get_chart_data(
         self, brain_types: list[str], start_date: str | None, end_date: str | None, selected_workflow
     ) -> pd.DataFrame:

@@ -17,27 +17,27 @@ db_manager = WorkflowsDBManager()
 
 @callback(
     [
-        Output(ExportComponentsIds.ADDITIONAL_COLUMNS_CONTAINER, "style"),
+        Output(ExportComponentsIds.ADDITIONAL_COLUMNS_CONTAINER, "hidden"),
         Output(ExportComponentsIds.EXPORT_COLUMNS_SELECTOR, "options"),
     ],
     Input(ExportComponentsIds.EXPORT_WORKFLOW_SELECTOR, "value"),
 )
-def update_columns_selector(selected_workflows: Optional[List[str]]) -> Tuple[Dict, List]:
+def update_columns_selector(selected_workflows: Optional[List[str]]) -> Tuple[bool, List]:
     """Update column selector visibility and options based on selected workflow.
 
     Shows additional columns only when a single workflow is selected.
     """
     if not selected_workflows or len(selected_workflows) != 1:
-        return {"display": "none"}, []
+        return True, []
 
     workflow_columns = db_manager.get_workflow_columns(selected_workflows[0])
     if not workflow_columns:
-        return {"display": "none"}, []
+        return True, []
 
     additional_cols = [col for col in WORKFLOW_SPECIFIC_COLUMNS if col in workflow_columns]
     column_options = [{"label": col, "value": col} for col in additional_cols]
 
-    return {"display": "block"}, column_options
+    return False, column_options
 
 
 def create_value_selector(col: str, unique_values: List, current_value: Optional[List] = None) -> html.Div:
