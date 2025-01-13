@@ -94,12 +94,7 @@ class CatalogTable(GridObject):
             css=[{"selector": ".show-hide", "rule": "display: none"}],
             style_cell={"textAlign": "left", "paddingLeft": "10px"},
             style_cell_conditional=[
-                {
-                    "if": {"column_id": "total_frames"},
-                    "textAlign": "right",
-                    "paddingRight": "10px",
-                    "width": "10%"
-                },
+                {"if": {"column_id": "total_frames"}, "textAlign": "right", "paddingRight": "10px", "width": "10%"},
                 {
                     "if": {"column_id": "last_change"},
                     "textAlign": "center",

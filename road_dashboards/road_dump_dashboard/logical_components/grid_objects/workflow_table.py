@@ -55,18 +55,9 @@ class WorkflowTable(GridObject):
                 "color": "rgb(102, 102, 102)",
             },
             style_data_conditional=[
-                {
-                    "if": {"column_id": "exit_code"},
-                    "width": "7%"
-                },
-                {
-                    "if": {"column_id": "count"},
-                    "width": "7%"
-                },
-                {
-                    "if": {"column_id": "example_clip_name"},
-                    "width": "32%"
-                },
+                {"if": {"column_id": "exit_code"}, "width": "7%"},
+                {"if": {"column_id": "count"}, "width": "7%"},
+                {"if": {"column_id": "example_clip_name"}, "width": "32%"},
             ],
             style_table={
                 "border": "1px solid rgb(230, 230, 230)",
