@@ -58,9 +58,9 @@ class CountGraph(GridObject):
         self.columns_dropdown_id = columns_dropdown_id
         self.filter = filter
         self.slider_value = slider_value
-        assert (
-            self.column or self.columns_dropdown_id
-        ), "you have to provide input column, explicitly or through dropdown"
+        assert self.column or self.columns_dropdown_id, (
+            "you have to provide input column, explicitly or through dropdown"
+        )
         super().__init__(full_grid_row=full_grid_row, component_id=component_id)
 
     def _generate_ids(self):

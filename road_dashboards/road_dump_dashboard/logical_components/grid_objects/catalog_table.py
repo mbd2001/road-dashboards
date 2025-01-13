@@ -131,9 +131,10 @@ class CatalogTable(GridObject):
 
         @callback(Output(self.dump_catalog_id, "columns"), Input(self.column_selector_id, "value"))
         def update_catalog_columns(selected_columns):
-
             long_number_format = {"type": "numeric", "format": {"specifier": ".3s"}}
-            columns_config = [{"name": name, "id": col} for col, name in table_columns.items() if col in selected_columns]
+            columns_config = [
+                {"name": name, "id": col} for col, name in table_columns.items() if col in selected_columns
+            ]
             for col_conf in columns_config:
                 if col_conf["name"] == "Total Frames":
                     col_conf.update(long_number_format)
