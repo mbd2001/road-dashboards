@@ -141,7 +141,7 @@ class WorkflowsDBManager(DBManager):
         Returns:
             Filtered DataFrame
         """
-        # self._ensure_fresh_data()  # Ensure data is fresh before filtering
+        self._ensure_fresh_data()
 
         if not workflow_name:
             return pd.DataFrame()
@@ -223,7 +223,7 @@ class WorkflowsDBManager(DBManager):
 
         def truncate_message(message: str) -> str:
             if len(message) > ChartSettings.max_error_message_length:
-                return f"{message[:ChartSettings.max_error_message_length]}..."
+                return f"{message[: ChartSettings.max_error_message_length]}..."
             return message
 
         truncated_messages = [truncate_message(x) for x in cleaned_messages]
