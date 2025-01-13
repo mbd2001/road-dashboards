@@ -569,6 +569,8 @@ def update_extractor_dict(
             events_extractor_dict["ref_re_threshold"] = ref_specified_re_thresh
         elif metric == "out-of-lane":
             events_extractor_dict["ref_re_threshold"] = events_extractor_dict["re_threshold"] + REF_THRESH_DEFAULT_DIFF
+        else:
+            events_extractor_dict["ref_re_threshold"] = 0
 
     default_order_by = "ASC" if metric == "out-of-lane" else "DESC"
     events_extractor_dict["order_by"] = order_by if order_by is not None else default_order_by
