@@ -92,7 +92,14 @@ class CatalogTable(GridObject):
             page_current=0,
             page_size=20,
             css=[{"selector": ".show-hide", "rule": "display: none"}],
-            style_cell={"textAlign": "left"},
+            style_cell={"textAlign": "left", "paddingLeft": "10px"},
+            style_cell_conditional=[
+                {"if": {"column_id": "total_frames"}, "textAlign": "right", "paddingRight": "10px", "width": "10%"},
+                {
+                    "if": {"column_id": "last_change"},
+                    "textAlign": "center",
+                },
+            ],
             style_header={
                 "background-color": "#4e4e50",
                 "fontWeight": "bold",
@@ -117,7 +124,15 @@ class CatalogTable(GridObject):
 
         @callback(Output(self.dump_catalog_id, "columns"), Input(self.column_selector_id, "value"))
         def update_catalog_columns(selected_columns):
-            return [{"name": name, "id": col} for col, name in table_columns.items() if col in selected_columns]
+            long_number_format = {"type": "numeric", "format": {"specifier": ".3s"}}
+            columns_config = [
+                {"name": name, "id": col} for col, name in table_columns.items() if col in selected_columns
+            ]
+            for col_conf in columns_config:
+                if col_conf["name"] == "Total Frames":
+                    col_conf.update(long_number_format)
+
+            return columns_config
 
         @callback(
             Output(URL, "hash"),

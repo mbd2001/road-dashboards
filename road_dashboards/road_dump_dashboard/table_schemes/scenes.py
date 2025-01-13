@@ -41,9 +41,9 @@ class ScenesCategory:
 
     def __post_init__(self):
         scene_len = len(self.scenes[0].obj_conditions)
-        assert all(
-            len(scene.obj_conditions) == scene_len for scene in self.scenes
-        ), "inconsistent instance_conditions len between scenes, you might want to check that they represents the same obj type (frame, lm, dp, etc.)"
+        assert all(len(scene.obj_conditions) == scene_len for scene in self.scenes), (
+            "inconsistent instance_conditions len between scenes, you might want to check that they represents the same obj type (frame, lm, dp, etc.)"
+        )
         assert self.table in EXISTING_TABLES, f"ScenesCategory '{self.name}' table is not in existing tables"
 
     def other(self) -> Scene:
