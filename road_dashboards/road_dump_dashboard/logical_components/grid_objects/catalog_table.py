@@ -98,9 +98,7 @@ class CatalogTable(GridObject):
                     "if": {"column_id": "total_frames"},
                     "textAlign": "right",
                     "paddingRight": "10px",
-                    "minWidth": "150px",
-                    "maxWidth": "150px",
-                    "width": "150px",
+                    "width": "10%"
                 },
                 {
                     "if": {"column_id": "last_change"},
