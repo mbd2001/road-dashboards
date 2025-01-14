@@ -5,13 +5,13 @@ from typing_extensions import override
 from road_dashboards.workflows_dashboard.components.base.chart import Chart
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
+from road_dashboards.workflows_dashboard.utils.chart_utils import BAR_CHART_COLORS
 from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
 
 
 class WorkflowSuccessCountChart(Chart):
     def __init__(self):
         super().__init__(ComponentIds.WORKFLOW_SUCCESS_COUNT_CHART)
-        self.colors = ["#2ecc71", "#3498db", "#e67e22", "#e74c3c"]
 
     @override
     def create_chart(
@@ -42,7 +42,7 @@ class WorkflowSuccessCountChart(Chart):
                     name=brain_type,
                     x=[format_workflow_name(w) for w in workflows],
                     y=brain_data["success_count"],
-                    marker_color=self.colors[idx % len(self.colors)],
+                    marker_color=BAR_CHART_COLORS[idx % len(BAR_CHART_COLORS)],
                     text=brain_data["success_count"],
                     textposition="auto",
                     hovertemplate=f"{brain_type}<br>Success Count: %{{y}}<extra></extra>",

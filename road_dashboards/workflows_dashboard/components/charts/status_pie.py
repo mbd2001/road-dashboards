@@ -12,12 +12,15 @@ class StatusPieChart(PieChart):
     def __init__(self, workflow_name: str):
         super().__init__(f"{ComponentIds.STATUS_PIE_CHART}-{workflow_name}", workflow_name)
 
+    @override
     def get_chart_title(self) -> str:
         return "Status Distribution"
 
+    @override
     def get_hover_template(self) -> str:
         return "%{label}<br>Count: %{value}<br>Percentage: %{percent}<extra></extra>"
 
+    @override
     def get_chart_params(self) -> dict:
         return {"color_discrete_map": ChartSettings.default_colors, "color": "message"}
 

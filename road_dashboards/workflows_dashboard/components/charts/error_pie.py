@@ -11,9 +11,11 @@ class ErrorPieChart(PieChart):
     def __init__(self, workflow_name: str):
         super().__init__(f"{ComponentIds.ERROR_PIE_CHART}-{workflow_name}", workflow_name)
 
+    @override
     def get_chart_title(self) -> str:
         return "Error Distribution"
 
+    @override
     def get_hover_template(self) -> str:
         return "<b>Error Message:</b><br>%{customdata}<br><br>Count: %{value}<br>%{percent}<extra></extra>"
 
@@ -26,6 +28,7 @@ class ErrorPieChart(PieChart):
 
         return db_manager.get_error_distribution(self.workflow_name, brain_types, start_date, end_date)
 
+    @override
     def get_chart_params(self) -> dict:
         params = super().get_chart_params()
         params["custom_data"] = ["full_message"]
