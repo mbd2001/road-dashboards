@@ -15,3 +15,6 @@ def add_center_annotation(fig: px.pie, text: str) -> None:
         bordercolor="rgba(0, 0, 0, 0.3)",
         borderwidth=1,
     )
+
+
+BAR_CHART_COLORS = ["#2ecc71", "#3498db", "#e67e22", "#e74c3c", "#9b59b6", "#34495e", "#f1c40f", "#e74c3c"]

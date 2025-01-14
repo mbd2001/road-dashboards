@@ -1,8 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html, register_page
 
+from road_dashboards.workflows_dashboard.components.filters.layout import render_filters
 from road_dashboards.workflows_dashboard.components.main_content.layout import render_main_content
-from road_dashboards.workflows_dashboard.components.sidebar.layout import render_sidebar
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, LoadingStyles
 from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
 
@@ -25,8 +25,9 @@ layout = html.Div(
             [
                 html.H1("Workflow Status Dashboard", className="mb-5 text-center text-lg-start"),
                 dcc.Store(id=ComponentIds.WORKFLOW_DATA_STORE, data={}),
+                render_filters(),
                 dbc.Row(
-                    [render_sidebar(), render_main_content()],
+                    [render_main_content()],
                     className="g-4 h-100",
                 ),
             ],

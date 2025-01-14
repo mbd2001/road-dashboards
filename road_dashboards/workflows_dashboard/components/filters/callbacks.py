@@ -1,5 +1,4 @@
-from dash import callback, dash
-from dash.dependencies import Input, Output
+from dash import Input, Output, callback
 
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 
@@ -10,7 +9,5 @@ from road_dashboards.workflows_dashboard.core_settings.constants import Componen
     Input("reset-dates-button", "n_clicks"),
     prevent_initial_call=True,
 )
-def reset_dates(n_clicks):
-    if n_clicks:
-        return None, None
-    return dash.no_update, dash.no_update
+def reset_date_range(_):
+    return None, None

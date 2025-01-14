@@ -1,3 +1,5 @@
+from typing import override
+
 import pandas as pd
 import plotly.graph_objects as go
 
@@ -70,6 +72,7 @@ class WeeklySuccessChart(Chart):
             hoverdistance=1,
         )
 
+    @override
     def get_chart_data(
         self,
         brain_types: list[str],
