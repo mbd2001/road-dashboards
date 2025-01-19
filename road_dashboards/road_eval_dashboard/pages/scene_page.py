@@ -188,7 +188,6 @@ def _generate_matrices_per_signal(nets, meta_data_filters, signal):
         pred_col=pred_col,
         nets_tables=nets["frame_tables"],
         meta_data_table=nets["meta_data"],
-        net_names=net_names,
         meta_data_filters=meta_data_filters,
         class_names=scene_class_names,
         compare_sign=True,
