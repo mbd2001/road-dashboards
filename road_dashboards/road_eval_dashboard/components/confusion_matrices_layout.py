@@ -91,10 +91,8 @@ def generate_conf_matrices(
     pred_col,
     nets_tables,
     meta_data_table,
-    net_names,
     meta_data_filters="",
     role="",
-    mat_name="",
     class_names=[],
     ca_oriented=False,
     compare_sign=False,
@@ -119,6 +117,7 @@ def generate_conf_matrices(
     data, _ = run_query_with_nets_names_processing(query)
     mats = {}
     num_classes = len(class_names)
+    net_names = set(data["net_id"].values)
     for net_name in net_names:
         net_id = process_net_name(net_name)
         net_data = data[data["net_id"] == net_id]
@@ -142,16 +141,13 @@ def generate_matrices_graphs(
     ignore_val=-1,
     extra_filters="",
 ):
-    net_names = process_net_names_list(net_names)
     mats = generate_conf_matrices(
         label_col,
         pred_col,
         nets_tables,
         meta_data_table,
-        net_names,
         meta_data_filters=meta_data_filters,
         role=role,
-        mat_name=mat_name,
         class_names=class_names,
         ca_oriented=ca_oriented,
         compare_sign=compare_sign,
