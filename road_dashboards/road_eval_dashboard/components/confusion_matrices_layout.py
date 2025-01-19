@@ -119,6 +119,7 @@ def generate_conf_matrices(
     data, _ = run_query_with_nets_names_processing(query)
     mats = {}
     num_classes = len(class_names)
+    net_names = set(data["net_id"].values)
     for net_name in net_names:
         net_id = process_net_name(net_name)
         net_data = data[data["net_id"] == net_id]
