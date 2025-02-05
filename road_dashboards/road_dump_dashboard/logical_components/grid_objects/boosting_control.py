@@ -4,7 +4,8 @@ import json
 import dash_bootstrap_components as dbc
 import pandas as pd
 from dash import Input, Output, State, callback, dash_table, dcc, html, no_update
-from pypika import Criterion, EmptyCriterion, Query, functions
+from pypika import Case, Criterion, EmptyCriterion, Query, functions
+from pypika.terms import LiteralValue
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import loading_wrapper
@@ -13,7 +14,6 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.catalog
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
-from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 
 
 class BoostingControl(GridObject):
@@ -79,10 +79,7 @@ class BoostingControl(GridObject):
             tables: list[Base] = load_object(tables)
 
             conditions_list = self.get_conditions_list(chosen_dataset, population)
-            batches_df = self.get_batches_count(chosen_dataset, tables, page_filters)
-            batches_df["batch_name"] = batches_df["batch_num"].apply(
-                lambda batch_num: next(iter(conditions_list[batch_num]))
-            )
+            batches_df = self.get_batches_count(chosen_dataset, tables, page_filters, conditions_list)
             if json_data:
                 weights_dict = json_data["data"][population]["batch_sampling_rate"]
                 batches_df["weight"] = batches_df["batch_name"].apply(lambda x: weights_dict.get(x, 0))
@@ -172,27 +169,34 @@ class BoostingControl(GridObject):
     def get_conditions_list(chosen_dataset: str, population: str) -> list[dict[str, str]]:
         conditions_dict = dump_db_manager.get_item(chosen_dataset).get("split_conditions", {})
         conditions = conditions_dict.get(f"{population}_batch_conditions", {})
-        return [{"unfiltered": ""}] + conditions
+        return [{"unfiltered": "TRUE"}] + conditions
 
     @staticmethod
-    def get_batches_count(chosen_dataset: str, tables: list[Base], page_filters: Criterion) -> pd.DataFrame:
+    def get_batches_count(
+        chosen_dataset: str, tables: list[Base], page_filters: Criterion, conditions_list: list[dict[str, str]]
+    ) -> pd.DataFrame:
         tables = [table for table in tables if table.dataset_name == chosen_dataset]
         assert len(tables) == 1, f"Expected one table for dataset {chosen_dataset}, got {len(tables)}"
-        batch_num = MetaData.batch_num
+        batch_num_col = Case(alias="batch_num")
+        for batch_num in range(len(conditions_list) - 1, -1, -1):
+            condition = next(iter(conditions_list[batch_num].values()))
+            batch_num_col = batch_num_col.when(LiteralValue(condition), batch_num)
+
         base = base_data_subquery(
             main_tables=tables,
             meta_data_tables=tables,
-            terms=[batch_num],
+            terms=[batch_num_col],
             page_filters=page_filters,
             to_order=False,
         )
         query = (
             Query.from_(base)
-            .groupby(batch_num.alias)
-            .select(batch_num.alias, functions.Count("*", "num_frames"))
-            .orderby(batch_num)
+            .groupby(batch_num_col.alias)
+            .select(batch_num_col.alias, functions.Count("*", "num_frames"))
+            .orderby(batch_num_col.alias)
         )
         data = execute(query)
+        data["batch_name"] = data["batch_num"].apply(lambda batch_num: next(iter(conditions_list[batch_num])))
         return data
 
     @staticmethod

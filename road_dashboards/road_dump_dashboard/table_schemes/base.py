@@ -4,7 +4,6 @@ import inspect
 from typing import Literal, get_origin, overload
 
 from pypika import Field, Table
-from pypika.enums import Matching
 from pypika.queries import Selectable
 from pypika.terms import BasicCriterion, Criterion, Term
 from pypika.utils import builder

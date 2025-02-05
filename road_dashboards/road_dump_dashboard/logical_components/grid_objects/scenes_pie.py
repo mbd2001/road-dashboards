@@ -1,6 +1,7 @@
 import pandas as pd
 from dash import Input, Output, State, callback, dcc, no_update
 from pypika import Case, Criterion, EmptyCriterion, Query
+from pypika.terms import LiteralValue
 
 from road_dashboards.road_dump_dashboard.graphical_components.pie_chart import basic_pie_chart
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
@@ -12,7 +13,6 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.query_abst
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import execute, load_object, optional_inputs
-from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
 from road_dashboards.road_dump_dashboard.table_schemes.scenes import ScenesCategory
 
 
@@ -50,21 +50,21 @@ class ScenesPie(GridObject):
         @callback(
             Output(self.scenes_pie_id, "figure"),
             Input(self.batches_table_id, "data"),
+            Input(self.batches_table_id, "tooltip_data"),
             State(META_DATA, "data"),
             State(self.datasets_dropdown_id, "value"),
             State(self.population_dropdown_id, "value"),
             optional_inputs(page_filters=State(self.page_filters_id, "data")),
         )
-        def update_scenes_pie(table_data, tables, chosen_dataset, population, optional):
+        def update_scenes_pie(table_data, tooltip_data, tables, chosen_dataset, population, optional):
             if not tables or not chosen_dataset or not population:
                 return no_update
 
-            batch_num = MetaData.batch_num
             batches_weight_case = Case(alias="batch_weight")
-            for row in table_data:
-                curr_batch = row["batch_num"]
+            for row, tooltip_row in list(zip(table_data, tooltip_data))[::-1]:
+                condition = tooltip_row["batch_name"]["value"]
                 curr_weight = row["weight"]
-                batches_weight_case = batches_weight_case.when(batch_num == curr_batch, curr_weight)
+                batches_weight_case = batches_weight_case.when(LiteralValue(condition), curr_weight)
 
             page_filters: str = optional.get("page_filters", None)
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
