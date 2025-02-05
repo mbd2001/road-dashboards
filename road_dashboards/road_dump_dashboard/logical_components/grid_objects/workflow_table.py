@@ -85,7 +85,7 @@ class WorkflowTable(GridObject):
             if not chosen_dataset:
                 return no_update, no_update
 
-            workflow_dict = self.get_workflow_dict(chosen_dataset)
+            workflow_dict = self.get_workflow_dict(chosen_dataset, drop_successes=True)
 
             tooltip_columns = ["example_clip_name", "error_msg"]
             tooltip_data = [{col: exit_code[col] for col in tooltip_columns} for exit_code in workflow_dict.values()]
@@ -96,7 +96,7 @@ class WorkflowTable(GridObject):
             if not chosen_dataset:
                 return no_update
 
-            workflow_dict = self.get_workflow_dict(chosen_dataset, drop_successes=False)
+            workflow_dict = self.get_workflow_dict(chosen_dataset)
             if not workflow_dict:
                 return {}
 
@@ -105,7 +105,7 @@ class WorkflowTable(GridObject):
             return fig
 
     @staticmethod
-    def get_workflow_dict(chosen_dataset: str, drop_successes: bool = True) -> dict[str, any]:
+    def get_workflow_dict(chosen_dataset: str, drop_successes: bool = False) -> dict[str, any]:
         workflow_dict = dump_db_manager.get_item(chosen_dataset).get("common_exit_codes", {})
         if drop_successes:
             workflow_dict.pop("0", None)
