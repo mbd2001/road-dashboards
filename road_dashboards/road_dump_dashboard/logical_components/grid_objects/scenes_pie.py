@@ -50,7 +50,7 @@ class ScenesPie(GridObject):
         @callback(
             Output(self.scenes_pie_id, "figure"),
             Input(self.batches_table_id, "data"),
-            Input(self.batches_table_id, "tooltip_data"),
+            State(self.batches_table_id, "tooltip_data"),
             State(META_DATA, "data"),
             State(self.datasets_dropdown_id, "value"),
             State(self.population_dropdown_id, "value"),

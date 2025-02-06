@@ -168,7 +168,7 @@ class BoostingControl(GridObject):
     @staticmethod
     def get_conditions_list(chosen_dataset: str, population: str) -> list[dict[str, str]]:
         conditions_dict = dump_db_manager.get_item(chosen_dataset).get("split_conditions", {})
-        conditions = conditions_dict.get(f"{population}_batch_conditions", {})
+        conditions = conditions_dict.get(f"{population}_batch_conditions") or conditions_dict["all_batch_conditions"]
         return [{"unfiltered": "TRUE"}] + conditions
 
     @staticmethod
