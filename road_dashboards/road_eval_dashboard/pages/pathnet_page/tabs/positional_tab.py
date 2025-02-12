@@ -50,8 +50,8 @@ from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.lay
     layout as events_extractor_card,
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
+    DISTANCES,
     PATHNET_ACC_THRESHOLDS,
-    distances,
     generate_count_query,
     generate_path_net_miss_false_query,
     generate_path_net_query,
@@ -335,7 +335,7 @@ pos_layout = html.Div(
 def compute_dynamic_distances_dict(slider_values):
     coeff = np.polyfit([1.3, 3], slider_values, deg=1)
     threshold_polynomial = np.poly1d(coeff)
-    distances_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in distances}
+    distances_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in DISTANCES}
     return distances_dict
 
 
@@ -387,7 +387,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, distances_di
         role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy", role="host", yaxis="% accurate dps")
+    return draw_path_net_graph(df, DISTANCES, "accuracy", role="host", yaxis="% accurate dps")
 
 
 @callback(
@@ -414,7 +414,7 @@ def get_path_net_acc_pred(meta_data_filters, pathnet_filters, nets, distances_di
         role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy", role="Pred", yaxis="% accurate dps")
+    return draw_path_net_graph(df, DISTANCES, "accuracy", role="Pred", yaxis="% accurate dps")
 
 
 @callback(
@@ -508,7 +508,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, distances_di
         role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, distances, "accuracy", yaxis="% accurate dps")
+    return draw_path_net_graph(df, DISTANCES, "accuracy", yaxis="% accurate dps")
 
 
 @callback(
@@ -838,8 +838,8 @@ def get_path_net_in_lane_fig(
     boundaries_dist_col_name = "dp_dist_from_boundaries_gt"
     re_dist_col_name = "dp_dist_from_road_edges_gt"
 
-    boundaries_dist_columns = [f'"{boundaries_dist_col_name}_{sec}"' for sec in distances]
-    boundaries_dist_columns += [f'"{re_dist_col_name}_{sec}"' for sec in distances]
+    boundaries_dist_columns = [f'"{boundaries_dist_col_name}_{sec}"' for sec in DISTANCES]
+    boundaries_dist_columns += [f'"{re_dist_col_name}_{sec}"' for sec in DISTANCES]
     role = graph_id["role"]
 
     query = get_in_lane_query(
@@ -858,5 +858,5 @@ def get_path_net_in_lane_fig(
 
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(
-        df, distances, "in-lane accuracy", role=role, yaxis="% accurate dps", hover=True, hover_func=in_lane_hover_txt
+        df, DISTANCES, "in-lane accuracy", role=role, yaxis="% accurate dps", hover=True, hover_func=in_lane_hover_txt
     )
