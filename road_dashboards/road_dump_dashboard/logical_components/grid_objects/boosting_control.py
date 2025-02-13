@@ -3,6 +3,7 @@ import json
 
 import dash_bootstrap_components as dbc
 import pandas as pd
+import yaml
 from dash import Input, Output, State, callback, dash_table, dcc, html, no_update
 from pypika import Case, Criterion, EmptyCriterion, Query, functions
 from pypika.terms import LiteralValue
@@ -18,10 +19,11 @@ from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import e
 
 class BoostingControl(GridObject):
     """
-    Grid object that contains 3 main components:
+    Grid object that contains 4 main components:
         1. Table with batches and their weights (default 1)
-        2. Upload button for boosting json file
-        3. Download button for updated boosting json file
+        2. Upload button for splitting yaml file
+        3. Upload button for boosting json file
+        4. Download button for updated boosting json file
 
     The table is updated based on the chosen dataset and population, and can be edited by the user.
     The user can upload a json file with existing boosting weights, and download a json file with updated weights.
@@ -43,17 +45,25 @@ class BoostingControl(GridObject):
     def _generate_ids(self):
         self.batches_table_id = self._generate_id("batches_table")
         self.upload_boosting_btn_id = self._generate_id("upload_boosting_btn")
+        self.uploaded_boosting_id = self._generate_id("uploaded_boosting")
+
         self.download_boosting_btn_id = self._generate_id("download_boosting_btn")
-        self.upload_data_id = self._generate_id("upload_data")
-        self.download_data_id = self._generate_id("download_data")
+        self.download_boosting_id = self._generate_id("download_boosting")
+
+        self.upload_split_btn_id = self._generate_id("upload_split_btn")
+        self.uploaded_split_id = self._generate_id("uploaded_split")
 
     def layout(self):
         header = self.get_header_layout(
-            self.upload_boosting_btn_id, self.download_boosting_btn_id, self.download_data_id
+            self.upload_split_btn_id,
+            self.upload_boosting_btn_id,
+            self.download_boosting_btn_id,
+            self.download_boosting_id,
         )
         batches_table = self.get_table_layout(self.batches_table_id)
-        upload_data = dcc.Store(id=self.upload_data_id)
-        final_layout = html.Div([header, batches_table, upload_data])
+        uploaded_boosting = dcc.Store(id=self.uploaded_boosting_id)
+        uploaded_split = dcc.Store(id=self.uploaded_split_id)
+        final_layout = html.Div([header, batches_table, uploaded_boosting, uploaded_split])
         return final_layout
 
     def _callbacks(self):
@@ -63,12 +73,18 @@ class BoostingControl(GridObject):
             Input(META_DATA, "data"),
             Input(self.datasets_dropdown_id, "value"),
             Input(self.population_dropdown_id, "value"),
-            State(self.upload_data_id, "data"),
+            Input(self.uploaded_boosting_id, "data"),
+            Input(self.uploaded_split_id, "data"),
             optional_inputs(page_filters=Input(self.page_filters_id, "data")),
             prevent_initial_call=True,
         )
         def update_batches_table(
-            tables: str, chosen_dataset: str, population: str, json_data: dict | None, optional: dict
+            tables: str,
+            chosen_dataset: str,
+            population: str,
+            boosting_data: dict | None,
+            split_data: dict | None,
+            optional: dict,
         ):
             """Update table from page inputs"""
             if not tables or not chosen_dataset or not population:
@@ -78,13 +94,9 @@ class BoostingControl(GridObject):
             page_filters: Criterion = load_object(page_filters) if page_filters else EmptyCriterion()
             tables: list[Base] = load_object(tables)
 
-            conditions_list = self.get_conditions_list(chosen_dataset, population)
+            conditions_list = self.get_conditions_list(chosen_dataset, population, split_data)
             batches_df = self.get_batches_count(chosen_dataset, tables, page_filters, conditions_list)
-            if json_data:
-                weights_dict = json_data["data"][population]["batch_sampling_rate"]
-                batches_df["weight"] = batches_df["batch_name"].apply(lambda x: weights_dict.get(x, 0))
-            else:
-                batches_df["weight"] = [1] * len(batches_df.index)
+            batches_df["weight"] = self.get_batches_weight(batches_df, population, boosting_data)
 
             table_data = batches_df.to_dict("records")
             self.update_normalized_weight(table_data)
@@ -96,17 +108,17 @@ class BoostingControl(GridObject):
 
         @callback(
             Output(self.batches_table_id, "data", allow_duplicate=True),
-            Input(self.upload_data_id, "data"),
+            Input(self.uploaded_boosting_id, "data"),
             State(self.population_dropdown_id, "value"),
             State(self.batches_table_id, "data"),
             prevent_initial_call=True,
         )
-        def update_batches_table_from_json(json_data: dict, population: str, table_data: list[dict]):
+        def update_batches_table_from_json(boosting_data: dict, population: str, table_data: list[dict]):
             """Update table with weights from uploaded json"""
-            if not json_data:
+            if not boosting_data:
                 return no_update
 
-            weights_dict = json_data["data"][population]["batch_sampling_rate"]
+            weights_dict = boosting_data["data"][population]["batch_sampling_rate"]
             for row in table_data:
                 row["weight"] = weights_dict.get(row["batch_name"], 0)
 
@@ -127,7 +139,7 @@ class BoostingControl(GridObject):
             return table_data
 
         @callback(
-            Output(self.upload_data_id, "data"),
+            Output(self.uploaded_boosting_id, "data"),
             Input(self.upload_boosting_btn_id, "contents"),
         )
         def upload_existing_boosting(data: str):
@@ -140,9 +152,27 @@ class BoostingControl(GridObject):
             return json_file
 
         @callback(
-            Output(self.download_data_id, "data"),
+            Output(self.uploaded_split_id, "data"),
+            Input(self.upload_split_btn_id, "contents"),
+        )
+        def upload_existing_split(data: str):
+            """Upload yaml file with existing split conditions"""
+            if not data:
+                return no_update
+
+            content_type, content_string = data.split(",")
+            encoded_data = base64.b64decode(content_string).decode("utf8")
+            split_conditions = yaml.safe_load(encoded_data)
+            ordered_conditions = {}
+            for population, conditions in split_conditions.items():
+                ordered_conditions[population] = [{name: cond} for name, cond in conditions.items()]
+
+            return ordered_conditions
+
+        @callback(
+            Output(self.download_boosting_id, "data"),
             Input(self.download_boosting_btn_id, "n_clicks"),
-            State(self.upload_data_id, "data"),
+            State(self.uploaded_boosting_id, "data"),
             State(self.batches_table_id, "data"),
             State(self.population_dropdown_id, "value"),
         )
@@ -166,8 +196,10 @@ class BoostingControl(GridObject):
             row["normalized_weight"] = round(row["weight"] / weights_sum, 3)
 
     @staticmethod
-    def get_conditions_list(chosen_dataset: str, population: str) -> list[dict[str, str]]:
-        conditions_dict = dump_db_manager.get_item(chosen_dataset).get("split_conditions", {})
+    def get_conditions_list(
+        chosen_dataset: str, population: str, split_data: dict[str, list[dict[str, str]]] | None
+    ) -> list[dict[str, str]]:
+        conditions_dict = split_data or dump_db_manager.get_item(chosen_dataset).get("split_conditions", {})
         conditions = conditions_dict.get(f"{population}_batch_conditions") or conditions_dict["all_batch_conditions"]
         return [{"unfiltered": "TRUE"}] + conditions
 
@@ -200,10 +232,36 @@ class BoostingControl(GridObject):
         return data
 
     @staticmethod
-    def get_header_layout(load_boosting_btn_id: str, download_boosting_btn_id: str, download_data_id: str):
-        load_boosting_btn = dcc.Upload(
-            children=html.Div("Drag and Drop or Select Json"),
-            id=load_boosting_btn_id,
+    def get_batches_weight(batches_df: pd.DataFrame, population: str, boosting_data: dict | None) -> list[float]:
+        if not boosting_data:
+            return [1] * len(batches_df.index)
+
+        weights_dict = boosting_data["data"][population]["batch_sampling_rate"]
+        return batches_df["batch_name"].apply(lambda x: weights_dict.get(x, 0))
+
+    @staticmethod
+    def get_header_layout(
+        upload_split_btn_id: str, upload_boosting_btn_id: str, download_boosting_btn_id: str, download_boosting_id: str
+    ):
+        upload_split_btn = dcc.Upload(
+            children=html.Div("Drag and Drop or Select Split file"),
+            id=upload_split_btn_id,
+            accept=".yaml, .yml",
+            style={
+                "width": "100%",
+                "height": "40px",
+                "lineHeight": "40px",
+                "borderWidth": "1px",
+                "borderStyle": "dashed",
+                "borderRadius": "5px",
+                "textAlign": "center",
+                "margin": "10px",
+            },
+        )
+
+        upload_boosting_btn = dcc.Upload(
+            children=html.Div("Drag and Drop or Select Boosting file"),
+            id=upload_boosting_btn_id,
             accept="application/json",
             style={
                 "width": "100%",
@@ -217,9 +275,10 @@ class BoostingControl(GridObject):
             },
         )
         download_boosting_btn = dbc.Button("Download New Boosting", id=download_boosting_btn_id, color="primary")
-        download_data = loading_wrapper(dcc.Download(id=download_data_id))
+        download_boosting = loading_wrapper(dcc.Download(id=download_boosting_id))
+
         header = dbc.Stack(
-            [load_boosting_btn, download_boosting_btn, download_data],
+            [upload_split_btn, upload_boosting_btn, download_boosting_btn, download_boosting],
             direction="horizontal",
             gap=4,
             className="mt-3",
