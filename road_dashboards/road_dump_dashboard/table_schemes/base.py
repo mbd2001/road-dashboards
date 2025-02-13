@@ -4,7 +4,6 @@ import inspect
 from typing import Literal, get_origin, overload
 
 from pypika import Field, Table
-from pypika.enums import Matching
 from pypika.queries import Selectable
 from pypika.terms import BasicCriterion, Criterion, Term
 from pypika.utils import builder
@@ -45,7 +44,6 @@ class Base(Table):
     obj_id: Column = Column("obj_id", int, drawable=True)
     dump_name: Column = Column("dump_name", str, drawable=True)
     population: Column = Column("population", str)
-    batch_num: Column = Column("batch_num", int)
 
     @classmethod
     @overload
