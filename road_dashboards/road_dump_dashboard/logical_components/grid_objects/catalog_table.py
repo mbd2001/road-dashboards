@@ -2,7 +2,9 @@ import base64
 import json
 
 import dash_bootstrap_components as dbc
+import dash_daq as daq
 import pandas as pd
+from boto3.dynamodb.conditions import Attr
 from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
@@ -37,15 +39,19 @@ class CatalogTable(GridObject):
 
     def _generate_ids(self):
         self.dump_catalog_id = self._generate_id("dump_catalog")
+        self.filter_not_completed_switch_id = self._generate_id("filter_not_completed_switch")
         self.column_selector_id = self._generate_id("column_selector")
         self.update_runs_btn_id = self._generate_id("update_runs_btn")
 
     def layout(self):
         column_selector = self.get_column_selector(self.column_selector_id)
+        filter_not_completed_switch = self.get_filter_not_completed_switch(self.filter_not_completed_switch_id)
         data_table = self.get_data_table(self.dump_catalog_id)
         catalog_layout = card_wrapper(
             [
-                dbc.Row([dbc.Col(html.H2("Datasets Catalog")), dbc.Col(column_selector)]),
+                dbc.Row(
+                    [dbc.Col(html.H2("Datasets Catalog")), dbc.Col([filter_not_completed_switch, column_selector])]
+                ),
                 dbc.Row(loading_wrapper(data_table), className="mt-5"),
                 dbc.Row(
                     dbc.Col(
@@ -75,6 +81,17 @@ class CatalogTable(GridObject):
             color="secondary",
             style={"position": "absolute", "right": "10px", "top": "10px"},
         )
+
+    @staticmethod
+    def get_filter_not_completed_switch(filter_not_completed_switch_id: str):
+        filter_not_completed_switch = daq.BooleanSwitch(
+            id=filter_not_completed_switch_id,
+            on=True,
+            label="Show All <-> Filter not completed",
+            labelPosition="top",
+            style={"position": "absolute", "right": "200px", "top": "10px"},
+        )
+        return filter_not_completed_switch
 
     @staticmethod
     def get_data_table(obj_id: str):
@@ -115,9 +132,14 @@ class CatalogTable(GridObject):
         )
 
     def _callbacks(self):
-        @callback(Output(self.dump_catalog_id, "data"), Input(self.dump_catalog_id, "id"))
-        def update_catalog_data(dummy_trigger):
-            catalog_data = pd.DataFrame(dump_db_manager.scan(), columns=list(table_columns.keys()))
+        @callback(
+            Output(self.dump_catalog_id, "data"),
+            Input(self.dump_catalog_id, "id"),
+            Input(self.filter_not_completed_switch_id, "on"),
+        )
+        def update_catalog_data(dummy_trigger, filter_not_completed):
+            filter_condition = {"FilterExpression": Attr("stage").eq("done")} if filter_not_completed else {}
+            catalog_data = pd.DataFrame(dump_db_manager.scan(**filter_condition), columns=list(table_columns.keys()))
             catalog_data["total_frames"] = catalog_data["total_frames"].apply(lambda x: sum(x.values()))
             catalog_data_dict = catalog_data.to_dict("records")
             return catalog_data_dict
