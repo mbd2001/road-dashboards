@@ -22,8 +22,8 @@ class WorkflowsDBManager(DBManager):
         """Initialize the WorkflowsDBManager with DynamoDB connection and load workflow data."""
         super().__init__(table_name=DatabaseSettings.table_name, primary_key=DatabaseSettings.primary_key)
         self._workflow_dfs: Dict[str, pd.DataFrame] = {}
-        self._last_refresh: Optional[datetime] = None
         self._refresh_lock = Lock()
+        self._last_refresh: Optional[datetime] = None
         self._load_workflow_data()
 
     def _should_refresh_data(self) -> bool:
