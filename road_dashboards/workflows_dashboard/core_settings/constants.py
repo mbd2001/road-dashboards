@@ -18,6 +18,7 @@ class ComponentIds:
     STATUS_SELECTOR = "status-selector"
     LOADING_OVERLAY = "loading-overlay"
     MAIN_CONTENT = "main-content"
+    REFRESH_DB_BUTTON = "refresh-db-button"
 
 
 @dataclass
