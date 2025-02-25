@@ -16,8 +16,8 @@ from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_w
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     DISTANCES,
+    DPQualityQueryConfig,
     MetricType,
-    QualityQueryConfig,
     build_metric_query,
     run_query_with_nets_names_processing,
 )
@@ -87,56 +87,56 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
         return (no_update, no_update, no_update, no_update, no_update, no_update)
 
     role = idx["role"]
-    config = QualityQueryConfig(
+    config = DPQualityQueryConfig(
         data_tables=nets[PATHNET_PRED],
         meta_data=nets["meta_data"],
         meta_data_filters=meta_data_filters,
         role=role,
-        quality_thresh_filter=slider_values[0],
+        quality_prob_score_thresh=slider_values[0],
     )
 
     fig_tp = update_quality_graph(
         config,
-        metric=MetricType.TPR,
-        title="DPs Quality Score - True Positive Rate",
+        metric=MetricType.CORRECT_ACCEPTANCE_RATE,
+        title="Correct Acceptance Rate",
     )
     fig_fn = update_quality_graph(
         config,
-        metric=MetricType.FNR,
-        title="DPs Quality Score - False Negative Rate",
+        metric=MetricType.INCORRECT_ACCEPTANCE_RATE,
+        title="Incorrect Acceptance Rate",
     )
     fig_tn = update_quality_graph(
         config,
-        metric=MetricType.TNR,
-        title="DPs Quality Score - True Negative Rate",
+        metric=MetricType.CORRECT_REJECTION_RATE,
+        title="Correct Rejection Rate",
     )
     fig_fp = update_quality_graph(
         config,
-        metric=MetricType.FPR,
-        title="DPs Quality Score - False Positive Rate",
+        metric=MetricType.INCORRECT_REJECTION_RATE,
+        title="Incorrect Rejection Rate",
     )
     fig_acc = update_quality_graph(
         config,
         metric=MetricType.ACCURACY,
-        title="DPs Quality Score - Accuracy",
+        title="Accuracy",
     )
     fig_prec = update_quality_graph(
         config,
         metric=MetricType.PRECISION,
-        title="DPs Quality Score - Precision",
+        title="Precision",
     )
 
     return fig_tp, fig_fn, fig_tn, fig_fp, fig_acc, fig_prec
 
 
-def update_quality_graph(config: QualityQueryConfig, metric: MetricType, title: str):
-    """Helper to update a graph based on QualityQueryConfig and MetricType."""
+def update_quality_graph(config: DPQualityQueryConfig, metric: MetricType, title: str):
+    """Helper to update a graph based on DPQualityQueryConfig and MetricType."""
     query = build_metric_query(config, metric)
     df, _ = run_query_with_nets_names_processing(query)
     match metric:
-        case MetricType.TPR | MetricType.TNR:
+        case MetricType.CORRECT_ACCEPTANCE_RATE | MetricType.CORRECT_REJECTION_RATE:
             bg_color = GREEN
-        case MetricType.FNR | MetricType.FPR:
+        case MetricType.INCORRECT_ACCEPTANCE_RATE | MetricType.INCORRECT_REJECTION_RATE:
             bg_color = RED
         case _:
             bg_color = YELLOW

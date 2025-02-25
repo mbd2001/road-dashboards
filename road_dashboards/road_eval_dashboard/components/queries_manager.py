@@ -207,16 +207,17 @@ QUALITY_METRIC_TEMPLATE = (
 
 
 @dataclass
-class QualityQueryConfig:
+class DPQualityQueryConfig:
     data_tables: Any
     meta_data: Any
     meta_data_filters: str = ""
     role: str = ""
     extra_columns: list[str] = field(default_factory=lambda: ["split_role", "matched_split_role", "ignore_role"])
-    base_dists: list[float] = field(default_factory=lambda: [0.2, 0.5])
+    allowed_error_at_secs_ahead: list[float] = field(default_factory=lambda: [0.2, 0.5])
+    secs_ahead: list[float] = field(default_factory=lambda: [1.3, 3])
     base_dist_column_name: str = "dist"
     base_dp_quality_col_name: str = "quality_score"
-    quality_thresh_filter: float = 0.5
+    quality_prob_score_thresh: float = 0.5  # Probability of the predicted point is correct
 
 
 class MetricType(Enum):
@@ -224,20 +225,20 @@ class MetricType(Enum):
     Enum that defines the type of metric to be used in the query.
 
     Attributes:
-        TPR: True Positive Rate: TP/(TP+FN)
-        FNR: False Negative Rate: FN/(TP+FN)
-        FPR: False Positive Rate: FP/(FP+TN)
-        TNR: True Negative Rate: TN/(FP+TN)
-        ACCURACY: Accuracy: (TP+TN)/(TP+TN+FP+FN)
-        PRECISION: Precision: TP/(TP+FP)
+        CORRECT_ACCEPTANCE_RATE: Correct Acceptance / (Correct Acceptance + Incorrect Acceptance)
+        INCORRECT_ACCEPTANCE_RATE: Incorrect Acceptance / (Correct Acceptance + Incorrect Acceptance)
+        INCORRECT_REJECTION_RATE: Incorrect Rejection / (Correct Rejection + Incorrect Rejection)
+        CORRECT_REJECTION_RATE: Correct Rejection / (Correct Rejection + Incorrect Rejection)
+        ACCURACY: (Correct Acceptance + Correct Rejection) / (Correct Acceptance + Correct Rejection + Incorrect Acceptance+Incorrect Rejection)
+        PRECISION: Correct Acceptance / (Correct Acceptance + Incorrect Rejection)
     """
 
-    TPR = "TPR"
-    FNR = "FNR"
-    FPR = "FPR"
-    TNR = "TNR"
-    ACCURACY = "ACCURACY"
-    PRECISION = "PRECISION"
+    CORRECT_ACCEPTANCE_RATE = "Correct Acceptance Rate"
+    INCORRECT_ACCEPTANCE_RATE = "Incorrect Acceptance Rate"
+    INCORRECT_REJECTION_RATE = "Incorrect Rejection Rate"
+    CORRECT_REJECTION_RATE = "Correct Rejection Rate"
+    ACCURACY = "Accuracy"
+    PRECISION = "Precision"
 
 
 THRESHOLDS = np.concatenate(
@@ -1603,8 +1604,8 @@ def process_net_name(net_name):
     return re.sub(r"(^\d{18}-)|(_default$)|(_$)", "", net_name)
 
 
-def get_conditions_for_metric(
-    metric: MetricType, config: QualityQueryConfig, sec: float, dist_thresh: float
+def get_conditions_for_metric( #TODO MAKE IT SO THIS WILL RETURN THE FULL QUERY INSTEAD OF THE NUM AND DENOM
+    metric: MetricType, config: DPQualityQueryConfig, sec: float, dist_thresh: float
 ) -> tuple[str, str]:
     """
     Given a MetricType, return the numerator and denominator condition strings.
@@ -1614,7 +1615,7 @@ def get_conditions_for_metric(
 
     Args:
         metric (MetricType): The metric type.
-        config (QualityQueryConfig): The quality query configuration.
+        config (DPQualityQueryConfig): The quality query configuration.
         sec (float): The time horizon.
         dist_thresh (float): The distance threshold.
 
@@ -1634,36 +1635,35 @@ def get_conditions_for_metric(
         '"{base_dp_quality_col_name}_{sec}" IS NOT NULL AND "{base_dp_quality_col_name}_{sec}" <= {quality_thresh}'
     )
 
-    # Define the four base conditions
-    tp_condition = f"({positive_gt} AND {positive_pred})"
-    tn_condition = f"({negative_gt} AND {negative_pred})"
-    fp_condition = f"({negative_gt} AND {positive_pred})"
-    fn_condition = f"({positive_gt} AND {negative_pred})"
+    tp = f"({positive_gt} AND {positive_pred})"  # Correct Acceptance
+    fp = f"({negative_gt} AND {positive_pred})"  # Incorrect Acceptance
+    fn = f"({positive_gt} AND {negative_pred})"  # Incorrect Rejection
+    tn = f"({negative_gt} AND {negative_pred})"  # Correct Rejection
 
     # Then use these conditions to build each metric
     match metric:
-        case MetricType.TPR:
-            num_condition = tp_condition
+        case MetricType.CORRECT_ACCEPTANCE_RATE:
+            num_condition = tp
             denom_condition = positive_gt
 
-        case MetricType.FNR:
-            num_condition = fn_condition
-            denom_condition = positive_gt
-
-        case MetricType.FPR:
-            num_condition = fp_condition
+        case MetricType.INCORRECT_ACCEPTANCE_RATE:
+            num_condition = fp
             denom_condition = negative_gt
 
-        case MetricType.TNR:
-            num_condition = tn_condition
+        case MetricType.INCORRECT_REJECTION_RATE:
+            num_condition = fn
+            denom_condition = positive_gt
+
+        case MetricType.CORRECT_REJECTION_RATE:
+            num_condition = tn
             denom_condition = negative_gt
 
         case MetricType.ACCURACY:
-            num_condition = f"({tp_condition}) OR ({tn_condition})"
+            num_condition = f"({tp}) OR ({tn})"
             denom_condition = f"({positive_gt}) OR ({negative_gt})"
 
         case MetricType.PRECISION:
-            num_condition = tp_condition
+            num_condition = tp
             denom_condition = positive_pred
 
         case _:
@@ -1674,24 +1674,24 @@ def get_conditions_for_metric(
         base_dp_quality_col_name=config.base_dp_quality_col_name,
         sec=sec,
         dist_thresh=dist_thresh,
-        quality_thresh=config.quality_thresh_filter,
+        quality_thresh=config.quality_prob_score_thresh,
     )
     formatted_denom = denom_condition.format(
         base_dist_column_name=config.base_dist_column_name,
         base_dp_quality_col_name=config.base_dp_quality_col_name,
         sec=sec,
         dist_thresh=dist_thresh,
-        quality_thresh=config.quality_thresh_filter,
+        quality_thresh=config.quality_prob_score_thresh,
     )
     return formatted_num, formatted_denom
 
 
-def build_metric_query(config: QualityQueryConfig, metric: MetricType) -> str:
+def build_metric_query(config: DPQualityQueryConfig, metric: MetricType) -> str:
     """
     Build a metric query based on the MetricType. Uses a 1d polynomial to compute the distance thresholds for each second.
     Default base distances are [0.2, 0.5] for [1.3, 3] seconds.
     """
-    coef = np.polyfit([1.3, 3], config.base_dists, deg=1)
+    coef = np.polyfit(config.secs_ahead, config.allowed_error_at_secs_ahead, deg=1)
     threshold_polynomial = np.poly1d(coef)
     sec_to_threshold_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in DISTANCES}
 
