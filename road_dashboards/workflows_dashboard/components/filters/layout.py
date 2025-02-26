@@ -9,12 +9,28 @@ from .date_range import render_date_range
 
 
 def render_filters():
+    brain_selector = render_brain_selector()
+    date_range = render_date_range()
+    refresh_btn = dcc.Loading(
+        id="loading-refresh",
+        type="default",
+        children=dbc.Button(
+            [html.I(className="fas fa-sync-alt me-2"), "Refresh Data"],
+            id=ComponentIds.REFRESH_DB_BUTTON,
+            color="primary",
+            outline=True,
+            className="border-0",
+            style={"height": "48px", "minWidth": "100px"},
+            title="Refresh Database",
+        ),
+    )
+
     return dbc.Card(
         dbc.CardBody(
             dbc.Row(
                 [
                     dbc.Col(
-                        render_brain_selector(),
+                        brain_selector,
                         xs=12,
                         sm=12,
                         md=6,
@@ -22,7 +38,7 @@ def render_filters():
                         className="d-flex justify-content-center",
                     ),
                     dbc.Col(
-                        render_date_range(),
+                        date_range,
                         xs=12,
                         sm=12,
                         md=6,
@@ -30,19 +46,7 @@ def render_filters():
                         className="d-flex justify-content-center",
                     ),
                     dbc.Col(
-                        dcc.Loading(
-                            id="loading-refresh",
-                            type="default",
-                            children=dbc.Button(
-                                [html.I(className="fas fa-sync-alt me-2"), "Refresh Data"],
-                                id=ComponentIds.REFRESH_DB_BUTTON,
-                                color="primary",
-                                outline=True,
-                                className="border-0",
-                                style={"height": "48px", "minWidth": "100px"},
-                                title="Refresh Database",
-                            ),
-                        ),
+                        refresh_btn,
                         lg="auto",
                         className="d-flex justify-content-end ms-lg-auto",
                     ),
