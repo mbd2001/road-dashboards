@@ -1,7 +1,7 @@
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from threading import Lock
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import pandas as pd
 from boto3.dynamodb.conditions import Attr
@@ -11,7 +11,6 @@ from road_dashboards.workflows_dashboard.core_settings.constants import BRAIN_OP
 from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings, DatabaseSettings, Status
 
 TOTAL_SCAN_SEGMENTS = 4
-MAX_WORKERS_PER_WORKFLOW = 4
 CACHE_EXPIRATION_HOURS = 24
 
 
@@ -47,59 +46,94 @@ class WorkflowsDBManager(DBManager):
         if not self._should_refresh_data():
             return
 
+        self.refresh_data()
+
+    def refresh_data(self) -> None:
+        """
+        Refresh the data from the database.
+        Sets loading state during refresh operation.
+        """
         with self._refresh_lock:
             self._load_workflow_data()
             self._last_refresh = datetime.now()
+
+    def _create_scan_task(self, workflow: str, segment: int) -> Dict[str, Any]:
+        """
+        Create a scan task configuration for a workflow and segment.
+
+        Args:
+            workflow: Name of the workflow
+            segment: Segment number for parallel scanning
+
+        Returns:
+            Dictionary containing scan task configuration
+        """
+        return {
+            "workflow": workflow,
+            "segment": segment,
+            "filter_expr": Attr("workflows").contains(workflow),
+            "projection_expr": self._build_projection_expression(workflow),
+            "expr_names": {"#pk": DatabaseSettings.primary_key},
+        }
+
+    def _process_workflow_data(self, workflow: str, items: List[Dict[str, Any]]) -> Optional[pd.DataFrame]:
+        """
+        Process raw workflow data into a DataFrame.
+
+        Args:
+            workflow: Name of the workflow
+            items: List of raw data items from DynamoDB
+
+        Returns:
+            Processed DataFrame or None if no items
+        """
+        if not items:
+            return None
+
+        df = pd.DataFrame(items)
+        df = self._remove_workflow_prefix_mapping(workflow, df)
+        df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
+        df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
+        return df
 
     def _load_workflow_data(self) -> None:
         """
         Loads and preprocesses workflow data from DynamoDB into DataFrames.
         Uses parallel processing for efficient data loading.
         """
+        tasks = []
+        results = {workflow: [] for workflow in WORKFLOWS}
+
+        for workflow in WORKFLOWS:
+            for segment in range(TOTAL_SCAN_SEGMENTS):
+                tasks.append(self._create_scan_task(workflow, segment))
+
         with ThreadPoolExecutor() as executor:
-            results = list(executor.map(self._fetch_workflow_data, WORKFLOWS))
-
-        self._workflow_dfs.clear()  # Clear existing data before updating
-        for workflow, df in results:
-            if df.empty:
-                continue
-
-            df = self._remove_workflow_prefix_mapping(workflow, df)
-            df[WorkflowFields.last_update] = pd.to_datetime(df[WorkflowFields.last_update])
-            df[WorkflowFields.status] = df[WorkflowFields.status].fillna(Status.UNPROCESSED.value)
-            self._workflow_dfs[workflow] = df
-
-    def _fetch_workflow_data(self, workflow: str) -> Tuple[str, pd.DataFrame]:
-        """
-        Fetches data for a single workflow using parallel scanning.
-
-        Args:
-            workflow: Name of the workflow to fetch data for
-
-        Returns:
-            Tuple of workflow name and corresponding DataFrame
-        """
-        filter_expr = Attr("workflows").contains(workflow)
-        projection_expr = self._build_projection_expression(workflow)
-        expr_names = {"#pk": DatabaseSettings.primary_key}
-
-        items = []
-        with ThreadPoolExecutor(max_workers=TOTAL_SCAN_SEGMENTS) as executor:
-            futures = [
+            future_to_workflow = {
                 executor.submit(
                     self.scan,
-                    FilterExpression=filter_expr,
-                    ProjectionExpression=projection_expr,
-                    ExpressionAttributeNames=expr_names,
-                    Segment=segment,
+                    FilterExpression=task["filter_expr"],
+                    ProjectionExpression=task["projection_expr"],
+                    ExpressionAttributeNames=task["expr_names"],
+                    Segment=task["segment"],
                     TotalSegments=TOTAL_SCAN_SEGMENTS,
-                )
-                for segment in range(TOTAL_SCAN_SEGMENTS)
-            ]
-            for future in futures:
-                items.extend(future.result())
+                ): task["workflow"]
+                for task in tasks
+            }
 
-        return workflow, pd.DataFrame(items) if items else pd.DataFrame()
+            for future in as_completed(future_to_workflow):
+                workflow = future_to_workflow[future]
+                try:
+                    items = future.result()
+                    results[workflow].extend(items)
+                except Exception as e:
+                    print(f"Error scanning {workflow}: {e}")
+
+        self._workflow_dfs.clear()
+        for workflow, items in results.items():
+            df = self._process_workflow_data(workflow, items)
+            if df is not None:
+                self._workflow_dfs[workflow] = df
 
     @staticmethod
     def _build_projection_expression(workflow: str) -> str:
