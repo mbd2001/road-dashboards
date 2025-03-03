@@ -83,31 +83,3 @@ def generate_host_conf_matrices(nets, meta_data_filters, graph_id, pathnet_filte
     )
 
     return diagonal_compare, mats_figs
-
-
-def get_miss_false_layout():
-    layout = []
-    for p_filter in PATHNET_MISS_FALSE_FILTERS:
-        layout += [
-            card_wrapper(
-                [
-                    dbc.Row(
-                        [
-                            dbc.Col(
-                                graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
-                                width=4,
-                            ),
-                            dbc.Col(
-                                graph_wrapper({"id": PATH_NET_MISSES_HOST, "filter": p_filter}),
-                                width=4,
-                            ),
-                            dbc.Col(
-                                graph_wrapper({"id": PATH_NET_MISSES_NEXT, "filter": p_filter}),
-                                width=4,
-                            ),
-                        ]
-                    ),
-                ]
-            ),
-        ]
-        return layout

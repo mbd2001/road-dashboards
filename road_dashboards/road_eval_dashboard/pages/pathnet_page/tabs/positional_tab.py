@@ -62,7 +62,34 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
-from road_dashboards.road_eval_dashboard.pages.pathnet_page.tabs.roles_tab import get_miss_false_layout
+
+
+def get_miss_false_layout():
+    layout = []
+    for p_filter in PATHNET_MISS_FALSE_FILTERS:
+        layout += [
+            card_wrapper(
+                [
+                    dbc.Row(
+                        [
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_FALSES_NEXT, "filter": p_filter}),
+                                width=4,
+                            ),
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_MISSES_HOST, "filter": p_filter}),
+                                width=4,
+                            ),
+                            dbc.Col(
+                                graph_wrapper({"id": PATH_NET_MISSES_NEXT, "filter": p_filter}),
+                                width=4,
+                            ),
+                        ]
+                    ),
+                ]
+            ),
+        ]
+    return layout
 
 
 def get_cumulative_acc_layout():
@@ -146,7 +173,7 @@ def get_acc_by_sec_layout():
                         [
                             html.Label("acc-threshold (m)", style={"text-align": "center", "fontSize": "20px"}),
                             dcc.RangeSlider(
-                                id="acc-threshold-slider",
+                                id="acc-threshold-sliders",
                                 min=0,
                                 max=2,
                                 step=0.1,
