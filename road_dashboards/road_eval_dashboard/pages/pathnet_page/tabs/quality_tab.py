@@ -15,14 +15,16 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
-    DISTANCES,
-    DPQualityQueryConfig,
-    MetricType,
-    build_metric_query,
+    build_dp_quality_metrics_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED, YELLOW
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
+from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
+    DPQualityQueryConfig,
+    MetricType,
+)
 
 
 def get_graph_row(graph_type: str) -> dbc.Row:
@@ -39,14 +41,12 @@ quality_layout = html.Div(
     [
         card_wrapper(
             [
-                # Quality graphs
                 get_graph_row(PATH_NET_QUALITY_ACCURACY),
                 get_graph_row(PATH_NET_QUALITY_PRECISION),
                 get_graph_row(PATH_NET_QUALITY_TP),
                 get_graph_row(PATH_NET_QUALITY_TN),
                 get_graph_row(PATH_NET_QUALITY_FP),
                 get_graph_row(PATH_NET_QUALITY_FN),
-                # Slider row
                 dbc.Row(
                     [
                         html.Label(
@@ -131,7 +131,7 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
 
 def update_quality_graph(config: DPQualityQueryConfig, metric: MetricType, title: str):
     """Helper to update a graph based on DPQualityQueryConfig and MetricType."""
-    query = build_metric_query(config, metric)
+    query = build_dp_quality_metrics_query(config, metric)
     df, _ = run_query_with_nets_names_processing(query)
     match metric:
         case MetricType.CORRECT_ACCEPTANCE_RATE | MetricType.CORRECT_REJECTION_RATE:
@@ -142,7 +142,7 @@ def update_quality_graph(config: DPQualityQueryConfig, metric: MetricType, title
             bg_color = YELLOW
     return draw_path_net_graph(
         data=df,
-        cols=DISTANCES,
+        cols=SECONDS,
         title=title,
         role=config.role,
         yaxis=f"{metric.value} (%)",

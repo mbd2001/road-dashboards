@@ -50,7 +50,6 @@ from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.lay
     layout as events_extractor_card,
 )
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
-    DISTANCES,
     PATHNET_ACC_THRESHOLDS,
     generate_count_query,
     generate_path_net_miss_false_query,
@@ -62,6 +61,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.graphs.meta_data_filters_graph import draw_meta_data_filters
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS, compute_distances_dict
 
 
 def get_miss_false_layout():
@@ -333,10 +333,7 @@ pos_layout = html.Div(
 
 
 def compute_dynamic_distances_dict(slider_values):
-    coeff = np.polyfit([1.3, 3], slider_values, deg=1)
-    threshold_polynomial = np.poly1d(coeff)
-    distances_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in DISTANCES}
-    return distances_dict
+    return compute_distances_dict(allowed_error_at_secs_ahead=slider_values)
 
 
 @callback(
@@ -344,7 +341,7 @@ def compute_dynamic_distances_dict(slider_values):
     Input("acc-threshold-slider", "value"),
 )
 def compute_acc_threshold_distances_dict(slider_values):
-    return compute_dynamic_distances_dict(slider_values)
+    return compute_distances_dict(allowed_error_at_secs_ahead=slider_values)
 
 
 @callback(
@@ -352,7 +349,7 @@ def compute_acc_threshold_distances_dict(slider_values):
     Input(PATH_NET_OOL_BORDER_DIST_SLIDER, "value"),
 )
 def compute_ool_threshold_distances_dict(slider_values):
-    return compute_dynamic_distances_dict([slider_values[1], slider_values[0]])
+    return compute_distances_dict(allowed_error_at_secs_ahead=[slider_values[1], slider_values[0]])
 
 
 @callback(
@@ -360,7 +357,7 @@ def compute_ool_threshold_distances_dict(slider_values):
     Input(PATH_NET_OOL_RE_DIST_SLIDER, "value"),
 )
 def compute_re_ool_threshold_distances_dict(slider_values):
-    return compute_dynamic_distances_dict([slider_values[1], slider_values[0]])
+    return compute_distances_dict(allowed_error_at_secs_ahead=[slider_values[1], slider_values[0]])
 
 
 @callback(
@@ -387,7 +384,7 @@ def get_path_net_acc_host(meta_data_filters, pathnet_filters, nets, distances_di
         role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, DISTANCES, "accuracy", role="host", yaxis="% accurate dps")
+    return draw_path_net_graph(df, SECONDS, "accuracy", role="host", yaxis="% accurate dps")
 
 
 @callback(
@@ -414,7 +411,7 @@ def get_path_net_acc_pred(meta_data_filters, pathnet_filters, nets, distances_di
         role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, DISTANCES, "accuracy", role="Pred", yaxis="% accurate dps")
+    return draw_path_net_graph(df, SECONDS, "accuracy", role="Pred", yaxis="% accurate dps")
 
 
 @callback(
@@ -508,7 +505,7 @@ def get_path_net_acc_next(meta_data_filters, pathnet_filters, nets, distances_di
         role=role,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    return draw_path_net_graph(df, DISTANCES, "accuracy", yaxis="% accurate dps")
+    return draw_path_net_graph(df, SECONDS, "accuracy", yaxis="% accurate dps")
 
 
 @callback(
@@ -838,8 +835,8 @@ def get_path_net_in_lane_fig(
     boundaries_dist_col_name = "dp_dist_from_boundaries_gt"
     re_dist_col_name = "dp_dist_from_road_edges_gt"
 
-    boundaries_dist_columns = [f'"{boundaries_dist_col_name}_{sec}"' for sec in DISTANCES]
-    boundaries_dist_columns += [f'"{re_dist_col_name}_{sec}"' for sec in DISTANCES]
+    boundaries_dist_columns = [f'"{boundaries_dist_col_name}_{sec}"' for sec in SECONDS]
+    boundaries_dist_columns += [f'"{re_dist_col_name}_{sec}"' for sec in SECONDS]
     role = graph_id["role"]
 
     query = get_in_lane_query(
@@ -858,5 +855,5 @@ def get_path_net_in_lane_fig(
 
     df, _ = run_query_with_nets_names_processing(query)
     return draw_path_net_graph(
-        df, DISTANCES, "in-lane accuracy", role=role, yaxis="% accurate dps", hover=True, hover_func=in_lane_hover_txt
+        df, SECONDS, "in-lane accuracy", role=role, yaxis="% accurate dps", hover=True, hover_func=in_lane_hover_txt
     )

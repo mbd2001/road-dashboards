@@ -8,6 +8,13 @@ import numpy as np
 import pandas as pd
 from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS, compute_distances_dict
+from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
+    DPQualityQueryConfig,
+    MetricType,
+)
+from road_dashboards.road_eval_dashboard.utils.quality.quality_functions import get_quality_metric_query
+
 PATHNET_IGNORE = 990
 PATHNET_BASE_DIST = 0.5
 
@@ -200,47 +207,6 @@ SUM_SUCCESS_RATE_METRIC = """
     AS "score_{ind}"
     """
 
-QUALITY_METRIC_TEMPLATE = (
-    "CAST(COUNT(CASE WHEN {num_condition} THEN 1 ELSE NULL END) AS DOUBLE) / "
-    'COUNT(CASE WHEN {denom_condition} THEN 1 ELSE NULL END) AS "score_{ind}"'
-)
-
-
-@dataclass
-class DPQualityQueryConfig:
-    data_tables: Any
-    meta_data: Any
-    meta_data_filters: str = ""
-    role: str = ""
-    extra_columns: list[str] = field(default_factory=lambda: ["split_role", "matched_split_role", "ignore_role"])
-    allowed_error_at_secs_ahead: list[float] = field(default_factory=lambda: [0.2, 0.5])
-    secs_ahead: list[float] = field(default_factory=lambda: [1.3, 3])
-    base_dist_column_name: str = "dist"
-    base_dp_quality_col_name: str = "quality_score"
-    quality_prob_score_thresh: float = 0.5  # Probability of the predicted point is correct
-
-
-class MetricType(Enum):
-    """
-    Enum that defines the type of metric to be used in the query.
-
-    Attributes:
-        CORRECT_ACCEPTANCE_RATE: Correct Acceptance / (Correct Acceptance + Incorrect Acceptance)
-        INCORRECT_ACCEPTANCE_RATE: Incorrect Acceptance / (Correct Acceptance + Incorrect Acceptance)
-        INCORRECT_REJECTION_RATE: Incorrect Rejection / (Correct Rejection + Incorrect Rejection)
-        CORRECT_REJECTION_RATE: Correct Rejection / (Correct Rejection + Incorrect Rejection)
-        ACCURACY: (Correct Acceptance + Correct Rejection) / (Correct Acceptance + Correct Rejection + Incorrect Acceptance+Incorrect Rejection)
-        PRECISION: Correct Acceptance / (Correct Acceptance + Incorrect Rejection)
-    """
-
-    CORRECT_ACCEPTANCE_RATE = "Correct Acceptance Rate"
-    INCORRECT_ACCEPTANCE_RATE = "Incorrect Acceptance Rate"
-    INCORRECT_REJECTION_RATE = "Incorrect Rejection Rate"
-    CORRECT_REJECTION_RATE = "Correct Rejection Rate"
-    ACCURACY = "Accuracy"
-    PRECISION = "Precision"
-
-
 THRESHOLDS = np.concatenate(
     (np.array([-1000]), np.linspace(-5, -1, 5), np.linspace(-1, 2, 16), np.linspace(2, 6, 5), np.array([1000]))
 )
@@ -278,33 +244,6 @@ class Roles(str, enum.Enum):
 
 
 IGNORE_VALUE = 999
-sec_to_dist_acc = {
-    0.5: 0.2,
-    1.0: 0.2,
-    1.5: 0.23529411764705876,
-    2.0: 0.3235294117647058,
-    2.5: 0.4117647058823528,
-    3.0: 0.49999999999999983,
-    3.5: 0.5,
-    4.0: 0.5,
-    4.5: 0.5,
-    5.0: 0.5,
-}
-
-sec_to_dist_falses = {
-    0.5: 0.5,
-    1.0: 0.5,
-    1.5: 0.5270270270270272,
-    2.0: 0.5945945945945947,
-    2.5: 0.6621621621621623,
-    3.0: 0.7,
-    3.5: 0.7,
-    4.0: 0.7,
-    4.5: 0.7,
-    5.0: 0.7,
-}
-
-DISTANCES = list(sec_to_dist_acc.keys())
 INTERSTING_FILTERS_DIST_TO_CHECK = 1.3
 
 
@@ -1604,107 +1543,20 @@ def process_net_name(net_name):
     return re.sub(r"(^\d{18}-)|(_default$)|(_$)", "", net_name)
 
 
-def get_conditions_for_metric( #TODO MAKE IT SO THIS WILL RETURN THE FULL QUERY INSTEAD OF THE NUM AND DENOM
-    metric: MetricType, config: DPQualityQueryConfig, sec: float, dist_thresh: float
-) -> tuple[str, str]:
-    """
-    Given a MetricType, return the numerator and denominator condition strings.
-
-    Prediction is positive when quality score > threshold
-    Ground truth is positive when distance < threshold
-
-    Args:
-        metric (MetricType): The metric type.
-        config (DPQualityQueryConfig): The quality query configuration.
-        sec (float): The time horizon.
-        dist_thresh (float): The distance threshold.
-
-    Returns:
-        tuple[str, str]: The numerator and denominator condition strings.
-    """
-
-    # Ground truth conditions
-    positive_gt = '"{base_dist_column_name}_{sec}" IS NOT NULL AND "{base_dist_column_name}_{sec}" < {dist_thresh}'
-    negative_gt = '"{base_dist_column_name}_{sec}" IS NOT NULL AND "{base_dist_column_name}_{sec}" >= {dist_thresh}'
-
-    # Prediction conditions
-    positive_pred = (
-        '"{base_dp_quality_col_name}_{sec}" IS NOT NULL AND "{base_dp_quality_col_name}_{sec}" > {quality_thresh}'
-    )
-    negative_pred = (
-        '"{base_dp_quality_col_name}_{sec}" IS NOT NULL AND "{base_dp_quality_col_name}_{sec}" <= {quality_thresh}'
-    )
-
-    tp = f"({positive_gt} AND {positive_pred})"  # Correct Acceptance
-    fp = f"({negative_gt} AND {positive_pred})"  # Incorrect Acceptance
-    fn = f"({positive_gt} AND {negative_pred})"  # Incorrect Rejection
-    tn = f"({negative_gt} AND {negative_pred})"  # Correct Rejection
-
-    # Then use these conditions to build each metric
-    match metric:
-        case MetricType.CORRECT_ACCEPTANCE_RATE:
-            num_condition = tp
-            denom_condition = positive_gt
-
-        case MetricType.INCORRECT_ACCEPTANCE_RATE:
-            num_condition = fp
-            denom_condition = negative_gt
-
-        case MetricType.INCORRECT_REJECTION_RATE:
-            num_condition = fn
-            denom_condition = positive_gt
-
-        case MetricType.CORRECT_REJECTION_RATE:
-            num_condition = tn
-            denom_condition = negative_gt
-
-        case MetricType.ACCURACY:
-            num_condition = f"({tp}) OR ({tn})"
-            denom_condition = f"({positive_gt}) OR ({negative_gt})"
-
-        case MetricType.PRECISION:
-            num_condition = tp
-            denom_condition = positive_pred
-
-        case _:
-            raise ValueError("Unsupported metric type")
-
-    formatted_num = num_condition.format(
-        base_dist_column_name=config.base_dist_column_name,
-        base_dp_quality_col_name=config.base_dp_quality_col_name,
-        sec=sec,
-        dist_thresh=dist_thresh,
-        quality_thresh=config.quality_prob_score_thresh,
-    )
-    formatted_denom = denom_condition.format(
-        base_dist_column_name=config.base_dist_column_name,
-        base_dp_quality_col_name=config.base_dp_quality_col_name,
-        sec=sec,
-        dist_thresh=dist_thresh,
-        quality_thresh=config.quality_prob_score_thresh,
-    )
-    return formatted_num, formatted_denom
-
-
-def build_metric_query(config: DPQualityQueryConfig, metric: MetricType) -> str:
+def build_dp_quality_metrics_query(config: DPQualityQueryConfig, metric: MetricType) -> str:
     """
     Build a metric query based on the MetricType. Uses a 1d polynomial to compute the distance thresholds for each second.
     Default base distances are [0.2, 0.5] for [1.3, 3] seconds.
     """
-    coef = np.polyfit(config.secs_ahead, config.allowed_error_at_secs_ahead, deg=1)
-    threshold_polynomial = np.poly1d(coef)
-    sec_to_threshold_dict = {sec: max(threshold_polynomial(sec), 0.2) for sec in DISTANCES}
+    sec_to_threshold_dict = compute_distances_dict()
 
-    quality_cols = [f'"quality_score_{sec}"' for sec in DISTANCES]
+    quality_cols = [f'"{config.base_dp_quality_col_name}_{sec}"' for sec in SECONDS]
     extra_columns = config.extra_columns + quality_cols
 
     metrics_list = []
     for sec, dist_thresh in sec_to_threshold_dict.items():
-        num_condition, denom_condition = get_conditions_for_metric(metric, config, sec, dist_thresh)
-        metric_str = QUALITY_METRIC_TEMPLATE.format(
-            num_condition=num_condition, denom_condition=denom_condition, ind=sec
-        )
-        metrics_list.append(metric_str)
+        metric_query = get_quality_metric_query(metric, config, sec, dist_thresh)
+        metrics_list.append(metric_query)
     metrics = ", ".join(metrics_list)
 
     return get_query_by_metrics(
