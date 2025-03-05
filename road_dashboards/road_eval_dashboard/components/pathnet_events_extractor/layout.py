@@ -34,7 +34,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EXTRACT_EVENTS_LOG_MESSAGE,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
-from road_dashboards.road_eval_dashboard.components.queries_manager import distances
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
 
@@ -147,7 +147,7 @@ def create_filtering_dropdowns_row():
                     children=[
                         dcc.Dropdown(
                             id=PATHNET_EVENTS_DIST_DROPDOWN,
-                            options=create_dropdown_options_list(labels=distances),
+                            options=create_dropdown_options_list(labels=SECONDS),
                             placeholder="Select Dist (sec)",
                         )
                     ],

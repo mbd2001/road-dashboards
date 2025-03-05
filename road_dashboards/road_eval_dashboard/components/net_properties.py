@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from road_dashboards.road_eval_dashboard.components.queries_manager import ZSources, distances, lm_3d_distances
+from road_dashboards.road_eval_dashboard.components.queries_manager import ZSources, lm_3d_distances
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
 
 
 @dataclass
@@ -78,10 +79,10 @@ class Nets:
             "role",
             "bin_population",
             "smooth_index",
-        ] + [f'"dist_{sec}"' for sec in distances]
+        ] + [f'"dist_{sec}"' for sec in SECONDS]
         bounadaries_columns = ["clip_name", "grabIndex", "net_id", "role", "bin_population"] + [
             f'"{prefix}_dist_{side}_{sec}"'
-            for sec in distances
+            for sec in SECONDS
             for side in ["left", "right"]
             for prefix in ["boundaries", "road_edges"]
         ]
