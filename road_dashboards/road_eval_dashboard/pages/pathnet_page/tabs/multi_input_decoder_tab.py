@@ -62,12 +62,13 @@ def get_pathnet_sources_df(
         group_by_net_id=True,
     )
     df, _ = run_query_with_nets_names_processing(query)
-    df = df[~df["net_id"].str.endswith("sf")]
+    df = df[~df["net_id"].str.endswith("sf") & ~df["net_id"].str.endswith("rem")]
     df = df.sort_values(by=["net_id", source_column]).dropna()
     df = df.rename(columns={"overall": "source_count"})
     total_counts = df.groupby("net_id")["source_count"].transform("sum")
     df["source_percent"] = (df["source_count"] / total_counts) * 100
     df["text"] = df.apply(lambda row: f"{row['source_count']}<br>{row['source_percent']:.1f}%", axis=1)
+    df[source_column] = df[source_column].replace("fusion", "rem")
 
     return comparison_bar_graph(
         df,

@@ -15,13 +15,9 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATH_NET_ACC_ALL_PRED,
     PATH_NET_ACC_HOST,
     PATH_NET_ACC_NEXT,
-    PATH_NET_ALL_CONF_MATS,
-    PATH_NET_ALL_TPR,
     PATH_NET_BIASES_HOST,
     PATH_NET_BIASES_NEXT,
     PATH_NET_FALSES_NEXT,
-    PATH_NET_HOST_CONF_MAT,
-    PATH_NET_HOST_TPR,
     PATH_NET_MISSES_HOST,
     PATH_NET_MISSES_NEXT,
     PATH_NET_MONOTONE_ACC_HOST,
@@ -43,7 +39,6 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_INCLUDE_MATCHED_NON_HOST,
     PATHNET_PRED,
 )
-from road_dashboards.road_eval_dashboard.components.confusion_matrices_layout import generate_matrices_layout
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.layout import (
@@ -695,24 +690,6 @@ def get_path_net_misses_next(meta_data_filters, pathnet_filters, nets, graph_id)
         hover=True,
         count_items_name="dps",
     )
-
-
-@callback(
-    Output({"out": "graph", "role": MATCH}, "children"),
-    Input(NETS, "data"),
-    State({"out": "graph", "role": MATCH}, "id"),
-)
-def generate_conf_matrices_components(nets, graph_id):
-    if not nets:
-        return []
-    children = generate_matrices_layout(
-        nets=nets,
-        upper_diag_id={"type": PATH_NET_ALL_TPR, "role": graph_id["role"]},
-        lower_diag_id={"type": PATH_NET_HOST_TPR, "role": graph_id["role"]},
-        left_conf_mat_id={"type": PATH_NET_ALL_CONF_MATS, "role": graph_id["role"]},
-        right_conf_mat_id={"type": PATH_NET_HOST_CONF_MAT, "role": graph_id["role"]},
-    )
-    return children
 
 
 def get_column_histogram(meta_data_filters, pathnet_filters, nets, role, column, min_val, max_val, bins_factor):
