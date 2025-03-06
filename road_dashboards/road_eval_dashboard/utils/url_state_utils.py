@@ -35,7 +35,7 @@ def create_dropdown_options_list(labels, values=None, do_hover=False):
     if not values:
         values = labels
 
-    assert len(labels) == len(values), "If values is different from labels, both should be of the same size"
+    assert len(labels) == len(values), "values are different from labels, both should be of the same size"
     return [
         {"label": label, "value": value, **({"title": str(value)} if do_hover else {})}
         for label, value in zip(labels, values)
