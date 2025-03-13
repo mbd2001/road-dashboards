@@ -10,9 +10,7 @@ from road_dashboards.workflows_dashboard.components.selectors.export.export_cons
     ExportComponentsIds,
 )
 from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, WorkflowFields
-from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
-
-db_manager = WorkflowsDBManager()
+from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
 
 
 @callback(

@@ -15,28 +15,22 @@ class DPQualityQueryConfig:
     quality_prob_score_thresh: float = 0.5  # Probability of the predicted point is correct
 
 
-class MetricType(Enum):
+class MetricType(str, Enum):
     """
     Enum that defines the type of metric to be used in the query.
 
     Attributes:
-        CORRECT_ACCEPTANCE_RATE: Correct Acceptance / (Correct Acceptance + Incorrect Acceptance)
-        INCORRECT_ACCEPTANCE_RATE: Incorrect Acceptance / (Correct Acceptance + Incorrect Acceptance)
-        INCORRECT_REJECTION_RATE: Incorrect Rejection / (Correct Rejection + Incorrect Rejection)
-        CORRECT_REJECTION_RATE: Correct Rejection / (Correct Rejection + Incorrect Rejection)
-        ACCURACY: (Correct Acceptance + Correct Rejection) / (Correct Acceptance + Correct Rejection + Incorrect Acceptance+Incorrect Rejection)
-        PRECISION: Correct Acceptance / (Correct Acceptance + Incorrect Rejection)
+        TPR: True Positive Rate (tp / (tp + fn))
+        FPR: False Positive Rate (fp / (fp + tn))
+        TNR: True Negative Rate (tn / (tp + fn))
+        FNR: False Negative Rate (fn / (tp + fn))
+        ACCURACY: (tp + tn) / (tp + fp + fn + tn)
+        PRECISION: tp / (tp + fp)
     """
 
-    CORRECT_ACCEPTANCE_RATE = "Correct Acceptance Rate"
-    INCORRECT_ACCEPTANCE_RATE = "Incorrect Acceptance Rate"
-    INCORRECT_REJECTION_RATE = "Incorrect Rejection Rate"
-    CORRECT_REJECTION_RATE = "Correct Rejection Rate"
+    TPR = "TPR"
+    FPR = "FPR"
+    TNR = "TNR"
+    FNR = "FNR"
     ACCURACY = "Accuracy"
     PRECISION = "Precision"
-
-
-QUALITY_METRIC_TEMPLATE = (
-    "CAST(COUNT(CASE WHEN {num_condition} THEN 1 ELSE NULL END) AS DOUBLE) / "
-    'COUNT(CASE WHEN {denom_condition} THEN 1 ELSE NULL END) AS "score_{ind}"'
-)

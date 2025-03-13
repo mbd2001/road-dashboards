@@ -15,16 +15,14 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
-    build_dp_quality_metrics_query,
+    build_dp_all_quality_metrics_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED, YELLOW
 from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
-from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
-    DPQualityQueryConfig,
-    MetricType,
-)
+from road_dashboards.road_eval_dashboard.utils.quality import quality_functions
+from road_dashboards.road_eval_dashboard.utils.quality.quality_config import DPQualityQueryConfig, MetricType
 
 
 def get_graph_row(graph_type: str) -> dbc.Row:
@@ -82,7 +80,6 @@ quality_layout = html.Div(
     State({"type": PATH_NET_QUALITY_TP, "role": MATCH}, "id"),
 )
 def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
-    """Updates all quality graphs at once for a given role."""
     if not nets:
         return (no_update, no_update, no_update, no_update, no_update, no_update)
 
@@ -95,56 +92,40 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
         quality_prob_score_thresh=slider_values[0],
     )
 
-    fig_tp = update_quality_graph(
-        config,
-        metric=MetricType.CORRECT_ACCEPTANCE_RATE,
-        title="Correct Acceptance Rate",
-    )
-    fig_fn = update_quality_graph(
-        config,
-        metric=MetricType.INCORRECT_ACCEPTANCE_RATE,
-        title="Incorrect Acceptance Rate",
-    )
-    fig_tn = update_quality_graph(
-        config,
-        metric=MetricType.CORRECT_REJECTION_RATE,
-        title="Correct Rejection Rate",
-    )
-    fig_fp = update_quality_graph(
-        config,
-        metric=MetricType.INCORRECT_REJECTION_RATE,
-        title="Incorrect Rejection Rate",
-    )
-    fig_acc = update_quality_graph(
-        config,
-        metric=MetricType.ACCURACY,
-        title="Accuracy",
-    )
-    fig_prec = update_quality_graph(
-        config,
-        metric=MetricType.PRECISION,
-        title="Precision",
-    )
-
-    return fig_tp, fig_fn, fig_tn, fig_fp, fig_acc, fig_prec
-
-
-def update_quality_graph(config: DPQualityQueryConfig, metric: MetricType, title: str):
-    """Helper to update a graph based on DPQualityQueryConfig and MetricType."""
-    query = build_dp_quality_metrics_query(config, metric)
+    query = build_dp_all_quality_metrics_query(config)
     df, _ = run_query_with_nets_names_processing(query)
-    match metric:
-        case MetricType.CORRECT_ACCEPTANCE_RATE | MetricType.CORRECT_REJECTION_RATE:
-            bg_color = GREEN
-        case MetricType.INCORRECT_ACCEPTANCE_RATE | MetricType.INCORRECT_REJECTION_RATE:
-            bg_color = RED
-        case _:
-            bg_color = YELLOW
-    return draw_path_net_graph(
-        data=df,
-        cols=SECONDS,
-        title=title,
-        role=config.role,
-        yaxis=f"{metric.value} (%)",
-        plot_bgcolor=bg_color,
+
+    metric_dfs = quality_functions.compute_metrics_from_count_df(df)
+
+    metric_settings = {
+        MetricType.TPR: {"title": "Correct Acceptance Rate", "yaxis": "TPR (%)", "bg": GREEN},
+        MetricType.FPR: {"title": "Incorrect Acceptance Rate", "yaxis": "FPR (%)", "bg": RED},
+        MetricType.TNR: {"title": "Correct Rejection Rate", "yaxis": "TNR (%)", "bg": GREEN},
+        MetricType.FNR: {"title": "Incorrect Rejection Rate", "yaxis": "FNR (%)", "bg": RED},
+        MetricType.ACCURACY: {"title": "Accuracy", "yaxis": "ACC (%)", "bg": YELLOW},
+        MetricType.PRECISION: {"title": "Precision", "yaxis": "PREC (%)", "bg": YELLOW},
+    }
+
+    figs = {}
+    for metric, settings in metric_settings.items():
+        # Each metric_dfs[metric] is a DataFrame with index corresponding to nets and columns to seconds.
+        metric_df = metric_dfs[metric]
+        fig = draw_path_net_graph(
+            data=metric_df,
+            cols=SECONDS,
+            title=settings["title"],
+            role=role,
+            yaxis=settings["yaxis"],
+            plot_bgcolor=settings["bg"],
+            score_func=lambda row, sec: row[sec],
+        )
+        figs[metric] = fig
+
+    return (
+        figs[MetricType.TPR],
+        figs[MetricType.FPR],
+        figs[MetricType.TNR],
+        figs[MetricType.FNR],
+        figs[MetricType.ACCURACY],
+        figs[MetricType.PRECISION],
     )

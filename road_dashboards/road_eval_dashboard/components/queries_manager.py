@@ -11,9 +11,8 @@ from road_database_toolkit.athena.athena_utils import athena_run_multiple_querie
 from road_dashboards.road_eval_dashboard.utils.distances import SECONDS, compute_distances_dict
 from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
     DPQualityQueryConfig,
-    MetricType,
 )
-from road_dashboards.road_eval_dashboard.utils.quality.quality_functions import get_quality_metric_query
+from road_dashboards.road_eval_dashboard.utils.quality.quality_functions import get_counts_expressions_for_sec
 
 PATHNET_IGNORE = 990
 PATHNET_BASE_DIST = 0.5
@@ -1543,21 +1542,23 @@ def process_net_name(net_name):
     return re.sub(r"(^\d{18}-)|(_default$)|(_$)", "", net_name)
 
 
-def build_dp_quality_metrics_query(config: DPQualityQueryConfig, metric: MetricType) -> str:
+def build_dp_all_quality_metrics_query(config: DPQualityQueryConfig) -> str:
     """
-    Build a metric query based on the MetricType. Uses a 1d polynomial to compute the distance thresholds for each second.
-    Default base distances are [0.2, 0.5] for [1.3, 3] seconds.
+    Build a query that returns aggregated TP, FP, FN, and TN counts per second.
+
     """
     sec_to_threshold_dict = compute_distances_dict()
+    quality_col = [f'"{config.base_dp_quality_col_name}_{sec}"' for sec in SECONDS]
 
-    quality_cols = [f'"{config.base_dp_quality_col_name}_{sec}"' for sec in SECONDS]
-    extra_columns = config.extra_columns + quality_cols
+    metrics_exprs = []
 
-    metrics_list = []
     for sec, dist_thresh in sec_to_threshold_dict.items():
-        metric_query = get_quality_metric_query(metric, config, sec, dist_thresh)
-        metrics_list.append(metric_query)
-    metrics = ", ".join(metrics_list)
+        counts_exprs = get_counts_expressions_for_sec(config, sec, dist_thresh)
+        metrics_exprs.extend(list(counts_exprs.values()))
+
+    metrics = ", ".join(metrics_exprs)
+
+    extra_columns = config.extra_columns + quality_col
 
     return get_query_by_metrics(
         data_tables=config.data_tables,
