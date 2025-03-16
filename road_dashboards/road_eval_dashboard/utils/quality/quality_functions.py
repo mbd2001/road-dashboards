@@ -51,7 +51,7 @@ def get_counts_expressions_for_sec(config: DPQualityQueryConfig, sec: float, dis
 def compute_metrics_from_count_df(df: pd.DataFrame) -> dict:
     """
     Given a DataFrame with aggregated counts (tp_<sec>, fp_<sec>, fn_<sec>, tn_<sec>),
-    compute quality metrics (TPR, FPR, FNR, TNR, ACC, PREC).
+    compute quality metrics (Correct Acceptance Rate, Incorrect Acceptance Rate, Correct Rejection Rate, Incorrect Rejection Rate, Accuracy, Precision).
 
     Returns a dictionary of DataFrames, one for each metric, with seconds as columns.
     """
@@ -62,18 +62,15 @@ def compute_metrics_from_count_df(df: pd.DataFrame) -> dict:
         fn = df[f"{FN_PREFIX}_{sec}"]
         tn = df[f"{TN_PREFIX}_{sec}"]
 
-        tp_fn = tp + fn
-        fp_tn = fp + tn
-        tp_fp = tp + fp
         total = tp + fp + fn + tn
 
         metrics = {
-            MetricType.TPR: tp / tp_fn,
-            MetricType.FPR: fp / fp_tn,
-            MetricType.FNR: fn / tp_fn,
-            MetricType.TNR: tn / fp_tn,
-            MetricType.ACCURACY: (tp + tn) / total,
-            MetricType.PRECISION: tp / tp_fp,
+            MetricType.CORRECT_ACCEPTANCE_RATE: tp / (tp + fn),  # True Positive Rate (Recall)
+            MetricType.INCORRECT_ACCEPTANCE_RATE: fp / (fp + tn),  # False Positive Rate
+            MetricType.CORRECT_REJECTION_RATE: tn / (tn + fp),  # True Negative Rate
+            MetricType.INCORRECT_REJECTION_RATE: fn / (tp + fn),  # False Negative Rate
+            MetricType.ACCURACY: (tp + tn) / total,  # Accuracy
+            MetricType.PRECISION: tp / (tp + fp),  # Precision
         }
 
         for metric, series in metrics.items():

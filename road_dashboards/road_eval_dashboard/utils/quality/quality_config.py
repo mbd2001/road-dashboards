@@ -20,17 +20,17 @@ class MetricType(str, Enum):
     Enum that defines the type of metric to be used in the query.
 
     Attributes:
-        TPR: True Positive Rate (tp / (tp + fn))
-        FPR: False Positive Rate (fp / (fp + tn))
-        TNR: True Negative Rate (tn / (tp + fn))
-        FNR: False Negative Rate (fn / (tp + fn))
-        ACCURACY: (tp + tn) / (tp + fp + fn + tn)
-        PRECISION: tp / (tp + fp)
+        CORRECT_ACCEPTANCE_RATE: Correct Acceptance Rate (tp / (tp + fn))
+        INCORRECT_ACCEPTANCE_RATE: Incorrect Acceptance Rate (fp / (fp + tn))
+        CORRECT_REJECTION_RATE: Correct Rejection Rate (tn / (tp + fn))
+        INCORRECT_REJECTION_RATE: Incorrect Rejection Rate (fn / (tp + fn))
+        ACCURACY: Accuracy ((tp + tn) / (tp + fp + fn + tn))
+        PRECISION: Precision (tp / (tp + fp))
     """
 
-    TPR = "TPR"
-    FPR = "FPR"
-    TNR = "TNR"
-    FNR = "FNR"
+    CORRECT_ACCEPTANCE_RATE = "Correct Acceptance Rate"
+    INCORRECT_ACCEPTANCE_RATE = "Incorrect Acceptance Rate"
+    CORRECT_REJECTION_RATE = "Correct Rejection Rate"
+    INCORRECT_REJECTION_RATE = "Incorrect Rejection Rate"
     ACCURACY = "Accuracy"
     PRECISION = "Precision"

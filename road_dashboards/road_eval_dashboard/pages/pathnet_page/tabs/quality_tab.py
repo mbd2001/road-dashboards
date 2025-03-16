@@ -19,7 +19,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
-from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED, YELLOW
+from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
 from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
 from road_dashboards.road_eval_dashboard.utils.quality import quality_functions
 from road_dashboards.road_eval_dashboard.utils.quality.quality_config import DPQualityQueryConfig, MetricType
@@ -98,17 +98,32 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
     metric_dfs = quality_functions.compute_metrics_from_count_df(df)
 
     metric_settings = {
-        MetricType.TPR: {"title": "Correct Acceptance Rate", "yaxis": "TPR (%)", "bg": GREEN},
-        MetricType.FPR: {"title": "Incorrect Acceptance Rate", "yaxis": "FPR (%)", "bg": RED},
-        MetricType.TNR: {"title": "Correct Rejection Rate", "yaxis": "TNR (%)", "bg": GREEN},
-        MetricType.FNR: {"title": "Incorrect Rejection Rate", "yaxis": "FNR (%)", "bg": RED},
-        MetricType.ACCURACY: {"title": "Accuracy", "yaxis": "ACC (%)", "bg": YELLOW},
-        MetricType.PRECISION: {"title": "Precision", "yaxis": "PREC (%)", "bg": YELLOW},
+        MetricType.CORRECT_ACCEPTANCE_RATE: {
+            "title": "Correct Acceptance Rate",
+            "yaxis": "Correct Acceptance Rate (%)",
+            "bg": GREEN,
+        },
+        MetricType.INCORRECT_ACCEPTANCE_RATE: {
+            "title": "Incorrect Acceptance Rate",
+            "yaxis": "Incorrect Acceptance Rate (%)",
+            "bg": RED,
+        },
+        MetricType.CORRECT_REJECTION_RATE: {
+            "title": "Correct Rejection Rate",
+            "yaxis": "Correct Rejection Rate (%)",
+            "bg": GREEN,
+        },
+        MetricType.INCORRECT_REJECTION_RATE: {
+            "title": "Incorrect Rejection Rate",
+            "yaxis": "Incorrect Rejection Rate (%)",
+            "bg": RED,
+        },
+        MetricType.ACCURACY: {"title": "Accuracy", "yaxis": "Accuracy (%)", "bg": GREEN},
+        MetricType.PRECISION: {"title": "Precision", "yaxis": "Precision (%)", "bg": GREEN},
     }
 
     figs = {}
     for metric, settings in metric_settings.items():
-        # Each metric_dfs[metric] is a DataFrame with index corresponding to nets and columns to seconds.
         metric_df = metric_dfs[metric]
         fig = draw_path_net_graph(
             data=metric_df,
@@ -122,10 +137,10 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
         figs[metric] = fig
 
     return (
-        figs[MetricType.TPR],
-        figs[MetricType.FPR],
-        figs[MetricType.TNR],
-        figs[MetricType.FNR],
+        figs[MetricType.CORRECT_ACCEPTANCE_RATE],
+        figs[MetricType.INCORRECT_ACCEPTANCE_RATE],
+        figs[MetricType.CORRECT_REJECTION_RATE],
+        figs[MetricType.INCORRECT_REJECTION_RATE],
         figs[MetricType.ACCURACY],
         figs[MetricType.PRECISION],
     )
