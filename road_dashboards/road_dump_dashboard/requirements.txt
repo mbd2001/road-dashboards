@@ -1,4 +1,5 @@
 pycountry
+dash < 3.0.0
 dash-bootstrap-components
 dash-daq
 numpy
