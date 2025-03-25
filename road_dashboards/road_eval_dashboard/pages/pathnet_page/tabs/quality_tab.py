@@ -1,7 +1,4 @@
 import dash_bootstrap_components as dbc
-import numpy as np
-import pandas as pd
-import plotly.graph_objects as go
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -23,12 +20,14 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     build_dp_quality_view_range_histogram_query,
     run_query_with_nets_names_processing,
 )
-from road_dashboards.road_eval_dashboard.graphs.histogram_plot import basic_histogram_plot
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
-from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
 from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
 from road_dashboards.road_eval_dashboard.utils.quality import quality_functions
-from road_dashboards.road_eval_dashboard.utils.quality.quality_config import DPQualityQueryConfig, MetricType
+from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
+    METRIC_GRAPHS_SETTINGS,
+    DPQualityQueryConfig,
+    MetricType,
+)
 
 
 def get_graph_row(graph_type: str) -> dbc.Row:
@@ -97,6 +96,9 @@ quality_layout = html.Div(
     State({"type": PATH_NET_QUALITY_TP, "role": MATCH}, "id"),
 )
 def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
+    """
+    Update all quality graphs for the given role.
+    """
     if not nets:
         return (no_update, no_update, no_update, no_update, no_update, no_update)
 
@@ -114,33 +116,8 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
 
     metric_dfs = quality_functions.compute_metrics_from_count_df(df)
 
-    metric_settings = {
-        MetricType.CORRECT_ACCEPTANCE_RATE: {
-            "title": "Correct Acceptance Rate",
-            "yaxis": "Correct Acceptance Rate (%)",
-            "bg": GREEN,
-        },
-        MetricType.INCORRECT_ACCEPTANCE_RATE: {
-            "title": "Incorrect Acceptance Rate",
-            "yaxis": "Incorrect Acceptance Rate (%)",
-            "bg": RED,
-        },
-        MetricType.CORRECT_REJECTION_RATE: {
-            "title": "Correct Rejection Rate",
-            "yaxis": "Correct Rejection Rate (%)",
-            "bg": GREEN,
-        },
-        MetricType.INCORRECT_REJECTION_RATE: {
-            "title": "Incorrect Rejection Rate",
-            "yaxis": "Incorrect Rejection Rate (%)",
-            "bg": RED,
-        },
-        MetricType.ACCURACY: {"title": "Accuracy", "yaxis": "Accuracy (%)", "bg": GREEN},
-        MetricType.PRECISION: {"title": "Precision", "yaxis": "Precision (%)", "bg": GREEN},
-    }
-
     figs = {}
-    for metric, settings in metric_settings.items():
+    for metric, settings in METRIC_GRAPHS_SETTINGS.items():
         metric_df = metric_dfs[metric]
         fig = draw_path_net_graph(
             data=metric_df,
@@ -171,6 +148,9 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
     State({"type": PATH_NET_QUALITY_VIEW_RANGE, "role": MATCH}, "id"),
 )
 def update_quality_view_range_histogram(meta_data_filters, nets, slider_values, idx):
+    """
+    Update the quality view range histogram for the given role.
+    """
     if not nets:
         return no_update
 
@@ -186,56 +166,4 @@ def update_quality_view_range_histogram(meta_data_filters, nets, slider_values, 
     query = build_dp_quality_view_range_histogram_query(config, bin_size=5)
     df, _ = run_query_with_nets_names_processing(query)
 
-    return create_quality_view_range_histogram(df, role)
-
-
-def create_quality_view_range_histogram(df: pd.DataFrame, role: str, bin_size: int = 5) -> go.Figure:
-    """
-    Create a histogram showing distribution of quality view range values
-    where each bin represents count of points with view_range >= bin value.
-    NOTICE: The value of the view range is not configurable, it is a constant value that is
-    set at pathnet Stats based on threshold of 0.5.
-
-    Args:
-        df: DataFrame with quality_view_range and overall (count) columns
-        role: Role type (host or non-host)
-        bin_size: Size of bins in meters
-
-    Returns:
-        A plotly histogram figure
-    """
-    column_name = DPQualityQueryConfig.quality_view_range_column_name
-
-    if df.empty or column_name not in df.columns:
-        return go.Figure()
-
-    df = df[df[column_name].notna()]
-
-    if df.empty:
-        return go.Figure()
-
-    result_data = []
-
-    for net_id in df["net_id"].unique():
-        net_df = df[df["net_id"] == net_id]
-
-        if len(net_df) > 0:
-            min_value = max(0, net_df[column_name].min())
-            max_value = net_df[column_name].max()
-
-            min_bin = (min_value // bin_size) * bin_size
-            max_bin = ((max_value // bin_size) + 1) * bin_size
-
-            all_bins = np.arange(min_bin, max_bin + bin_size, bin_size)
-
-            for bin_value in all_bins:
-                count = net_df[net_df[column_name] >= bin_value]["overall"].sum()
-                result_data.append({"bin": bin_value, "count": count, "net_id": net_id})
-
-    hist_df = pd.DataFrame(result_data)
-
-    title = f"Quality View Range Distribution ({role})"
-    subtitle = "Height represents count of paths with view range >= bin value"
-    full_title = f"<b>{title}</b><br><sup>{subtitle}</sup>"
-
-    return basic_histogram_plot(data=hist_df, x="bin", y="count", title=full_title, color="net_id")
+    return quality_functions.create_quality_view_range_histogram(df, role)

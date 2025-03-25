@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
+
 
 @dataclass
 class DPQualityQueryConfig:
@@ -35,3 +37,29 @@ class MetricType(str, Enum):
     INCORRECT_REJECTION_RATE = "Incorrect Rejection Rate"
     ACCURACY = "Accuracy"
     PRECISION = "Precision"
+
+
+METRIC_GRAPHS_SETTINGS = {
+    MetricType.CORRECT_ACCEPTANCE_RATE: {
+        "title": "Correct Acceptance Rate",
+        "yaxis": "Correct Acceptance Rate (%)",
+        "bg": GREEN,
+    },
+    MetricType.INCORRECT_ACCEPTANCE_RATE: {
+        "title": "Incorrect Acceptance Rate",
+        "yaxis": "Incorrect Acceptance Rate (%)",
+        "bg": RED,
+    },
+    MetricType.CORRECT_REJECTION_RATE: {
+        "title": "Correct Rejection Rate",
+        "yaxis": "Correct Rejection Rate (%)",
+        "bg": GREEN,
+    },
+    MetricType.INCORRECT_REJECTION_RATE: {
+        "title": "Incorrect Rejection Rate",
+        "yaxis": "Incorrect Rejection Rate (%)",
+        "bg": RED,
+    },
+    MetricType.ACCURACY: {"title": "Accuracy", "yaxis": "Accuracy (%)", "bg": GREEN},
+    MetricType.PRECISION: {"title": "Precision", "yaxis": "Precision (%)", "bg": GREEN},
+}
