@@ -13,7 +13,7 @@ class DPQualityQueryConfig:
     role: str = ""
     extra_columns: list[str] = field(default_factory=lambda: ["split_role", "matched_split_role", "ignore_role"])
     base_dist_column_name: str = "dist"
-    base_dp_quality_col_name: str = "quality_score"
+    base_dp_quality_col_name: str = "quality_probs"
     quality_view_range_column_name: str = "quality_view_range"
     quality_prob_score_thresh: float = 0.5  # Probability of the predicted point is correct
 
