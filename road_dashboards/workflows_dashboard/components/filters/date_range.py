@@ -1,18 +1,18 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 
 
 def render_date_range():
-    return dbc.Row(  # Main row container
+    return dbc.Row(
         [
             dbc.Col(
                 html.Div(
                     [
                         html.H6(
                             "Date Range",
-                            className="text-muted small mb-1 text-center",  # Center headline
+                            className="text-muted small mb-1 text-center",
                         ),
                         dcc.DatePickerRange(
                             id=ComponentIds.DATE_RANGE_PICKER,
@@ -22,7 +22,7 @@ def render_date_range():
                             className="border-0",
                         ),
                     ],
-                    className="d-flex flex-column align-items-center",  # Align content to center
+                    className="d-flex flex-column align-items-center",
                 ),
                 width="auto",
             ),

@@ -1,11 +1,11 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
+from road_database_toolkit.databases.workflows.workflow_enums import Status, WorkflowType
 
-from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, Status
-from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
+from road_dashboards.workflows_dashboard.common.consts import ExportComponentsIds
+from road_dashboards.workflows_dashboard.common.utils import format_workflow_type
 
 from . import callbacks  # DO NOT REMOVE
-from .export_constants import ExportComponentsIds
 
 
 class WorkflowSelector:
@@ -15,8 +15,8 @@ class WorkflowSelector:
                 html.Label("Select Workflows", className="form-label"),
                 dcc.Dropdown(
                     id=ExportComponentsIds.EXPORT_WORKFLOW_SELECTOR,
-                    options=[{"label": format_workflow_name(workflow), "value": workflow} for workflow in WORKFLOWS],
-                    value=[WORKFLOWS[0]],
+                    options=[{"label": format_workflow_type(workflow), "value": workflow} for workflow in WorkflowType],
+                    value=[WorkflowType.GTRM],
                     multi=True,
                     clearable=False,
                     className="mb-3",

@@ -41,6 +41,7 @@ requirements:
     - jira
     - python-kaleido
     - scipy
+    - sqlalchemy
 
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road-dashboards

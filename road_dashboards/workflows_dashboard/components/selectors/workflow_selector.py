@@ -1,8 +1,9 @@
 import dash_bootstrap_components as dbc
 from dash import html
+from road_database_toolkit.databases.workflows.workflow_enums import WorkflowType
 
-from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds
-from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
+from road_dashboards.workflows_dashboard.common.utils import format_workflow_type
 
 
 def create_workflow_selector():
@@ -16,10 +17,10 @@ def create_workflow_selector():
                             dbc.RadioItems(
                                 id=ComponentIds.WORKFLOW_SELECTOR,
                                 options=[
-                                    {"label": format_workflow_name(workflow), "value": workflow}
-                                    for workflow in WORKFLOWS
+                                    {"label": format_workflow_type(workflow_type), "value": workflow_type.value}
+                                    for workflow_type in WorkflowType
                                 ],
-                                value=WORKFLOWS[0],
+                                value=WorkflowType.GTRM.value,
                                 inline=True,
                                 className="mb-4",
                             ),
