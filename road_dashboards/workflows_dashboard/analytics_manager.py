@@ -5,7 +5,6 @@ from typing import Any, Iterable
 
 import pandas as pd
 from loguru import logger
-from road_database_toolkit.databases.workflows.config import workflows_config
 from road_database_toolkit.databases.workflows.models import Clip, WorkflowRun
 from road_database_toolkit.databases.workflows.workflow_enums import (
     BrainType,
@@ -14,7 +13,8 @@ from road_database_toolkit.databases.workflows.workflow_enums import (
     WorkflowRunSpecificColumns,
     WorkflowType,
 )
-from road_database_toolkit.postgresql.db_manager import PostgresConfig, get_session
+from road_database_toolkit.postgresql.config import PostgresConfig
+from road_database_toolkit.postgresql.db_manager import get_session
 from road_database_toolkit.utils.cache import hashable_lru_cache
 from sqlalchemy import DateTime, desc, distinct, func, select
 
@@ -41,7 +41,7 @@ class AnalyticsManager:
         """Initialize the AnalyticsManager with cache management."""
         self._cache_lock = Lock()
         self._last_refresh: datetime | None = None
-        self.db_config: PostgresConfig = workflows_config
+        self.db_config = PostgresConfig()
 
     def _build_base_select(self, select_columns: list[Any], join_clip_table: bool = False) -> Any:
         """Constructs a base SQLAlchemy 2.0 select statement.
