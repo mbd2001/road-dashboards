@@ -2,6 +2,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
+
 
 @dataclass
 class DPQualityQueryConfig:
@@ -11,7 +13,8 @@ class DPQualityQueryConfig:
     role: str = ""
     extra_columns: list[str] = field(default_factory=lambda: ["split_role", "matched_split_role", "ignore_role"])
     base_dist_column_name: str = "dist"
-    base_dp_quality_col_name: str = "quality_score"
+    base_dp_quality_col_name: str = "quality_probs"
+    quality_view_range_column_name: str = "quality_view_range"
     quality_prob_score_thresh: float = 0.5  # Probability of the predicted point is correct
 
 
@@ -34,3 +37,29 @@ class MetricType(str, Enum):
     INCORRECT_REJECTION_RATE = "Incorrect Rejection Rate"
     ACCURACY = "Accuracy"
     PRECISION = "Precision"
+
+
+METRIC_GRAPHS_SETTINGS = {
+    MetricType.CORRECT_ACCEPTANCE_RATE: {
+        "title": "Correct Acceptance Rate",
+        "yaxis": "Correct Acceptance Rate (%)",
+        "bg": GREEN,
+    },
+    MetricType.INCORRECT_ACCEPTANCE_RATE: {
+        "title": "Incorrect Acceptance Rate",
+        "yaxis": "Incorrect Acceptance Rate (%)",
+        "bg": RED,
+    },
+    MetricType.CORRECT_REJECTION_RATE: {
+        "title": "Correct Rejection Rate",
+        "yaxis": "Correct Rejection Rate (%)",
+        "bg": GREEN,
+    },
+    MetricType.INCORRECT_REJECTION_RATE: {
+        "title": "Incorrect Rejection Rate",
+        "yaxis": "Incorrect Rejection Rate (%)",
+        "bg": RED,
+    },
+    MetricType.ACCURACY: {"title": "Accuracy", "yaxis": "Accuracy (%)", "bg": GREEN},
+    MetricType.PRECISION: {"title": "Precision", "yaxis": "Precision (%)", "bg": GREEN},
+}

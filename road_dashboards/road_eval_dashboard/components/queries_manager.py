@@ -1570,3 +1570,27 @@ def build_dp_all_quality_metrics_query(config: DPQualityQueryConfig) -> str:
         role=config.role,
         extra_columns=extra_columns,
     )
+
+
+def build_dp_quality_view_range_histogram_query(config: DPQualityQueryConfig, bin_size: int = 5) -> str:
+    """
+    Build a query to fetch quality_view_range data grouped into histogram bins.
+
+    Args:
+        config: Query configuration
+        bin_size: Size of bins in meters
+
+    Returns:
+        SQL query string
+    """
+    return generate_count_query(
+        data_tables=config.data_tables,
+        meta_data=config.meta_data,
+        group_by_column=config.quality_view_range_column_name,
+        meta_data_filters=config.meta_data_filters,
+        bins_factor=bin_size,
+        role=config.role,
+        extra_columns=[config.quality_view_range_column_name],
+        group_by_net_id=True,
+        include_all=False,
+    )
