@@ -1,7 +1,5 @@
 import plotly.graph_objects as go
-from road_database_toolkit.databases.workflows.workflow_enums import WorkflowType
 
-# Bar chart colors
 BAR_CHART_COLORS = [
     "#1f77b4",  # Blue
     "#ff7f0e",  # Orange
@@ -23,7 +21,7 @@ def format_workflow_type(workflow_type: str) -> str:
     Returns:
         Formatted workflow type
     """
-    return workflow_type.upper()
+    return " ".join(word.capitalize() for word in workflow_type.split("_"))
 
 
 def add_center_annotation(fig: go.Figure, text: str) -> None:
