@@ -49,9 +49,9 @@ COUNT_QUERY = """
     """
 
 CONF_MAT_QUERY = """
-    SELECT net_id, {group_by_label} as {label_col}, {group_by_pred} as {pred_col}, COUNT(*) AS {count_name}
+    SELECT net_id, "{group_by_label}" as "{label_col}", "{group_by_pred}" as "{pred_col}", COUNT(*) AS "{count_name}"
     FROM ({base_query})
-    GROUP BY net_id, {group_by_label}, {group_by_pred}
+    GROUP BY net_id, "{group_by_label}", "{group_by_pred}"
     """
 
 COLUMN_OPTION_QUERY = """
@@ -1277,14 +1277,14 @@ def generate_conf_mat_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
+        extra_columns=[f'"{col}"' for col in [label_col, pred_col] if isinstance(col, str)],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         role=role,
         ca_oriented=ca_oriented,
     )
-    group_by_label = f"(CASE WHEN {label_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else label_col
-    group_by_pred = f"(CASE WHEN {pred_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else pred_col
+    group_by_label = f'(CASE WHEN "{label_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else label_col
+    group_by_pred = f'(CASE WHEN "{pred_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else pred_col
     conf_query = CONF_MAT_QUERY.format(
         group_by_label=group_by_label,
         group_by_pred=group_by_pred,
