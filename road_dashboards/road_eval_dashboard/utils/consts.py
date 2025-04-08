@@ -1,0 +1,37 @@
+ROLE_IGNORE_VAL = -1
+
+
+BOUNDARY_TYPES_NAMES = ["LM", "RE", "VIRTUAL"]
+
+BOUNDARY_SUBTYPES_NAMES = [
+    "SOLID",
+    "DASHED",
+    "BOTTS_DOTS",
+    "SOLID_DASHED",
+    "DASHED_SOLID",
+    "SOLID_SOLID",
+    "DASHED_DASHED",
+    "DECEL_SOLID",
+    "DECEL_DASHED",
+]
+
+RE_TYPES_NAMES = [
+    "CONES_BARRELS",
+    "POLES",
+    "GRASS_GRAVEL",
+    "CURB",
+    "PARKED_CAR",
+    "BARRIER",
+    "GUARDRAIL",
+    "MIXED",
+    "SNOW",
+    "FLAT_CURB",
+    "HIGH_GREENERY",
+    "SNOW_HIGH",
+    "JAPANESE_POLES",
+    "OTHER",
+    "CA_OBJECT",
+    "DITCH",
+]
+
+BOUNDARY_IGNORE_VAL = -999.0

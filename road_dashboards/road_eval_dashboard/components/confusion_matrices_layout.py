@@ -1,4 +1,5 @@
 import dash_bootstrap_components as dbc
+import numpy as np
 from dash import html
 
 from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_wrapper
@@ -91,18 +92,18 @@ def generate_conf_matrices(
     pred_col,
     nets_tables,
     meta_data_table,
+    ignore_val,
     meta_data_filters="",
     role="",
     class_names=[],
     ca_oriented=False,
     compare_sign=False,
-    ignore_val=-1,
     extra_filters="",
 ):
     if extra_filters:
-        extra_filters = f"{extra_filters} AND {label_col} != {ignore_val}"
+        extra_filters = f'{extra_filters} AND "{label_col}" != {ignore_val}'
     else:
-        extra_filters = f"{label_col} != {ignore_val}"
+        extra_filters = f'"{label_col}" != {ignore_val}'
     query = generate_conf_mat_query(
         nets_tables,
         meta_data_table,
@@ -132,13 +133,13 @@ def generate_matrices_graphs(
     nets_tables,
     meta_data_table,
     net_names,
+    ignore_val,
     meta_data_filters="",
     role="",
     mat_name="",
     class_names=[],
     ca_oriented=False,
     compare_sign=False,
-    ignore_val=-1,
     extra_filters="",
 ):
     mats = generate_conf_matrices(
@@ -146,12 +147,12 @@ def generate_matrices_graphs(
         pred_col,
         nets_tables,
         meta_data_table,
+        ignore_val=ignore_val,
         meta_data_filters=meta_data_filters,
         role=role,
         class_names=class_names,
         ca_oriented=ca_oriented,
         compare_sign=compare_sign,
-        ignore_val=ignore_val,
         extra_filters=extra_filters,
     )
     conf_mats = [mat["conf_matrix"] for mat in mats.values()]
@@ -166,3 +167,72 @@ def generate_matrices_graphs(
     )
     diagonal_compare = draw_conf_diagonal_compare(normalize_mats, net_names, class_names, role=role, mat_name=mat_name)
     return diagonal_compare, mats_figs
+
+
+def generate_matrices_graphs_lr(
+    label_col_template,
+    pred_col_template,
+    nets_tables,
+    meta_data_table,
+    time_value,
+    ignore_val,
+    meta_data_filters="",
+    role="",
+    class_names=[],
+    ca_oriented=False,
+    compare_sign=False,
+    extra_filters="",
+):
+    """Generates conf matrix data for left, right, and combined 'all' sides."""
+
+    results = {"left": {}, "right": {}, "all": {}}
+
+    # Generate matrices for left side
+    mats_left = generate_conf_matrices(
+        label_col=f"{label_col_template}_left_{time_value}",
+        pred_col=f"{pred_col_template}_left_{time_value}",
+        nets_tables=nets_tables,
+        meta_data_table=meta_data_table,
+        ignore_val=ignore_val,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        class_names=class_names,
+        extra_filters=extra_filters,
+        ca_oriented=ca_oriented,
+        compare_sign=compare_sign,
+    )
+    results["left"] = mats_left
+
+    # Generate matrices for right side
+    mats_right = generate_conf_matrices(
+        label_col=f"{label_col_template}_right_{time_value}",
+        pred_col=f"{pred_col_template}_right_{time_value}",
+        nets_tables=nets_tables,
+        meta_data_table=meta_data_table,
+        ignore_val=ignore_val,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        class_names=class_names,
+        extra_filters=extra_filters,
+        ca_oriented=ca_oriented,
+        compare_sign=compare_sign,
+    )
+    results["right"] = mats_right
+
+    # Calculate combined 'all' matrix data
+    num_classes = len(class_names)
+    default_zero_mat = np.zeros((num_classes, num_classes))
+    net_names = set(mats_left.keys()) | set(mats_right.keys())
+    for net_name in net_names:
+        conf_left = mats_left.get(net_name, {}).get("conf_matrix", default_zero_mat)
+        conf_right = mats_right.get(net_name, {}).get("conf_matrix", default_zero_mat)
+        combined_conf = conf_left + conf_right
+
+        # Normalize the combined matrix
+        row_sums = combined_conf.sum(axis=1, keepdims=True)
+        row_sums[row_sums == 0] = 1  # Avoid division by zero
+        combined_norm = combined_conf / row_sums
+
+        results["all"][net_name] = {"conf_matrix": combined_conf, "normalize_mat": combined_norm}
+
+    return results

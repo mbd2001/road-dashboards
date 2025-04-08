@@ -21,6 +21,7 @@ from road_dashboards.road_eval_dashboard.components.graph_wrapper import graph_w
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper, loading_wrapper
 from road_dashboards.road_eval_dashboard.graphs.confusion_matrix import draw_multiple_nets_confusion_matrix
 from road_dashboards.road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
+from road_dashboards.road_eval_dashboard.utils.consts import ROLE_IGNORE_VAL
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
 ROLE_CLASSES_NAMES = {
@@ -46,6 +47,7 @@ def generate_matrices_graphs(
         pred_col=f"{role}_role",
         nets_tables=nets[PATHNET_PRED],
         meta_data_table=nets["meta_data"],
+        ignore_val=ROLE_IGNORE_VAL,
         meta_data_filters=meta_data_filters,
         class_names=class_names,
         extra_filters=pathnet_filters,
