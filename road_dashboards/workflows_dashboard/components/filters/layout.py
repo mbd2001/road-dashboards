@@ -1,7 +1,7 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 
 from . import callbacks  # DO NOT REMOVE!
 from .brain_selector import render_brain_selector

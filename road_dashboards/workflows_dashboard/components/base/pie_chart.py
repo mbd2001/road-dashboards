@@ -1,18 +1,19 @@
 from abc import abstractmethod
-from typing import Any, Dict
+from typing import Any
 
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+from road_database_toolkit.databases.workflows.workflow_enums import WorkflowType
 
+from road_dashboards.workflows_dashboard.common.utils import add_center_annotation
 from road_dashboards.workflows_dashboard.components.base.chart import Chart
-from road_dashboards.workflows_dashboard.utils.chart_utils import add_center_annotation
 
 
 class PieChart(Chart):
-    def __init__(self, chart_id: str, workflow_name: str):
+    def __init__(self, chart_id: str, workflow_type: WorkflowType):
         super().__init__(chart_id)
-        self.workflow_name = workflow_name
+        self.workflow_type = workflow_type
 
     @abstractmethod
     def get_chart_title(self) -> str:
@@ -24,7 +25,7 @@ class PieChart(Chart):
         """Get the hover template for the chart."""
         pass
 
-    def get_chart_params(self) -> Dict[str, Any]:
+    def get_chart_params(self) -> dict[str, Any]:
         """Get additional chart parameters."""
         return {}
 

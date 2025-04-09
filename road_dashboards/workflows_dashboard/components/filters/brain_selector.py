@@ -1,7 +1,8 @@
 import dash_bootstrap_components as dbc
 from dash import dcc, html
+from road_database_toolkit.databases.workflows.workflow_enums import BrainType
 
-from road_dashboards.workflows_dashboard.core_settings.constants import BRAIN_OPTIONS, ComponentIds
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 
 
 def render_brain_selector():
@@ -10,8 +11,8 @@ def render_brain_selector():
             html.H6("Brain Selection", className="text-muted small mb-1 text-center"),
             dcc.Dropdown(
                 id=ComponentIds.BRAIN_SELECTOR,
-                options=[{"label": brain_type.upper(), "value": brain_type} for brain_type in BRAIN_OPTIONS],
-                value=[BRAIN_OPTIONS[0]],
+                options=[{"label": brain_type.upper(), "value": brain_type} for brain_type in BrainType],
+                value=[BrainType.EIGHT_MP],
                 multi=True,
                 clearable=False,
                 className="border-0",

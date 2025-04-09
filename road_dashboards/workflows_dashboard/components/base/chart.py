@@ -6,8 +6,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from dash import Input, Output, callback, dcc, html
 
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 from road_dashboards.workflows_dashboard.components.layout_wrapper import card_wrapper
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
 
 
 class Chart(ABC):
@@ -58,9 +58,10 @@ class Chart(ABC):
                 Input(ComponentIds.DATE_RANGE_PICKER, "start_date"),
                 Input(ComponentIds.DATE_RANGE_PICKER, "end_date"),
                 Input(ComponentIds.WORKFLOW_SELECTOR, "value"),
+                Input("refresh-trigger-store", "data"),
             ],
         )
-        def update_chart(brain_types, start_date, end_date, selected_workflow):
+        def update_chart(brain_types, start_date, end_date, selected_workflow, _refresh_trigger):
             data = self.get_chart_data(
                 brain_types=brain_types,
                 start_date=start_date,

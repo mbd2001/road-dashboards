@@ -1,15 +1,16 @@
 from typing import override
 
 import pandas as pd
+from road_database_toolkit.databases.workflows.workflow_enums import WorkflowType
 
+from road_dashboards.workflows_dashboard.common.analytics import analytics_manager
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 from road_dashboards.workflows_dashboard.components.base.pie_chart import PieChart
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
-from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
 
 
 class ErrorPieChart(PieChart):
-    def __init__(self, workflow_name: str):
-        super().__init__(f"{ComponentIds.ERROR_PIE_CHART}-{workflow_name}", workflow_name)
+    def __init__(self, workflow_type: WorkflowType):
+        super().__init__(f"{ComponentIds.ERROR_PIE_CHART}-{workflow_type.value}", workflow_type)
 
     @override
     def get_chart_title(self) -> str:
@@ -23,10 +24,10 @@ class ErrorPieChart(PieChart):
     def get_chart_data(
         self, brain_types: list[str], start_date: str | None, end_date: str | None, selected_workflow
     ) -> pd.DataFrame:
-        if selected_workflow != self.workflow_name:
+        if selected_workflow != self.workflow_type.value:
             return pd.DataFrame()
 
-        return db_manager.get_error_distribution(self.workflow_name, brain_types, start_date, end_date)
+        return analytics_manager.get_error_distribution(self.workflow_type, brain_types, start_date, end_date)
 
     @override
     def get_chart_params(self) -> dict:

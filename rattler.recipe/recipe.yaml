@@ -37,10 +37,11 @@ requirements:
     - boto3
     - tqdm
     - fsspec
-    - road-database-toolkit
+    - road-database-toolkit >= 0.1.38
     - jira
     - python-kaleido
     - scipy
+    - sqlalchemy
 
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road-dashboards

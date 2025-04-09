@@ -1,16 +1,11 @@
 from datetime import datetime
-from typing import Dict, List, Optional, Tuple, Union
 
 from dash import Input, Output, State, callback, callback_context, dcc, html
 from dash.dependencies import ALL
+from road_database_toolkit.databases.workflows.workflow_enums import WorkflowRunSpecificColumns, WorkflowType
 
-from road_dashboards.workflows_dashboard.components.selectors.export.export_constants import (
-    VALUE_SELECTOR_STYLE,
-    WORKFLOW_SPECIFIC_COLUMNS,
-    ExportComponentsIds,
-)
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds, WorkflowFields
-from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
+from road_dashboards.workflows_dashboard.common.analytics import analytics_manager
+from road_dashboards.workflows_dashboard.common.consts import VALUE_SELECTOR_STYLE, ComponentIds, ExportComponentsIds
 
 
 @callback(
@@ -20,25 +15,27 @@ from road_dashboards.workflows_dashboard.database.workflow_manager import db_man
     ],
     Input(ExportComponentsIds.EXPORT_WORKFLOW_SELECTOR, "value"),
 )
-def update_columns_selector(selected_workflows: Optional[List[str]]) -> Tuple[bool, List]:
+def update_columns_selector(selected_workflows: list[str] | None) -> tuple[bool, list[dict]]:
     """Update column selector visibility and options based on selected workflow.
 
     Shows additional columns only when a single workflow is selected.
     """
     if not selected_workflows or len(selected_workflows) != 1:
         return True, []
+    workflow_enum = WorkflowType(selected_workflows[0])
 
-    workflow_columns = db_manager.get_workflow_columns(selected_workflows[0])
-    if not workflow_columns:
+    workflow_specific_columns = analytics_manager.get_specific_workflow_columns(workflow_enum)
+    if not workflow_specific_columns:
         return True, []
 
-    additional_cols = [col for col in WORKFLOW_SPECIFIC_COLUMNS if col in workflow_columns]
-    column_options = [{"label": col, "value": col} for col in additional_cols]
+    column_options = [{"label": col, "value": col} for col in workflow_specific_columns]
 
     return False, column_options
 
 
-def create_value_selector(col: str, unique_values: List, current_value: Optional[List] = None) -> html.Div:
+def create_value_selector(
+    col: WorkflowRunSpecificColumns, unique_values: list[str], current_value: list[str] | None = None
+) -> html.Div:
     """Create a larger dropdown selector for filtering column values."""
     return html.Div(
         [
@@ -74,45 +71,51 @@ def create_value_selector(col: str, unique_values: List, current_value: Optional
     ],
     State({"type": "column-values", "column": ALL}, "id"),
 )
-def update_column_values_selectors(
-    selected_workflows: Optional[List[str]],
-    selected_columns: Optional[List[str]],
-    brain_types: Optional[List[str]],
-    start_date: Optional[str],
-    end_date: Optional[str],
-    selected_statuses: Optional[List[str]],
-    column_values: List,
-    column_ids: List[Dict],
-) -> Tuple[Union[html.Div, List], List[Dict]]:
+def update_workflow_specific_column_values_selectors(
+    selected_workflows: list[str] | None,
+    selected_columns: list[str] | None,
+    brain_types: list[str] | None,
+    start_date: str | None,
+    end_date: str | None,
+    selected_statuses: list[str] | None,
+    column_values: list[list[str] | None],
+    column_ids: list[dict],
+) -> tuple[html.Div | list[dict], list[dict]]:
     """Update value selectors for columns and status options based on current selections."""
     if not selected_workflows or len(selected_workflows) != 1:
         return [], []
 
-    workflow = selected_workflows[0]
-    allowed_values = _build_allowed_values_per_column(selected_columns, column_values, column_ids)
+    workflow_enum = WorkflowType(selected_workflows[0])
 
-    # Get status options
-    unique_statuses = db_manager.get_unique_column_values(
-        workflow, WorkflowFields.status, brain_types, start_date, end_date, None, allowed_values
+    unique_statuses_enums = analytics_manager.get_unique_status_values(
+        workflow_type=workflow_enum, brain_types=brain_types, start_date=start_date, end_date=end_date
     )
-    status_options = [{"label": status, "value": status} for status in unique_statuses]
+    status_options = [{"label": status.value, "value": status.value} for status in unique_statuses_enums]
 
     if not selected_columns:
         return [], status_options
 
-    # Create value selectors for each column
-    value_selectors = []
-    for col in selected_columns:
-        current_filters = {
-            **{k: v for k, v in allowed_values.items() if k != col},
-            **({"status": selected_statuses} if selected_statuses else {}),
-        }
+    allowed_values = _build_allowed_values_per_column(selected_columns, column_values, column_ids)
 
-        unique_values = db_manager.get_unique_column_values(
-            workflow, col, brain_types, start_date, end_date, selected_statuses, current_filters
+    value_selectors = []
+    for col in selected_columns:  # Iterate original list
+        current_filters = allowed_values.copy() if allowed_values else {}
+        if col in current_filters:
+            del current_filters[col]
+
+        unique_values = analytics_manager.get_unique_column_values(
+            workflow_type=workflow_enum,
+            column_name=col,
+            brain_types=brain_types,
+            start_date=start_date,
+            end_date=end_date,
+            statuses=selected_statuses,
+            filter_column_values=current_filters,
         )
+
         if unique_values:
-            value_selectors.append(create_value_selector(col, unique_values, allowed_values.get(col)))
+            current_col_value = allowed_values.get(col)
+            value_selectors.append(create_value_selector(col, unique_values, current_col_value))
 
     if not value_selectors:
         return [], status_options
@@ -121,13 +124,16 @@ def update_column_values_selectors(
 
 
 def _build_allowed_values_per_column(
-    selected_columns: Optional[List[str]], column_values: List, column_ids: List[Dict]
-) -> Dict[str, List]:
+    selected_columns: list[str] | None, column_values_from_all: list[list[str] | None], column_ids: list[dict]
+) -> dict[str, list[str]]:
     """Build column filters dictionary from selected values."""
-    if not (selected_columns and column_values and column_ids):
+    if not selected_columns or not column_values_from_all or not column_ids:
         return {}
 
-    return {col_id["column"]: values for values, col_id in zip(column_values, column_ids) if values}
+    values_map = {col_id["column"]: values for values, col_id in zip(column_values_from_all, column_ids)}
+    result = {col: values for col in selected_columns if (values := values_map.get(col))}
+
+    return result
 
 
 @callback(
@@ -147,29 +153,33 @@ def _build_allowed_values_per_column(
 )
 def export_data(
     n_clicks: int,
-    brain_types: Optional[List[str]],
-    start_date: Optional[str],
-    end_date: Optional[str],
-    selected_workflows: Optional[List[str]],
-    selected_statuses: Optional[List[str]],
-    selected_columns: Optional[List[str]],
-    column_values: List,
-    column_ids: List[Dict],
-) -> Optional[Dict]:
+    brain_types: list[str] | None,
+    start_date: str | None,
+    end_date: str | None,
+    selected_workflows: list[str] | None,
+    selected_statuses: list[str] | None,
+    selected_columns: list[str] | None,
+    column_values: list[list[str] | None],
+    column_ids: list[dict],
+) -> dict | None:
     """Export filtered workflow data to CSV."""
     if not n_clicks or not selected_workflows:
         return None
 
-    is_single_workflow = len(selected_workflows) == 1
-    filters = {
-        "statuses": selected_statuses if is_single_workflow else None,
-        "allowed_values": _build_allowed_values_per_column(selected_columns, column_values, column_ids)
-        if is_single_workflow
-        else None,
-    }
+    allowed_values_list_dict = _build_allowed_values_per_column(selected_columns, column_values, column_ids)
 
-    df = db_manager.get_workflow_export_data(
-        selected_workflows, brain_types, start_date, end_date, filters["statuses"], filters["allowed_values"]
+    is_single_workflow = len(selected_workflows) == 1
+    final_statuses = selected_statuses if is_single_workflow else None
+    final_allowed_values = allowed_values_list_dict if is_single_workflow else None
+
+    df = analytics_manager.get_workflow_export_data(
+        workflows=selected_workflows,
+        brain_types=brain_types,
+        start_date=start_date,
+        end_date=end_date,
+        statuses=final_statuses,
+        allowed_values_per_column=final_allowed_values,
+        limit=100000,
     )
 
     if df.empty:
@@ -198,30 +208,34 @@ def export_data(
 )
 def toggle_preview_modal(
     preview_clicks: int,
-    brain_types: Optional[List[str]],
-    start_date: Optional[str],
-    end_date: Optional[str],
-    selected_workflows: Optional[List[str]],
-    selected_statuses: Optional[List[str]],
-    selected_columns: Optional[List[str]],
-    column_values: List,
-    column_ids: List[Dict],
-) -> Tuple[bool, Optional[List]]:
+    brain_types: list[str] | None,
+    start_date: str | None,
+    end_date: str | None,
+    selected_workflows: list[str] | None,
+    selected_statuses: list[str] | None,
+    selected_columns: list[str] | None,
+    column_values: list[list[str] | None],
+    column_ids: list[dict],
+) -> tuple[bool, list[str] | None]:
     """Toggle the preview modal and populate the preview table with the filtered data."""
     ctx = callback_context
     if not ctx.triggered or not preview_clicks or not selected_workflows:
         return False, None
 
-    is_single_workflow = len(selected_workflows) == 1
-    filters = {
-        "statuses": selected_statuses if is_single_workflow else None,
-        "allowed_values": _build_allowed_values_per_column(selected_columns, column_values, column_ids)
-        if is_single_workflow
-        else None,
-    }
+    allowed_values_list_dict = _build_allowed_values_per_column(selected_columns, column_values, column_ids)
 
-    df = db_manager.get_workflow_export_data(
-        selected_workflows, brain_types, start_date, end_date, filters["statuses"], filters["allowed_values"]
+    is_single_workflow = len(selected_workflows) == 1
+    final_statuses = selected_statuses if is_single_workflow else None
+    final_allowed_values = allowed_values_list_dict if is_single_workflow else None
+
+    df = analytics_manager.get_workflow_export_data(
+        workflows=selected_workflows,
+        brain_types=brain_types,
+        start_date=start_date,
+        end_date=end_date,
+        statuses=final_statuses,
+        allowed_values_per_column=final_allowed_values,
+        limit=100,
     )
 
     if df.empty:
@@ -229,18 +243,15 @@ def toggle_preview_modal(
 
     header = [html.Thead(html.Tr([html.Th(col) for col in df.columns]))]
 
-    preview_df = df.head(100)
     rows = []
-    for _, row in preview_df.iterrows():
+    for _, row in df.iterrows():
         rows.append(html.Tr([html.Td(str(row[col])) for col in df.columns]))
     body = [html.Tbody(rows)]
 
     footer = []
-    if len(df) > 100:
+    if len(df) == 100:
         footer = [
-            html.Tfoot(
-                html.Tr([html.Td(f"Showing first 100 rows out of {len(df)} total rows", colSpan=len(df.columns))])
-            )
+            html.Tfoot(html.Tr([html.Td("Showing first 100 rows. Download to see all data.", colSpan=len(df.columns))]))
         ]
 
     return True, header + body + footer
