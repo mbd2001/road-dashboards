@@ -8,3 +8,5 @@ tqdm
 fsspec
 orjson
 road-database-toolkit
+pydantic
+sqlalchemy
