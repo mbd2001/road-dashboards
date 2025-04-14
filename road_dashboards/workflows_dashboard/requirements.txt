@@ -10,4 +10,3 @@ orjson
 road-database-toolkit
 pydantic
 sqlalchemy
-psycopg2-binary
