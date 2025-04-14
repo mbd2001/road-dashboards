@@ -37,7 +37,7 @@ requirements:
     - boto3
     - tqdm
     - fsspec
-    - road-database-toolkit >= 0.1.41
+    - road-database-toolkit >= 0.1.42
     - jira
     - python-kaleido
     - scipy
