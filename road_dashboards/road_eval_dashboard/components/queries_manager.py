@@ -195,6 +195,14 @@ EXTRACT_EVENT_ACC = """
     bin_population = '{chosen_source}'
 """
 
+EXTRACT_EVENT_ROLE = """
+    {semantic_role} IS NOT NULL AND 
+    matched_{semantic_role} IS NOT NULL AND 
+    {semantic_role} != matched_{semantic_role} AND 
+    bin_population = '{chosen_source}'
+"""
+
+
 EXTRACT_EVENT_QUERY = """
     SELECT {final_columns} 
     FROM ({base_query}) 
@@ -852,6 +860,39 @@ def generate_extract_miss_false_events_query(
     order_cmd = "ORDER BY batch_num, clip_name, grabindex ASC"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
+    )
+    return query, final_columns
+
+
+def generate_extract_roles_events_query(
+    data_tables,
+    meta_data,
+    meta_data_filters,
+    bookmarks_columns,
+    chosen_source,
+    role,
+    semantic_role,
+):
+    role_columns = [semantic_role, f"matched_{semantic_role}"]
+    role_cmd = EXTRACT_EVENT_ROLE.format(
+        semantic_role=semantic_role,
+        chosen_source=chosen_source,
+    )
+
+    base_query = generate_base_query(
+        data_tables=data_tables,
+        meta_data=meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=role_columns,
+        extra_filters=role_cmd,
+    )
+
+    final_columns = bookmarks_columns + role_columns
+    query = EXTRACT_EVENT_QUERY.format(
+        final_columns=", ".join(final_columns),
+        base_query=base_query,
+        order_cmd="ORDER BY clip_name, grabindex ASC",
     )
     return query, final_columns
 
