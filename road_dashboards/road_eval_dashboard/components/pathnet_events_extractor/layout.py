@@ -1,6 +1,7 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 from dash import dash_table, dcc, html
+from dash_daq import BooleanSwitch
 
 import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -11,6 +12,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_EVENTS_ORDER_BY,
     PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
+    PATHNET_EVENTS_EXCLUDE_NONE_SWITCH,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
     PATHNET_EVENTS_NUM_EVENTS,
@@ -154,6 +156,28 @@ def create_filtering_dropdowns_row():
                             ),
                             placeholder="Select Semantic Role",
                         )
+                    ],
+                    hidden=True,
+                )
+            ),
+            dbc.Col(
+                html.Div(
+                    id=PATHNET_EVENTS_SEMANTIC_ROLE_DROPDOWN_DIV,
+                    children=[
+                        dcc.Dropdown(
+                            id=PATHNET_EVENTS_SEMANTIC_ROLE_DROPDOWN,
+                            options=create_dropdown_options_list(
+                                labels=["lane_role", "split_role", "merge_role", "primary_role"]
+                            ),
+                            placeholder="Select Semantic Role",
+                        ),
+                        BooleanSwitch(
+                            id=PATHNET_EVENTS_EXCLUDE_NONE_SWITCH,
+                            on=False,
+                            label="Exclude None",
+                            labelPosition="left",
+                            style={"margin-top": "5px"},
+                        ),
                     ],
                     hidden=True,
                 )

@@ -196,8 +196,7 @@ EXTRACT_EVENT_ACC = """
 """
 
 EXTRACT_EVENT_ROLE = """
-    {semantic_role} IS NOT NULL AND 
-    matched_{semantic_role} IS NOT NULL AND 
+    {null_check}
     {semantic_role} != matched_{semantic_role} AND 
     bin_population = '{chosen_source}'
 """
@@ -872,9 +871,19 @@ def generate_extract_roles_events_query(
     chosen_source,
     role,
     semantic_role,
+    exclude_none=False,
 ):
     role_columns = [semantic_role, f"matched_{semantic_role}"]
+
+    # Build the null/none condition
+    if exclude_none:
+        null_check = f"{semantic_role} > 0 AND matched_{semantic_role} > 0 AND"
+    else:
+        null_check = f"{semantic_role} IS NOT NULL AND matched_{semantic_role} > -1 AND"
+
+    # Fill in the query
     role_cmd = EXTRACT_EVENT_ROLE.format(
+        null_check=null_check,
         semantic_role=semantic_role,
         chosen_source=chosen_source,
     )
