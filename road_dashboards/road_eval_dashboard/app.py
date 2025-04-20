@@ -135,4 +135,4 @@ def compare_existing_nets_to_hashed_nets(nets: dict, run_ids: list):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6007", debug=debug, use_reloader=debug)
+    app.run(host="0.0.0.0", port="6007", debug=debug, use_reloader=debug)
