@@ -856,7 +856,7 @@ def generate_extract_miss_false_events_query(
         extra_filters=f"bin_population = '{chosen_source}'",
     )
     final_columns = bookmarks_columns + metric_columns
-    order_cmd = "ORDER BY batch_num, clip_name, grabindex ASC"
+    order_cmd = "ORDER BY clip_name, grabindex ASC"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
     )
