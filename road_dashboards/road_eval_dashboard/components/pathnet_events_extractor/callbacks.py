@@ -26,6 +26,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_DP_SOURCE_DROPDOWN,
     PATHNET_EVENTS_EVENTS_ORDER_BY,
     PATHNET_EVENTS_EVENTS_ORDER_BY_DIV,
+    PATHNET_EVENTS_EXCLUDE_NONE_SWITCH,
     PATHNET_EVENTS_EXTRACTOR_DICT,
     PATHNET_EVENTS_METRIC_DROPDOWN,
     PATHNET_EVENTS_NET_ID_DROPDOWN,
@@ -42,6 +43,8 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_REF_THRESHOLD,
     PATHNET_EVENTS_ROLE_DROPDOWN,
     PATHNET_EVENTS_ROLE_DROPDOWN_DIV,
+    PATHNET_EVENTS_SEMANTIC_ROLE_DROPDOWN,
+    PATHNET_EVENTS_SEMANTIC_ROLE_DROPDOWN_DIV,
     PATHNET_EVENTS_SUBMIT_BUTTON,
     PATHNET_EVENTS_THRESHOLD,
     PATHNET_EVENTS_THRESHOLDS_DIV,
@@ -58,11 +61,12 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
     generate_extract_acc_events_query,
     generate_extract_miss_false_events_query,
     generate_extract_ool_events_query,
+    generate_extract_roles_events_query,
     run_query_with_nets_names_processing,
 )
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_alert_message, create_dropdown_options_list
 
-BOOKMARKS_COLUMNS = ["batch_num", "clip_name", "grabindex"]
+BOOKMARKS_COLUMNS = ["clip_name", "grabindex"]
 EXPLORER_PARAMS = """ 
     --dataset_names {dataset} 
     --population {population} 
@@ -252,7 +256,19 @@ def create_data_dict_for_explorer(events_extractor_dict, dp_sources):
 
 
 def get_source_events_df(
-    net, dp_source, meta_data_filters, metric, role, dist, threshold, re_threshold, re_only, order_by, is_ref=False
+    net,
+    dp_source,
+    meta_data_filters,
+    metric,
+    role,
+    dist,
+    threshold,
+    re_threshold,
+    re_only,
+    order_by,
+    is_ref=False,
+    semantic_role=None,
+    exclude_none=False,
 ):
     if metric == "inaccurate":
         operator = ">" if not is_ref else "<"
@@ -283,6 +299,17 @@ def get_source_events_df(
             operator=operator,
             order_by=order_by,
             re_only=re_only,
+        )
+    elif metric == "role":
+        query, final_columns = generate_extract_roles_events_query(
+            data_tables=net[PATHNET_PRED],
+            meta_data=net["meta_data"],
+            meta_data_filters=meta_data_filters,
+            bookmarks_columns=BOOKMARKS_COLUMNS,
+            chosen_source=dp_source,
+            role=role,
+            semantic_role=semantic_role,
+            exclude_none=exclude_none,
         )
     else:  # metric is false/miss
         query, final_columns = generate_extract_miss_false_events_query(
@@ -339,6 +366,7 @@ def get_events_df(
         meta_data_filters = "frame_has_labels_mf = 1" + (f" AND ({meta_data_filters})" if meta_data_filters else "")
     metric = events_extractor_dict["metric"]
     role = events_extractor_dict["role"]
+    semantic_role = events_extractor_dict["semantic_role"]
     dist = events_extractor_dict["dist"]
     df = get_source_events_df(
         events_extractor_dict["net"],
@@ -351,6 +379,8 @@ def get_events_df(
         events_extractor_dict["re_threshold"],
         events_extractor_dict["re_only"],
         events_extractor_dict["order_by"],
+        semantic_role=semantic_role,
+        exclude_none=events_extractor_dict["exclude_none"],
     )
 
     if events_extractor_dict["is_unique_on"]:
@@ -365,7 +395,9 @@ def get_events_df(
             events_extractor_dict["ref_re_threshold"],
             events_extractor_dict["re_only"],
             events_extractor_dict["order_by"],
+            semantic_role=semantic_role,
             is_ref=True,
+            exclude_none=events_extractor_dict["exclude_none"],
         )
         df = subtract_events(df, df_ref, metric)
 
@@ -384,6 +416,28 @@ def get_events_df(
 )
 def show_events_role_dropdown(metric):
     return metric == "false"
+
+
+@callback(
+    Output(PATHNET_EVENTS_SEMANTIC_ROLE_DROPDOWN_DIV, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_role_and_semantic_dropdown(metric):
+    if metric == "role":
+        return False
+    return True
+
+
+@callback(
+    Output(PATHNET_EVENTS_EXCLUDE_NONE_SWITCH, "hidden"),
+    Input(PATHNET_EVENTS_METRIC_DROPDOWN, "value"),
+    prevent_initial_call=True,
+)
+def show_exclude_none_dropdown(metric):
+    if metric == "role":
+        return False
+    return True
 
 
 @callback(
@@ -502,6 +556,8 @@ def get_specified_thresholds_placeholders(
     State(PATHNET_EVENTS_RE_THRESHOLD, "value"),
     State(PATHNET_EVENTS_RE_REF_THRESHOLD, "value"),
     State(PATHNET_EVENTS_RE_SWITCH, "on"),
+    State(PATHNET_EVENTS_SEMANTIC_ROLE_DROPDOWN, "value"),
+    State(PATHNET_EVENTS_EXCLUDE_NONE_SWITCH, "on"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
@@ -526,6 +582,8 @@ def update_extractor_dict(
     specified_re_thresh,
     ref_specified_re_thresh,
     is_re_switch_on,
+    semantic_role,
+    exclude_none,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -538,7 +596,8 @@ def update_extractor_dict(
     events_extractor_dict["is_unique_on"] = is_unique_on
     events_extractor_dict["ref_net"] = ref_net
     events_extractor_dict["ref_dp_source"] = ref_dp_source
-
+    events_extractor_dict["semantic_role"] = semantic_role
+    events_extractor_dict["exclude_none"] = exclude_none
     events_extractor_dict["num_events"] = num_events if num_events is not None else DEFAULT_NUM_EVENTS
 
     if specified_thresh is not None:

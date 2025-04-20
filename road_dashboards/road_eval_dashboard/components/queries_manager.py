@@ -49,9 +49,9 @@ COUNT_QUERY = """
     """
 
 CONF_MAT_QUERY = """
-    SELECT net_id, {group_by_label} as {label_col}, {group_by_pred} as {pred_col}, COUNT(*) AS {count_name}
+    SELECT net_id, "{group_by_label}" as "{label_col}", "{group_by_pred}" as "{pred_col}", COUNT(*) AS "{count_name}"
     FROM ({base_query})
-    GROUP BY net_id, {group_by_label}, {group_by_pred}
+    GROUP BY net_id, "{group_by_label}", "{group_by_pred}"
     """
 
 COLUMN_OPTION_QUERY = """
@@ -194,6 +194,13 @@ EXTRACT_EVENT_ACC = """
     {dist_column} {operator} {dist_thresh} AND 
     bin_population = '{chosen_source}'
 """
+
+EXTRACT_EVENT_ROLE = """
+    {null_check}
+    {semantic_role} != matched_{semantic_role} AND 
+    bin_population = '{chosen_source}'
+"""
+
 
 EXTRACT_EVENT_QUERY = """
     SELECT {final_columns} 
@@ -849,9 +856,52 @@ def generate_extract_miss_false_events_query(
         extra_filters=f"bin_population = '{chosen_source}'",
     )
     final_columns = bookmarks_columns + metric_columns
-    order_cmd = "ORDER BY batch_num, clip_name, grabindex ASC"
+    order_cmd = "ORDER BY clip_name, grabindex ASC"
     query = EXTRACT_EVENT_QUERY.format(
         final_columns=", ".join(final_columns), base_query=base_query, order_cmd=order_cmd
+    )
+    return query, final_columns
+
+
+def generate_extract_roles_events_query(
+    data_tables,
+    meta_data,
+    meta_data_filters,
+    bookmarks_columns,
+    chosen_source,
+    role,
+    semantic_role,
+    exclude_none=False,
+):
+    role_columns = [semantic_role, f"matched_{semantic_role}"]
+
+    # Build the null/none condition
+    if exclude_none:
+        null_check = f"{semantic_role} > 0 AND matched_{semantic_role} > 0 AND"
+    else:
+        null_check = f"{semantic_role} IS NOT NULL AND matched_{semantic_role} > -1 AND"
+
+    # Fill in the query
+    role_cmd = EXTRACT_EVENT_ROLE.format(
+        null_check=null_check,
+        semantic_role=semantic_role,
+        chosen_source=chosen_source,
+    )
+
+    base_query = generate_base_query(
+        data_tables=data_tables,
+        meta_data=meta_data,
+        meta_data_filters=meta_data_filters,
+        role=role,
+        extra_columns=role_columns,
+        extra_filters=role_cmd,
+    )
+
+    final_columns = bookmarks_columns + role_columns
+    query = EXTRACT_EVENT_QUERY.format(
+        final_columns=", ".join(final_columns),
+        base_query=base_query,
+        order_cmd="ORDER BY clip_name, grabindex ASC",
     )
     return query, final_columns
 
@@ -1277,14 +1327,14 @@ def generate_conf_mat_query(
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[col for col in [label_col, pred_col] if isinstance(col, str)],
+        extra_columns=[f'"{col}"' for col in [label_col, pred_col] if isinstance(col, str)],
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         role=role,
         ca_oriented=ca_oriented,
     )
-    group_by_label = f"(CASE WHEN {label_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else label_col
-    group_by_pred = f"(CASE WHEN {pred_col} >= 0 THEN 1 ELSE -1 END)" if compare_sign else pred_col
+    group_by_label = f'(CASE WHEN "{label_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else label_col
+    group_by_pred = f'(CASE WHEN "{pred_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else pred_col
     conf_query = CONF_MAT_QUERY.format(
         group_by_label=group_by_label,
         group_by_pred=group_by_pred,
@@ -1569,4 +1619,28 @@ def build_dp_all_quality_metrics_query(config: DPQualityQueryConfig) -> str:
         extra_filters="",
         role=config.role,
         extra_columns=extra_columns,
+    )
+
+
+def build_dp_quality_view_range_histogram_query(config: DPQualityQueryConfig, bin_size: int = 5) -> str:
+    """
+    Build a query to fetch quality_view_range data grouped into histogram bins.
+
+    Args:
+        config: Query configuration
+        bin_size: Size of bins in meters
+
+    Returns:
+        SQL query string
+    """
+    return generate_count_query(
+        data_tables=config.data_tables,
+        meta_data=config.meta_data,
+        group_by_column=config.quality_view_range_column_name,
+        meta_data_filters=config.meta_data_filters,
+        bins_factor=bin_size,
+        role=config.role,
+        extra_columns=[config.quality_view_range_column_name],
+        group_by_net_id=True,
+        include_all=False,
     )

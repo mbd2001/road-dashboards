@@ -1,26 +1,28 @@
 from dash import Input, Output, callback
+from road_database_toolkit.databases.workflows.workflow_enums import WorkflowType
 
-from road_dashboards.workflows_dashboard.core_settings.constants import WORKFLOWS, ComponentIds
-from road_dashboards.workflows_dashboard.database.workflow_manager import WorkflowsDBManager
-
-workflow_db_handler = WorkflowsDBManager()
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 
 
 @callback(
-    [Output(f"content-{workflow}", "style") for workflow in WORKFLOWS], [Input(ComponentIds.WORKFLOW_SELECTOR, "value")]
+    [Output(f"content-{workflow.value}", "style") for workflow in WorkflowType],
+    [Input(ComponentIds.WORKFLOW_SELECTOR, "value")],
 )
-def update_content(selected_workflow):
-    return [{"display": "block"} if workflow == selected_workflow else {"display": "none"} for workflow in WORKFLOWS]
+def update_content(selected_workflow: str):
+    return [
+        {"display": "block"} if workflow.value == selected_workflow else {"display": "none"}
+        for workflow in WorkflowType
+    ]
 
 
-@callback([Output(f"workflow-tab-{workflow}", "active") for workflow in WORKFLOWS], Input("url", "hash"))
+@callback([Output(f"workflow-tab-{workflow.value}", "active") for workflow in WorkflowType], Input("url", "hash"))
 def set_active_tab(hash_value):
     if not hash_value:
-        active_workflow = WORKFLOWS[0]
+        active_workflow = WorkflowType.GTRM
     else:
         active_workflow = hash_value.replace("#", "")
 
-    if active_workflow not in WORKFLOWS:
-        active_workflow = WORKFLOWS[0]
+    if active_workflow not in WorkflowType:
+        active_workflow = WorkflowType.GTRM
 
-    return [workflow == active_workflow for workflow in WORKFLOWS]
+    return [workflow == active_workflow for workflow in WorkflowType]

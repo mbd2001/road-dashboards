@@ -2,11 +2,10 @@ import pandas as pd
 import plotly.graph_objects as go
 from typing_extensions import override
 
+from road_dashboards.workflows_dashboard.common.analytics import analytics_manager
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
+from road_dashboards.workflows_dashboard.common.utils import BAR_CHART_COLORS, format_workflow_type
 from road_dashboards.workflows_dashboard.components.base.chart import Chart
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
-from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
-from road_dashboards.workflows_dashboard.utils.chart_utils import BAR_CHART_COLORS
-from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
 
 
 class WorkflowSuccessCountChart(Chart):
@@ -40,7 +39,7 @@ class WorkflowSuccessCountChart(Chart):
             fig.add_trace(
                 go.Bar(
                     name=brain_type,
-                    x=[format_workflow_name(w) for w in workflows],
+                    x=[format_workflow_type(w) for w in workflows],
                     y=brain_data["success_count"],
                     marker_color=BAR_CHART_COLORS[idx % len(BAR_CHART_COLORS)],
                     text=brain_data["success_count"],
@@ -74,7 +73,7 @@ class WorkflowSuccessCountChart(Chart):
         end_date: str | None,
         selected_workflow: str,
     ) -> pd.DataFrame:
-        return db_manager.get_workflow_success_count_data(
+        return analytics_manager.get_workflow_success_count_data(
             brain_types=brain_types,
             start_date=start_date,
             end_date=end_date,

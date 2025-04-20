@@ -1,7 +1,7 @@
-from dash import Input, Output, callback, html
+from dash import Input, Output, State, callback, html
 
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
-from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
+from road_dashboards.workflows_dashboard.common.analytics import analytics_manager
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 
 
 @callback(
@@ -17,9 +17,12 @@ def reset_date_range(_):
 @callback(
     Output(ComponentIds.REFRESH_DB_BUTTON, "children"),
     Output(ComponentIds.REFRESH_DB_BUTTON, "disabled"),
+    Output("refresh-trigger-store", "data"),
     Input(ComponentIds.REFRESH_DB_BUTTON, "n_clicks"),
+    State("refresh-trigger-store", "data"),
     prevent_initial_call=True,
 )
-def refresh_database(_):
-    db_manager.refresh_data()
-    return [html.I(className="fas fa-sync-alt me-2"), "Refresh Data"], False
+def refresh_database(_, current_trigger_value):
+    analytics_manager.refresh_data()
+    new_trigger_value = current_trigger_value + 1
+    return [html.I(className="fas fa-sync-alt me-2"), "Refresh Data"], False, new_trigger_value

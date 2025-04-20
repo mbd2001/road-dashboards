@@ -3,11 +3,11 @@ from typing import override
 import pandas as pd
 import plotly.graph_objects as go
 
+from road_dashboards.workflows_dashboard.common.analytics import analytics_manager
+from road_dashboards.workflows_dashboard.common.config import ChartSettings
+from road_dashboards.workflows_dashboard.common.consts import ComponentIds
+from road_dashboards.workflows_dashboard.common.utils import format_workflow_type
 from road_dashboards.workflows_dashboard.components.base.chart import Chart
-from road_dashboards.workflows_dashboard.core_settings.constants import ComponentIds
-from road_dashboards.workflows_dashboard.core_settings.settings import ChartSettings
-from road_dashboards.workflows_dashboard.database.workflow_manager import db_manager
-from road_dashboards.workflows_dashboard.utils.formatting import format_workflow_name
 
 
 class WeeklySuccessChart(Chart):
@@ -38,7 +38,7 @@ class WeeklySuccessChart(Chart):
 
     def _add_workflow_trace(self, fig, workflow, workflow_data, idx):
         hover_text = [
-            f"{format_workflow_name(workflow)}<br>"
+            f"{format_workflow_type(workflow)}<br>"
             f"{start.strftime('%d.%m')} - {(start + pd.Timedelta(days=6)).strftime('%d.%m')}<br>"
             f"Success Rate: {rate:.2f}% ({success_count}/{success_count + failed_count})"
             for start, rate, success_count, failed_count in zip(
@@ -54,7 +54,7 @@ class WeeklySuccessChart(Chart):
                 x=workflow_data["week_start"],
                 y=workflow_data["success_rate"],
                 mode="lines+markers",
-                name=format_workflow_name(workflow),
+                name=format_workflow_type(workflow),
                 marker=dict(symbol=self.marker_symbols[idx % len(self.marker_symbols)]),
                 text=hover_text,
                 hoverinfo="text",
@@ -80,7 +80,7 @@ class WeeklySuccessChart(Chart):
         end_date: str | None,
         selected_workflow: str,
     ) -> pd.DataFrame:
-        return db_manager.get_weekly_success_data(
+        return analytics_manager.get_weekly_success_data(
             brain_types=brain_types,
             start_date=start_date,
             end_date=end_date,
