@@ -43,7 +43,7 @@ requirements:
     - scipy
     - road-objects
     - mexsense
-    - angie_shuffle_service
+    - angie-shuffle-service
 
 about:
   homepage: http://gitlab.mobileye.com/road_algo/road-dashboards
