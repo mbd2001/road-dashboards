@@ -22,7 +22,7 @@ requirements:
     - hatch
 
   run:
-    - python
+    - python >=3.10
     - pydantic
     - fire
     - pyyaml
@@ -41,6 +41,9 @@ requirements:
     - jira
     - python-kaleido
     - scipy
+    - road-objects
+    - mexsense
+    - angie-shuffle-service
     - sqlalchemy
 
 about:

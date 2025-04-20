@@ -3,7 +3,21 @@ from threading import Thread
 
 import dash_bootstrap_components as dbc
 import pandas as pd
+from angie_shuffle_service.shuffle_service import (
+    create_dataset_in_feature_store,
+    get_dataset,
+    poll_dataset_status,
+)
 from dash import Input, Output, State, callback, dash_table, html, no_update
+from mexsense.mexsense import create_url
+from mexsense.models.url_state import (
+    BASE,
+    Dataset,
+    DatasetsDescription,
+    Join,
+    Limit,
+    URLState,
+)
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -13,6 +27,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_OPTION,
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
+    MEXSENSE_BTN,
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
     RUN_EVAL_CATALOG,
@@ -79,8 +94,29 @@ def generate_catalog_layout():
                 )
             ),
             dbc.Row(
-                dbc.Col(dbc.Button("Choose Runs to Compare", id=UPDATE_RUNS_BTN, className="bg-primary mt-5")),
+                [
+                    dbc.Col(
+                        dbc.Button("Choose Runs to Compare", id=UPDATE_RUNS_BTN, className="bg-primary mt-5"),
+                        width="auto",
+                        className="me-1",
+                    ),
+                    dbc.Col(
+                        dbc.Button(
+                            "Open in MExsense",
+                            id=MEXSENSE_BTN,
+                            className="btn btn-primary mt-5",
+                            href="",
+                            target="_blank",
+                            style={"display": "inline-block"},
+                            disabled=True,
+                        ),
+                        width="auto",
+                        className="ms-1",
+                    ),
+                ],
+                justify="start",
             ),
+            html.Div(style={"marginTop": "20px"}),
             loading_wrapper([html.Div(id=LOAD_NETS_DATA_NOTIFICATION)]),
         ]
     )
@@ -130,6 +166,61 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
         notification,
         new_state,
     )
+
+
+@callback(
+    [Output(MEXSENSE_BTN, "href"), Output(MEXSENSE_BTN, "disabled")],
+    [Input(RUN_EVAL_CATALOG, "selected_rows")],
+    [State(CATALOG, "data")],
+    prevent_initial_call=True,
+)
+def mexsense_run(selected_rows, rows):
+    if not selected_rows:
+        return "about:blank", True
+
+    rows = pd.DataFrame([rows[i] for i in selected_rows])
+    preds_path = rows["out_path"].iloc[0] + "predictions/"
+
+    # use_case (str): Type of the dumper. One of ["road4", "rpw", "mf"]."
+    try:
+        shuffle_resp = get_dataset(use_case="road4", name=rows["dataset"].iloc[0])
+    except:
+        try:
+            shuffle_resp = get_dataset(use_case="rpw", name=rows["dataset"].iloc[0])
+        except:
+            shuffle_resp = get_dataset(use_case="mf", name=rows["dataset"].iloc[0])
+
+    datasets = [
+        Dataset(
+            name=BASE,
+            path=shuffle_resp.path,
+        ),
+        Dataset(
+            name="preds",
+            path=preds_path,
+        ),
+    ]
+    datasetsDescription = DatasetsDescription(
+        datasets=datasets,
+        joins=[
+            Join(
+                name="data",
+                datasets=[BASE, "preds"],
+                join_on=["clip_name", "grabIndex"],
+            )
+        ],
+    )
+
+    url_state = URLState(
+        plugin_id=29,
+        limit=Limit.L400,
+        vast_data=False,
+        selected_partitions={},
+        datasets_description=datasetsDescription,
+        views_variables=[],
+    )
+    link = create_url(url_state)
+    return link, False
 
 
 def update_nets_md_according_to_population(nets, md_columns_to_distinguish_values):
