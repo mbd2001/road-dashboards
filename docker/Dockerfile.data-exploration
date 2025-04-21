@@ -1,31 +1,44 @@
 # Use an official Python runtime as a parent image
-FROM python:3.12-slim
-
+FROM ghcr.io/prefix-dev/pixi:latest AS build
+USER root
 # Set the working directory to /app
 WORKDIR /app/road_dashboards/road_dump_dashboard
 
 # Copy the current directory contents into the container at /app
 COPY ./road_dashboards/road_dump_dashboard /app/road_dashboards/road_dump_dashboard
 
+# for pypika being installed through git after normal install failed the dashboard
+RUN apt-get update && \
+    apt-get install -y git && \
+    rm -rf /var/lib/apt/lists/*
+
 RUN chmod 777 -R /app
+RUN pixi init --import env.yaml
+RUN pixi install
 
+RUN pixi shell-hook -e default -s bash > /shell-hook
+RUN echo "#!/bin/bash" > ./entrypoint.sh
+RUN cat /shell-hook >> ./entrypoint.sh
+# extend the shell-hook script to run the command passed to the container
+RUN echo 'exec "$@"' >> ./entrypoint.sh
 
-# git installation
-RUN apt-get update && apt-get upgrade -y && apt-get install -y git
-
-# pip installations
-RUN pip config --user set  global.index-url https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple &&  \
-    pip config --user set  search.index https:``//artifactory``.sddc.mobileye.com``/artifactory/api/pypi/pypi/simple
-RUN pip install --upgrade pip
-RUN pip install -r /app/road_dashboards/road_dump_dashboard/requirements.txt
+FROM python:3.12-slim
+WORKDIR /app/road_dashboards/road_dump_dashboard
+COPY --from=build /app/road_dashboards/road_dump_dashboard/.pixi/envs/default /app/road_dashboards/road_dump_dashboard/.pixi/envs/default
+COPY --from=build --chmod=0755 /app/road_dashboards/road_dump_dashboard/entrypoint.sh /app/road_dashboards/road_dump_dashboard/entrypoint.sh
+# copy your project code into the container as well
+COPY ./road_dashboards/road_dump_dashboard /app/road_dashboards/road_dump_dashboard
 
 ENV PYTHONPATH=/app
-ENV DEBUG=false
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
-USER root
+ENV DEBUG=false
 
-# Make port 6008 available to the world outside this container
-EXPOSE 6008
+
+# Make port 6009 available to the world outside this container
+EXPOSE 6009
+
+# set the entrypoint to the shell-hook script (activate the environment and run the command)
+ENTRYPOINT ["/app/road_dashboards/road_dump_dashboard/entrypoint.sh"]
 
 # Run app.py when the container launches
 CMD ["python", "app.py"]
