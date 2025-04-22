@@ -15,12 +15,12 @@ def get_falses_query(
     role="",
 ):
     BASE_QUERY = """
-        SELECT * FROM 
+        SELECT * FROM
         (SELECT clip_name, grabIndex, net_id, match, COUNT(*) as group_size, MIN(rem_{Z_source}_point_sec) as rem_point_sec, MIN(rem_{Z_source}_point_Z) as rem_point_z FROM (SELECT * FROM
         ({base_data})
         {intersect_filter})
-        WHERE ignore=False AND confidence > 0 AND role='{role}' AND rem_{Z_source}_point_index >= 0 
-        group by net_id, clip_name, grabIndex, match) 
+        WHERE ignore=False AND confidence > 0 AND role='{role}' AND rem_{Z_source}_point_index >= 0
+        group by net_id, clip_name, grabIndex, match)
         INNER JOIN ({meta_data}) USING (clip_name, grabIndex)
         WHERE TRUE {meta_data_filters}
         """

@@ -3,7 +3,7 @@ import dash_daq as daq
 from dash import dash_table, dcc, html
 from dash_daq import BooleanSwitch
 
-import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # LOAD CALLBACKS - DO-NOT REMOVE!
+import road_dashboards.road_eval_dashboard.components.pathnet_events_extractor.callbacks  # noqa: F401
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     PATHNET_EVENTS_CLIPS_UNIQUE_SWITCH,
     PATHNET_EVENTS_DATA_TABLE,
@@ -224,6 +224,13 @@ def create_filtering_dropdowns_row():
                 ),
                 width=2,
                 style={"text-align": "left"},
+            ),
+            dbc.Col(
+                dcc.Dropdown(
+                    id="pathnet-events-extra-columns-dropdown",
+                    multi=True,
+                    placeholder="Select extra columns",
+                )
             ),
         ],
         style={"margin-bottom": "10px"},

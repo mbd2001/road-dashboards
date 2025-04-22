@@ -1,8 +1,5 @@
 import enum
 import re
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -122,7 +119,7 @@ MD_FILTER_COUNT = """
     """
 
 DIST_METRIC = """
-    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) / 
+    CAST(COUNT(CASE WHEN "{base_dist_column_name}_{dist}" IS NOT NULL AND "{base_dist_column_name}_{dist}" {thresh_filter} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) /
     COUNT(CASE WHEN ("{base_dist_column_name}_{dist}" IS NOT NULL) {extra_filters} THEN 1 ELSE NULL END)
     AS "score_{ind}"
     """
@@ -150,7 +147,7 @@ BOUNDARY_DIST_METRIC = """
     """
 
 VIEW_RANGE_SUCCESS_RATE_QUERY = """
-    SUM(CAST("{max_Z_col}_pred" >= {Z_sample} AND "{max_Z_col}_label" >= {Z_sample} AS DOUBLE)) / 
+    SUM(CAST("{max_Z_col}_pred" >= {Z_sample} AND "{max_Z_col}_label" >= {Z_sample} AS DOUBLE)) /
     SUM(CAST("{max_Z_col}_label" >= {Z_sample} AS DOUBLE))
     AS "vr_score_{Z_sample}"
     """
@@ -190,26 +187,26 @@ COUNT_ALL_METRIC = """
     """
 
 EXTRACT_EVENT_ACC = """
-    {dist_column} IS NOT NULL AND 
-    {dist_column} {operator} {dist_thresh} AND 
+    {dist_column} IS NOT NULL AND
+    {dist_column} {operator} {dist_thresh} AND
     bin_population = '{chosen_source}'
 """
 
 EXTRACT_EVENT_ROLE = """
     {null_check}
-    {semantic_role} != matched_{semantic_role} AND 
+    {semantic_role} != matched_{semantic_role} AND
     bin_population = '{chosen_source}'
 """
 
 
 EXTRACT_EVENT_QUERY = """
-    SELECT {final_columns} 
-    FROM ({base_query}) 
+    SELECT {final_columns}
+    FROM ({base_query})
     {order_cmd}
 """
 
 SUM_SUCCESS_RATE_METRIC = """
-    CAST(SUM(CASE WHEN {extra_filters} THEN {pred} ELSE 0 END) AS DOUBLE) / SUM(CASE WHEN {extra_filters} THEN {label} ELSE 0 END) 
+    CAST(SUM(CASE WHEN {extra_filters} THEN {pred} ELSE 0 END) AS DOUBLE) / SUM(CASE WHEN {extra_filters} THEN {label} ELSE 0 END)
     AS "score_{ind}"
     """
 
@@ -1323,11 +1320,12 @@ def generate_conf_mat_query(
     role="",
     ca_oriented=False,
     compare_sign=False,
+    extra_columns=[],
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[f'"{col}"' for col in [label_col, pred_col] if isinstance(col, str)],
+        extra_columns=[f'"{col}"' for col in [label_col, pred_col] if isinstance(col, str)] + extra_columns,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         role=role,

@@ -1,6 +1,5 @@
 import dash_bootstrap_components as dbc
 import dash_daq as daq
-import numpy as np
 import plotly.express as px
 from dash import MATCH, Input, Output, State, callback, dcc, html, no_update
 from road_database_toolkit.athena.athena_utils import query_athena

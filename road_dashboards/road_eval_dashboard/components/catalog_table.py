@@ -4,9 +4,7 @@ from threading import Thread
 import dash_bootstrap_components as dbc
 import pandas as pd
 from angie_shuffle_service.shuffle_service import (
-    create_dataset_in_feature_store,
     get_dataset,
-    poll_dataset_status,
 )
 from dash import Input, Output, State, callback, dash_table, html, no_update
 from mexsense.mexsense import create_url

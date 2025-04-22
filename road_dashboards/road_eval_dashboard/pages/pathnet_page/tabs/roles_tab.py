@@ -1,7 +1,7 @@
-import itertools
 import json
 
 import dash_bootstrap_components as dbc
+import numpy as np
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -41,6 +41,7 @@ def generate_matrices_graphs(
     pathnet_filters,
     mat_name,
 ):
+    extra_columns = ["lane_role"] if role != "lane" else []
     class_names = ROLE_CLASSES_NAMES[role]
     mats = generate_conf_matrices(
         label_col=f"matched_{role}_role",
@@ -51,6 +52,7 @@ def generate_matrices_graphs(
         meta_data_filters=meta_data_filters,
         class_names=class_names,
         extra_filters=pathnet_filters,
+        extra_columns=extra_columns,
     )
     conf_mats = [mat["conf_matrix"] for mat in mats.values()]
     normalize_mats = [mat["normalize_mat"] for mat in mats.values()]
@@ -59,8 +61,21 @@ def generate_matrices_graphs(
     mats_figs = draw_multiple_nets_confusion_matrix(
         conf_mats, normalize_mats, net_names, class_names, role=role, mat_name=mat_name
     )
-    serialized_mats_figs = {net_name: fig.to_plotly_json() for net_name, fig in zip(net_names, mats_figs)}
+    serialized_mats_figs = {
+        net_name: fix_plotly_json(fig.to_plotly_json()) for net_name, fig in zip(net_names, mats_figs)
+    }
     return diagonal_compare, serialized_mats_figs
+
+
+def fix_plotly_json(obj):
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: fix_plotly_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [fix_plotly_json(i) for i in obj]
+    else:
+        return obj
 
 
 @callback(
@@ -75,7 +90,7 @@ def generate_matrices_graphs(
 )
 def generate_all_dps_data(nets, meta_data_filters, pathnet_filters, graph_id):
     if not nets:
-        return no_update, no_update
+        return no_update, no_update, no_update, no_update
 
     role = graph_id["role"]
     diagonal_compare, serialized_mats_figs = generate_matrices_graphs(
@@ -105,7 +120,7 @@ def generate_host_data(nets, meta_data_filters, pathnet_filters, graph_id):
         return no_update, []
 
     role = graph_id["role"]
-    pathnet_filters = f"{pathnet_filters} AND role = 'host'" if pathnet_filters else "role = 'host'"
+    pathnet_filters = f"{pathnet_filters} AND lane_role = 1" if pathnet_filters else "lane_role = 1"
     diagonal_compare, serialized_mats_figs = generate_matrices_graphs(
         nets,
         role,

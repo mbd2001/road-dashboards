@@ -1,4 +1,4 @@
-from dash import Input, Output, callback, dcc, html
+from dash import Input, Output, callback, dcc
 from pypika import EmptyCriterion
 
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
