@@ -33,19 +33,15 @@ markdown_extensions:
   - pymdownx.mark
   - pymdownx.highlight
   - pymdownx.snippets
-  - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
   - pymdownx.tasklist:
       custom_checkbox: true
-  - pymdownx.tabbed  # see: https://squidfunk.github.io/mkdocs-material/reference/content-tabs/
+  - pymdownx.tabbed # see: https://squidfunk.github.io/mkdocs-material/reference/content-tabs/
   - pymdownx.superfences:
       # KEEP it commented.  Those lines break mermaid
       custom_fences:
         - name: mermaid
           class: mermaid
           # format: !!python/name:pymdownx.superfences.fence_div_format
-          format: !!python/name:mermaid2.fence_mermaid
   - pymdownx.tasklist:
       custom_checkbox: true
   - pymdownx.betterem:
@@ -59,5 +55,5 @@ extra_javascript:
 
 nav:
   - About:
-    - index.md
+      - index.md
   - release_notes.md

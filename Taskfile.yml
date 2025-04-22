@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 includes:
   docker: docker/docker.tasks.yml
@@ -33,4 +33,4 @@ tasks:
         REPO_DIR_GUEST=/repos/$(basename ${REPO_DIR_HOST})
         WORKDIR_GUEST=${REPO_DIR_GUEST}/${WORKDIR_REL_PATH}
         echo -e "[mx-tools:denv] REPO_NAME=${REPO_NAME} REPO_DIR_GUEST=${REPO_DIR_GUEST} WORKDIR_GUEST=${WORKDIR_GUEST}"
-        docker run --rm -it --privileged -p 4000:8000 --workdir ${REPO_DIR_GUEST} -v ${REPO_DIR_HOST}:${REPO_DIR_GUEST} -v ${HOME}/.de:/home/me.docker/.de -v /dev/fuse:/dev/fuse -v ${HOME}/tmp/.aws/:/home/me.docker/.aws/ ${DIMAGE} 
+        docker run --rm -it --privileged -p 4000:8000 --workdir ${REPO_DIR_GUEST} -v ${REPO_DIR_HOST}:${REPO_DIR_GUEST} -v ${HOME}/.de:/home/me.docker/.de -v /dev/fuse:/dev/fuse -v ${HOME}/tmp/.aws/:/home/me.docker/.aws/ ${DIMAGE}

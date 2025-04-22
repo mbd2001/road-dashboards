@@ -1,5 +1,5 @@
 # https://taskfile.dev
-version: '3'
+version: "3"
 output: prefixed
 
 vars:
@@ -16,7 +16,6 @@ vars:
   full_ecr_name: "{{.aws_repo}}:{{.docker_tag}}"
   full_ecr_name_latest: "{{.aws_repo}}:{{.image_name}}_latest"
   ARTIFACTORY: artifactory.sddc.mobileye.com
-
 
 tasks:
   default:
@@ -93,7 +92,7 @@ tasks:
   login_ecr:
     deps: [create-aws-road-profile-if-needed]
     cmds:
-    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin {{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com
+      - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin {{.registry_num}}.dkr.ecr.us-east-1.amazonaws.com
 
   create-aws-road-profile-if-needed:
     status:

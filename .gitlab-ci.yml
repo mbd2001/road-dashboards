@@ -60,7 +60,6 @@ workflow:
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
 
-
 pre-commit-hooks-check:
   stage: *pre-commit-hooks
   script:
@@ -73,7 +72,6 @@ pre-commit-hooks-check:
     # After a push to master (Finished MR), skip python check stage.
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-
 
 deploy:bump_version:
   tags:

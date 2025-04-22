@@ -36,7 +36,7 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 )
 from road_dashboards.road_eval_dashboard.graphs.path_net_line_graph import draw_path_net_graph
 from road_dashboards.road_eval_dashboard.utils.consts import BOUNDARY_IGNORE_VAL, BOUNDARY_TYPES_NAMES
-from road_dashboards.road_eval_dashboard.utils.distances import SECONDS, compute_distances_dict
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_dropdown_options_list
 
 BOUNDARY_ONTOLOGIES = ["boundaries"]
