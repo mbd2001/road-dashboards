@@ -35,7 +35,7 @@ select = ["F541", "I"]
 
 # ----------------- PIXI  -----------------
 
-[tool.pixi.project]
+[tool.pixi.workspace]
 channels = [
   "https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote",
   "https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local",
@@ -46,12 +46,12 @@ platforms = ["linux-64"]
 index-url = "https://artifactory.sddc.mobileye.com/artifactory/api/pypi/pypi/simple"
 
 [tool.pixi.environments]
-default = { features = ["common"], solve-group = "default" }
+default = ["common"]
 docs = { features = ["common", "docs"], no-default-feature = true }
 lint = { features = ["common", "lint"], no-default-feature = true }
-dump = { features = ["common", "dump"], no-default-feature = true }
-eval = { features = ["common", "eval"], no-default-feature = true }
-workflows = { features = ["common", "workflows"], no-default-feature = true }
+dump = ["common", "dump"]
+eval = ["common", "eval"]
+workflows = ["common", "workflows"]
 
 # a common feature to share data across all environments
 [tool.pixi.feature.common]
@@ -72,6 +72,7 @@ fsspec = ">=2025.3.2,<2026"
 orjson = ">=3.10.16,<4"
 road-database-toolkit = ">=0.1.42,<0.2"
 nomkl = ">=1.0,<2"
+metro = { channel = "https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local" } # prevents collision with conda-forge
 
 [dependency-groups]
 dump = ["pypika @ git+https://github.com/kayak/pypika.git@master"]
