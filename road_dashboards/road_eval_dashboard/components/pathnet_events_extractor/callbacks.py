@@ -269,6 +269,7 @@ def get_source_events_df(
     is_ref=False,
     semantic_role=None,
     exclude_none=False,
+    extra_columns=[],
 ):
     if metric == "inaccurate":
         operator = ">" if not is_ref else "<"
@@ -276,7 +277,7 @@ def get_source_events_df(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
-            bookmarks_columns=BOOKMARKS_COLUMNS,
+            bookmarks_columns=BOOKMARKS_COLUMNS + extra_columns,
             chosen_source=dp_source,
             role=role,
             dist=float(dist),
@@ -290,7 +291,7 @@ def get_source_events_df(
             data_tables=net[PATHNET_BOUNDARIES],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
-            bookmarks_columns=BOOKMARKS_COLUMNS,
+            bookmarks_columns=BOOKMARKS_COLUMNS + extra_columns,
             chosen_source=dp_source,
             role=role,
             dist=float(dist),
@@ -381,6 +382,7 @@ def get_events_df(
         events_extractor_dict["order_by"],
         semantic_role=semantic_role,
         exclude_none=events_extractor_dict["exclude_none"],
+        extra_columns=events_extractor_dict["extra_columns"],
     )
 
     if events_extractor_dict["is_unique_on"]:
@@ -398,6 +400,7 @@ def get_events_df(
             semantic_role=semantic_role,
             is_ref=True,
             exclude_none=events_extractor_dict["exclude_none"],
+            extra_columns=events_extractor_dict["extra_columns"],
         )
         df = subtract_events(df, df_ref, metric)
 
@@ -558,6 +561,7 @@ def get_specified_thresholds_placeholders(
     State(PATHNET_EVENTS_RE_SWITCH, "on"),
     State(PATHNET_EVENTS_SEMANTIC_ROLE_DROPDOWN, "value"),
     State(PATHNET_EVENTS_EXCLUDE_NONE_SWITCH, "on"),
+    Input("pathnet-events-extra-columns-dropdown", "value"),
     prevent_initial_call=True,
 )
 def update_extractor_dict(
@@ -584,6 +588,7 @@ def update_extractor_dict(
     is_re_switch_on,
     semantic_role,
     exclude_none,
+    extra_columns,
 ):
     if not n_clicks:
         return events_extractor_dict
@@ -599,7 +604,7 @@ def update_extractor_dict(
     events_extractor_dict["semantic_role"] = semantic_role
     events_extractor_dict["exclude_none"] = exclude_none
     events_extractor_dict["num_events"] = num_events if num_events is not None else DEFAULT_NUM_EVENTS
-
+    events_extractor_dict["extra_columns"] = extra_columns or []
     if specified_thresh is not None:
         events_extractor_dict["threshold"] = specified_thresh
     elif dist is not None:
@@ -714,6 +719,16 @@ def dump_bookmarks_json(n_clicks, bookmarks_dict, explorer_data):
         error_message = f"Error uploading to S3:\n'{s3_full_path}' failed.\nTraceback: {e}"
 
     return create_alert_message(error_message, color="warning")
+
+
+@callback(
+    Output("pathnet-events-extra-columns-dropdown", "options"),
+    Input(MD_COLUMNS_TO_TYPE, "data"),
+)
+def fill_extra_column_dropdown(md_columns):
+    if not md_columns:
+        return no_update
+    return [{"label": col, "value": col} for col in md_columns]
 
 
 @callback(

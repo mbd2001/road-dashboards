@@ -225,6 +225,13 @@ def create_filtering_dropdowns_row():
                 width=2,
                 style={"text-align": "left"},
             ),
+            dbc.Col(
+                dcc.Dropdown(
+                    id="pathnet-events-extra-columns-dropdown",
+                    multi=True,
+                    placeholder="Select extra columns",
+                )
+            ),
         ],
         style={"margin-bottom": "10px"},
     )

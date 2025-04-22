@@ -1323,11 +1323,12 @@ def generate_conf_mat_query(
     role="",
     ca_oriented=False,
     compare_sign=False,
+    extra_columns=[],
 ):
     base_query = generate_base_query(
         data_tables,
         meta_data,
-        extra_columns=[f'"{col}"' for col in [label_col, pred_col] if isinstance(col, str)],
+        extra_columns=[f'"{col}"' for col in [label_col, pred_col] if isinstance(col, str)] + extra_columns,
         meta_data_filters=meta_data_filters,
         extra_filters=extra_filters,
         role=role,
