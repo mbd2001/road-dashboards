@@ -1,7 +1,5 @@
 variables:
   PACKAGE_FOLDER: "road_dashboards"
-  HATCH_BUILD_OUTPUT_FOLDER: "./__localbuild__/pypi" # Also configured in task.yaml
-  CONDA_BUILD_OUTPUT_FOLDER: "./__localbuild__/conda" # Also configured in task.yaml
 
 default:
   image: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda-py310
@@ -104,7 +102,7 @@ deploy:docs:
     - pages
   stage: *deploy
   script:
-    - task mkdocs:build
+    - pixi run --locked mkdocs-build
   artifacts:
     paths:
       - public

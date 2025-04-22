@@ -2,43 +2,41 @@
 FROM ghcr.io/prefix-dev/pixi:latest AS build
 USER root
 # Set the working directory to /app
-WORKDIR /app/road_dashboards/road_dump_dashboard
+WORKDIR /app/road-dashboards
 
 # Copy the current directory contents into the container at /app
-COPY ./road_dashboards/road_dump_dashboard /app/road_dashboards/road_dump_dashboard
+COPY . .
 
-# for pypika being installed through git after normal install failed the dashboard
 RUN apt-get update && \
     apt-get install -y git && \
     rm -rf /var/lib/apt/lists/*
 
 RUN chmod 777 -R /app
-RUN pixi init --import env.yaml
-RUN pixi install
+RUN pixi install -e dump --locked
 
-RUN pixi shell-hook -e default -s bash > /shell-hook
+RUN pixi shell-hook -e dump -s bash > /shell-hook
 RUN echo "#!/bin/bash" > ./entrypoint.sh
 RUN cat /shell-hook >> ./entrypoint.sh
 # extend the shell-hook script to run the command passed to the container
 RUN echo 'exec "$@"' >> ./entrypoint.sh
 
-FROM python:3.12-slim
-WORKDIR /app/road_dashboards/road_dump_dashboard
-COPY --from=build /app/road_dashboards/road_dump_dashboard/.pixi/envs/default /app/road_dashboards/road_dump_dashboard/.pixi/envs/default
-COPY --from=build --chmod=0755 /app/road_dashboards/road_dump_dashboard/entrypoint.sh /app/road_dashboards/road_dump_dashboard/entrypoint.sh
-# copy your project code into the container as well
-COPY ./road_dashboards/road_dump_dashboard /app/road_dashboards/road_dump_dashboard
 
-ENV PYTHONPATH=/app
+FROM python:3.12-slim
+WORKDIR /app/road-dashboards
+COPY --from=build /app/road-dashboards/.pixi/envs/dump /app/road-dashboards/.pixi/envs/dump
+COPY --from=build --chmod=0755 /app/road-dashboards/entrypoint.sh /app/road-dashboards/entrypoint.sh
+# copy your project code into the container as well
+COPY . .
+
+ENV PYTHONPATH=/app/road-dashboards
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
 ENV DEBUG=false
 
 
 # Make port 6009 available to the world outside this container
-EXPOSE 6009
-
+EXPOSE 6007
 # set the entrypoint to the shell-hook script (activate the environment and run the command)
-ENTRYPOINT ["/app/road_dashboards/road_dump_dashboard/entrypoint.sh"]
+ENTRYPOINT ["/app/road-dashboards/entrypoint.sh"]
 
 # Run app.py when the container launches
-CMD ["python", "app.py"]
+CMD ["python", "/app/road-dashboards/road_dashboards/road_dump_dashboard/app.py"]
