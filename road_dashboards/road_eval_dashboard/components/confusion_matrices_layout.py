@@ -99,6 +99,7 @@ def generate_conf_matrices(
     ca_oriented=False,
     compare_sign=False,
     extra_filters="",
+    extra_columns=[],
 ):
     if extra_filters:
         extra_filters = f'{extra_filters} AND "{label_col}" != {ignore_val}'
@@ -114,6 +115,7 @@ def generate_conf_matrices(
         role=role,
         ca_oriented=ca_oriented,
         compare_sign=compare_sign,
+        extra_columns=extra_columns,
     )
     data, _ = run_query_with_nets_names_processing(query)
     mats = {}
