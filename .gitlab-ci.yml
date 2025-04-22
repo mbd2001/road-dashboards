@@ -42,6 +42,7 @@ default:
 
 stages:
   - &pre-commit-hooks "🔍 Pre-Commit Hooks"
+  - &test "🧪 Test"
   - &deploy "🚀 Deploy"
   - &reload "🔄 Reload Containers"
 
@@ -72,6 +73,13 @@ pre-commit-hooks-check:
     # After a push to master (Finished MR), skip python check stage.
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+
+test-pixi-lock:
+  tags:
+    - road-algo-md
+  stage: *test
+  script:
+    - pixi install --locked
 
 deploy:bump_version:
   tags:
