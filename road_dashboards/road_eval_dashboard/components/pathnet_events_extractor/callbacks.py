@@ -271,13 +271,14 @@ def get_source_events_df(
     exclude_none=False,
     extra_columns=[],
 ):
+    bookmarkes_columns = BOOKMARKS_COLUMNS + extra_columns
     if metric == "inaccurate":
         operator = ">" if not is_ref else "<"
         query, final_columns = generate_extract_acc_events_query(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
-            bookmarks_columns=BOOKMARKS_COLUMNS + extra_columns,
+            bookmarks_columns=bookmarkes_columns,
             chosen_source=dp_source,
             role=role,
             dist=float(dist),
@@ -291,7 +292,7 @@ def get_source_events_df(
             data_tables=net[PATHNET_BOUNDARIES],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
-            bookmarks_columns=BOOKMARKS_COLUMNS + extra_columns,
+            bookmarks_columns=bookmarkes_columns,
             chosen_source=dp_source,
             role=role,
             dist=float(dist),
@@ -306,7 +307,7 @@ def get_source_events_df(
             data_tables=net[PATHNET_PRED],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
-            bookmarks_columns=BOOKMARKS_COLUMNS,
+            bookmarks_columns=bookmarkes_columns,
             chosen_source=dp_source,
             role=role,
             semantic_role=semantic_role,
@@ -317,7 +318,7 @@ def get_source_events_df(
             data_tables=net[PATHNET_PRED] if metric == "false" else net[PATHNET_GT],
             meta_data=net["meta_data"],
             meta_data_filters=meta_data_filters,
-            bookmarks_columns=BOOKMARKS_COLUMNS,
+            bookmarks_columns=bookmarkes_columns,
             chosen_source=dp_source,
             role="unmatched-non-host" if metric == "false" else f"unmatched-{role}",
         )
