@@ -77,7 +77,7 @@ class CatalogTable(GridObject):
                     className="me-2",
                 )
             ],
-            right=True,
+            align_end=True,
             color="secondary",
             style={"position": "absolute", "right": "10px", "top": "10px"},
         )

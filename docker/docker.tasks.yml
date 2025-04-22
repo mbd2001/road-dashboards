@@ -57,11 +57,11 @@ tasks:
     cmds:
       - task: login_ecr
       - task: login-artifactory
-      - echo `grep "^FROM " {{.dockerfile_name}} | sed -e "s/FROM //g"`
       - |
-        docker_name=`grep "^FROM " {{.dockerfile_name}} | sed -e "s/FROM //g"` && \
-        echo "Got docker name: "$docker_name
-        docker pull ${docker_name}
+        grep "^\s*FROM " {{.dockerfile_name}} | sed -E "s/^\s*FROM\s+([^ ]+).*$/\1/" | while read docker_name; do
+          echo "Attempting to pull: ${docker_name}"
+          docker pull "${docker_name}"
+        done
 
   list_ecr_tags:
     desc: lists all images in the algo.road repository

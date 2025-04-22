@@ -31,7 +31,7 @@ line-length = 120
 
 # ruff lint rules: https://docs.astral.sh/ruff/rules/
 [tool.ruff.lint]
-select = ["F541", "I"]
+select = ["F541", "I", "F401"]
 
 # ----------------- PIXI  -----------------
 
