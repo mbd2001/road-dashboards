@@ -4,87 +4,15 @@ includes:
   docker: docker/docker.tasks.yml
 
 vars:
-  PYVERSION: 3.10
-  PACKAGE_NAME: road-dashboards
-  PACKAGE_FOLDER: road_dashboards
-  DEV_ENV_NAME: "{{.PACKAGE_NAME}}-dev"
-  CONDA_RELEASE_CHANNEL: me-conda-dev-local
-  PROJECT_VERSION:
-      sh: hatch version
-  HATCH_BUILD_OUTPUT_FOLDER: ./__localbuild__/pypi
-  CONDA_BUILD_OUTPUT_FOLDER: ./__localbuild__/conda
+  GIT_ROOT_PATH:
+    sh: "realpath $(git rev-parse --show-toplevel)"
 
 env:
   DIMAGE: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda-py310
-  PROJECT_VERSION: "{{.PROJECT_VERSION}}"
 
 tasks:
   _show_variables:
     cmds: [env]
-
-  pypi:build:
-    desc: "Build the package"
-    cmds:
-      - hatch build --clean $HATCH_BUILD_OUTPUT_FOLDER
-
-  conda:build:
-    desc: "build conda package with rattler"
-    cmds:
-      - |
-        if ! command -v rattler-build >/dev/null 2>&1; then
-          echo "Installing rattler-build." && mamba install -y rattler-build
-        else
-          echo "Rattler-build is already installed."
-        fi
-      - mkdir -p {{.CONDA_BUILD_OUTPUT_FOLDER}}
-      - rattler-build build --package-format tar-bz2 -r rattler.recipe/ --output-dir {{.CONDA_BUILD_OUTPUT_FOLDER}} --no-test
-      - mamba index {{.CONDA_BUILD_OUTPUT_FOLDER}}
-
-  conda:install:dev:
-    desc: "Install the dev conda env"
-    cmds:
-      - python ./rattler.recipe/create_env_yaml_from_recipe.py --env_type dev --proj_name {{.PACKAGE_NAME}}
-      - mamba env create -n {{.DEV_ENV_NAME}} -f /tmp/{{.PACKAGE_NAME}}.dev.yml
-
-  conda:install:local-build:
-    desc: "Install the built conda package in the test env. Should be called after build:conda."
-    cmds:
-      - mamba install -y -n {{.DEV_ENV_NAME}} -c ./__localbuild__/conda --override-channels {{.PACKAGE_NAME}}
-
-  conda:test:
-    desc: "Run tests with the built conda test env"
-    cmds:
-      - mamba run -n {{.DEV_ENV_NAME}} pytest -v -s tests/units
-
-  pypi:test:
-    desc: "Run tests with the built pypi test env"
-    cmds:
-      - hatch env create # Creating the hatch env before moving the source files
-      - mv "${PACKAGE_FOLDER}" "${PACKAGE_FOLDER}_" # Making source file inaccessible from python. Test check the package
-      - echo "Installing wheel:" && unzip -l $HATCH_BUILD_OUTPUT_FOLDER/*.whl
-      - hatch --verbose run pip install $HATCH_BUILD_OUTPUT_FOLDER/*.whl
-      - hatch --verbose run cov
-      - mv "${PACKAGE_FOLDER}_" "${PACKAGE_FOLDER}"
-
-  py:check:
-    desc: "Run static code analysis with format check."
-    cmds:
-      - hatch run lint:check
-
-  py:fix:
-    desc: "Format code and try to fix code issues."
-    cmds:
-      - hatch run lint:fix
-
-  mkdocs:serve:
-    desc: "Serve the mkdocs documentation"
-    cmds:
-      - hatch run docs:serve
-
-  mkdocs:build:
-    desc: "Build the mkdocs documentation"
-    cmds:
-      - hatch run docs:build
 
   denv:dev:
     desc: "Run the docker environment"

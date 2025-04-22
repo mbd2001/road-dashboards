@@ -1,63 +1,152 @@
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
 [project]
-name = "road-dashboards"
-dynamic = ["version"]
+classifiers = ["Programming Language :: Python :: 3.10"]
 description = ''
-readme = "README.md"
-requires-python = ">=3.12"
-license = "MIT"
+dynamic = ["version"]
 keywords = []
-authors = [
-  { name = "Nadav Shemesh", email = "nadav.shemesh@mobileye.com" },
-]
-classifiers = [
-  "Programming Language :: Python :: 3.12",
-]
-dependencies = [
-  "fire",
-  "pyyaml",
-  "loguru",
-  "orjson",
-  "typing_extensions >=3.7.4",
-  "numpy",
-  "pandas",
-  "pyyaml"
-]
+license = "MIT"
+name = "road-dashboards"
+readme = "README.md"
+requires-python = ">=3.10"
 
+[build-system]
+build-backend = "hatchling.build"
+requires = ["hatchling"]
+
+# ----------------- HATCH  -----------------
+[tool.hatch.version]
+path = "road_dashboards/__about__.py"
+
+[tool.hatch.build]
+include = ["road_dashboards"]
+
+[tool.hatch.publish.me-conda]
+artifactory_url = "https://artifactory.sddc.mobileye.com:/artifactory"
+artifacts = "./__localbuild__/conda/"
+mapping = [{ channel = "me-conda-dev-local", branch = "master" }]
+
+# ----------------- RUFF  -----------------
 [tool.ruff]
+force-exclude = true
 line-length = 120
-extend-exclude = ["*.ipynb"]
 
+# ruff lint rules: https://docs.astral.sh/ruff/rules/
 [tool.ruff.lint]
-select = ["F541", "I"]  # enforcing redundant f-strings and isort sorting
+select = [
+  "E4",
+  "E7",
+  "E9",
+  "F",
+  "I",
+] # Enable isort (`I`) sorting rules, in addition to the defaults.
 
-[tool.coverage.run]
-source_pkgs = ["road_dashboards"]
-branch = true
-parallel = true
-omit = [
-  "road_dashboards/__about__.py",
+# ----------------- PIXI  -----------------
+
+[tool.pixi.project]
+channels = [
+  "https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote",
+  "https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local",
 ]
+platforms = ["linux-64"]
 
-[tool.coverage.paths]
-road-dashboards = ["road_dashboards", "*/road-dashboards/road_dashboards"]
-tests = ["tests", "*/road-dashboards/tests"]
+[tool.pixi.pypi-options]
+index-url = "https://artifactory.sddc.mobileye.com/artifactory/api/pypi/pypi/simple"
 
-[tool.coverage.report]
-exclude_lines = [
-  "no cov",
-  "if __name__ == .__main__.:",
-  "if TYPE_CHECKING:",
-]
+[tool.pixi.environments]
+default = { features = ["common"], solve-group = "default" }
+docs = { features = ["common", "docs"], no-default-feature = true }
+lint = { features = ["common", "lint"], no-default-feature = true }
+dump = { features = ["common", "dump"], no-default-feature = true }
+eval = { features = ["common", "eval"], no-default-feature = true }
+workflows = { features = ["common", "workflows"], no-default-feature = true }
 
-[[tool.mypy.overrides]]
-# Fill here modules you want to ignore while type checking:
-module = [
-    'boto3',
-    'fire',
-    'ruamel.yaml',
-]
-ignore_missing_imports = true
+# a common feature to share data across all environments
+[tool.pixi.feature.common]
+activation = { env = { PROJECT_NAME = "$(pixi project name get)" } }
+system-requirements = { linux = "4.15" }
+
+[tool.pixi.tasks]
+
+[tool.pixi.dependencies] #tool.pixi.feature.default.dependencies
+dash = "<3.0.0"
+dash-bootstrap-components = "==2.0.1"
+dash-daq = ">=0.6.0,<0.7"
+numpy = ">=2.2.5,<3"
+pandas = ">=2.2.3,<3"
+boto3 = ">=1.37.1,<2"
+tqdm = ">=4.67.1,<5"
+fsspec = ">=2025.3.2,<2026"
+orjson = ">=3.10.16,<4"
+road-database-toolkit = ">=0.1.42,<0.2"
+nomkl = ">=1.0,<2"
+
+[dependency-groups]
+dump = ["pypika @ git+https://github.com/kayak/pypika.git@master"]
+eval = ["kaleido>=0.2.1,<0.3"]
+
+## Lint Feature
+[tool.pixi.feature.lint.dependencies]
+pre-commit = ">=4.1.0,<5"
+pre-commit-hooks = ">=5.0.0,<6"
+prettier = ">=3.5.1,<4"
+ruff = ">=0.9.4,<0.10"
+taplo = ">=0.9.3,<0.10"
+
+[tool.pixi.feature.lint.tasks]
+pre-commit-install = { cmd = "pre-commit install --install-hooks", description = "install pre-commit hooks" }
+pre-commit-run = { cmd = "pre-commit run --all-files", description = "run pre-commit hooks on all files" }
+prettier-fmt = "prettier --write"
+py-check = { depends-on = [
+  "ruff-lint-check",
+  "ruff-format-check",
+], description = "check code style with ruff" }
+py-fix = { depends-on = [
+  "ruff-lint",
+  "ruff-format",
+], description = "fix code style with ruff" }
+ruff-format = "ruff format --force-exclude"
+ruff-format-check = "ruff format --check --force-exclude"
+ruff-lint = "ruff check --fix --exit-non-zero-on-fix --force-exclude"
+ruff-lint-check = "ruff check --exit-non-zero-on-fix --force-exclude"
+toml-format = { cmd = "taplo fmt", description = "format toml files with taplo", env = { RUST_LOG = "warn" } }
+
+[tool.pixi.feature.dump.dependencies]
+pyyaml = ">=6.0.2,<7"
+scipy = ">=1.15.2,<2"
+pycountry = ">=24.6.1,<25"
+
+[tool.pixi.feature.eval.dependencies]
+jira = ">=3.8.0,<4"
+pycountry = ">=24.6.1,<25"
+angie-shuffle-service = ">=0.21.3,<0.22"
+road-objects = ">=0.0.11,<0.0.12"
+mexsense = ">=0.17.0,<0.18"
+
+[tool.pixi.feature.workflows.dependencies]
+pydantic = ">=2.11.3,<3"
+sqlalchemy = ">=2.0.40,<3"
+
+
+[tool.pixi.feature.docs.dependencies]
+python = ">=3.13.2,<3.14"
+
+[tool.pixi.feature.docs.pypi-dependencies]
+ipython-genutils = "*"
+markdown = "*"
+mdx-truly-sane-lists = "*"
+mkdocs-autorefs = "*"
+mkdocs-awesome-pages-plugin = "*"
+mkdocs-glightbox = ">=0.4.0,<0.5"
+mkdocs-jupyter = "*"
+mkdocs-macros-plugin = ">=1.3.7,<2"
+mkdocs-mermaid2-plugin = "*"
+mkdocs-monorepo-plugin = "*"
+mkdocs-open-in-new-tab = ">=1.0.8,<2"
+mkdocs-techdocs-core = "*"
+mkdocstrings = { version = "*", extras = ["python"] }
+pymdown-extensions = "*"
+python-markdown-math = "*"
+slugify = "*"
+
+[tool.pixi.feature.docs.tasks]
+mkdocs-build = { cmd = "mkdocs build", env = { PYTHONPATH = "." } }
+mkdocs-serve = { cmd = "mkdocs serve -a 0.0.0.0:8000", env = { PYTHONPATH = "." } }

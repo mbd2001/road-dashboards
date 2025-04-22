@@ -9,12 +9,16 @@ default:
     - road-algo-lg
   interruptible: true
   before_script:
-    - | # install hatch if not installed:
-      if ! command -v hatch >/dev/null 2>&1; then
-        echo "Installing Hatch." && pip install hatch
+    - |
+      if ! command -v pixi > /dev/null 2>&1; then
+        echo "Installing Pixi." && curl -fsSL https://pixi.sh/install.sh | bash
+        export PATH=$HOME/.pixi/bin:$PATH
       else
-        echo "Hatch is already installed."
+        echo "Pixi is already installed."
       fi
+    - pixi info # Information about the system, project and environments for the current machine.
+    - hatch --version
+
     # For master commits: determine hatch version before each job.
     # This makes sure the version is updated before builds and git operations.
     - |
@@ -37,11 +41,9 @@ default:
     - source .auth/.setup_auth.sh
 
 stages:
-  - pre
-  - build
-  - test
-  - deploy
-  - post
+  - &pre-commit-hooks "🔍 Pre-Commit Hooks"
+  - &deploy "🚀 Deploy"
+  - &reload "🔄 Reload Containers"
 
 workflow:
   rules:
@@ -58,30 +60,12 @@ workflow:
       when: never
     - if: $CI_COMMIT_BRANCH == "master"
 
-build:conda:
-  stage: build
-  script:
-    - task conda:build
-  artifacts:
-    name: "build-conda-artifacts"
-    paths:
-      - $CONDA_BUILD_OUTPUT_FOLDER
 
-test:conda:
-  stage: test
+pre-commit-hooks-check:
+  stage: *pre-commit-hooks
   script:
-    - task conda:install:dev
-    - task conda:install:local-build
-    - task conda:test
-  needs:
-    - build:conda
-
-pycheck:
-  tags:
-    - road-algo-sm
-  stage: pre
-  script:
-    - hatch --verbose run lint:check
+    - pixi install -e lint --locked
+    - pixi run pre-commit-run --color always --show-diff-on-failure
   rules:
     # Avoiding pycheck when the pipeline is triggered from another repo's pipeline
     - if: $CI_PIPELINE_SOURCE  == "pipeline"
@@ -90,21 +74,11 @@ pycheck:
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_BRANCH != "master"'
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
 
-deploy:package:
-  tags:
-    - road-algo-sm
-  stage: deploy
-  # faceless user is configured in the group masked CI variables
-  script:
-    - pip install pookam
-    - hatch publish --publisher me-conda -o username="$FACELESS_ONPREM_USER" -o password="$FACELESS_PASS"
-  extends: .only-master-pushes
 
 deploy:bump_version:
   tags:
     - road-algo-sm
-  needs: [deploy:package]
-  stage: deploy
+  stage: *deploy
   # faceless user is configured in the group masked CI variables
   script:
     - git config --global user.name $FACELESS_ONPREM_USER
@@ -122,7 +96,7 @@ deploy:bump_version:
 deploy:docs:
   tags:
     - pages
-  stage: deploy
+  stage: *deploy
   script:
     - task mkdocs:build
   artifacts:
@@ -131,7 +105,7 @@ deploy:docs:
   extends: .only-master-pushes
 
 deploy:docker:data-exploration:
-  stage: deploy
+  stage: *deploy
   tags:
     - road-algo-md
   variables:
@@ -149,7 +123,7 @@ deploy:docker:data-exploration:
         - docker/Dockerfile.data-exploration
 
 deploy:docker:eval-dashboard:
-  stage: deploy
+  stage: *deploy
   tags:
     - road-algo-md
   variables:
@@ -167,7 +141,7 @@ deploy:docker:eval-dashboard:
         - docker/Dockerfile.eval-dashboard
 
 deploy:docker:workflows-dashboard:
-  stage: deploy
+  stage: *deploy
   tags:
     - road-algo-md
   variables:
@@ -185,7 +159,7 @@ deploy:docker:workflows-dashboard:
         - docker/Dockerfile.workflows-dashboard
 
 post:reload-data-exploration:
-  stage: post
+  stage: *reload
   tags:
     - road-algo-sm
   script:
@@ -204,7 +178,7 @@ post:reload-data-exploration:
     - deploy:docker:data-exploration
 
 post:reload-eval-dashboard:
-  stage: post
+  stage: *reload
   tags:
     - road-algo-sm
   script:
@@ -223,7 +197,7 @@ post:reload-eval-dashboard:
     - deploy:docker:eval-dashboard
 
 post:reload-workflows-dashboard:
-  stage: post
+  stage: *reload
   tags:
     - road-algo-sm
   script:
