@@ -1,4 +1,3 @@
-import itertools
 import json
 
 import dash_bootstrap_components as dbc

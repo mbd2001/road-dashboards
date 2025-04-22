@@ -91,3 +91,6 @@ Pipfile
 
 # go-task
 .task/**
+# pixi environments
+.pixi
+*.egg-info

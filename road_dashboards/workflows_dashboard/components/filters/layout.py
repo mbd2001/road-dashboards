@@ -3,7 +3,7 @@ from dash import dcc, html
 
 from road_dashboards.workflows_dashboard.common.consts import ComponentIds
 
-from . import callbacks  # DO NOT REMOVE!
+from . import callbacks  # noqa: F401
 from .brain_selector import render_brain_selector
 from .date_range import render_date_range
 

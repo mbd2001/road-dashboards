@@ -67,17 +67,17 @@ from road_dashboards.road_eval_dashboard.components.queries_manager import (
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import create_alert_message, create_dropdown_options_list
 
 BOOKMARKS_COLUMNS = ["clip_name", "grabindex"]
-EXPLORER_PARAMS = """ 
-    --dataset_names {dataset} 
-    --population {population} 
+EXPLORER_PARAMS = """
+    --dataset_names {dataset}
+    --population {population}
     --bookmarks {bookmarks_name}
-    --net_name {net_id} 
-    --ckpt {checkpoint} 
-    --use_case {use_case}  
+    --net_name {net_id}
+    --ckpt {checkpoint}
+    --use_case {use_case}
 """
-EXPLORER_PARAMS_REF_ADDITION = """--net_name {net_id} 
-                                  --ckpt {checkpoint} 
-                                  --use_case {use_case} 
+EXPLORER_PARAMS_REF_ADDITION = """--net_name {net_id}
+                                  --ckpt {checkpoint}
+                                  --use_case {use_case}
 """
 S3_EVENTS_DIR = (
     "s3://mobileye-team-road/roade2e_database/run_eval_catalog/{net_id}/{checkpoint}/{use_case}/{dataset}/events"
