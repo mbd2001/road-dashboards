@@ -5,7 +5,7 @@ from road_dashboards.workflows_dashboard.common.consts import ComponentIds, Load
 from road_dashboards.workflows_dashboard.components.filters.layout import render_filters
 from road_dashboards.workflows_dashboard.components.main_content.layout import render_main_content
 
-from . import callbacks  # noqa
+from . import callbacks  # noqa: F401
 
 register_page(__name__, path="/", name="Workflow Status", order=1)
 

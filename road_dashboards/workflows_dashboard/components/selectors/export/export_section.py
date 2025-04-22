@@ -5,7 +5,7 @@ from road_database_toolkit.databases.workflows.workflow_enums import Status, Wor
 from road_dashboards.workflows_dashboard.common.consts import ExportComponentsIds
 from road_dashboards.workflows_dashboard.common.utils import format_workflow_type
 
-from . import callbacks  # noqa
+from . import callbacks  # noqa: F401
 
 
 class WorkflowSelector:
