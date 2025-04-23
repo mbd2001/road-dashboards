@@ -45,6 +45,9 @@ platforms = ["linux-64"]
 [tool.pixi.pypi-options]
 index-url = "https://artifactory.sddc.mobileye.com/artifactory/api/pypi/pypi/simple"
 
+[tool.pixi.feature.common.pypi-dependencies]
+road-dashboards = { path = ".", editable = true }
+
 [tool.pixi.environments]
 default = ["common"]
 docs = { features = ["common", "docs"], no-default-feature = true }
@@ -109,6 +112,9 @@ pyyaml = ">=6.0.2,<7"
 scipy = ">=1.15.2,<2"
 pycountry = ">=24.6.1,<25"
 
+[tool.pixi.feature.dump.tasks]
+data-exploration = "python road_dashboards/road_dump_dashboard/app.py"
+
 [tool.pixi.feature.eval.dependencies]
 jira = ">=3.8.0,<4"
 pycountry = ">=24.6.1,<25"
@@ -116,10 +122,15 @@ angie-shuffle-service = ">=0.21.3,<0.22"
 road-objects = ">=0.0.11,<0.0.12"
 mexsense = ">=0.17.0,<0.18"
 
+[tool.pixi.feature.eval.tasks]
+dynamic-stats = "python road_dashboards/road_eval_dashboard/app.py"
+
 [tool.pixi.feature.workflows.dependencies]
 pydantic = ">=2.11.3,<3"
 sqlalchemy = ">=2.0.40,<3"
 
+[tool.pixi.feature.workflows.tasks]
+weekly-stats = "python road_dashboards/workflows_dashboard/app.py"
 
 [tool.pixi.feature.docs.dependencies]
 python = ">=3.13.2,<3.14"
