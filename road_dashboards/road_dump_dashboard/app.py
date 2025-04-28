@@ -9,6 +9,7 @@ from dash import Dash, Input, Output, callback, dcc, html, no_update
 
 from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import (
     LOAD_DATASETS_DATA_NOTIFICATION,
+    MEXSENSE_DATA,
     URL,
 )
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import (
@@ -41,6 +42,7 @@ app.layout = html.Div(
     [
         init_dcc_stores(),
         dcc.Location(id=URL),
+        dcc.Store(id=MEXSENSE_DATA),
         sidebar.layout,
         load_datasets_modal.layout,
         page_content.layout,
@@ -85,4 +87,4 @@ def get_tables(datasets):
 
 
 if __name__ == "__main__":
-    app.run_server(host="0.0.0.0", port="6008", debug=debug, use_reloader=debug)
+    app.run(host="0.0.0.0", port="6008", debug=debug, use_reloader=debug)

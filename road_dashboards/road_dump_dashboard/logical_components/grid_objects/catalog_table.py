@@ -4,18 +4,23 @@ import json
 import dash_bootstrap_components as dbc
 import dash_daq as daq
 import pandas as pd
+from angie_shuffle_service.shuffle_service import (
+    get_dataset,
+)
 from boto3.dynamodb.conditions import Attr
 from dash import Input, Output, State, callback, dash_table, html, no_update
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import URL
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import MEXSENSE_DATA, URL
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import (
     card_wrapper,
     loading_wrapper,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+from road_dashboards.road_dump_dashboard.logical_components.mexsense_link import get_mexsense_link
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
+# dump_db_manager = DBManager.get(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
 table_columns = {
     "dump_name": "Dataset Name",
@@ -42,6 +47,7 @@ class CatalogTable(GridObject):
         self.filter_not_completed_switch_id = self._generate_id("filter_not_completed_switch")
         self.column_selector_id = self._generate_id("column_selector")
         self.update_runs_btn_id = self._generate_id("update_runs_btn")
+        self.mexsense_btn = self._generate_id("mexsense_btn")
 
     def layout(self):
         column_selector = self.get_column_selector(self.column_selector_id)
@@ -54,11 +60,30 @@ class CatalogTable(GridObject):
                 ),
                 dbc.Row(loading_wrapper(data_table), className="mt-5"),
                 dbc.Row(
-                    dbc.Col(
-                        dbc.Button(
-                            "Choose Datasets to Explore", id=self.update_runs_btn_id, className="bg-primary mt-5"
-                        )
-                    ),
+                    [
+                        dbc.Col(
+                            dbc.Button(
+                                "Choose Datasets to Explore",
+                                id=self.update_runs_btn_id,
+                                className="bg-primary mt-5",
+                            ),
+                            width="auto",
+                            className="me-1",
+                        ),
+                        dbc.Col(
+                            dbc.Button(
+                                "Open in MExsense",
+                                id=self.mexsense_btn,
+                                className="btn btn-primary mt-5",
+                                href="",
+                                target="_blank",
+                                style={"display": "inline-block"},
+                            ),
+                            width="auto",
+                            className="ms-1",
+                        ),
+                    ],
+                    justify="start",
                 ),
             ]
         )
@@ -157,14 +182,15 @@ class CatalogTable(GridObject):
             return columns_config
 
         @callback(
-            Output(URL, "hash"),
+            [Output(URL, "hash"), Output(MEXSENSE_DATA, "data")],
             Input(self.update_runs_btn_id, "n_clicks"),
             State(self.dump_catalog_id, "derived_virtual_data"),
             State(self.dump_catalog_id, "derived_virtual_selected_rows"),
+            prevent_initial_call=True,
         )
         def init_run(n_clicks, rows, derived_virtual_selected_rows):
             if not derived_virtual_selected_rows:
-                return no_update
+                return no_update, ""
 
             datasets_ids = self.parse_catalog_rows(rows, derived_virtual_selected_rows)["dump_name"]
             datasets = [dump_db_manager.get_item(dataset_id) for dataset_id in datasets_ids]
@@ -172,9 +198,34 @@ class CatalogTable(GridObject):
 
             dumps_list = list(datasets["dump_name"])
             dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
-            return dump_list_hash
+            shuffle_path = self.get_shuffle_path(rows, derived_virtual_selected_rows)
+            return dump_list_hash, shuffle_path
+
+        @callback(
+            Output(self.mexsense_btn, "href"),
+            [Input(self.mexsense_btn, "n_clicks")],
+            [Input(self.dump_catalog_id, "derived_virtual_selected_rows")],
+            [State(self.dump_catalog_id, "derived_virtual_data")],
+            prevent_initial_call=True,
+        )
+        def mexsense_run(n_clicks, selected_rows, rows):
+            if not selected_rows:
+                return "about:blank"
+
+            shuffle_path = self.get_shuffle_path(rows, selected_rows)
+            link = get_mexsense_link(shuffle_path)
+            return link
 
     @staticmethod
     def parse_catalog_rows(rows, derived_virtual_selected_rows):
         rows = pd.DataFrame([rows[i] for i in derived_virtual_selected_rows])
         return rows
+
+    @staticmethod
+    def get_shuffle_path(rows, selected_rows):
+        rows = pd.DataFrame([rows[i] for i in selected_rows])
+
+        dataset_name = rows["dump_name"].iloc[0]
+        use_case = rows["use_case"].iloc[0]
+        shuffle_path = get_dataset(use_case=use_case, name=dataset_name)
+        return shuffle_path.path

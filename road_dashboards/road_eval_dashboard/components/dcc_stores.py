@@ -7,6 +7,7 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
+    MEXSENSE_DATA,
     NET_ID_TO_FB_BEST_THRESH,
     NETS,
     PATHNET_DYNAMIC_DISTANCE_TO_THRESHOLD,
@@ -63,5 +64,6 @@ def init_dcc_stores():
             dcc.Store(id=PATHNET_DYNAMIC_THRESHOLD_OOL, storage_type="session"),
             dcc.Store(id=PATHNET_DYNAMIC_THRESHOLD_RE_OOL, storage_type="session"),
             dcc.Store(id=PATHNET_EVENTS_EXTRACTOR_DICT, data=init_events_extractor_dict(), storage_type="session"),
+            dcc.Store(id=MEXSENSE_DATA, data=[], storage_type="session"),
         ]
     )

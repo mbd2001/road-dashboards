@@ -402,6 +402,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/aioitertools-0.12.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/aiosignal-1.3.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/alembic-1.15.2-pyhd8ed1ab_0.conda
+      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/angie-shuffle-service-0.21.3-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/annotated-types-0.7.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/anyio-4.9.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/attrs-25.3.0-pyh71513ae_0.conda
@@ -460,6 +461,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/greenlet-3.2.0-py312h2ec8cdc_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/grpc-google-iam-v1-0.14.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/grpcio-1.71.0-py312hdcb7bd4_1.conda
+      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/grpcio-health-checking-1.71.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/grpcio-status-1.71.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
@@ -528,6 +530,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/me-auth-client-v0.35.0-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mest-commander-5.2.1-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/metro-3.0.33-py_0.tar.bz2
+      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mexsense-0.17.0-d9941567.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mobileye.clip-services-2.0.156-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mobileye.nebula-tools-2.0.40-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/msal-1.32.0-pyhd8ed1ab_0.conda
@@ -654,47 +657,23 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/aioitertools-0.12.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/aiosignal-1.3.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/alembic-1.15.2-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/alsa-lib-1.2.14-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/angie-shuffle-service-0.21.3-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/annotated-types-0.7.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/anyio-4.9.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/asttokens-3.0.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/async-timeout-5.0.1-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/attrs-25.3.0-pyh71513ae_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-auth-0.9.0-h094d708_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-cal-0.8.9-hada3f3f_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-common-0.12.2-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-compression-0.3.1-hc2d532b_4.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-event-stream-0.5.4-h8170a11_5.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-http-0.9.5-hca9d837_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-io-0.18.0-h7b13e6b_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-mqtt-0.12.3-h773eac8_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-s3-0.7.15-h46af1f8_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-sdkutils-0.2.3-hc2d532b_4.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-checksums-0.2.5-hc2d532b_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-crt-cpp-0.32.4-h7d42c6f_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-sdk-cpp-1.11.510-h5b777a2_5.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/awscli-1.38.1-py310hff52083_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-core-cpp-1.14.0-h5cfcd09_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-identity-cpp-1.10.0-h113e628_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-storage-blobs-cpp-12.13.0-h3cf044e_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-storage-common-cpp-12.8.0-h736e048_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-storage-files-datalake-cpp-12.12.0-ha633028_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/backports-1.0-pyhd8ed1ab_5.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/backports.tarfile-1.2.0-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/base58-2.1.1-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/batchttp-client-1.0.31-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/blinker-1.9.0-pyhff2d567_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/boto3-1.37.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/botocore-1.37.1-pyge310_1234567_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/brotli-1.1.0-hb9d3cd8_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/brotli-bin-1.1.0-hb9d3cd8_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/brotli-python-1.1.0-py310hf71b8c6_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/bzip2-1.0.8-h4bc722e_7.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/c-ares-1.34.5-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/ca-certificates-2025.1.31-hbd8a1cb_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/cachetools-5.5.2-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/cairo-1.18.4-h3394656_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/certifi-2025.1.31-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/cffi-1.17.1-py310h8deb56e_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/charset-normalizer-3.4.1-pyhd8ed1ab_0.conda
@@ -703,9 +682,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/cloud-quota-shared-2.0.22-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/cloud-storage-utils-1.0.65-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/colorama-0.4.6-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/contourpy-1.3.2-py310h3788b33_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/cryptography-44.0.2-py310h6c63255_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/cycler-0.12.1-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/cyrus-sasl-2.1.27-h54b06d7_7.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/dash-2.18.2-pyhd8ed1ab_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/dash-bootstrap-components-2.0.1-pyhd8ed1ab_0.conda
@@ -718,10 +695,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/decorator-5.2.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/defusedxml-0.7.1-pyhd8ed1ab_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/deprecated-1.2.18-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/devkit-base-0.4.45-49cfb0de.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/dnspython-2.7.0-pyhff2d567_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/docutils-0.16-py310hff52083_5.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/double-conversion-3.3.1-h5888daf_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/editables-0.5-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/email-validator-2.2.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/email_validator-2.2.0-hd8ed1ab_1.conda
@@ -732,23 +706,11 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fastapi-cli-0.0.7-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/file2path-0.0.21-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/filelock-3.18.0-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fire-0.7.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/flask-3.1.0-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-dejavu-sans-mono-2.37-hab24e00_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-inconsolata-3.000-h77eed37_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-source-code-pro-2.038-h77eed37_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-ubuntu-0.83-h77eed37_3.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/fontconfig-2.15.0-h7e30c49_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fonts-conda-ecosystem-1-0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fonts-conda-forge-1-0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/fonttools-4.57.0-py310h89163eb_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/freetype-2.13.3-h48d6fc4_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/frozenlist-1.5.0-py310h89163eb_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fsspec-2025.3.2-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/future-1.0.0-pyhd8ed1ab_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/geo-location-catalog-1.0.166-py_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/gflags-2.2.2-h5888daf_1005.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/glog-0.7.1-hbabe93e_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/google-api-core-2.24.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/google-api-core-grpc-2.24.2-hd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/google-auth-2.39.0-pyhd8ed1ab_0.conda
@@ -759,7 +721,6 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/google-resumable-media-2.7.2-pyhd8ed1ab_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/googleapis-common-protos-1.70.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/googleapis-common-protos-grpc-1.70.0-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/graphite2-1.3.13-h59595ed_1003.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/greenlet-3.2.0-py310hf71b8c6_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/grpc-google-iam-v1-0.14.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/grpcio-1.71.0-py310h4e143da_1.conda
@@ -767,7 +728,6 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/grpcio-status-1.71.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/h11-0.14.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/h2-4.2.0-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/harfbuzz-11.1.0-h3beb420_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/hatchling-1.27.0-pypyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/hpack-4.1.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/httpcore-1.0.7-pyh29332c3_1.conda
@@ -793,79 +753,45 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/jmespath-1.0.1-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/keyring-25.6.0-pyha804496_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/keyutils-1.6.1-h166bdaf_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/kiwisolver-1.4.7-py310h3788b33_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/krb5-1.21.3-h659f571_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/lcms2-2.17-h717163a_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/ld_impl_linux-64-2.43-h712a8e2_4.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/lerc-4.0.0-h0aef613_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libabseil-20250127.1-cxx17_hbbce691_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-19.0.1-h27f8bab_8_cpu.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-acero-19.0.1-hcb10f89_8_cpu.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-dataset-19.0.1-hcb10f89_8_cpu.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-substrait-19.0.1-h1bed206_8_cpu.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libblas-3.9.0-31_h59b9bed_openblas.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libbrotlicommon-1.1.0-hb9d3cd8_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libbrotlidec-1.1.0-hb9d3cd8_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libbrotlienc-1.1.0-hb9d3cd8_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcblas-3.9.0-31_he106b2a_openblas.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libclang-cpp20.1-20.1.3-default_h1df26ce_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libclang13-20.1.3-default_he06ed0a_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcrc32c-1.1.2-h9c3ff4c_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcups-2.3.3-h4637d8d_4.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcurl-8.13.0-h332b0f4_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libdeflate-1.23-h86f0d12_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libdrm-2.4.124-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libedit-3.1.20250104-pl5321h7949ede_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libegl-1.7.0-ha4b6fd6_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libev-4.33-hd590300_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libevent-2.1.12-hf998b51_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libexpat-2.7.0-h5888daf_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libffi-3.4.6-h2dba641_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgcc-14.2.0-h767d61c_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgcc-ng-14.2.0-h69a702a_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgfortran-14.2.0-h69a702a_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgfortran5-14.2.0-hf1ad2bd_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgl-1.7.0-ha4b6fd6_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libglib-2.84.1-h2ff4ddf_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libglvnd-1.7.0-ha4b6fd6_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libglx-1.7.0-ha4b6fd6_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgomp-14.2.0-h767d61c_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgoogle-cloud-2.36.0-hc4361e1_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgoogle-cloud-storage-2.36.0-h0121fbd_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgrpc-1.71.0-h8e591d7_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libiconv-1.18-h4ce23a2_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libjpeg-turbo-3.1.0-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/liblapack-3.9.0-31_h7ac8fdf_openblas.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libllvm20-20.1.3-he9d0ab4_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/liblzma-5.8.1-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libnghttp2-1.64.0-h161d5f1_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libnsl-2.0.1-hd590300_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libntlm-1.8-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libopenblas-0.3.29-pthreads_h94d23a6_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libopengl-1.7.0-ha4b6fd6_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libopentelemetry-cpp-1.20.0-hd1b1c89_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libopentelemetry-cpp-headers-1.20.0-ha770c72_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libparquet-19.0.1-h081d1f1_8_cpu.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libpciaccess-0.18-hd590300_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libpng-1.6.47-h943b412_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libpq-17.4-h27ae623_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libprotobuf-5.29.3-h501fc15_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libre2-11-2024.07.02-hba17884_3.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libsqlite-3.49.1-hee588c1_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libssh2-1.11.1-hf672d98_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libstdcxx-14.2.0-h8f9b012_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libstdcxx-ng-14.2.0-h4852527_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libthrift-0.21.0-h0e7cc3e_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libtiff-4.7.0-hd9ff511_3.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libutf8proc-2.10.0-h4c51ac1_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libuv-1.50.0-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libwebp-base-1.5.0-h851e524_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxcb-1.17.0-h8a09558_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxcrypt-4.4.36-hd590300_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxkbcommon-1.8.1-hc4a0caf_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxml2-2.13.7-h4bc477f_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxslt-1.1.39-h76b75d6_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/lockfile-0.12.2-py_1.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/loguru-0.7.2-py310hff52083_2.conda
@@ -875,13 +801,9 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/mangum-0.19.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/markdown-it-py-3.0.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/markupsafe-3.0.2-py310h89163eb_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/matplotlib-3.10.1-py310hff52083_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/matplotlib-base-3.10.1-py310h68603db_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/matplotlib-inline-0.1.7-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/mdurl-0.1.2-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/me-auth-client-v0.35.0-py_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/me-nebula-0.2.28-pypy_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mecaliblib-1.3.2-py_3.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mest-commander-5.2.1-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/metro-3.0.33-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mexsense-0.17.0-d9941567.tar.bz2
@@ -890,13 +812,9 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/more-itertools-10.6.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/msal-1.32.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/multidict-6.4.3-py310h89163eb_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/munkres-1.1.4-pyh9f0ad1d_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/mysql-common-9.2.0-h266115a_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/mysql-libs-9.2.0-he0572af_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/narwhals-1.35.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/ncurses-6.5-h2d0b736_3.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/nest-asyncio-1.6.0-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/nlohmann_json-3.12.0-h3f2d84a_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/nomkl-1.0-h5ca1d4c_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/nssd-errors-1.6.10-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/numpy-2.2.5-py310hefbff90_0.conda
@@ -905,7 +823,6 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/openldap-2.6.9-he970967_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/opensearch-py-2.4.2-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/openssl-3.5.0-h7b32b05_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/orc-2.1.1-h17f744e_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/orjson-3.10.16-py310h505e2c1_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/packaging-25.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pandas-2.2.3-py310h5eaa309_3.conda
@@ -915,11 +832,9 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pexpect-4.9.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pickleshare-0.7.5-pyhd8ed1ab_1004.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pillow-11.1.0-py310h7e6dc6c_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pixman-0.44.2-h29eaf8c_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/plotly-6.0.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/pls-catalog-1.1.36-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pluggy-1.5.0-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/prometheus-cpp-1.3.0-ha5d0236_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/prompt-toolkit-3.0.51-pyha770c72_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/propcache-0.3.1-py310h89163eb_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/proto-plus-1.26.1-pyhd8ed1ab_0.conda
@@ -931,8 +846,6 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/ptyprocess-0.7.0-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pure_eval-0.2.3-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/py-1.11.0-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pyarrow-19.0.1-py310hff52083_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pyarrow-core-19.0.1-py310hac404ae_0_cpu.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyasn1-modules-0.4.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pycountry-24.6.1-pyhd8ed1ab_0.conda
@@ -944,8 +857,6 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyjwt-2.10.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pynamodb-6.0.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyopenssl-25.0.0-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyparsing-3.2.3-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pyside6-6.9.0-py310hfd10a26_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pysocks-1.7.1-pyha55dd90_7.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/python-3.10.17-hd6af730_0_cpython.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/python-daemon-3.1.2-pyhff2d567_0.conda
@@ -958,8 +869,6 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pytz-2025.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyu2f-0.1.5-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pyyaml-6.0.2-py310h89163eb_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/qhull-2020.2-h434a139_5.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/qt6-main-6.9.0-h6441bc3_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/quota-client-5.0.30-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/rclone-1.69.1-hdac43c8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/re2-2024.07.02-h9925aae_3.conda
@@ -972,22 +881,18 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-14.0.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-toolkit-0.11.3-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.42-pyh4616a5c_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-objects-0.0.11-pyh4616a5c_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/rqm-1.2.73-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rsa-4.7.2-pyh44b312d_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/run-mest-0.0.22-py_0.tar.bz2
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/s2n-1.5.16-hba75a32_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/s3fs-2025.3.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/s3path-0.4.2-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/s3transfer-0.11.3-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/s5cmd-2.3.0-he91c749_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/scipy-1.15.2-py310h1d65ade_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/secretstorage-3.3.3-py310hff52083_3.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/setuptools-79.0.0-pyhff2d567_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/shellingham-1.5.4-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/six-1.17.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/smart_open-7.1.0-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/snappy-1.2.1-h8bd8927_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/sqlalchemy-2.0.40-py310ha75aee5_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/stack_data-0.6.3-pyhd8ed1ab_1.conda
@@ -995,10 +900,8 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/tabulate-0.9.0-pyhd8ed1ab_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/tar-1.34-hb2e2bae_1.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/tenacity-9.1.2-pyhd8ed1ab_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/termcolor-3.0.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/tk-8.6.13-noxft_h4845f30_101.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/tomli-2.2.1-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/tornado-6.4.2-py310ha75aee5_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/traitlets-5.14.3-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/trove-classifiers-2025.4.11.15-pyhd8ed1ab_0.conda
@@ -1009,44 +912,21 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/typing-inspection-0.4.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/typing_extensions-4.13.2-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/tzdata-2025b-h78e105d_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/unicodedata2-16.0.0-py310ha75aee5_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/urllib3-2.4.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/uvicorn-0.34.2-pyh31011fe_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/uvicorn-standard-0.34.2-h31011fe_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/uvloop-0.21.0-py310ha75aee5_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/watchfiles-1.0.5-py310h505e2c1_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/wayland-1.23.1-h3e06ad9_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/wcwidth-0.2.13-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/websockets-15.0.1-py310ha75aee5_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/werkzeug-3.1.3-pyhd8ed1ab_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/wheel-0.42.0-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/wrapt-1.17.2-py310ha75aee5_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-0.4.1-hb711507_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-cursor-0.1.5-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-image-0.4.0-hb711507_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-keysyms-0.4.1-hb711507_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-renderutil-0.3.10-hb711507_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-wm-0.4.2-hb711507_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xkeyboard-config-2.43-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libice-1.1.2-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libsm-1.2.6-he73a12e_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libx11-1.8.12-h4f16b4b_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxau-1.0.12-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxcomposite-0.4.6-hb9d3cd8_2.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxcursor-1.2.3-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxdamage-1.1.6-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxdmcp-1.1.5-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxext-1.3.6-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxfixes-6.0.1-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxi-1.8.2-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxrandr-1.5.4-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxrender-0.9.12-hb9d3cd8_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxtst-1.2.5-hb9d3cd8_3.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxxf86vm-1.1.6-hb9d3cd8_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/yaml-0.2.5-h7f98852_2.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/yarl-1.20.0-py310h89163eb_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/zipp-3.21.0-pyhd8ed1ab_1.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/zlib-1.3.1-hb9d3cd8_2.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/zstandard-0.23.0-py310ha75aee5_1.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/zstd-1.5.7-hb8e6e7a_2.conda
       - pypi: https://artifactory.sddc.mobileye.com/artifactory/api/pypi/pypi/packages/packages/ae/b3/a0f0f4faac229b0011d8c4a7ee6da7c2dca0b6fd08039c95920846f23ca4/kaleido-0.2.1-py2.py3-none-manylinux1_x86_64.whl#sha256=aa21cf1bf1c78f8fa50a9f7d45e1003c387bd3d6fe0a767cfbbf344b95bdc3a8
@@ -1492,16 +1372,6 @@ packages:
   - pkg:pypi/alembic?source=hash-mapping
   size: 158649
   timestamp: 1743207943330
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/alsa-lib-1.2.14-hb9d3cd8_0.conda
-  sha256: b9214bc17e89bf2b691fad50d952b7f029f6148f4ac4fe7c60c08f093efdf745
-  md5: 76df83c2a9035c54df5d04ff81bcc02d
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  license: LGPL-2.1-or-later
-  license_family: GPL
-  size: 566531
-  timestamp: 1744668655747
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/angie-shuffle-service-0.21.3-py_0.tar.bz2
   sha256: 29663069384545e5bff81ac2719c3c34094c435a7d4383134e837dcd86ab3a87
   md5: b7e95db865494c4c73928a8a3739ea88
@@ -1635,288 +1505,6 @@ packages:
   license_family: MIT
   size: 57181
   timestamp: 1741918625732
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-auth-0.9.0-h094d708_2.conda
-  sha256: 52ac77926deb7e9672ab60e330dfad31392ebe9f0f78cdf0bc597d7d7c12a2cb
-  md5: 9b1e62c9d7b158cf1a234ee49ef6232f
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-cal >=0.8.9,<0.8.10.0a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - aws-c-http >=0.9.5,<0.9.6.0a0
-  - aws-c-io >=0.18.0,<0.18.1.0a0
-  - aws-c-sdkutils >=0.2.3,<0.2.4.0a0
-  - libgcc >=13
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 111498
-  timestamp: 1743819638135
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-cal-0.8.9-hada3f3f_0.conda
-  sha256: b24d9e5a59b11e635db4f02d7f94ab2712c9d09d2503236cfb781cc05bf98702
-  md5: f1bc1f3925e2ff734d4a8a5bb3552b1d
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - libgcc >=13
-  - openssl >=3.4.1,<4.0a0
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 50997
-  timestamp: 1743664886404
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-common-0.12.2-hb9d3cd8_0.conda
-  sha256: 155621a78e38a092f455a75b04d09bfce04b768e8af10895429e48e57a08b6c2
-  md5: bd52f376d1d34d7823a7bf0773be86e8
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 236536
-  timestamp: 1743046458804
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-compression-0.3.1-hc2d532b_4.conda
-  sha256: cf6caf5207c95a36c8089c54307e192befa92b773a65e0369b72fabfdc408fee
-  md5: 4cc4dcd582b2f087d62c70b2d6daa59f
-  depends:
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 21753
-  timestamp: 1743446917660
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-event-stream-0.5.4-h8170a11_5.conda
-  sha256: 4c718a19cf3411ab54b5ff6a7b6dfd10bb46689880e683ae97e1e0de3c7a13dc
-  md5: 68614c9a3b3fb09cb1b4e8c4ed9333fb
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libstdcxx >=13
-  - libgcc >=13
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - aws-checksums >=0.2.5,<0.2.6.0a0
-  - aws-c-io >=0.18.0,<0.18.1.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 57147
-  timestamp: 1743815063175
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-http-0.9.5-hca9d837_2.conda
-  sha256: 9b5a7323dbe50245790dc9c7527ae9b2f8341eeb491ccead060e2a159bd113fd
-  md5: 2c3fdcb5a1bf40fd7b6b5598718e5929
-  depends:
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-io >=0.18.0,<0.18.1.0a0
-  - aws-c-cal >=0.8.9,<0.8.10.0a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - aws-c-compression >=0.3.1,<0.3.2.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 219143
-  timestamp: 1743815079407
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-io-0.18.0-h7b13e6b_1.conda
-  sha256: 6232032b58725ea8b1b706f07b67ef729322f4b0410f885df60bcefc6799a1a8
-  md5: 0344e7cd6658502b7cab405637db97a2
-  depends:
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - s2n >=1.5.16,<1.5.17.0a0
-  - aws-c-cal >=0.8.9,<0.8.10.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 180213
-  timestamp: 1743809472351
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-mqtt-0.12.3-h773eac8_2.conda
-  sha256: b097a71a86cd49e1fd18b6a8f2bedd0b0ea88e75c3423b561e48ef2a494ba389
-  md5: 53e040407719cf505b7753a6450e4d03
-  depends:
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - aws-c-io >=0.18.0,<0.18.1.0a0
-  - aws-c-http >=0.9.5,<0.9.6.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 213856
-  timestamp: 1743819680507
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-s3-0.7.15-h46af1f8_1.conda
-  sha256: 601dc338a99ebb146c89a0dcc4e6e3051427fe068aa05557bd35628cab2c6120
-  md5: 4b91da7a394cb7c0a5bd9bb8dd8dcc76
-  depends:
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - aws-checksums >=0.2.5,<0.2.6.0a0
-  - aws-c-http >=0.9.5,<0.9.6.0a0
-  - aws-c-cal >=0.8.9,<0.8.10.0a0
-  - openssl >=3.4.1,<4.0a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - aws-c-io >=0.18.0,<0.18.1.0a0
-  - aws-c-auth >=0.9.0,<0.9.1.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 129259
-  timestamp: 1743824869782
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-c-sdkutils-0.2.3-hc2d532b_4.conda
-  sha256: 09d276413249df36ecc533d9aff97945cc3a2d4ae818bf50d3968fde7e68bc61
-  md5: 15a1f6fb713b4cd3fee74588b996a846
-  depends:
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 58917
-  timestamp: 1743448087115
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-checksums-0.2.5-hc2d532b_1.conda
-  sha256: 9b487deca8198e6c5e64102d06420cbf3eb654065ac472d8e97e86f55af34268
-  md5: 47e378813c3451a9eb0948625a18418a
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 76007
-  timestamp: 1743447027086
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-crt-cpp-0.32.4-h7d42c6f_0.conda
-  sha256: 11726f18d6cdd4ec94cb1f3d3e02cfad0b261db4cb891009bcad467fc2e05546
-  md5: e39cbe02d737ce074a59af9d86015c2a
-  depends:
-  - libgcc >=13
-  - libstdcxx >=13
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - aws-c-io >=0.18.0,<0.18.1.0a0
-  - aws-c-s3 >=0.7.15,<0.7.16.0a0
-  - aws-c-event-stream >=0.5.4,<0.5.5.0a0
-  - aws-c-mqtt >=0.12.3,<0.12.4.0a0
-  - aws-c-auth >=0.9.0,<0.9.1.0a0
-  - aws-c-http >=0.9.5,<0.9.6.0a0
-  - aws-c-cal >=0.8.9,<0.8.10.0a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  - aws-c-sdkutils >=0.2.3,<0.2.4.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 390492
-  timestamp: 1744838713428
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/aws-sdk-cpp-1.11.510-h5b777a2_5.conda
-  sha256: e2e18bda4be87b778bc15949c3121cb1c4d2e702a8d8acb3a9f4cb6312397462
-  md5: 860ec2d406d3956b1a8f8cc8ac18faa4
-  depends:
-  - libgcc >=13
-  - __glibc >=2.17,<3.0.a0
-  - libstdcxx >=13
-  - libgcc >=13
-  - aws-c-event-stream >=0.5.4,<0.5.5.0a0
-  - aws-crt-cpp >=0.32.4,<0.32.5.0a0
-  - libcurl >=8.13.0,<9.0a0
-  - libzlib >=1.3.1,<2.0a0
-  - aws-c-common >=0.12.2,<0.12.3.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 3401408
-  timestamp: 1744893400161
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/awscli-1.38.1-py310hff52083_0.conda
-  sha256: c4f906cea2d7bcefd282f452bee38e82e20b65984b1353107a9c3183d25e9554
-  md5: 30f22a3e3fb350fd7f19285010cab08d
-  depends:
-  - botocore 1.37.1
-  - colorama >=0.2.5,<0.4.7
-  - docutils >=0.10,<0.17
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  - pyyaml >=3.10,<6.1
-  - rsa >=3.1.2,<4.8
-  - s3transfer >=0.11.0,<0.12.0
-  license: Apache-2.0
-  license_family: Apache
-  purls:
-  - pkg:pypi/awscli?source=hash-mapping
-  size: 2357625
-  timestamp: 1740562267013
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-core-cpp-1.14.0-h5cfcd09_0.conda
-  sha256: fe07debdb089a3db17f40a7f20d283d75284bb4fc269ef727b8ba6fc93f7cb5a
-  md5: 0a8838771cc2e985cd295e01ae83baf1
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libcurl >=8.10.1,<9.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - openssl >=3.3.2,<4.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 345117
-  timestamp: 1728053909574
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-identity-cpp-1.10.0-h113e628_0.conda
-  sha256: 286b31616c191486626cb49e9ceb5920d29394b9e913c23adb7eb637629ba4de
-  md5: 73f73f60854f325a55f1d31459f2ab73
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - azure-core-cpp >=1.14.0,<1.14.1.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - openssl >=3.3.2,<4.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 232351
-  timestamp: 1728486729511
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-storage-blobs-cpp-12.13.0-h3cf044e_1.conda
-  sha256: 2606260e5379eed255bcdc6adc39b93fb31477337bcd911c121fc43cd29bf394
-  md5: 7eb66060455c7a47d9dcdbfa9f46579b
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - azure-core-cpp >=1.14.0,<1.14.1.0a0
-  - azure-storage-common-cpp >=12.8.0,<12.8.1.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 549342
-  timestamp: 1728578123088
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-storage-common-cpp-12.8.0-h736e048_1.conda
-  sha256: 273475f002b091b66ce7366da04bf164c3732c03f8692ab2ee2d23335b6a82ba
-  md5: 13de36be8de3ae3f05ba127631599213
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - azure-core-cpp >=1.14.0,<1.14.1.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - libxml2 >=2.12.7,<2.14.0a0
-  - openssl >=3.3.2,<4.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 149312
-  timestamp: 1728563338704
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/azure-storage-files-datalake-cpp-12.12.0-ha633028_1.conda
-  sha256: 5371e4f3f920933bb89b926a85a67f24388227419abd6e99f6086481e5e8d5f2
-  md5: 7c1980f89dd41b097549782121a73490
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - azure-core-cpp >=1.14.0,<1.14.1.0a0
-  - azure-storage-blobs-cpp >=12.13.0,<12.13.1.0a0
-  - azure-storage-common-cpp >=12.8.0,<12.8.1.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 287366
-  timestamp: 1728729530295
 - pypi: https://files.pythonhosted.org/packages/b7/b8/3fe70c75fe32afc4bb507f75563d39bc5642255d1d94f1f23604725780bf/babel-2.17.0-py3-none-any.whl
   name: babel
   version: 2.17.0
@@ -1961,17 +1549,6 @@ packages:
   requires_dist:
   - regex ; extra == 'extras'
   requires_python: '>=3.9'
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/base58-2.1.1-pyhd8ed1ab_1.conda
-  sha256: c18deea456435c2032b6ce49a1332d0d2c91b68d5d8ed8c03f7e60e4f965b922
-  md5: ad0415de02475b397ad9be8ec953482d
-  depends:
-  - python >=3.9
-  license: MIT
-  license_family: MIT
-  purls:
-  - pkg:pypi/base58?source=hash-mapping
-  size: 11390
-  timestamp: 1734539324375
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/batchttp-client-1.0.31-py_0.tar.bz2
   sha256: d13b623cfba8b25b32e28158525e1ea752c1bbd8780d142101d4ca32f6308d42
   md5: 34cd5a2649695e1e678c206c19596edd
@@ -2050,33 +1627,6 @@ packages:
   version: 2.5.post1
   sha256: 13e5732fec27828d6af308628285ad358047cec36801598368cb28bc631dbaf6
   requires_python: '>=3.8'
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/brotli-1.1.0-hb9d3cd8_2.conda
-  sha256: fcb0b5b28ba7492093e54f3184435144e074dfceab27ac8e6a9457e736565b0b
-  md5: 98514fe74548d768907ce7a13f680e8f
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - brotli-bin 1.1.0 hb9d3cd8_2
-  - libbrotlidec 1.1.0 hb9d3cd8_2
-  - libbrotlienc 1.1.0 hb9d3cd8_2
-  - libgcc >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 19264
-  timestamp: 1725267697072
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/brotli-bin-1.1.0-hb9d3cd8_2.conda
-  sha256: 261364d7445513b9a4debc345650fad13c627029bfc800655a266bf1e375bc65
-  md5: c63b5e52939e795ba8d26e35d767a843
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libbrotlidec 1.1.0 hb9d3cd8_2
-  - libbrotlienc 1.1.0 hb9d3cd8_2
-  - libgcc >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 18881
-  timestamp: 1725267688731
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/brotli-python-1.1.0-py310hf71b8c6_2.conda
   sha256: 14f1e89d3888d560a553f40ac5ba83e4435a107552fa5b2b2029a7472554c1ef
   md5: bf502c169c71e3c6ac0d6175addfacc2
@@ -2149,32 +1699,6 @@ packages:
   license_family: MIT
   size: 15220
   timestamp: 1740094145914
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/cairo-1.18.4-h3394656_0.conda
-  sha256: 3bd6a391ad60e471de76c0e9db34986c4b5058587fbf2efa5a7f54645e28c2c7
-  md5: 09262e66b19567aff4f592fb53b28760
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - fontconfig >=2.15.0,<3.0a0
-  - fonts-conda-ecosystem
-  - freetype >=2.12.1,<3.0a0
-  - icu >=75.1,<76.0a0
-  - libexpat >=2.6.4,<3.0a0
-  - libgcc >=13
-  - libglib >=2.82.2,<3.0a0
-  - libpng >=1.6.47,<1.7.0a0
-  - libstdcxx >=13
-  - libxcb >=1.17.0,<2.0a0
-  - libzlib >=1.3.1,<2.0a0
-  - pixman >=0.44.2,<1.0a0
-  - xorg-libice >=1.1.2,<2.0a0
-  - xorg-libsm >=1.2.5,<2.0a0
-  - xorg-libx11 >=1.8.11,<2.0a0
-  - xorg-libxext >=1.3.6,<2.0a0
-  - xorg-libxrender >=0.9.12,<0.10.0a0
-  license: LGPL-2.1-only or MPL-1.1
-  purls: []
-  size: 978114
-  timestamp: 1741554591855
 - pypi: https://files.pythonhosted.org/packages/38/fc/bce832fd4fd99766c04d1ee0eead6b0ec6486fb100ae5e74c1d91292b982/certifi-2025.1.31-py3-none-any.whl
   name: certifi
   version: 2025.1.31
@@ -2330,20 +1854,6 @@ packages:
   - traitlets>=4
   - pytest ; extra == 'test'
   requires_python: '>=3.8'
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/contourpy-1.3.2-py310h3788b33_0.conda
-  sha256: 5231c1b68e01a9bc9debabc077a6fb48c4395206d59f40a4598d1d5e353e11d8
-  md5: b6420d29123c7c823de168f49ccdfe6a
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - numpy >=1.23
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  license: BSD-3-Clause
-  license_family: BSD
-  size: 261280
-  timestamp: 1744743236964
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/cryptography-44.0.2-py310h6c63255_0.conda
   sha256: 9794c829047f951e8f23d70e6521e2fcae2e43e0dd1589dab69c791f6995bfc7
   md5: 24e325f1ed329640c3e4fc7add288363
@@ -2380,17 +1890,6 @@ packages:
   - pkg:pypi/cryptography?source=hash-mapping
   size: 1590060
   timestamp: 1740893871300
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/cycler-0.12.1-pyhd8ed1ab_1.conda
-  sha256: 9827efa891e507a91a8a2acf64e210d2aff394e1cde432ad08e1f8c66b12293c
-  md5: 44600c4667a319d67dbe0681fc0bc833
-  depends:
-  - python >=3.9
-  license: BSD-3-Clause
-  license_family: BSD
-  purls:
-  - pkg:pypi/cycler?source=hash-mapping
-  size: 13399
-  timestamp: 1733332563512
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/cyrus-sasl-2.1.27-h54b06d7_7.conda
   sha256: d2ea5e52da745c4249e1a818095a28f9c57bd4df22cbfc645352defa468e86c2
   md5: dce22f70b4e5a407ce88f2be046f4ceb
@@ -2567,29 +2066,6 @@ packages:
   - pkg:pypi/deprecated?source=hash-mapping
   size: 14382
   timestamp: 1737987072859
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/devkit-base-0.4.45-49cfb0de.tar.bz2
-  noarch: python
-  sha256: 61718ac78a9518ccd8038c5178d967f749d078aafa797689ab09eca745195a3d
-  md5: 18acc00e14e065d8c4826f5b6aa47e4b
-  depends:
-  - boto3
-  - botocore
-  - de-data-service >=3.0.175
-  - file2path
-  - fire
-  - loguru
-  - matplotlib
-  - numpy
-  - orjson
-  - pyarrow >=12.0.0
-  - pydantic
-  - python >=3.10,<3.11
-  - pyyaml
-  - six
-  - typing_extensions >=3.7.4
-  license: Mobileye, LTD
-  size: 1258033
-  timestamp: 1743590481889
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/distlib-0.3.9-pyhd8ed1ab_1.conda
   sha256: 0e160c21776bd881b79ce70053e59736f51036784fa43a50da10a04f0c1b9c45
   md5: 8d88f4a2242e6b96f9ecff9a6a05b2f1
@@ -2620,29 +2096,6 @@ packages:
   - pkg:pypi/dnspython?source=hash-mapping
   size: 172172
   timestamp: 1733256829961
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/docutils-0.16-py310hff52083_5.conda
-  sha256: 419a834649cbad831abf5a3ae3dd3eef0e27ff59a0d6827b78985626d12279f7
-  md5: 95ae44a04c0a165b4709ef7809227b2d
-  depends:
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  license: CC-PDDC AND BSD-3-Clause AND BSD-2-Clause AND ZPL-2.1
-  purls:
-  - pkg:pypi/docutils?source=hash-mapping
-  size: 720661
-  timestamp: 1728488781492
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/double-conversion-3.3.1-h5888daf_0.conda
-  sha256: 1bcc132fbcc13f9ad69da7aa87f60ea41de7ed4d09f3a00ff6e0e70e1c690bc2
-  md5: bfd56492d8346d669010eccafe0ba058
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 69544
-  timestamp: 1739569648873
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/editables-0.5-pyhd8ed1ab_1.conda
   sha256: 8d4f908e670be360617d418c328213bc46e7100154c3742db085148141712f60
   md5: 2cf824fe702d88e641eec9f9f653e170
@@ -2785,21 +2238,10 @@ packages:
   depends:
   - python >=3.9
   license: Unlicense
+  purls:
+  - pkg:pypi/filelock?source=hash-mapping
   size: 17887
   timestamp: 1741969612334
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fire-0.7.0-pyhd8ed1ab_0.conda
-  sha256: 9b2d95df57d20338b03c47f2dabe1caebcbbbd5c1af437b7114906be7040b217
-  md5: c8eefdf1e822c56a6034602e67bc92a5
-  depends:
-  - python >=3.7
-  - six
-  - termcolor
-  license: Apache-2.0
-  license_family: Apache
-  purls:
-  - pkg:pypi/fire?source=hash-mapping
-  size: 84280
-  timestamp: 1727808502168
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/flask-3.1.0-pyhd8ed1ab_1.conda
   sha256: 4dc950e0c4edf552d5375656bc4ba6239db64382decf3b19f851a097d1b292c6
   md5: 2da939620e3a741f61fc1cb136df66fb
@@ -2813,95 +2255,10 @@ packages:
   - werkzeug >=3.1
   license: BSD-3-Clause
   license_family: BSD
+  purls:
+  - pkg:pypi/flask?source=hash-mapping
   size: 81919
   timestamp: 1741793160999
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-dejavu-sans-mono-2.37-hab24e00_0.tar.bz2
-  sha256: 58d7f40d2940dd0a8aa28651239adbf5613254df0f75789919c4e6762054403b
-  md5: 0c96522c6bdaed4b1566d11387caaf45
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 397370
-  timestamp: 1566932522327
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-inconsolata-3.000-h77eed37_0.tar.bz2
-  sha256: c52a29fdac682c20d252facc50f01e7c2e7ceac52aa9817aaf0bb83f7559ec5c
-  md5: 34893075a5c9e55cdafac56607368fc6
-  license: OFL-1.1
-  license_family: Other
-  purls: []
-  size: 96530
-  timestamp: 1620479909603
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-source-code-pro-2.038-h77eed37_0.tar.bz2
-  sha256: 00925c8c055a2275614b4d983e1df637245e19058d79fc7dd1a93b8d9fb4b139
-  md5: 4d59c254e01d9cde7957100457e2d5fb
-  license: OFL-1.1
-  license_family: Other
-  purls: []
-  size: 700814
-  timestamp: 1620479612257
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/font-ttf-ubuntu-0.83-h77eed37_3.conda
-  sha256: 2821ec1dc454bd8b9a31d0ed22a7ce22422c0aef163c59f49dfdf915d0f0ca14
-  md5: 49023d73832ef61042f6a237cb2687e7
-  license: LicenseRef-Ubuntu-Font-Licence-Version-1.0
-  license_family: Other
-  purls: []
-  size: 1620504
-  timestamp: 1727511233259
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/fontconfig-2.15.0-h7e30c49_1.conda
-  sha256: 7093aa19d6df5ccb6ca50329ef8510c6acb6b0d8001191909397368b65b02113
-  md5: 8f5b0b297b59e1ac160ad4beec99dbee
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - freetype >=2.12.1,<3.0a0
-  - libexpat >=2.6.3,<3.0a0
-  - libgcc >=13
-  - libuuid >=2.38.1,<3.0a0
-  - libzlib >=1.3.1,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 265599
-  timestamp: 1730283881107
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fonts-conda-ecosystem-1-0.tar.bz2
-  sha256: a997f2f1921bb9c9d76e6fa2f6b408b7fa549edd349a77639c9fe7a23ea93e61
-  md5: fee5683a3f04bd15cbd8318b096a27ab
-  depends:
-  - fonts-conda-forge
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 3667
-  timestamp: 1566974674465
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/fonts-conda-forge-1-0.tar.bz2
-  sha256: 53f23a3319466053818540bcdf2091f253cbdbab1e0e9ae7b9e509dcaa2a5e38
-  md5: f766549260d6815b0c52253f1fb1bb29
-  depends:
-  - font-ttf-dejavu-sans-mono
-  - font-ttf-inconsolata
-  - font-ttf-source-code-pro
-  - font-ttf-ubuntu
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 4102
-  timestamp: 1566932280397
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/fonttools-4.57.0-py310h89163eb_0.conda
-  sha256: 8b387f0906c8ea04f14eb449e1b58e01fb2cdc4b9a093edf6afdc9625c11cfd6
-  md5: 34378af82141b3c1725dcdf898b28fc6
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - brotli
-  - libgcc >=13
-  - munkres
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  - unicodedata2 >=15.1.0
-  license: MIT
-  license_family: MIT
-  purls:
-  - pkg:pypi/fonttools?source=hash-mapping
-  size: 2326419
-  timestamp: 1743732349656
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/freetype-2.13.3-h48d6fc4_0.conda
   sha256: 7385577509a9c4730130f54bb6841b9b416249d5f4e9f74bf313e6378e313c57
   md5: 9ecfd6f2ca17077dd9c2d24770bb9ccd
@@ -2911,6 +2268,7 @@ packages:
   - libpng >=1.6.47,<1.7.0a0
   - libzlib >=1.3.1,<2.0a0
   license: GPL-2.0-only OR FTL
+  purls: []
   size: 639682
   timestamp: 1741863789964
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/frozenlist-1.5.0-py310h89163eb_1.conda
@@ -2950,17 +2308,6 @@ packages:
   license_family: BSD
   size: 142117
   timestamp: 1743437355974
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/future-1.0.0-pyhd8ed1ab_2.conda
-  sha256: 45dfd037889b7075c5eb46394f93172de0be0b1624c7f802dd3ecc94b814d8e0
-  md5: 1054c53c95d85e35b88143a3eda66373
-  depends:
-  - python >=3.9
-  license: MIT
-  license_family: MIT
-  purls:
-  - pkg:pypi/future?source=hash-mapping
-  size: 364561
-  timestamp: 1738926525117
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/geo-location-catalog-1.0.166-py_0.tar.bz2
   sha256: 4b8b903ec4a0fed529c7d0588ac02ac41f16287baa30ea0074f950fd41b41a8d
   md5: cb212390f098dd314553dcb3309dca0b
@@ -2974,18 +2321,6 @@ packages:
   license: Mobileye, LTD
   size: 21756
   timestamp: 1736677123208
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/gflags-2.2.2-h5888daf_1005.conda
-  sha256: 6c33bf0c4d8f418546ba9c250db4e4221040936aef8956353bc764d4877bc39a
-  md5: d411fc29e338efb48c5fd4576d71d881
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 119654
-  timestamp: 1726600001928
 - pypi: https://files.pythonhosted.org/packages/f7/ec/67fbef5d497f86283db54c22eec6f6140243aae73265799baaaa19cd17fb/ghp_import-2.1.0-py3-none-any.whl
   name: ghp-import
   version: 2.1.0
@@ -2996,18 +2331,6 @@ packages:
   - markdown ; extra == 'dev'
   - flake8 ; extra == 'dev'
   - wheel ; extra == 'dev'
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/glog-0.7.1-hbabe93e_0.conda
-  sha256: dc824dc1d0aa358e28da2ecbbb9f03d932d976c8dca11214aa1dcdfcbd054ba2
-  md5: ff862eebdfeb2fd048ae9dc92510baca
-  depends:
-  - gflags >=2.2.2,<2.3.0a0
-  - libgcc-ng >=12
-  - libstdcxx-ng >=12
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 143452
-  timestamp: 1718284177264
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/google-api-core-2.24.2-pyhd8ed1ab_0.conda
   sha256: 356dfadc342013b2835250337476d1cb0f4bc01c6f8ffedb7bb412098ddf3412
   md5: 05a11e28a8e55c7ef1f727c2a25e77c1
@@ -3172,17 +2495,6 @@ packages:
   purls: []
   size: 15136
   timestamp: 1744688916399
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/graphite2-1.3.13-h59595ed_1003.conda
-  sha256: 0595b009f20f8f60f13a6398e7cdcbd2acea5f986633adcf85f5a2283c992add
-  md5: f87c7b7c2cb45f323ffbce941c78ab7c
-  depends:
-  - libgcc-ng >=12
-  - libstdcxx-ng >=12
-  license: LGPL-2.0-or-later
-  license_family: LGPL
-  purls: []
-  size: 96855
-  timestamp: 1711634169756
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/greenlet-3.2.0-py310hf71b8c6_0.conda
   sha256: 9bab6545c1dc4f2d2e5eff1f0a740d348fc7985a84d99b91d20ba22e8f59e67d
   md5: 2d0aa4f1ea2b448a962d36d129c361cf
@@ -3322,25 +2634,6 @@ packages:
   - pkg:pypi/h2?source=hash-mapping
   size: 53888
   timestamp: 1738578623567
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/harfbuzz-11.1.0-h3beb420_0.conda
-  sha256: d93b8535a2d66dabfb6e4a2a0dea1b37aab968b5f5bba2b0378f8933429fe2e3
-  md5: 95e3bb97f9cdc251c0c68640e9c10ed3
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - cairo >=1.18.4,<2.0a0
-  - freetype >=2.13.3,<3.0a0
-  - graphite2
-  - icu >=75.1,<76.0a0
-  - libexpat >=2.7.0,<3.0a0
-  - libgcc >=13
-  - libglib >=2.84.1,<3.0a0
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 1729836
-  timestamp: 1744894321480
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/hatchling-1.27.0-pypyhd8ed1ab_0.conda
   sha256: e83420f81390535774ac33b83d05249b8993e5376b76b4d461f83a77549e493d
   md5: b85c18ba6e927ae0da3fde426c893cc8
@@ -3767,6 +3060,8 @@ packages:
   - python >=3.9
   license: BSD-3-Clause
   license_family: BSD
+  purls:
+  - pkg:pypi/jinja2?source=hash-mapping
   size: 112714
   timestamp: 1741263433881
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/jira-3.8.0-hd8ed1ab_1.conda
@@ -4029,21 +3324,6 @@ packages:
   purls: []
   size: 117831
   timestamp: 1646151697040
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/kiwisolver-1.4.7-py310h3788b33_0.conda
-  sha256: d97a9894803674e4f8155a5e98a49337d28bdee77dfd87e1614a824d190cd086
-  md5: 4186d9b4d004b0fe0de6aa62496fb48a
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  license: BSD-3-Clause
-  license_family: BSD
-  purls:
-  - pkg:pypi/kiwisolver?source=hash-mapping
-  size: 71864
-  timestamp: 1725459334634
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/krb5-1.21.3-h659f571_0.conda
   sha256: 99df692f7a8a5c27cd14b5fb1374ee55e756631b9c3d659ed3ee60830249b238
   md5: 3f43953b7d3fb3aaa1d0d0723d91e368
@@ -4108,96 +3388,6 @@ packages:
   purls: []
   size: 1325007
   timestamp: 1742369558286
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-19.0.1-h27f8bab_8_cpu.conda
-  build_number: 8
-  sha256: 20de06f0fa883263a86bdcb04332a25b2c1c57321dda42e92a815a481adf7fab
-  md5: adabf9b45433d7465041140051dfdaa1
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - aws-crt-cpp >=0.32.4,<0.32.5.0a0
-  - aws-sdk-cpp >=1.11.510,<1.11.511.0a0
-  - azure-core-cpp >=1.14.0,<1.14.1.0a0
-  - azure-identity-cpp >=1.10.0,<1.10.1.0a0
-  - azure-storage-blobs-cpp >=12.13.0,<12.13.1.0a0
-  - azure-storage-files-datalake-cpp >=12.12.0,<12.12.1.0a0
-  - bzip2 >=1.0.8,<2.0a0
-  - glog >=0.7.1,<0.8.0a0
-  - libabseil * cxx17*
-  - libabseil >=20250127.1,<20250128.0a0
-  - libbrotlidec >=1.1.0,<1.2.0a0
-  - libbrotlienc >=1.1.0,<1.2.0a0
-  - libgcc >=13
-  - libgoogle-cloud >=2.36.0,<2.37.0a0
-  - libgoogle-cloud-storage >=2.36.0,<2.37.0a0
-  - libopentelemetry-cpp >=1.20.0,<1.21.0a0
-  - libprotobuf >=5.29.3,<5.29.4.0a0
-  - libre2-11 >=2024.7.2
-  - libstdcxx >=13
-  - libutf8proc >=2.10.0,<2.11.0a0
-  - libzlib >=1.3.1,<2.0a0
-  - lz4-c >=1.10.0,<1.11.0a0
-  - orc >=2.1.1,<2.1.2.0a0
-  - re2
-  - snappy >=1.2.1,<1.3.0a0
-  - zstd >=1.5.7,<1.6.0a0
-  constrains:
-  - parquet-cpp <0.0a0
-  - arrow-cpp <0.0a0
-  - apache-arrow-proc =*=cpu
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 8990207
-  timestamp: 1744939168760
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-acero-19.0.1-hcb10f89_8_cpu.conda
-  build_number: 8
-  sha256: 255f418a275728c08efeffbf98c6a547406175a70a1ce6fc873292016e44cec4
-  md5: e96553170bbc67aa151a7194f450e698
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libarrow 19.0.1 h27f8bab_8_cpu
-  - libgcc >=13
-  - libstdcxx >=13
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 643527
-  timestamp: 1744939215876
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-dataset-19.0.1-hcb10f89_8_cpu.conda
-  build_number: 8
-  sha256: d1162e03c292e23c5893385ab012c73e13e49f57ece4fdeb3c6297f550bc0c44
-  md5: 3bb1fd3f721c4542ed26ba9bfc036619
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libarrow 19.0.1 h27f8bab_8_cpu
-  - libarrow-acero 19.0.1 hcb10f89_8_cpu
-  - libgcc >=13
-  - libparquet 19.0.1 h081d1f1_8_cpu
-  - libstdcxx >=13
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 614187
-  timestamp: 1744939340591
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libarrow-substrait-19.0.1-h1bed206_8_cpu.conda
-  build_number: 8
-  sha256: 4385e78e7bb9e397ce04eddcdbc0e43ef826b7b3cfdb456645d3dd47357699d9
-  md5: 7832ea7b3c0e1269ef8990d774c9b6b1
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libabseil * cxx17*
-  - libabseil >=20250127.1,<20250128.0a0
-  - libarrow 19.0.1 h27f8bab_8_cpu
-  - libarrow-acero 19.0.1 hcb10f89_8_cpu
-  - libarrow-dataset 19.0.1 hcb10f89_8_cpu
-  - libgcc >=13
-  - libprotobuf >=5.29.3,<5.29.4.0a0
-  - libstdcxx >=13
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 527935
-  timestamp: 1744939395746
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libblas-3.9.0-31_h59b9bed_openblas.conda
   build_number: 31
   sha256: 9839fc4ac0cbb0aa3b9eea520adfb57311838959222654804e58f6f2d1771db5
@@ -4216,41 +3406,6 @@ packages:
   purls: []
   size: 16859
   timestamp: 1740087969120
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libbrotlicommon-1.1.0-hb9d3cd8_2.conda
-  sha256: d9db2de60ea917298e658143354a530e9ca5f9c63471c65cf47ab39fd2f429e3
-  md5: 41b599ed2b02abcfdd84302bff174b23
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 68851
-  timestamp: 1725267660471
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libbrotlidec-1.1.0-hb9d3cd8_2.conda
-  sha256: 2892d512cad096cb03f1b66361deeab58b64e15ba525d6592bb6d609e7045edf
-  md5: 9566f0bd264fbd463002e759b8a82401
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libbrotlicommon 1.1.0 hb9d3cd8_2
-  - libgcc >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 32696
-  timestamp: 1725267669305
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libbrotlienc-1.1.0-hb9d3cd8_2.conda
-  sha256: 779f58174e99de3600e939fa46eddb453ec5d3c60bb46cdaa8b4c127224dbf29
-  md5: 06f70867945ea6a84d35836af780f1de
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libbrotlicommon 1.1.0 hb9d3cd8_2
-  - libgcc >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 281750
-  timestamp: 1725267679782
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcblas-3.9.0-31_he106b2a_openblas.conda
   build_number: 31
   sha256: ede8545011f5b208b151fe3e883eb4e31d495ab925ab7b9ce394edca846e0c0d
@@ -4266,32 +3421,6 @@ packages:
   purls: []
   size: 16796
   timestamp: 1740087984429
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libclang-cpp20.1-20.1.3-default_h1df26ce_0.conda
-  sha256: e49690c45269e504a4a020c689941aea58bc44e3cce2a5da93340cf838999c1c
-  md5: bbce8ba7f25af8b0928f13fca1eb7405
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libllvm20 >=20.1.3,<20.2.0a0
-  - libstdcxx >=13
-  license: Apache-2.0 WITH LLVM-exception
-  license_family: Apache
-  purls: []
-  size: 20864165
-  timestamp: 1744876524529
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libclang13-20.1.3-default_he06ed0a_0.conda
-  sha256: 99c9d0dc741d3675e1ffcaab90a4a1e80090076f9fa1aa71fe8c114d3dcdc61a
-  md5: 1bb2ec3c550f7589b2d16e271aeaeddb
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libllvm20 >=20.1.3,<20.2.0a0
-  - libstdcxx >=13
-  license: Apache-2.0 WITH LLVM-exception
-  license_family: Apache
-  purls: []
-  size: 12098268
-  timestamp: 1744876737219
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcrc32c-1.1.2-h9c3ff4c_0.tar.bz2
   sha256: fd1d153962764433fe6233f34a72cdeed5dcf8a883a85769e8295ce940b5b0c5
   md5: c965a5aa0d5c1c37ffc62dff36e28400
@@ -4303,35 +3432,6 @@ packages:
   purls: []
   size: 20440
   timestamp: 1633683576494
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcups-2.3.3-h4637d8d_4.conda
-  sha256: bc67b9b21078c99c6bd8595fe7e1ed6da1f721007726e717f0449de7032798c4
-  md5: d4529f4dff3057982a7617c7ac58fde3
-  depends:
-  - krb5 >=1.21.1,<1.22.0a0
-  - libgcc-ng >=12
-  - libstdcxx-ng >=12
-  - libzlib >=1.2.13,<2.0.0a0
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 4519402
-  timestamp: 1689195353551
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libcurl-8.13.0-h332b0f4_0.conda
-  sha256: 38e528acfaa0276b7052f4de44271ff9293fdb84579650601a8c49dac171482a
-  md5: cbdc92ac0d93fe3c796e36ad65c7905c
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - krb5 >=1.21.3,<1.22.0a0
-  - libgcc >=13
-  - libnghttp2 >=1.64.0,<2.0a0
-  - libssh2 >=1.11.1,<2.0a0
-  - libzlib >=1.3.1,<2.0a0
-  - openssl >=3.4.1,<4.0a0
-  - zstd >=1.5.7,<1.6.0a0
-  license: curl
-  license_family: MIT
-  size: 438088
-  timestamp: 1743601695669
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libdeflate-1.23-h86f0d12_0.conda
   sha256: 4db2f70a1441317d964e84c268e388110ad9cf75ca98994d1336d670e62e6f07
   md5: 27fe770decaf469a53f3e3a6d593067f
@@ -4342,18 +3442,6 @@ packages:
   purls: []
   size: 72783
   timestamp: 1745260463421
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libdrm-2.4.124-hb9d3cd8_0.conda
-  sha256: f0d5ffbdf3903a7840184d14c14154b503e1a96767c328f61d99ad24b6963e52
-  md5: 8bc89311041d7fcb510238cf0848ccae
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libpciaccess >=0.18,<0.19.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 242533
-  timestamp: 1733424409299
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libedit-3.1.20250104-pl5321h7949ede_0.conda
   sha256: d789471216e7aba3c184cd054ed61ce3f6dac6f87a50ec69291b9297f8c18724
   md5: c277e0a4d549b03ac1e9d6cbbe3d017b
@@ -4366,37 +3454,6 @@ packages:
   license_family: BSD
   size: 134676
   timestamp: 1738479519902
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libegl-1.7.0-ha4b6fd6_2.conda
-  sha256: 7fd5408d359d05a969133e47af580183fbf38e2235b562193d427bb9dad79723
-  md5: c151d5eb730e9b7480e6d48c0fc44048
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libglvnd 1.7.0 ha4b6fd6_2
-  license: LicenseRef-libglvnd
-  purls: []
-  size: 44840
-  timestamp: 1731330973553
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libev-4.33-hd590300_2.conda
-  sha256: 1cd6048169fa0395af74ed5d8f1716e22c19a81a8a36f934c110ca3ad4dd27b4
-  md5: 172bf1cd1ff8629f2b1179945ed45055
-  depends:
-  - libgcc-ng >=12
-  license: BSD-2-Clause
-  license_family: BSD
-  purls: []
-  size: 112766
-  timestamp: 1702146165126
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libevent-2.1.12-hf998b51_1.conda
-  sha256: 2e14399d81fb348e9d231a82ca4d816bf855206923759b69ad006ba482764131
-  md5: a1cfcc585f0c42bf8d5546bb1dfb668d
-  depends:
-  - libgcc-ng >=12
-  - openssl >=3.1.1,<4.0a0
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 427426
-  timestamp: 1685725977222
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libexpat-2.7.0-h5888daf_0.conda
   sha256: 33ab03438aee65d6aa667cf7d90c91e5e7d734c19a67aa4c7040742c0a13d505
   md5: db0bfbe7dd197b68ad5f30333bae6ce0
@@ -4465,17 +3522,6 @@ packages:
   license_family: GPL
   size: 1461978
   timestamp: 1740240671964
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgl-1.7.0-ha4b6fd6_2.conda
-  sha256: dc2752241fa3d9e40ce552c1942d0a4b5eeb93740c9723873f6fcf8d39ef8d2d
-  md5: 928b8be80851f5d8ffb016f9c81dae7a
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libglvnd 1.7.0 ha4b6fd6_2
-  - libglx 1.7.0 ha4b6fd6_2
-  license: LicenseRef-libglvnd
-  purls: []
-  size: 134712
-  timestamp: 1731330998354
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libglib-2.84.1-h2ff4ddf_0.conda
   sha256: 18e354d30a60441b0bf5fcbb125b6b22fd0df179620ae834e2533d44d1598211
   md5: 0305434da649d4fb48a425e588b79ea6
@@ -4492,26 +3538,6 @@ packages:
   purls: []
   size: 3947789
   timestamp: 1743773764878
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libglvnd-1.7.0-ha4b6fd6_2.conda
-  sha256: 1175f8a7a0c68b7f81962699751bb6574e6f07db4c9f72825f978e3016f46850
-  md5: 434ca7e50e40f4918ab701e3facd59a0
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  license: LicenseRef-libglvnd
-  purls: []
-  size: 132463
-  timestamp: 1731330968309
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libglx-1.7.0-ha4b6fd6_2.conda
-  sha256: 2d35a679624a93ce5b3e9dd301fff92343db609b79f0363e6d0ceb3a6478bfa7
-  md5: c8013e438185f33b13814c5c488acd5c
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libglvnd 1.7.0 ha4b6fd6_2
-  - xorg-libx11 >=1.8.10,<2.0a0
-  license: LicenseRef-libglvnd
-  purls: []
-  size: 75504
-  timestamp: 1731330988898
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgomp-14.2.0-h767d61c_2.conda
   sha256: 1a3130e0b9267e781b89399580f3163632d59fe5b0142900d63052ab1a53490e
   md5: 06d02030237f4d5b3d9a7e7d348fe3c6
@@ -4522,44 +3548,6 @@ packages:
   purls: []
   size: 459862
   timestamp: 1740240588123
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgoogle-cloud-2.36.0-hc4361e1_1.conda
-  sha256: 3a56c653231d6233de5853dc01f07afad6a332799a39c3772c0948d2e68547e4
-  md5: ae36e6296a8dd8e8a9a8375965bf6398
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libabseil * cxx17*
-  - libabseil >=20250127.0,<20250128.0a0
-  - libcurl >=8.12.1,<9.0a0
-  - libgcc >=13
-  - libgrpc >=1.71.0,<1.72.0a0
-  - libprotobuf >=5.29.3,<5.29.4.0a0
-  - libstdcxx >=13
-  - openssl >=3.4.1,<4.0a0
-  constrains:
-  - libgoogle-cloud 2.36.0 *_1
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 1246764
-  timestamp: 1741878603939
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgoogle-cloud-storage-2.36.0-h0121fbd_1.conda
-  sha256: 54235d990009417bb20071f5ce7c8dcf186b19fa7d24d72bc5efd2ffb108001c
-  md5: a0f7588c1f0a26d550e7bae4fb49427a
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libabseil
-  - libcrc32c >=1.1.2,<1.2.0a0
-  - libcurl
-  - libgcc >=13
-  - libgoogle-cloud 2.36.0 hc4361e1_1
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  - openssl
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 785719
-  timestamp: 1741878763994
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgrpc-1.71.0-h8e591d7_1.conda
   sha256: 37267300b25f292a6024d7fd9331085fe4943897940263c3a41d6493283b2a18
   md5: c3cfd72cbb14113abee7bbd86f44ad69
@@ -4618,21 +3606,6 @@ packages:
   purls: []
   size: 16790
   timestamp: 1740087997375
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libllvm20-20.1.3-he9d0ab4_0.conda
-  sha256: 1d61b4ad305a1b620185b0c7061de1b8128a58f8925e49ccc87e84e0276f1946
-  md5: 74c14fe2ab88e352ab6e4fedf5ecb527
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - libxml2 >=2.13.7,<2.14.0a0
-  - libzlib >=1.3.1,<2.0a0
-  - zstd >=1.5.7,<1.6.0a0
-  license: Apache-2.0 WITH LLVM-exception
-  license_family: Apache
-  purls: []
-  size: 43025284
-  timestamp: 1744814708496
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/liblzma-5.8.1-hb9d3cd8_0.conda
   sha256: f4f21dfc54b08d462f707b771ecce3fa9bc702a2a05b55654f64154f48b141ef
   md5: 0e87378639676987af32fee53ba32258
@@ -4653,23 +3626,6 @@ packages:
   purls: []
   size: 89991
   timestamp: 1723817448345
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libnghttp2-1.64.0-h161d5f1_0.conda
-  sha256: b0f2b3695b13a989f75d8fd7f4778e1c7aabe3b36db83f0fe80b2cd812c0e975
-  md5: 19e57602824042dfd0446292ef90488b
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - c-ares >=1.32.3,<2.0a0
-  - libev >=4.33,<4.34.0a0
-  - libev >=4.33,<5.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  - openssl >=3.3.2,<4.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 647599
-  timestamp: 1729571887612
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libnsl-2.0.1-hd590300_0.conda
   sha256: 26d77a3bb4dceeedc2a41bd688564fe71bf2d149fdcf117049970bc02ff1add6
   md5: 30fd6e37fe21f86f4bd26d6ee73eeec7
@@ -4705,70 +3661,6 @@ packages:
   purls: []
   size: 5919288
   timestamp: 1739825731827
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libopengl-1.7.0-ha4b6fd6_2.conda
-  sha256: 215086c108d80349e96051ad14131b751d17af3ed2cb5a34edd62fa89bfe8ead
-  md5: 7df50d44d4a14d6c31a2c54f2cd92157
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libglvnd 1.7.0 ha4b6fd6_2
-  license: LicenseRef-libglvnd
-  purls: []
-  size: 50757
-  timestamp: 1731330993524
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libopentelemetry-cpp-1.20.0-hd1b1c89_0.conda
-  sha256: 11ba93b440f3332499801b8f9580cea3dc19c3aa440c4deb30fd8be302a71c7f
-  md5: e1185384cc23e3bbf85486987835df94
-  depends:
-  - libabseil * cxx17*
-  - libabseil >=20250127.1,<20250128.0a0
-  - libcurl >=8.13.0,<9.0a0
-  - libgrpc >=1.71.0,<1.72.0a0
-  - libopentelemetry-cpp-headers 1.20.0 ha770c72_0
-  - libprotobuf >=5.29.3,<5.29.4.0a0
-  - libzlib >=1.3.1,<2.0a0
-  - nlohmann_json
-  - prometheus-cpp >=1.3.0,<1.4.0a0
-  constrains:
-  - cpp-opentelemetry-sdk =1.20.0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 850005
-  timestamp: 1743991616571
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libopentelemetry-cpp-headers-1.20.0-ha770c72_0.conda
-  sha256: 3a6796711f53c6c3596ff36d5d25aad3c567f6623bc48698037db95d0ce4fd05
-  md5: 96806e6c31dc89253daff2134aeb58f3
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 347071
-  timestamp: 1743991580676
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libparquet-19.0.1-h081d1f1_8_cpu.conda
-  build_number: 8
-  sha256: 105f1f5ff7f07b0f1c3984ac985b2b8076cfd8b0c28d2ac595193f09c68f1196
-  md5: 874cbb160bf4b8f3155b1165f4186585
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libarrow 19.0.1 h27f8bab_8_cpu
-  - libgcc >=13
-  - libstdcxx >=13
-  - libthrift >=0.21.0,<0.21.1.0a0
-  - openssl >=3.5.0,<4.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 1252840
-  timestamp: 1744939311536
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libpciaccess-0.18-hd590300_0.conda
-  sha256: c0a30ac74eba66ea76a4f0a39acc7833f5ed783a632ca3bb6665b2d81aabd2fb
-  md5: 48f4330bfcd959c3cfb704d424903c82
-  depends:
-  - libgcc-ng >=12
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 28361
-  timestamp: 1707101388552
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libpng-1.6.47-h943b412_0.conda
   sha256: 23367d71da58c9a61c8cbd963fcffb92768d4ae5ffbef9a47cdf1f54f98c5c36
   md5: 55199e2ae2c3651f6f9b2a447b47bdc9
@@ -4833,21 +3725,9 @@ packages:
   - libgcc >=13
   - libzlib >=1.3.1,<2.0a0
   license: Unlicense
+  purls: []
   size: 918664
   timestamp: 1742083674731
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libssh2-1.11.1-hf672d98_0.conda
-  sha256: 0407ac9fda2bb67e11e357066eff144c845801d00b5f664efbc48813af1e7bb9
-  md5: be2de152d8073ef1c01b7728475f2fe7
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libzlib >=1.3.1,<2.0a0
-  - openssl >=3.4.0,<4.0a0
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 304278
-  timestamp: 1732349402869
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libstdcxx-14.2.0-h8f9b012_2.conda
   sha256: 8f5bd92e4a24e1d35ba015c5252e8f818898478cb3bc50bd8b12ab54707dc4da
   md5: a78c856b6dc6bf4ea8daeb9beaaa3fb0
@@ -4868,21 +3748,6 @@ packages:
   purls: []
   size: 53830
   timestamp: 1740240722530
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libthrift-0.21.0-h0e7cc3e_0.conda
-  sha256: ebb395232973c18745b86c9a399a4725b2c39293c9a91b8e59251be013db42f0
-  md5: dcb95c0a98ba9ff737f7ae482aef7833
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libevent >=2.1.12,<2.1.13.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  - openssl >=3.3.2,<4.0a0
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 425773
-  timestamp: 1727205853307
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libtiff-4.7.0-hd9ff511_3.conda
   sha256: b224e16b88d76ea95e4af56e2bc638c603bd26a770b98d117d04541d3aafa002
   md5: 0ea6510969e1296cc19966fad481f6de
@@ -4901,17 +3766,6 @@ packages:
   purls: []
   size: 428173
   timestamp: 1734398813264
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libutf8proc-2.10.0-h4c51ac1_0.conda
-  sha256: 8e41563ee963bf8ded06da45f4e70bf42f913cb3c2e79364eb3218deffa3cd74
-  md5: aeccfff2806ae38430638ffbb4be9610
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 82745
-  timestamp: 1737244366901
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libuuid-2.38.1-h0b41bf4_0.conda
   sha256: 787eb542f055a2b3de553614b25f09eefb0a0931b0c87dbcce6efdfd92f04f18
   md5: 40b61aab5c7ba9ff276c41cfffe6b80b
@@ -4969,48 +3823,6 @@ packages:
   purls: []
   size: 100393
   timestamp: 1702724383534
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxkbcommon-1.8.1-hc4a0caf_0.conda
-  sha256: 61a282353fcc512b5643ee58898130f5c7f8757c329a21fe407a3ef397d449eb
-  md5: e7e5b0652227d646b44abdcbd989da7b
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - libxcb >=1.17.0,<2.0a0
-  - libxml2 >=2.13.6,<2.14.0a0
-  - xkeyboard-config
-  - xorg-libxau >=1.0.12,<2.0a0
-  license: MIT/X11 Derivative
-  license_family: MIT
-  purls: []
-  size: 644992
-  timestamp: 1741762262672
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxml2-2.13.7-h4bc477f_1.conda
-  sha256: 01c471d9912c482297fd8e83afc193101ff4504c72361b6aec6d07f2fa379263
-  md5: ad1f1f8238834cd3c88ceeaee8da444a
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - icu >=75.1,<76.0a0
-  - libgcc >=13
-  - libiconv >=1.18,<2.0a0
-  - liblzma >=5.8.1,<6.0a0
-  - libzlib >=1.3.1,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 692101
-  timestamp: 1743794568181
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libxslt-1.1.39-h76b75d6_0.conda
-  sha256: 684e9b67ef7b9ca0ca993762eeb39705ec58e2e7f958555c758da7ef416db9f3
-  md5: e71f31f8cfb0a91439f2086fc8aa0461
-  depends:
-  - libgcc-ng >=12
-  - libxml2 >=2.12.1,<2.14.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 254297
-  timestamp: 1701628814990
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libzlib-1.3.1-hb9d3cd8_2.conda
   sha256: d4bfe88d7cb447768e31650f06257995601f89076080e76df55e3112d4e47dc4
   md5: edb0dca6bc32e4f4789199455a1dbeb8
@@ -5228,48 +4040,6 @@ packages:
   - pkg:pypi/markupsafe?source=hash-mapping
   size: 24604
   timestamp: 1733219911494
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/matplotlib-3.10.1-py310hff52083_0.conda
-  sha256: 4d57b876af603fa335467ac3c5336f6497f9ddef8d78322a98bdb4c7959c549a
-  md5: 45c1ad6a0351492b56d1b2bb5442cdfa
-  depends:
-  - matplotlib-base >=3.10.1,<3.10.2.0a0
-  - pyside6 >=6.7.2
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  - tornado >=5
-  license: PSF-2.0
-  license_family: PSF
-  purls: []
-  size: 16921
-  timestamp: 1740781097731
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/matplotlib-base-3.10.1-py310h68603db_0.conda
-  sha256: f211079f3346a225ba0d1a4754eb856ed3c0bdbf17d6502c55390d22a2c86cb5
-  md5: 29cf3f5959afb841eda926541f26b0fb
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - contourpy >=1.0.1
-  - cycler >=0.10
-  - fonttools >=4.22.0
-  - freetype >=2.12.1,<3.0a0
-  - kiwisolver >=1.3.1
-  - libgcc >=13
-  - libstdcxx >=13
-  - numpy >=1.19,<3
-  - numpy >=1.23
-  - packaging >=20.0
-  - pillow >=8
-  - pyparsing >=2.3.1
-  - python >=3.10,<3.11.0a0
-  - python-dateutil >=2.7
-  - python_abi 3.10.* *_cp310
-  - qhull >=2020.2,<2020.3.0a0
-  - tk >=8.6.13,<8.7.0a0
-  license: PSF-2.0
-  license_family: PSF
-  purls:
-  - pkg:pypi/matplotlib?source=hash-mapping
-  size: 7310356
-  timestamp: 1740781078080
 - pypi: https://files.pythonhosted.org/packages/8f/8e/9ad090d3553c280a8060fbf6e24dc1c0c29704ee7d1c372f0c174aa59285/matplotlib_inline-0.1.7-py3-none-any.whl
   name: matplotlib-inline
   version: 0.1.7
@@ -5338,53 +4108,6 @@ packages:
   - tenacity >=8.2.2
   size: 15335
   timestamp: 1740906264850
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/me-nebula-0.2.28-pypy_0.tar.bz2
-  sha256: 68de60c9cfd8f2c22a27be98eac41dfe5f31816066fe2a26a9403ef81c39c747
-  md5: 4bd24694b6aef6e37312003d066f01e1
-  depends:
-  - awscli
-  - base58
-  - boto3
-  - cloud-logging >=0.3.21
-  - de-data-service 4.*
-  - future
-  - lz4
-  - matplotlib
-  - me-auth-client >=v0.8.0
-  - mest-commander
-  - opensearch-py >=2.*.*
-  - psutil >=5.9.0
-  - pydantic >=1.9.1
-  - pynamodb
-  - python
-  - python >=3.7
-  - python-daemon
-  - pytz
-  - quota-client >=1.1.5
-  - requests
-  - run-mest
-  - six
-  - tabulate
-  - tar
-  - termcolor
-  - tqdm
-  - typing-extensions >=4.4.0
-  - yaml
-  size: 608743
-  timestamp: 1685348794898
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/mecaliblib-1.3.2-py_3.tar.bz2
-  build_number: 0
-  sha256: ef2be0300944912dd476b5c878dc2ef54c05fc21641a7d1a8c8ad26666962836
-  md5: fb529326cbe0e607a02199a2a5986664
-  depends:
-  - de-data-service
-  - more-itertools
-  - numpy >=1.16.0
-  - python
-  - scipy >=1.2.0
-  license: Mobileye, LTD
-  size: 69709
-  timestamp: 1744197186277
 - pypi: https://files.pythonhosted.org/packages/2c/19/04f9b178c2d8a15b076c8b5140708fa6ffc5601fb6f1e975537072df5b2a/mergedeep-1.3.4-py3-none-any.whl
   name: mergedeep
   version: 1.3.4
@@ -5757,46 +4480,6 @@ packages:
   - pkg:pypi/multidict?source=hash-mapping
   size: 85490
   timestamp: 1744972617430
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/munkres-1.1.4-pyh9f0ad1d_0.tar.bz2
-  sha256: f86fb22b58e93d04b6f25e0d811b56797689d598788b59dcb47f59045b568306
-  md5: 2ba8498c1018c1e9c61eb99b973dfe19
-  depends:
-  - python
-  license: Apache-2.0
-  license_family: Apache
-  purls:
-  - pkg:pypi/munkres?source=hash-mapping
-  size: 12452
-  timestamp: 1600387789153
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/mysql-common-9.2.0-h266115a_0.conda
-  sha256: 571b6a2bffaf186ab92cdb06852fc5b6b5b7c6605de2b397fb13cfb0bb05c375
-  md5: db22a0962c953e81a2a679ecb1fc6027
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - openssl >=3.4.1,<4.0a0
-  license: GPL-2.0-or-later
-  license_family: GPL
-  purls: []
-  size: 653477
-  timestamp: 1743939199519
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/mysql-libs-9.2.0-he0572af_0.conda
-  sha256: 41cd870c04961591eabe7a43283d2bbc80a382e007f766edb8396ffd2bdfa418
-  md5: 93340b072c393d23c4700a1d40565dca
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  - mysql-common 9.2.0 h266115a_0
-  - openssl >=3.4.1,<4.0a0
-  - zstd >=1.5.7,<1.6.0a0
-  license: GPL-2.0-or-later
-  license_family: GPL
-  purls: []
-  size: 1371585
-  timestamp: 1743939293417
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/narwhals-1.35.0-pyh29332c3_0.conda
   sha256: 9397d79c8def4c2f10c5fcc7f08fcd1f338519e8b8690e73b3b962ac7518cb34
   md5: 86a90869622c2257d2f38be54820109c
@@ -5948,14 +4631,6 @@ packages:
   - pkg:pypi/nest-asyncio?source=hash-mapping
   size: 11543
   timestamp: 1733325673691
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/nlohmann_json-3.12.0-h3f2d84a_0.conda
-  sha256: e2fc624d6f9b2f1b695b6be6b905844613e813aa180520e73365062683fe7b49
-  md5: d76872d096d063e226482c99337209dc
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 135906
-  timestamp: 1744445169928
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/nodeenv-1.9.1-pyhd8ed1ab_1.conda
   sha256: 3636eec0e60466a00069b47ce94b6d88b01419b6577d8e393da44bb5bc8d3468
   md5: 7ba3f09fceae6a120d664217e58fe686
@@ -6114,24 +4789,6 @@ packages:
   license_family: Apache
   size: 3121673
   timestamp: 1744132167438
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/orc-2.1.1-h17f744e_1.conda
-  sha256: f78b0e440baa1bf8352f3a33b678f0f2a14465fd1d7bf771aa2f8b1846006f2e
-  md5: cfe9bc267c22b6d53438eff187649d43
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libprotobuf >=5.29.3,<5.29.4.0a0
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  - lz4-c >=1.10.0,<1.11.0a0
-  - snappy >=1.2.1,<1.3.0a0
-  - tzdata
-  - zstd >=1.5.7,<1.6.0a0
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 1241124
-  timestamp: 1741889606201
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/orjson-3.10.16-py310h505e2c1_0.conda
   sha256: b43caf13662c673dceec22c7535c363e88137fc53e7b403e8ee2e9c25b2cb2ee
   md5: 29dba4c40bd93405908730981bf3750e
@@ -6417,18 +5074,6 @@ packages:
   - pkg:pypi/pillow?source=hash-mapping
   size: 42749785
   timestamp: 1735929845390
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pixman-0.44.2-h29eaf8c_0.conda
-  sha256: 747c58db800d5583fee78e76240bf89cbaeedf7ab1ef339c2990602332b9c4be
-  md5: 5e2a7acfa2c24188af39e7944e1b3604
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 381072
-  timestamp: 1733698987122
 - pypi: https://files.pythonhosted.org/packages/e1/06/fed3b67b5488854eb7934bfbbb580d0651d8af243ffb39937cb00838bc3d/plantuml_markdown-3.11.1-py3-none-any.whl
   name: plantuml-markdown
   version: 3.11.1
@@ -6537,21 +5182,6 @@ packages:
   license_family: MIT
   size: 932368
   timestamp: 1741043486213
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/prometheus-cpp-1.3.0-ha5d0236_0.conda
-  sha256: 013669433eb447548f21c3c6b16b2ed64356f726b5f77c1b39d5ba17a8a4b8bc
-  md5: a83f6a2fdc079e643237887a37460668
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libcurl >=8.10.1,<9.0a0
-  - libgcc >=13
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  - zlib
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 199544
-  timestamp: 1730769112346
 - pypi: https://files.pythonhosted.org/packages/ce/4f/5249960887b1fbe561d9ff265496d170b55a735b76724f10ef19f9e40716/prompt_toolkit-3.0.51-py3-none-any.whl
   name: prompt-toolkit
   version: 3.0.51
@@ -6805,42 +5435,6 @@ packages:
   - pkg:pypi/py?source=hash-mapping
   size: 80791
   timestamp: 1734003519402
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pyarrow-19.0.1-py310hff52083_0.conda
-  sha256: 0e9fcf42e2a2563eb071d8b6a6809fa4067cceec5dd3989787a7b354bf3e1a62
-  md5: 96aab335d44df02cd3aaba0c7dd1a645
-  depends:
-  - libarrow-acero 19.0.1.*
-  - libarrow-dataset 19.0.1.*
-  - libarrow-substrait 19.0.1.*
-  - libparquet 19.0.1.*
-  - pyarrow-core 19.0.1 *_0_*
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  license: Apache-2.0
-  license_family: APACHE
-  purls: []
-  size: 25359
-  timestamp: 1739792670797
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pyarrow-core-19.0.1-py310hac404ae_0_cpu.conda
-  sha256: b5c63e67ebc1ae151e728759f96fc01b818f6b7de0ee62526448bdd9d85caa47
-  md5: 08bfbf49d206e2fbcccd7b92d2526a2a
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libarrow 19.0.1.* *cpu
-  - libgcc >=13
-  - libstdcxx >=13
-  - libzlib >=1.3.1,<2.0a0
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  constrains:
-  - numpy >=1.21,<3
-  - apache-arrow-proc =*=cpu
-  license: Apache-2.0
-  license_family: APACHE
-  purls:
-  - pkg:pypi/pyarrow?source=hash-mapping
-  size: 4672057
-  timestamp: 1739792491899
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyasn1-0.6.1-pyhd8ed1ab_2.conda
   sha256: d06051df66e9ab753683d7423fcef873d78bb0c33bd112c3d5be66d529eddf06
   md5: 09bb17ed307ad6ab2fd78d32372fdd4e
@@ -7013,42 +5607,9 @@ packages:
   - pkg:pypi/pyopenssl?source=hash-mapping
   size: 122758
   timestamp: 1737243471659
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pyparsing-3.2.3-pyhd8ed1ab_1.conda
-  sha256: b92afb79b52fcf395fd220b29e0dd3297610f2059afac45298d44e00fcbf23b6
-  md5: 513d3c262ee49b54a8fec85c5bc99764
-  depends:
-  - python >=3.9
-  license: MIT
-  license_family: MIT
-  size: 95988
-  timestamp: 1743089832359
 - pypi: git+https://github.com/kayak/pypika.git?rev=master#1c9646f0a019a167c32b649b6f5e6423c5ba2c9b
   name: pypika
   version: 0.48.9
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pyside6-6.9.0-py310hfd10a26_0.conda
-  sha256: 545ee500ea1dcb8836934b3af0bad4b9f702f03e2f931f4d133d859380058722
-  md5: 1610ccfe262ee519716bb69bd4395572
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libclang13 >=20.1.2
-  - libegl >=1.7.0,<2.0a0
-  - libgcc >=13
-  - libgl >=1.7.0,<2.0a0
-  - libopengl >=1.7.0,<2.0a0
-  - libstdcxx >=13
-  - libxml2 >=2.13.7,<2.14.0a0
-  - libxslt >=1.1.39,<2.0a0
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  - qt6-main 6.9.0.*
-  - qt6-main >=6.9.0,<6.10.0a0
-  license: LGPL-3.0-only
-  license_family: LGPL
-  purls:
-  - pkg:pypi/pyside6?source=hash-mapping
-  - pkg:pypi/shiboken6?source=hash-mapping
-  size: 10032602
-  timestamp: 1743760684455
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/pysocks-1.7.1-pyha55dd90_7.conda
   sha256: ba3b032fa52709ce0d9fd388f63d330a026754587a2f461117cac9ab73d8d0d8
   md5: 461219d1a5bd61342293efa2c0c90eac
@@ -7328,79 +5889,6 @@ packages:
   requires_dist:
   - cffi ; implementation_name == 'pypy'
   requires_python: '>=3.8'
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/qhull-2020.2-h434a139_5.conda
-  sha256: 776363493bad83308ba30bcb88c2552632581b143e8ee25b1982c8c743e73abc
-  md5: 353823361b1d27eb3960efb076dfcaf6
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc-ng >=12
-  - libstdcxx-ng >=12
-  license: LicenseRef-Qhull
-  purls: []
-  size: 552937
-  timestamp: 1720813982144
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/qt6-main-6.9.0-h6441bc3_1.conda
-  sha256: 0485df0e29daf02023b98b0d7f5f4f97bd23650582d8c64d80f22cdb1ad01676
-  md5: 4029a8dcb1d97ea241dbe5abfda1fad6
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - alsa-lib >=1.2.13,<1.3.0a0
-  - dbus >=1.13.6,<2.0a0
-  - double-conversion >=3.3.1,<3.4.0a0
-  - fontconfig >=2.15.0,<3.0a0
-  - fonts-conda-ecosystem
-  - freetype >=2.13.3,<3.0a0
-  - harfbuzz >=11.0.1
-  - icu >=75.1,<76.0a0
-  - krb5 >=1.21.3,<1.22.0a0
-  - libclang-cpp20.1 >=20.1.2,<20.2.0a0
-  - libclang13 >=20.1.2
-  - libcups >=2.3.3,<2.4.0a0
-  - libdrm >=2.4.124,<2.5.0a0
-  - libegl >=1.7.0,<2.0a0
-  - libgcc >=13
-  - libgl >=1.7.0,<2.0a0
-  - libglib >=2.84.1,<3.0a0
-  - libjpeg-turbo >=3.0.0,<4.0a0
-  - libllvm20 >=20.1.2,<20.2.0a0
-  - libpng >=1.6.47,<1.7.0a0
-  - libpq >=17.4,<18.0a0
-  - libsqlite >=3.49.1,<4.0a0
-  - libstdcxx >=13
-  - libtiff >=4.7.0,<4.8.0a0
-  - libwebp-base >=1.5.0,<2.0a0
-  - libxcb >=1.17.0,<2.0a0
-  - libxkbcommon >=1.8.1,<2.0a0
-  - libxml2 >=2.13.7,<2.14.0a0
-  - libzlib >=1.3.1,<2.0a0
-  - mysql-libs >=9.2.0,<9.3.0a0
-  - openssl >=3.5.0,<4.0a0
-  - pcre2 >=10.44,<10.45.0a0
-  - wayland >=1.23.1,<2.0a0
-  - xcb-util >=0.4.1,<0.5.0a0
-  - xcb-util-cursor >=0.1.5,<0.2.0a0
-  - xcb-util-image >=0.4.0,<0.5.0a0
-  - xcb-util-keysyms >=0.4.1,<0.5.0a0
-  - xcb-util-renderutil >=0.3.10,<0.4.0a0
-  - xcb-util-wm >=0.4.2,<0.5.0a0
-  - xorg-libice >=1.1.2,<2.0a0
-  - xorg-libsm >=1.2.6,<2.0a0
-  - xorg-libx11 >=1.8.12,<2.0a0
-  - xorg-libxcomposite >=0.4.6,<1.0a0
-  - xorg-libxcursor >=1.2.3,<2.0a0
-  - xorg-libxdamage >=1.1.6,<2.0a0
-  - xorg-libxext >=1.3.6,<2.0a0
-  - xorg-libxrandr >=1.5.4,<2.0a0
-  - xorg-libxtst >=1.2.5,<2.0a0
-  - xorg-libxxf86vm >=1.1.6,<2.0a0
-  - zstd >=1.5.7,<1.6.0a0
-  constrains:
-  - qt 6.9.0
-  license: LGPL-3.0-only
-  license_family: LGPL
-  purls: []
-  size: 51522155
-  timestamp: 1744201848686
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/quota-client-5.0.30-py_0.tar.bz2
   sha256: 3af7ff35b2fde0dd26c3f04e0179bc6a041b1e73488a3654f8cb2762e66bf20e
   md5: be07e5cd9a00d2138efb2fadaee4a58e
@@ -7564,8 +6052,8 @@ packages:
   timestamp: 1733750834072
 - pypi: .
   name: road-dashboards
-  version: 0.2.61
-  sha256: 0327f5ab880f71d7971a84ae447cd3dadb135b5d340f18c29000d581738a87d7
+  version: 0.2.64
+  sha256: 809e23f3cdccdc3e219b036f9678dc220e3476743ca5c1262ce4b65bba637276
   requires_python: '>=3.10'
   editable: true
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.42-pyh4616a5c_0.tar.bz2
@@ -7590,21 +6078,6 @@ packages:
   - python
   size: 36109
   timestamp: 1744624978741
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-objects-0.0.11-pyh4616a5c_0.tar.bz2
-  sha256: 5538cfbf040c9e641099dbd4a703baf0bcaf09864af9de7a7717b6d3806140c5
-  md5: 1fc124c1fab7d390a331ba69d50e24db
-  depends:
-  - devkit-base *
-  - me-nebula *
-  - mecaliblib *
-  - me-conda-dev-local::metro *
-  - numpy *
-  - pandas *
-  - python >=3.10
-  - road-database-toolkit *
-  - python
-  size: 32562
-  timestamp: 1745218519076
 - pypi: https://files.pythonhosted.org/packages/bf/08/b543969c12a8f44db6c0f08ced009abf8f519191ca6985509e7c44102e3c/rpds_py-0.24.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
   name: rpds-py
   version: 0.24.0
@@ -7697,18 +6170,6 @@ packages:
   license: Mobileye, LTD
   size: 15824
   timestamp: 1741078865799
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/s2n-1.5.16-hba75a32_1.conda
-  sha256: ff4d22984d354cc0c966e85a0db47e45df2d55614bec0dda2119bdd85fb2be72
-  md5: 71ba0cc1e20a573588ea8a4540b56f5b
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - openssl >=3.4.1,<4.0a0
-  license: Apache-2.0
-  license_family: Apache
-  purls: []
-  size: 352907
-  timestamp: 1743805258946
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/s3fs-2025.3.2-pyhd8ed1ab_0.conda
   sha256: 08fe3285fe7f35762f04e25393daa6db65f50e1feebd129b42162a9ae60b7659
   md5: 9955d80d9d42a6fcd533e85d617b124b
@@ -7758,29 +6219,6 @@ packages:
   purls: []
   size: 9264080
   timestamp: 1737483372748
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/scipy-1.15.2-py310h1d65ade_0.conda
-  sha256: 4cb98641f870666d365594013701d5691205a0fe81ac3ba7778a23b1cc2caa8e
-  md5: 8c29cd33b64b2eb78597fa28b5595c8d
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libblas >=3.9.0,<4.0a0
-  - libcblas >=3.9.0,<4.0a0
-  - libgcc >=13
-  - libgfortran
-  - libgfortran5 >=13.3.0
-  - liblapack >=3.9.0,<4.0a0
-  - libstdcxx >=13
-  - numpy <2.5
-  - numpy >=1.19,<3
-  - numpy >=1.23.5
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  license: BSD-3-Clause
-  license_family: BSD
-  purls:
-  - pkg:pypi/scipy?source=hash-mapping
-  size: 16417101
-  timestamp: 1739791865060
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/scipy-1.15.2-py312ha707e6e_0.conda
   sha256: b9faaa024b77a3678a988c5a490f02c4029c0d5903998b585100e05bc7d4ff36
   md5: 00b999c5f9d01fb633db819d79186bd4
@@ -7928,18 +6366,6 @@ packages:
   - pkg:pypi/smart-open?source=hash-mapping
   size: 51950
   timestamp: 1734485211385
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/snappy-1.2.1-h8bd8927_1.conda
-  sha256: ec91e86eeb2c6bbf09d51351b851e945185d70661d2ada67204c9a6419d282d3
-  md5: 3b3e64af585eadfb52bb90b553db5edf
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libstdcxx >=13
-  license: BSD-3-Clause
-  license_family: BSD
-  purls: []
-  size: 42739
-  timestamp: 1733501881851
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/sniffio-1.3.1-pyhd8ed1ab_1.conda
   sha256: c2248418c310bdd1719b186796ae50a8a77ce555228b6acd32768e2543a15012
   md5: bf7a226e58dfb8346c70df36065d86c9
@@ -8089,17 +6515,6 @@ packages:
   - pytest ; extra == 'tests'
   - pytest-cov ; extra == 'tests'
   requires_python: '>=3.9'
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/termcolor-3.0.1-pyhd8ed1ab_0.conda
-  sha256: cd25c2389f6b03f7b0ff3e9fb37ded38e13ecb0a8c56f095ece98a208b8cd799
-  md5: 3e63fe1ebb9009a3e3ad35cf74eae1d7
-  depends:
-  - python >=3.9
-  license: MIT
-  license_family: MIT
-  purls:
-  - pkg:pypi/termcolor?source=hash-mapping
-  size: 12641
-  timestamp: 1743677077490
 - pypi: https://files.pythonhosted.org/packages/a6/a5/c0b6468d3824fe3fde30dbb5e1f687b291608f9473681bbf7dabbf5a87d7/text_unidecode-1.3-py2.py3-none-any.whl
   name: text-unidecode
   version: '1.3'
@@ -8142,20 +6557,6 @@ packages:
   version: 6.4.2
   sha256: bca9eb02196e789c9cb5c3c7c0f04fb447dc2adffd95265b2c7223a8a615ccbf
   requires_python: '>=3.8'
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/tornado-6.4.2-py310ha75aee5_0.conda
-  sha256: 9c2b86d4e58c8b0e7d13a7f4c440f34e2201bae9cfc1d7e1d30a5bc7ffb1d4c8
-  md5: 166d59aab40b9c607b4cc21c03924e9d
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  license: Apache-2.0
-  license_family: Apache
-  purls:
-  - pkg:pypi/tornado?source=hash-mapping
-  size: 650307
-  timestamp: 1732616034421
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/tqdm-4.67.1-pyhd8ed1ab_1.conda
   sha256: 11e2c85468ae9902d24a27137b6b39b4a78099806e551d390e394a8c34b48e40
   md5: 9efbfdc37242619130ea42b1cc4ed861
@@ -8304,20 +6705,6 @@ packages:
   license_family: MIT
   size: 13904
   timestamp: 1725784191021
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/unicodedata2-16.0.0-py310ha75aee5_0.conda
-  sha256: 0468c864c60190fdb94b4705bca618e77589d5cb9fa096de47caccd1f22b0b54
-  md5: 1d7a4b9202cdd10d56ecdd7f6c347190
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - python >=3.10,<3.11.0a0
-  - python_abi 3.10.* *_cp310
-  license: Apache-2.0
-  license_family: Apache
-  purls:
-  - pkg:pypi/unicodedata2?source=hash-mapping
-  size: 404975
-  timestamp: 1736692615537
 - pypi: https://files.pythonhosted.org/packages/6b/11/cc635220681e93a0183390e26485430ca2c7b5f9d33b15c74c2861cb8091/urllib3-2.4.0-py3-none-any.whl
   name: urllib3
   version: 2.4.0
@@ -8457,20 +6844,6 @@ packages:
   - pkg:pypi/watchfiles?source=hash-mapping
   size: 421844
   timestamp: 1744451587768
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/wayland-1.23.1-h3e06ad9_0.conda
-  sha256: 0884b2023a32d2620192cf2e2fc6784b8d1e31cf9f137e49e00802d4daf7d1c1
-  md5: 0a732427643ae5e0486a727927791da1
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libexpat >=2.6.2,<3.0a0
-  - libffi >=3.4,<4.0a0
-  - libgcc-ng >=13
-  - libstdcxx-ng >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 321561
-  timestamp: 1724530461598
 - pypi: https://files.pythonhosted.org/packages/ab/df/4ee467ab39cc1de4b852c212c1ed3becfec2e486a51ac1ce0091f85f38d7/wcmatch-10.0-py3-none-any.whl
   name: wcmatch
   version: '10.0'
@@ -8576,124 +6949,6 @@ packages:
   - pkg:pypi/wrapt?source=hash-mapping
   size: 63590
   timestamp: 1736869574299
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-0.4.1-hb711507_2.conda
-  sha256: 416aa55d946ce4ab173ab338796564893a2f820e80e04e098ff00c25fb981263
-  md5: 8637c3e5821654d0edf97e2b0404b443
-  depends:
-  - libgcc-ng >=12
-  - libxcb >=1.16,<2.0.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 19965
-  timestamp: 1718843348208
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-cursor-0.1.5-hb9d3cd8_0.conda
-  sha256: c7b35db96f6e32a9e5346f97adc968ef2f33948e3d7084295baebc0e33abdd5b
-  md5: eb44b3b6deb1cab08d72cb61686fe64c
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libxcb >=1.13
-  - libxcb >=1.16,<2.0.0a0
-  - xcb-util-image >=0.4.0,<0.5.0a0
-  - xcb-util-renderutil >=0.3.10,<0.4.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 20296
-  timestamp: 1726125844850
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-image-0.4.0-hb711507_2.conda
-  sha256: 94b12ff8b30260d9de4fd7a28cca12e028e572cbc504fd42aa2646ec4a5bded7
-  md5: a0901183f08b6c7107aab109733a3c91
-  depends:
-  - libgcc-ng >=12
-  - libxcb >=1.16,<2.0.0a0
-  - xcb-util >=0.4.1,<0.5.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 24551
-  timestamp: 1718880534789
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-keysyms-0.4.1-hb711507_0.conda
-  sha256: 546e3ee01e95a4c884b6401284bb22da449a2f4daf508d038fdfa0712fe4cc69
-  md5: ad748ccca349aec3e91743e08b5e2b50
-  depends:
-  - libgcc-ng >=12
-  - libxcb >=1.16,<2.0.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 14314
-  timestamp: 1718846569232
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-renderutil-0.3.10-hb711507_0.conda
-  sha256: 2d401dadc43855971ce008344a4b5bd804aca9487d8ebd83328592217daca3df
-  md5: 0e0cbe0564d03a99afd5fd7b362feecd
-  depends:
-  - libgcc-ng >=12
-  - libxcb >=1.16,<2.0.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 16978
-  timestamp: 1718848865819
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xcb-util-wm-0.4.2-hb711507_0.conda
-  sha256: 31d44f297ad87a1e6510895740325a635dd204556aa7e079194a0034cdd7e66a
-  md5: 608e0ef8256b81d04456e8d211eee3e8
-  depends:
-  - libgcc-ng >=12
-  - libxcb >=1.16,<2.0.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 51689
-  timestamp: 1718844051451
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xkeyboard-config-2.43-hb9d3cd8_0.conda
-  sha256: 0d89b5873515a1f05d311f37ea4e087bbccc0418afa38f2f6189e97280db3179
-  md5: f725c7425d6d7c15e31f3b99a88ea02f
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 389475
-  timestamp: 1727840188958
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libice-1.1.2-hb9d3cd8_0.conda
-  sha256: c12396aabb21244c212e488bbdc4abcdef0b7404b15761d9329f5a4a39113c4b
-  md5: fb901ff28063514abb6046c9ec2c4a45
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 58628
-  timestamp: 1734227592886
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libsm-1.2.6-he73a12e_0.conda
-  sha256: 277841c43a39f738927145930ff963c5ce4c4dacf66637a3d95d802a64173250
-  md5: 1c74ff8c35dcadf952a16f752ca5aa49
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libuuid >=2.38.1,<3.0a0
-  - xorg-libice >=1.1.2,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 27590
-  timestamp: 1741896361728
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libx11-1.8.12-h4f16b4b_0.conda
-  sha256: 51909270b1a6c5474ed3978628b341b4d4472cd22610e5f22b506855a5e20f67
-  md5: db038ce880f100acc74dba10302b5630
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - libxcb >=1.17.0,<2.0a0
-  license: MIT
-  license_family: MIT
-  size: 835896
-  timestamp: 1741901112627
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxau-1.0.12-hb9d3cd8_0.conda
   sha256: ed10c9283974d311855ae08a16dfd7e56241fac632aec3b92e3cfe73cff31038
   md5: f6ebe2cb3f82ba6c057dde5d9debe4f7
@@ -8705,47 +6960,6 @@ packages:
   purls: []
   size: 14780
   timestamp: 1734229004433
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxcomposite-0.4.6-hb9d3cd8_2.conda
-  sha256: 753f73e990c33366a91fd42cc17a3d19bb9444b9ca5ff983605fa9e953baf57f
-  md5: d3c295b50f092ab525ffe3c2aa4b7413
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  - xorg-libxfixes >=6.0.1,<7.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 13603
-  timestamp: 1727884600744
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxcursor-1.2.3-hb9d3cd8_0.conda
-  sha256: 832f538ade441b1eee863c8c91af9e69b356cd3e9e1350fff4fe36cc573fc91a
-  md5: 2ccd714aa2242315acaf0a67faea780b
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  - xorg-libxfixes >=6.0.1,<7.0a0
-  - xorg-libxrender >=0.9.11,<0.10.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 32533
-  timestamp: 1730908305254
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxdamage-1.1.6-hb9d3cd8_0.conda
-  sha256: 43b9772fd6582bf401846642c4635c47a9b0e36ca08116b3ec3df36ab96e0ec0
-  md5: b5fcc7172d22516e1f965490e65e33a4
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  - xorg-libxext >=1.3.6,<2.0a0
-  - xorg-libxfixes >=6.0.1,<7.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 13217
-  timestamp: 1727891438799
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxdmcp-1.1.5-hb9d3cd8_0.conda
   sha256: 6b250f3e59db07c2514057944a3ea2044d6a8cdde8a47b6497c254520fade1ee
   md5: 8035c64cb77ed555e3f150b7b3972480
@@ -8757,97 +6971,6 @@ packages:
   purls: []
   size: 19901
   timestamp: 1727794976192
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxext-1.3.6-hb9d3cd8_0.conda
-  sha256: da5dc921c017c05f38a38bd75245017463104457b63a1ce633ed41f214159c14
-  md5: febbab7d15033c913d53c7a2c102309d
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 50060
-  timestamp: 1727752228921
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxfixes-6.0.1-hb9d3cd8_0.conda
-  sha256: 2fef37e660985794617716eb915865ce157004a4d567ed35ec16514960ae9271
-  md5: 4bdb303603e9821baf5fe5fdff1dc8f8
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 19575
-  timestamp: 1727794961233
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxi-1.8.2-hb9d3cd8_0.conda
-  sha256: 1a724b47d98d7880f26da40e45f01728e7638e6ec69f35a3e11f92acd05f9e7a
-  md5: 17dcc85db3c7886650b8908b183d6876
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  - xorg-libxext >=1.3.6,<2.0a0
-  - xorg-libxfixes >=6.0.1,<7.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 47179
-  timestamp: 1727799254088
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxrandr-1.5.4-hb9d3cd8_0.conda
-  sha256: ac0f037e0791a620a69980914a77cb6bb40308e26db11698029d6708f5aa8e0d
-  md5: 2de7f99d6581a4a7adbff607b5c278ca
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  - xorg-libxext >=1.3.6,<2.0a0
-  - xorg-libxrender >=0.9.11,<0.10.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 29599
-  timestamp: 1727794874300
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxrender-0.9.12-hb9d3cd8_0.conda
-  sha256: 044c7b3153c224c6cedd4484dd91b389d2d7fd9c776ad0f4a34f099b3389f4a1
-  md5: 96d57aba173e878a2089d5638016dc5e
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 33005
-  timestamp: 1734229037766
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxtst-1.2.5-hb9d3cd8_3.conda
-  sha256: 752fdaac5d58ed863bbf685bb6f98092fe1a488ea8ebb7ed7b606ccfce08637a
-  md5: 7bbe9a0cc0df0ac5f5a8ad6d6a11af2f
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  - xorg-libxext >=1.3.6,<2.0a0
-  - xorg-libxi >=1.7.10,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 32808
-  timestamp: 1727964811275
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/xorg-libxxf86vm-1.1.6-hb9d3cd8_0.conda
-  sha256: 8a4e2ee642f884e6b78c20c0892b85dd9b2a6e64a6044e903297e616be6ca35b
-  md5: 5efa5fa6243a622445fdfd72aee15efa
-  depends:
-  - __glibc >=2.17,<3.0.a0
-  - libgcc >=13
-  - xorg-libx11 >=1.8.10,<2.0a0
-  - xorg-libxext >=1.3.6,<2.0a0
-  license: MIT
-  license_family: MIT
-  purls: []
-  size: 17819
-  timestamp: 1734214575628
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/yaml-0.2.5-h7f98852_2.tar.bz2
   sha256: a4e34c710eeb26945bdbdaba82d3d74f60a78f54a874ec10d373811a5d217535
   md5: 4cb3ad778ec2d5a7acbdf254eb1c42ae
@@ -8955,5 +7078,6 @@ packages:
   - libzlib >=1.3.1,<2.0a0
   license: BSD-3-Clause
   license_family: BSD
+  purls: []
   size: 567578
   timestamp: 1742433379869
