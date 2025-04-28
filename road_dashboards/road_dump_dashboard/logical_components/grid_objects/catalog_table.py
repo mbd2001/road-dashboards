@@ -20,7 +20,6 @@ from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_ob
 from road_dashboards.road_dump_dashboard.logical_components.mexsense_link import get_mexsense_link
 
 dump_db_manager = DBManager(table_name="algoroad_dump_catalog", primary_key="dump_name")
-# dump_db_manager = DBManager.get(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
 table_columns = {
     "dump_name": "Dataset Name",
