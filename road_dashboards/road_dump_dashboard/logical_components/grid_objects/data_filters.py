@@ -272,31 +272,11 @@ class DataFilters(GridObject):
             first_group = filters[0]
             md_filters = self.recursive_build_meta_data_filters(first_group)
 
-            mexsense_query2 = ""
+            mexsense_query = ""
             if type(md_filters) != EmptyCriterion:
-                # query = (
-                #     Query.from_(load_object(md_tables)[0])
-                #     .where(md_filters)
-                #     .select("clip_name", "grabIndex")
-                # )
-                #
-                # data = execute(query)
-                #
-                # clip_names = data['clip_name'].to_list()
-                # grab_indexes = data['grabIndex'].to_list()
-                #
-                # grab_indexes_str = ", ".join(map(str, grab_indexes))
-                # clip_names_str = ", ".join(f"'{name}'" for name in clip_names)
-                #
-                # mexsense_query = (
-                #     f"SELECT * FROM Base "
-                #     f"WHERE grabIndex IN ({grab_indexes_str}) "
-                #     f"AND clip_name IN ({clip_names_str})"
-                # )
+                mexsense_query = Query.from_("Base").where(md_filters).select("*")
 
-                mexsense_query2 = Query.from_("Base").where(md_filters).select("*")
-
-            mexsense_link = get_mexsense_link(mexsense_data, mexsense_query2)
+            mexsense_link = get_mexsense_link(mexsense_data, mexsense_query)
 
             return mexsense_link, dump_object(md_filters)
 
