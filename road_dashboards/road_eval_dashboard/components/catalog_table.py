@@ -7,15 +7,6 @@ from angie_shuffle_service.shuffle_service import (
     get_dataset,
 )
 from dash import Input, Output, State, callback, dash_table, html, no_update
-from mexsense.mexsense import create_url
-from mexsense.models.url_state import (
-    BASE,
-    Dataset,
-    DatasetsDescription,
-    Join,
-    Limit,
-    URLState,
-)
 from road_database_toolkit.dynamo_db.db_manager import DBManager
 
 from road_dashboards.road_eval_dashboard.components.components_ids import (
@@ -38,10 +29,12 @@ from road_dashboards.road_eval_dashboard.components.init_threads import (
     get_best_fb_per_net,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import loading_wrapper
+from road_dashboards.road_eval_dashboard.components.mexsense_link import get_mexsense_link
 from road_dashboards.road_eval_dashboard.components.net_properties import Nets
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import NETS_STATE_KEY, add_state
 
 run_eval_db_manager = DBManager(table_name="algoroad_run_eval", primary_key="run_name")
+# dump_db_manager = DBManager.get(table_name="algoroad_dump_catalog", primary_key="dump_name")
 
 
 def generate_catalog_layout():
@@ -106,7 +99,6 @@ def generate_catalog_layout():
                             href="",
                             target="_blank",
                             style={"display": "inline-block"},
-                            disabled=True,
                         ),
                         width="auto",
                         className="ms-1",
@@ -167,17 +159,20 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
 
 
 @callback(
-    [Output(MEXSENSE_BTN, "href"), Output(MEXSENSE_BTN, "disabled")],
+    [Output(MEXSENSE_BTN, "href"), Output("mexsense_data", "data")],
+    [Input(MEXSENSE_BTN, "n_clicks")],
     [Input(RUN_EVAL_CATALOG, "selected_rows")],
     [State(CATALOG, "data")],
     prevent_initial_call=True,
 )
-def mexsense_run(selected_rows, rows):
+def mexsense_run(n_clicks, selected_rows, rows):
     if not selected_rows:
-        return "about:blank", True
+        return "about:blank", []
 
     rows = pd.DataFrame([rows[i] for i in selected_rows])
-    preds_path = rows["out_path"].iloc[0] + "predictions/"
+
+    dataset_name = rows["dataset"].iloc[0]
+    # use_case = dump_db_manager.get_item(dataset_name)["use_case"]
 
     # use_case (str): Type of the dumper. One of ["road4", "rpw", "mf"]."
     try:
@@ -188,37 +183,13 @@ def mexsense_run(selected_rows, rows):
         except:
             shuffle_resp = get_dataset(use_case="mf", name=rows["dataset"].iloc[0])
 
-    datasets = [
-        Dataset(
-            name=BASE,
-            path=shuffle_resp.path,
-        ),
-        Dataset(
-            name="preds",
-            path=preds_path,
-        ),
-    ]
-    datasetsDescription = DatasetsDescription(
-        datasets=datasets,
-        joins=[
-            Join(
-                name="data",
-                datasets=[BASE, "preds"],
-                join_on=["clip_name", "grabIndex"],
-            )
-        ],
-    )
+    # shuffle_resp = get_dataset(use_case=use_case, name=dataset_name)
 
-    url_state = URLState(
-        plugin_id=29,
-        limit=Limit.L400,
-        vast_data=False,
-        selected_partitions={},
-        datasets_description=datasetsDescription,
-        views_variables=[],
-    )
-    link = create_url(url_state)
-    return link, False
+    preds_path = rows["out_path"].iloc[0] + "predictions/"
+
+    link = get_mexsense_link(shuffle_resp.path, preds_path)
+
+    return link, [shuffle_resp.path, preds_path]
 
 
 def update_nets_md_according_to_population(nets, md_columns_to_distinguish_values):

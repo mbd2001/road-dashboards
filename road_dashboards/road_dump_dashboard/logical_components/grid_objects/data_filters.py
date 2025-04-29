@@ -5,11 +5,14 @@ import dash_daq as daq
 from dash import MATCH, Input, Output, Patch, State, callback, callback_context, dcc, html, no_update
 from pypika import Criterion, EmptyCriterion, Query
 
-from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA
+from road_dashboards.road_dump_dashboard.logical_components.constants.components_ids import META_DATA, MEXSENSE_DATA
 from road_dashboards.road_dump_dashboard.logical_components.constants.init_data_sources import EXISTING_TABLES
 from road_dashboards.road_dump_dashboard.logical_components.constants.layout_wrappers import card_wrapper
-from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import base_data_subquery
+from road_dashboards.road_dump_dashboard.logical_components.constants.query_abstractions import (
+    base_data_subquery,
+)
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
+from road_dashboards.road_dump_dashboard.logical_components.mexsense_link import get_mexsense_link
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, execute, load_object
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
@@ -46,6 +49,7 @@ class DataFilters(GridObject):
         self.update_filters_btn_id = self._generate_id("update_filters_btn")
         self.show_n_frames_btn_id = self._generate_id("show_n_frames_btn")
         self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
+        self.mexsense_filters_btn = self._generate_id("mexsense_filters_btn")
 
     def layout(self):
         empty_layout = card_wrapper(
@@ -71,6 +75,16 @@ class DataFilters(GridObject):
                         ),
                         dbc.Button("Draw Frames", id=self.show_n_frames_btn_id, color="primary"),
                         dbc.Button("Save Jump File", id=self.generate_jump_btn_id, color="primary"),
+                        dbc.Button(
+                            "Open in MExsense",
+                            id=self.mexsense_filters_btn,
+                            color="primary",
+                            className="btn btn-primary",
+                            href="",
+                            target="_blank",
+                            style={"display": "inline-block", "margin": "10px 0"},
+                            # disabled=True,
+                        ),
                     ],
                     direction="horizontal",
                     gap=2,
@@ -244,17 +258,27 @@ class DataFilters(GridObject):
                 )
 
         @callback(
+            Output(self.mexsense_filters_btn, "href"),
             Output(self.final_filter_id, "data"),
             Input(self.update_filters_btn_id, "n_clicks"),
+            State(MEXSENSE_DATA, "data"),
             State(self.component_id, "children"),
+            Input(META_DATA, "data"),
         )
-        def generate_curr_filters(n_clicks, filters):
+        def generate_curr_filters(n_clicks, mexsense_data, filters, md_tables):
             if not filters:
-                return dump_object(EmptyCriterion())
+                return "", dump_object(EmptyCriterion())
 
             first_group = filters[0]
             md_filters = self.recursive_build_meta_data_filters(first_group)
-            return dump_object(md_filters)
+
+            mexsense_query = ""
+            if type(md_filters) != EmptyCriterion:
+                mexsense_query = Query.from_("Base").where(md_filters).select("*")
+
+            mexsense_link = get_mexsense_link(mexsense_data, mexsense_query)
+
+            return mexsense_link, dump_object(md_filters)
 
     def get_group_layout(self, index: int, md_columns_options: list[str], max_filters_per_group: int):
         group_layout = dbc.Row(

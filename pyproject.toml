@@ -111,6 +111,8 @@ toml-format = { cmd = "taplo fmt", description = "format toml files with taplo",
 pyyaml = ">=6.0.2,<7"
 scipy = ">=1.15.2,<2"
 pycountry = ">=24.6.1,<25"
+angie-shuffle-service = "*"
+mexsense = "*"
 
 [tool.pixi.feature.dump.tasks]
 data-exploration = "python road_dashboards/road_dump_dashboard/app.py"
@@ -118,9 +120,8 @@ data-exploration = "python road_dashboards/road_dump_dashboard/app.py"
 [tool.pixi.feature.eval.dependencies]
 jira = ">=3.8.0,<4"
 pycountry = ">=24.6.1,<25"
-angie-shuffle-service = ">=0.21.3,<0.22"
-road-objects = ">=0.0.11,<0.0.12"
-mexsense = ">=0.17.0,<0.18"
+angie-shuffle-service = "*"
+mexsense = "*"
 
 [tool.pixi.feature.eval.tasks]
 dynamic-stats = "python road_dashboards/road_eval_dashboard/app.py"

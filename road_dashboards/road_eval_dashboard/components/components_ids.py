@@ -303,3 +303,5 @@ ALL_SCENE_ROC_CURVES = "all_scene_ROC_curves"
 SCENE_ROC_CURVE = "scene_ROC_curve"
 SCENE_SIGNALS_CONF_MATS_DATA = "scene_signals_conf_mats_data"
 SCENE_SIGNALS_DATA_READY = "scene_signals_data_ready"
+
+MEXSENSE_DATA = "mexsense_data"
