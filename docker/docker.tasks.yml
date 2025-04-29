@@ -89,6 +89,7 @@ tasks:
   build_eval_docker:
     desc: builds the docker to eval dashboard
     env:
+      DOCKER_BUILDKIT: "0"
       IMAGE_NAME: road-eval-dashboard
       DOCKERFILE_NAME: ./docker/Dockerfile.eval-dashboard
     cmds:
@@ -97,6 +98,7 @@ tasks:
   build_dump_docker:
     desc: builds the docker to eval dashboard
     env:
+      DOCKER_BUILDKIT: "0"
       IMAGE_NAME: road-data-exploration
       DOCKERFILE_NAME: ./docker/Dockerfile.data-exploration
     cmds:
@@ -105,6 +107,7 @@ tasks:
   build_workflows_docker:
     desc: builds the docker to eval dashboard
     env:
+      DOCKER_BUILDKIT: "0"
       IMAGE_NAME: workflows-dashboard
       DOCKERFILE_NAME: ./docker/Dockerfile.workflows-dashboard
     cmds:

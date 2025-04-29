@@ -112,9 +112,8 @@ deploy:docs:
   tags:
     - road-algo-md
   variables:
-    DOCKER_BUILDKIT: "1"
+    DOCKER_BUILDKIT: "0"
   script:
-    - apt-get update && apt-get install -y docker-buildx-plugin
     - task docker:build_and_push
 
 deploy:docker:data-exploration:
