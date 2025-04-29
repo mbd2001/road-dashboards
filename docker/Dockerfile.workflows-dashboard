@@ -18,7 +18,8 @@ RUN echo 'exec "$@"' >> ./entrypoint.sh
 FROM python:3.12-slim
 WORKDIR /app/road-dashboards
 COPY --from=build /app/road-dashboards/.pixi/envs/workflows /app/road-dashboards/.pixi/envs/workflows
-COPY --from=build --chmod=0755 /app/road-dashboards/entrypoint.sh /app/road-dashboards/entrypoint.sh
+COPY --from=build /app/road-dashboards/entrypoint.sh /app/road-dashboards/entrypoint.sh
+RUN chmod +x /app/road-dashboards/entrypoint.sh
 COPY . .
 
 ENV AWS_STS_REGIONAL_ENDPOINTS=regional
