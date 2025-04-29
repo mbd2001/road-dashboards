@@ -386,7 +386,10 @@ def generate_mexense_link_with_filters(mexsense_data, nets, filters_str):
     grab_indexes_str = ", ".join(map(str, grab_indexes))
     clip_names_str = ", ".join(f"'{name}'" for name in clip_names)
 
-    mexsense_query = f"SELECT * FROM preds WHERE grabIndex IN ({grab_indexes_str}) AND clip_name IN ({clip_names_str})"
+    mexsense_query = (
+        f'SELECT * FROM preds WHERE "grabIndex" IN ({grab_indexes_str}) AND clip_name IN ({clip_names_str});'
+    )
+
     link = get_mexsense_link(mexsense_data[0], mexsense_data[1], mexsense_query)
     return link
 
