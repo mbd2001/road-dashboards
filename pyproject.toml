@@ -49,7 +49,7 @@ index-url = "https://artifactory.sddc.mobileye.com/artifactory/api/pypi/pypi/sim
 road-dashboards = { path = ".", editable = true }
 
 [tool.pixi.environments]
-default = ["common"]
+default = ["common", "dump", "eval", "workflows", "dev"]
 docs = { features = ["common", "docs"], no-default-feature = true }
 lint = { features = ["common", "lint"], no-default-feature = true }
 dump = ["common", "dump"]
@@ -157,3 +157,6 @@ slugify = "*"
 [tool.pixi.feature.docs.tasks]
 mkdocs-build = { cmd = "mkdocs build", env = { PYTHONPATH = "." } }
 mkdocs-serve = { cmd = "mkdocs serve -a 0.0.0.0:8000", env = { PYTHONPATH = "." } }
+
+[tool.pixi.feature.dev.dependencies]
+pixi-pycharm = ">=0.0.8,<0.0.9"

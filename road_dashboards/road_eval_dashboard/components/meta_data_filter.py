@@ -7,15 +7,9 @@ from road_dashboards.road_eval_dashboard.components.components_ids import (
     MD_COLUMNS_TO_DISTINCT_VALUES,
     MD_COLUMNS_TO_TYPE,
     MD_FILTERS,
-    NETS,
     URL,
 )
 from road_dashboards.road_eval_dashboard.components.layout_wrapper import card_wrapper
-from road_dashboards.road_eval_dashboard.components.mexsense_link import get_mexsense_link
-from road_dashboards.road_eval_dashboard.components.queries_manager import (
-    generate_base_query,
-    run_query_with_nets_names_processing,
-)
 from road_dashboards.road_eval_dashboard.utils.url_state_utils import META_DATA_STATE_KEY, add_state, get_state
 
 NUM_FILTERS_PER_GROUP = 10
@@ -354,44 +348,21 @@ def update_meta_data_values_options(operation, index, col, distinct_values_dict,
     State(URL, "hash"),
     State("filters", "children"),
     State("mexsense_data", "data"),
-    State(NETS, "data"),
     prevent_initial_call=True,
 )
-def generate_meta_data_filters_string(n_clicks, url_state, filters, mexsense_data, nets):
+def generate_meta_data_filters_string(n_clicks, url_state, filters, mexsense_data):
     if not filters:
         return True, "", "", no_update
 
     new_state = add_state(META_DATA_STATE_KEY, filters, url_state)
     first_group = filters[0]
     filters_str = recursive_build_meta_data_filters(first_group)
-    mexsense_link = generate_mexense_link_with_filters(mexsense_data, nets, filters_str)
-    return False, mexsense_link, filters_str, new_state
 
+    # mexsense_query = f'SELECT * FROM Base WHERE {filters_str};'
+    # mexsense_link = get_mexsense_link(mexsense_data[0], mexsense_data[1], mexsense_query)
 
-def generate_mexense_link_with_filters(mexsense_data, nets, filters_str):
-    # q_template = f'SELECT * FROM {nets["meta_data"]} WHERE TRUE {filters_str}'
-    # data, _ = run_query_with_nets_names_processing(query)
-    # mksenese_template = f"SELECT * FROM Base where gi in {data['grabindex']} AND clip_name in {data['clip_name']}"
-
-    query = generate_base_query(
-        data_tables=nets["frame_tables"],
-        meta_data=nets["meta_data"],
-        meta_data_filters=filters_str,
-    )
-    data, _ = run_query_with_nets_names_processing(query)
-
-    clip_names = data["clip_name"].to_list()
-    grab_indexes = data["grabIndex"].to_list()
-
-    grab_indexes_str = ", ".join(map(str, grab_indexes))
-    clip_names_str = ", ".join(f"'{name}'" for name in clip_names)
-
-    mexsense_query = (
-        f'SELECT * FROM preds WHERE "grabIndex" IN ({grab_indexes_str}) AND clip_name IN ({clip_names_str});'
-    )
-
-    link = get_mexsense_link(mexsense_data[0], mexsense_data[1], mexsense_query)
-    return link
+    # return False, mexsense_link, filters_str, new_state
+    return True, "", filters_str, new_state
 
 
 def recursive_build_meta_data_filters(filters):

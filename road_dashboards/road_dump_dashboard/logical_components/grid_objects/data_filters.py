@@ -12,7 +12,6 @@ from road_dashboards.road_dump_dashboard.logical_components.constants.query_abst
     base_data_subquery,
 )
 from road_dashboards.road_dump_dashboard.logical_components.grid_objects.grid_object import GridObject
-from road_dashboards.road_dump_dashboard.logical_components.mexsense_link import get_mexsense_link
 from road_dashboards.road_dump_dashboard.table_schemes.base import Base, Column
 from road_dashboards.road_dump_dashboard.table_schemes.custom_functions import dump_object, execute, load_object
 from road_dashboards.road_dump_dashboard.table_schemes.meta_data import MetaData
@@ -263,22 +262,22 @@ class DataFilters(GridObject):
             Input(self.update_filters_btn_id, "n_clicks"),
             State(MEXSENSE_DATA, "data"),
             State(self.component_id, "children"),
-            Input(META_DATA, "data"),
         )
-        def generate_curr_filters(n_clicks, mexsense_data, filters, md_tables):
+        def generate_curr_filters(n_clicks, mexsense_data, filters):
             if not filters:
                 return "", dump_object(EmptyCriterion())
 
             first_group = filters[0]
             md_filters = self.recursive_build_meta_data_filters(first_group)
 
-            mexsense_query = ""
-            if type(md_filters) != EmptyCriterion:
-                mexsense_query = Query.from_("Base").where(md_filters).select("*")
+            # mexsense_query = ""
+            # if type(md_filters) != EmptyCriterion:
+            #     mexsense_query = f'SELECT * FROM Base WHERE {md_filters};'
+            #
+            # mexsense_link = get_mexsense_link(mexsense_data, mexsense_query)
 
-            mexsense_link = get_mexsense_link(mexsense_data, mexsense_query)
-
-            return mexsense_link, dump_object(md_filters)
+            # return mexsense_link, dump_object(md_filters)
+            return "", dump_object(md_filters)
 
     def get_group_layout(self, index: int, md_columns_options: list[str], max_filters_per_group: int):
         group_layout = dbc.Row(
