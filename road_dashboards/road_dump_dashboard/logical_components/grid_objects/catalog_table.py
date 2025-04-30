@@ -208,6 +208,8 @@ class CatalogTable(GridObject):
             prevent_initial_call=True,
         )
         def mexsense_run(n_clicks, selected_rows, rows):
+            return "about:blank"
+
             if not selected_rows:
                 return "about:blank"
 

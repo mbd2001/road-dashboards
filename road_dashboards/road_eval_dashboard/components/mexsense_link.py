@@ -7,11 +7,11 @@ def get_mexsense_link(suffle_path: str, preds_path: str, query=""):
         Dataset(
             name=BASE,
             path=suffle_path,
+            sql=query,
         ),
         Dataset(
             name="preds",
             path=preds_path,
-            sql=query,
         ),
     ]
     datasetsDescription = DatasetsDescription(

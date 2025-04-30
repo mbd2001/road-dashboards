@@ -166,6 +166,8 @@ def init_run(n_clicks, rows, derived_virtual_selected_rows):
     prevent_initial_call=True,
 )
 def mexsense_run(n_clicks, selected_rows, rows):
+    return "about:blank", []
+
     if not selected_rows:
         return "about:blank", []
 
