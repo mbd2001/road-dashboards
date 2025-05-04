@@ -197,8 +197,8 @@ class CatalogTable(GridObject):
 
             dumps_list = list(datasets["dump_name"])
             dump_list_hash = "#" + base64.b64encode(json.dumps(dumps_list).encode("utf-8")).decode("utf-8")
-            shuffle_path = self.get_shuffle_path(rows, derived_virtual_selected_rows)
-            return dump_list_hash, shuffle_path
+            # shuffle_path = self.get_shuffle_path(rows, derived_virtual_selected_rows)
+            return dump_list_hash, ""  # shuffle_path
 
         @callback(
             Output(self.mexsense_btn, "href"),
