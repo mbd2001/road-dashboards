@@ -27,6 +27,7 @@ from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
     METRIC_GRAPHS_SETTINGS,
     DPQualityQueryConfig,
     MetricType,
+    get_hover_text_parts,
 )
 
 
@@ -112,13 +113,40 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
     )
 
     query = build_dp_all_quality_metrics_query(config)
-    df, _ = run_query_with_nets_names_processing(query)
+    raw_counts_master_df, _ = run_query_with_nets_names_processing(query)
 
-    metric_dfs = quality_functions.compute_metrics_from_count_df(df)
+    if raw_counts_master_df.empty:
+        return (no_update, no_update, no_update, no_update, no_update, no_update)
+
+    metric_dfs = quality_functions.compute_metrics_from_count_df(raw_counts_master_df.copy())
+
+    raw_counts_master_df_indexed = raw_counts_master_df.set_index("net_id")
 
     figs = {}
-    for metric, settings in METRIC_GRAPHS_SETTINGS.items():
-        metric_df = metric_dfs[metric]
+    for metric_type_enum_val, settings in METRIC_GRAPHS_SETTINGS.items():
+        metric_df = metric_dfs[metric_type_enum_val]
+
+        def generate_hover_text_for_metric(metric_series_row, sec_value, current_metric_type=metric_type_enum_val):
+            net_id = metric_series_row.net_id
+            rate_value = metric_series_row[sec_value]
+            hover_parts = [f"Rate: {rate_value:.2%}"]
+
+            raw_counts_for_net = raw_counts_master_df_indexed.loc[net_id]
+
+            tp_col_name = f"tp_{sec_value}"
+            fn_col_name = f"fn_{sec_value}"
+            fp_col_name = f"fp_{sec_value}"
+            tn_col_name = f"tn_{sec_value}"
+
+            tp = raw_counts_for_net[tp_col_name]
+            fn = raw_counts_for_net[fn_col_name]
+            fp = raw_counts_for_net[fp_col_name]
+            tn = raw_counts_for_net[tn_col_name]
+
+            hover_parts.extend(get_hover_text_parts(current_metric_type, tp, fn, fp, tn))
+
+            return "<br>".join(hover_parts)
+
         fig = draw_path_net_graph(
             data=metric_df,
             cols=SECONDS,
@@ -127,8 +155,10 @@ def update_all_quality_graphs(meta_data_filters, nets, slider_values, idx):
             yaxis=settings["yaxis"],
             plot_bgcolor=settings["bg"],
             score_func=lambda row, sec: row[sec],
+            hover=True,
+            hover_func=generate_hover_text_for_metric,
         )
-        figs[metric] = fig
+        figs[metric_type_enum_val] = fig
 
     return (
         figs[MetricType.CORRECT_ACCEPTANCE_RATE],

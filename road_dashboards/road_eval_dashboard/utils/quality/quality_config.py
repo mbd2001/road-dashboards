@@ -2,7 +2,18 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any
 
+import numpy as np
+
 from road_dashboards.road_eval_dashboard.utils.colors import GREEN, RED
+
+# SAME AS maffe_bins/utils/perfects/pathnet/pw_bins_creator_consts.py
+POINTS_PER_PATH_OG = 18
+FIRST_SAMPLING_Z = 6.5
+SAMPLING_POINTS_OG = FIRST_SAMPLING_Z + np.cumsum(np.arange(POINTS_PER_PATH_OG))
+SAMPLING_POINTS = np.sort(np.concatenate((SAMPLING_POINTS_OG, SAMPLING_POINTS_OG[15] + np.arange(15, 76, 15))))
+ATTN_NUM_POINTS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 20, 21, 22]
+
+SELECTED_SAMPLING_POINTS = SAMPLING_POINTS[ATTN_NUM_POINTS]
 
 
 @dataclass
@@ -63,3 +74,62 @@ METRIC_GRAPHS_SETTINGS = {
     MetricType.ACCURACY: {"title": "Accuracy", "yaxis": "Accuracy (%)", "bg": GREEN},
     MetricType.PRECISION: {"title": "Precision", "yaxis": "Precision (%)", "bg": GREEN},
 }
+
+
+def compute_fixed_thresholds(
+    distances: np.ndarray = SELECTED_SAMPLING_POINTS,
+    start_threshold: float = 0.4,
+    slope: float = 0.01,  # Threshold increase per unit distance (e.g., 0.01 means 1cm per 1m)
+    upper_bound: float = 1.2,
+) -> np.ndarray:
+    """
+    Computes thresholds that increase linearly with distance based on a fixed slope.
+
+    The threshold starts at `start_threshold` for the minimum distance and increases
+    by `slope` for each unit increase in distance relative to the minimum distance.
+    The final threshold value is clamped at `upper_bound`.
+
+    Args:
+        distances: A numpy array of distances.
+        start_threshold: The threshold value corresponding to the minimum distance.
+        slope: The rate at which the threshold increases per unit of distance.
+        upper_bound: The absolute maximum value allowed for the threshold (clamping value).
+
+    Returns:
+        A list of computed linear thresholds, clamped at `upper_bound`.
+    """
+    if distances.size == 0:
+        return []
+    min_dist = np.min(distances)
+    linear_thresholds = start_threshold + (distances - min_dist) * slope
+    final_thresholds = np.minimum(linear_thresholds, upper_bound)
+    return final_thresholds.tolist()
+
+
+def get_hover_text_parts(metric_type: MetricType, tp: int, fn: int, fp: int, tn: int) -> list[str]:
+    """
+    Generates a list of strings for hover text based on the metric type and confusion matrix values.
+    """
+    hover_parts = []
+    match metric_type:
+        case MetricType.CORRECT_ACCEPTANCE_RATE:
+            total_p = tp + fn
+            hover_parts.extend([f"TP: {tp}, FN: {fn}", f"Actual Positives: {total_p}"])
+        case MetricType.INCORRECT_ACCEPTANCE_RATE:
+            total_n = fp + tn
+            hover_parts.extend([f"FP: {fp}, TN: {tn}", f"Actual Negatives: {total_n}"])
+        case MetricType.CORRECT_REJECTION_RATE:
+            total_n = tn + fp
+            hover_parts.extend([f"TN: {tn}, FP: {fp}", f"Actual Negatives: {total_n}"])
+        case MetricType.INCORRECT_REJECTION_RATE:
+            total_p = fn + tp
+            hover_parts.extend([f"FN: {fn}, TP: {tp}", f"Actual Positives: {total_p}"])
+        case MetricType.ACCURACY:
+            total_samples = tp + tn + fp + fn
+            hover_parts.extend([f"TP: {tp}, TN: {tn}", f"FP: {fp}, FN: {fn}", f"Total Samples: {total_samples}"])
+        case MetricType.PRECISION:
+            total_pred_p = tp + fp
+            hover_parts.extend([f"TP: {tp}, FP: {fp}", f"Predicted Positives: {total_pred_p}"])
+        case _:
+            hover_parts.append("Counts: N/A")
+    return hover_parts

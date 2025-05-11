@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
-from road_dashboards.road_eval_dashboard.utils.distances import SECONDS, compute_distances_dict
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
 from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
     DPQualityQueryConfig,
+    compute_fixed_thresholds,
 )
 from road_dashboards.road_eval_dashboard.utils.quality.quality_functions import get_counts_expressions_for_sec
 
@@ -1595,9 +1596,10 @@ def build_dp_all_quality_metrics_query(config: DPQualityQueryConfig) -> str:
     Build a query that returns aggregated TP, FP, FN, and TN counts per second.
 
     """
-    sec_to_threshold_dict = compute_distances_dict()
-    quality_col = [f'"{config.base_dp_quality_col_name}_{sec}"' for sec in SECONDS]
+    thresholds = compute_fixed_thresholds()
+    sec_to_threshold_dict = dict(zip(SECONDS, thresholds))
 
+    quality_col = [f'"{config.base_dp_quality_col_name}_{sec}"' for sec in SECONDS]
     metrics_exprs = []
 
     for sec, dist_thresh in sec_to_threshold_dict.items():
