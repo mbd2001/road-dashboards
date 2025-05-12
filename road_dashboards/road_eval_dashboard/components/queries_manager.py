@@ -1332,8 +1332,8 @@ def generate_conf_mat_query(
         role=role,
         ca_oriented=ca_oriented,
     )
-    group_by_label = f'(CASE WHEN "{label_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else '"label_col"'
-    group_by_pred = f'(CASE WHEN "{pred_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else '"pred_col"'
+    group_by_label = f'(CASE WHEN "{label_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else f'"{label_col}"'
+    group_by_pred = f'(CASE WHEN "{pred_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else f'"{pred_col}"'
     conf_query = CONF_MAT_QUERY.format(
         group_by_label=group_by_label,
         group_by_pred=group_by_pred,
