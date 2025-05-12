@@ -1,6 +1,8 @@
 import numpy as np
 import plotly.express as px
 
+from road_dashboards.road_eval_dashboard.utils.calculations import divide_consider_zero
+
 
 def compute_confusion_matrix(data, labels_col, preds_col, num_classes):
     conf_matrix = np.zeros((num_classes, num_classes), dtype=int)
@@ -10,7 +12,7 @@ def compute_confusion_matrix(data, labels_col, preds_col, num_classes):
         pred_ind = int(max(row[preds_col], 0))
         conf_matrix[label_ind, pred_ind] = row.res_count
     row_sums = np.array(conf_matrix.sum(axis=1))
-    normalize_mat = np.nan_to_num(conf_matrix / row_sums[:, np.newaxis])
+    normalize_mat = divide_consider_zero(conf_matrix.astype(float), row_sums[:, np.newaxis].astype(float))
     return conf_matrix, normalize_mat
 
 
