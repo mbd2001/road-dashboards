@@ -95,7 +95,6 @@ PATHNET_THRESHOLD_METRIC = """
     AS precision_{ind}
     """
 
-
 ROC_STATS_METRIC = """
     CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tp_{ind},
     CAST(COUNT(CASE WHEN {label_col} < 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS fp_{ind},
@@ -1444,13 +1443,6 @@ def generate_roc_query(
     assert label_col is not None
     assert pred_col is not None
 
-    metrics = (
-        get_roc_stats_per_filter_metrics(
-            label_col, pred_col, interesting_filters, ROC_STATS_METRIC, threshold=input_thresh
-        )
-        if interesting_filters
-        else get_roc_stats_curve_metrics(label_col, pred_col, ROC_STATS_METRIC, thresholds=thresholds)
-    )
     extra_columns = [label_col, pred_col]
     base_query = generate_base_query(
         data_tables,
@@ -1460,7 +1452,15 @@ def generate_roc_query(
         extra_filters=extra_filters,
         role=role,
     )
-    group_by = get_roc_group_by(label_col, pred_col, input_thresh)
+    group_by = get_group_by(label_col, pred_col, input_thresh)
+
+    metrics = (
+        get_roc_stats_per_filter_metrics(
+            label_col, pred_col, interesting_filters, ROC_STATS_METRIC, threshold=input_thresh
+        )
+        if interesting_filters != {}
+        else get_roc_stats_curve_metrics(label_col, pred_col, ROC_STATS_METRIC, thresholds=thresholds)
+    )
     final_query = DYNAMIC_METRICS_QUERY.format(
         metrics=metrics, base_query=base_query, group_by=group_by if interesting_filters else "net_id"
     )
@@ -1485,7 +1485,7 @@ def get_roc_stats_curve_metrics(label_col, pred_col, metric, thresholds=ROC_THRE
     return metrics
 
 
-def get_roc_group_by(label_col, pred_col, input_thresh={}):
+def get_group_by(label_col, pred_col, input_thresh={}):
     if not input_thresh:
         group_by = "net_id"
         return group_by
