@@ -83,7 +83,7 @@ def _name2title(name):
 def _generate_charts_per_net(base_id, scene_signals):
     number_of_graph_per_row = 2
     children = []
-    for ind in range(0, len(scene_signals) - 1, number_of_graph_per_row):
+    for ind in range(0, len(scene_signals), number_of_graph_per_row):
         row_graph_signals = scene_signals[ind : ind + number_of_graph_per_row]
         row_graphs = [
             dbc.Col(graph_wrapper({**base_id, **{"signal": scene_signal}}), width=6)
