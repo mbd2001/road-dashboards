@@ -73,7 +73,7 @@ boto3 = ">=1.37.1,<2"
 tqdm = ">=4.67.1,<5"
 fsspec = ">=2025.3.2,<2026"
 orjson = ">=3.10.16,<4"
-road-database-toolkit = ">=0.1.42,<0.2"
+road-database-toolkit = "==0.1.43"
 nomkl = ">=1.0,<2"
 metro = { channel = "https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local" } # prevents collision with conda-forge
 
