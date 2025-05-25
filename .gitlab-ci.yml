@@ -4,7 +4,7 @@ variables:
 default:
   image: artifactory.sddc.mobileye.com/me-conda-docker-local/mx-conda-py310
   tags:
-    - road-algo-lg
+    - road-algo-large
   interruptible: true
   before_script:
     - |
@@ -74,14 +74,14 @@ pre-commit-hooks-check:
 
 test-pixi-lock:
   tags:
-    - road-algo-md
+    - road-algo-medium
   stage: *test
   script:
     - pixi install --locked
 
 deploy:bump_version:
   tags:
-    - road-algo-sm
+    - road-algo-small
   stage: *deploy
   # faceless user is configured in the group masked CI variables
   script:
@@ -110,7 +110,7 @@ deploy:docs:
 
 .deploy-containers:
   tags:
-    - road-algo-md
+    - road-algo-medium
   variables:
     DOCKER_BUILDKIT: "0"
   script:
@@ -161,7 +161,7 @@ deploy:docker:workflows-dashboard:
 post:reload-data-exploration:
   stage: *reload
   tags:
-    - road-algo-sm
+    - road-algo-small
   script:
     - echo "Reloading the Data Exploration container."
     - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-data-exploration_latest"],"containerName":["data_exploration"],"dockerRunArgs":["-p 6008:6008 --memory=3g --memory-swap=3g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
@@ -180,7 +180,7 @@ post:reload-data-exploration:
 post:reload-eval-dashboard:
   stage: *reload
   tags:
-    - road-algo-sm
+    - road-algo-small
   script:
     - echo "Reloading the Dynamic Stats container."
     - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["road-eval-dashboard_latest"],"containerName":["dynamic_stat"],"dockerRunArgs":["-p 80:6007 --memory=3g --memory-swap=3g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
@@ -199,7 +199,7 @@ post:reload-eval-dashboard:
 post:reload-workflows-dashboard:
   stage: *reload
   tags:
-    - road-algo-sm
+    - road-algo-small
   script:
     - echo "Reloading the Workflows container."
     - export COMMAND_ID=$(aws ssm send-command --document-name "Pull_Latest_Image_Restart_Docker_Container" --document-version "4" --targets '[{"Key":"InstanceIds","Values":["i-0c2b0271e14bd0c8d"]}]' --parameters '{"imageName":["771416621287.dkr.ecr.us-east-1.amazonaws.com/algo.road"],"imageTag":["workflows-dashboard_latest"],"containerName":["weekly_stats"],"dockerRunArgs":["-p 6009:6009 --memory=2g --memory-swap=2g --restart unless-stopped"]}' --timeout-seconds 600 --max-concurrency "50" --max-errors "0" --region us-east-1 | yq4 .Command.CommandId)
