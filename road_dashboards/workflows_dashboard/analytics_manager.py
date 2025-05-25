@@ -28,6 +28,7 @@ WORKFLOW_SPECIFIC_COLUMNS_MAP = {
     WorkflowType.EMDP: [WorkflowRunSpecificColumns.job_id, WorkflowRunSpecificColumns.exit_code],
     WorkflowType.GTRM: [WorkflowRunSpecificColumns.jira_key],
     WorkflowType.PANOPTIC: [WorkflowRunSpecificColumns.jira_key],
+    WorkflowType.META_CREATION: [WorkflowRunSpecificColumns.jira_key],
 }
 
 
@@ -470,7 +471,8 @@ class AnalyticsManager:
 
         with get_session(self.db_config) as session:
             stmt = select(distinct(target_column_attr))
-            join_clip = brain_types is not None
+            if brain_types is not None:
+                stmt = stmt.join(Clip, WorkflowRun.clip_name == Clip.clip_name)
 
             stmt = self._apply_common_filters(
                 stmt,

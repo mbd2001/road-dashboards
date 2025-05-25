@@ -240,7 +240,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/retrying-1.3.4-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-14.0.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-toolkit-0.11.3-pyh29332c3_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.42-pyh4616a5c_0.tar.bz2
+      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.43-pyh4616a5c_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/rqm-1.2.73-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rsa-4.9.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/run-mest-0.0.22-py_0.tar.bz2
@@ -637,7 +637,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/retrying-1.3.4-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-14.0.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-toolkit-0.11.3-pyh29332c3_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.42-pyh4616a5c_0.tar.bz2
+      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.43-pyh4616a5c_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/rqm-1.2.73-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rsa-4.9.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/run-mest-0.0.22-py_0.tar.bz2
@@ -924,7 +924,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/retrying-1.3.4-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-14.0.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-toolkit-0.11.3-pyh29332c3_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.42-pyh4616a5c_0.tar.bz2
+      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.43-pyh4616a5c_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/rqm-1.2.73-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rsa-4.7.2-pyh44b312d_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/run-mest-0.0.22-py_0.tar.bz2
@@ -1237,7 +1237,7 @@ environments:
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/retrying-1.3.4-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-14.0.0-pyh29332c3_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rich-toolkit-0.11.3-pyh29332c3_0.conda
-      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.42-pyh4616a5c_0.tar.bz2
+      - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.43-pyh4616a5c_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/rqm-1.2.73-py_0.tar.bz2
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/rsa-4.9.1-pyhd8ed1ab_0.conda
       - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/run-mest-0.0.22-py_0.tar.bz2
@@ -1547,6 +1547,8 @@ packages:
   - python >=3.9
   license: MIT
   license_family: MIT
+  purls:
+  - pkg:pypi/attrs?source=hash-mapping
   size: 57181
   timestamp: 1741918625732
 - pypi: https://files.pythonhosted.org/packages/b7/b8/3fe70c75fe32afc4bb507f75563d39bc5642255d1d94f1f23604725780bf/babel-2.17.0-py3-none-any.whl
@@ -3580,6 +3582,7 @@ packages:
   - libgcc-ng ==14.2.0=*_2
   license: GPL-3.0-only WITH GCC-exception-3.1
   license_family: GPL
+  purls: []
   size: 847885
   timestamp: 1740240653082
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libgcc-ng-14.2.0-h69a702a_2.conda
@@ -3612,6 +3615,7 @@ packages:
   - libgfortran 14.2.0
   license: GPL-3.0-only WITH GCC-exception-3.1
   license_family: GPL
+  purls: []
   size: 1461978
   timestamp: 1740240671964
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/libglib-2.84.1-h2ff4ddf_0.conda
@@ -4716,6 +4720,7 @@ packages:
   - __glibc >=2.17,<3.0.a0
   - libgcc >=13
   license: X11 AND BSD-3-Clause
+  purls: []
   size: 891641
   timestamp: 1738195959188
 - pypi: https://files.pythonhosted.org/packages/a0/c4/c2971a3ba4c6103a3d10c4b0f24f461ddc027f0f09763220cf35ca1401b3/nest_asyncio-1.6.0-py3-none-any.whl
@@ -4890,6 +4895,7 @@ packages:
   - libgcc >=13
   license: Apache-2.0
   license_family: Apache
+  purls: []
   size: 3121673
   timestamp: 1744132167438
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/orjson-3.10.16-py310h505e2c1_0.conda
@@ -5619,6 +5625,8 @@ packages:
   - typing_extensions >=4.12.2
   license: MIT
   license_family: MIT
+  purls:
+  - pkg:pypi/pydantic?source=hash-mapping
   size: 306616
   timestamp: 1744192311966
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/linux-64/pydantic-core-2.33.1-py310hc1293b2_0.conda
@@ -6178,13 +6186,13 @@ packages:
   timestamp: 1733750834072
 - pypi: .
   name: road-dashboards
-  version: 0.2.66
-  sha256: 79e18bbb0ea859faaca38d0531568035c543380ee56a7dffd5a0a3fba84cc657
+  version: 0.2.73
+  sha256: b75277961cbc5034ab17798105c0bbbe849134c39dc9544bfa01ba19a2699440
   requires_python: '>=3.10'
   editable: true
-- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.42-pyh4616a5c_0.tar.bz2
-  sha256: a37994c5013e2bfd0066e40f66de63b65b2de6eb381a6940ebfc5a3e071f2db4
-  md5: 7848034f942d7ca54076576aedbc5071
+- conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/me-conda-dev-local/noarch/road-database-toolkit-0.1.43-pyh4616a5c_0.tar.bz2
+  sha256: 95b8fdb6fe30579633eb1d12fa35d9cd4d3bf97eec0614ed56405784f888fbb0
+  md5: 07f61d68208ce7196f44f5113864f19c
   depends:
   - python
   - loguru
@@ -6202,8 +6210,8 @@ packages:
   - alembic
   - psycopg2-binary
   - python
-  size: 36109
-  timestamp: 1744624978741
+  size: 36875
+  timestamp: 1746710121711
 - pypi: https://files.pythonhosted.org/packages/bf/08/b543969c12a8f44db6c0f08ced009abf8f519191ca6985509e7c44102e3c/rpds_py-0.24.0-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
   name: rpds-py
   version: 0.24.0
@@ -6592,6 +6600,8 @@ packages:
   - python
   license: BSD-3-Clause
   license_family: BSD
+  purls:
+  - pkg:pypi/starlette?source=hash-mapping
   size: 62335
   timestamp: 1744661396275
 - pypi: https://files.pythonhosted.org/packages/07/6d/58de58c521e7fb79bceb4da90d55250070bb4adfa3c870b82519a561c79d/super_collections-0.5.3-py3-none-any.whl
@@ -6801,6 +6811,7 @@ packages:
   - typing_extensions ==4.13.2 pyh29332c3_0
   license: PSF-2.0
   license_family: PSF
+  purls: []
   size: 89900
   timestamp: 1744302253997
 - conda: https://artifactory.sddc.mobileye.com/artifactory/api/conda/conda-condaforge-remote/noarch/typing-inspection-0.4.0-pyhd8ed1ab_0.conda
