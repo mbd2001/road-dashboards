@@ -1,27 +1,21 @@
-from functools import reduce
-from operator import iconcat
-
 import dash_bootstrap_components as dbc
 import numpy as np
+import pandas as pd
 from dash import ALL, MATCH, Input, Output, State, callback, dcc, html, no_update, register_page
 from road_database_toolkit.athena.athena_utils import query_athena
 
 from road_dashboards.road_eval_dashboard.components import base_dataset_statistics, meta_data_filter
 from road_dashboards.road_eval_dashboard.components.components_ids import (
     ALL_SCENE_CONF_DIAGONALS,
-    ALL_SCENE_CONF_DIAGONALS_MEST,
     ALL_SCENE_CONF_MATS,
     ALL_SCENE_CONF_MATS_MEST,
     ALL_SCENE_ROC_CURVES,
-    ALL_SCENE_SCORES,
     MD_FILTERS,
     NETS,
     SCENE_CONF_DIAGONALS,
-    SCENE_CONF_DIAGONALS_MEST,
     SCENE_CONF_MAT,
     SCENE_CONF_MAT_MEST,
     SCENE_ROC_CURVE,
-    SCENE_SCORE,
     SCENE_SIGNALS_CONF_MATS_DATA,
     SCENE_SIGNALS_DATA_READY,
     SCENE_SIGNALS_LIST,
@@ -33,17 +27,15 @@ from road_dashboards.road_eval_dashboard.components.page_properties import PageP
 from road_dashboards.road_eval_dashboard.components.queries_manager import (
     ROC_THRESHOLDS,
     generate_cols_query,
-    generate_compare_query,
     generate_roc_query,
     process_net_names_list,
     run_query_with_nets_names_processing,
 )
-from road_dashboards.road_eval_dashboard.graphs.bar_graph import basic_bar_graph
 from road_dashboards.road_eval_dashboard.graphs.confusion_matrix import draw_confusion_matrix
 from road_dashboards.road_eval_dashboard.graphs.roc_curve import draw_roc_curve
 from road_dashboards.road_eval_dashboard.graphs.tp_rate_graph import draw_conf_diagonal_compare
 
-scene_class_names = ["False", "True"]
+binary_scene_class_names = ["False", "True"]
 extra_properties = PageProperties("line-chart")
 register_page(__name__, path="/scene", name="Scene", order=8, **extra_properties.__dict__)
 
@@ -63,15 +55,9 @@ layout = html.Div(
         base_dataset_statistics.frame_layout,
         _init_dcc_stores(),
         html.Div(
-            id=ALL_SCENE_SCORES,
-        ),
-        html.Div(
             id=ALL_SCENE_ROC_CURVES,
         ),
         loading_wrapper([html.Div(id=SCENE_SIGNALS_DATA_READY)]),
-        html.Div(
-            id=ALL_SCENE_CONF_DIAGONALS_MEST,
-        ),
         html.Div(
             id=ALL_SCENE_CONF_DIAGONALS,
         ),
@@ -95,57 +81,15 @@ def _name2title(name):
 
 
 def _generate_charts_per_net(base_id, scene_signals):
-    # arrange charts in 2 columns such that left/right signals appear
-    # first on the same row and then the rest of the signals
+    number_of_graph_per_row = 2
     children = []
-    lr_signals = [
-        [signal, signal.replace("left", "right")]
-        for signal in sorted(scene_signals)
-        if "left" in signal and signal.replace("left", "right") in scene_signals
-    ]
-    other_signals = sorted(set(scene_signals) - set(reduce(iconcat, lr_signals, [])))
-    for signal_pair in lr_signals:
-        children.append(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [graph_wrapper({**base_id, **{"signal": signal_pair[0]}})],
-                        width=6,
-                    ),
-                    dbc.Col(
-                        [graph_wrapper({**base_id, **{"signal": signal_pair[1]}})],
-                        width=6,
-                    ),
-                ]
-            ),
-        )
-    for ind, _ in enumerate(other_signals[:-1:2]):
-        children.append(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [graph_wrapper({**base_id, **{"signal": other_signals[ind]}})],
-                        width=6,
-                    ),
-                    dbc.Col(
-                        [graph_wrapper({**base_id, **{"signal": other_signals[ind + 1]}})],
-                        width=6,
-                    ),
-                ]
-            ),
-        )
-    if len(scene_signals) % 2:
-        children.append(
-            dbc.Row(
-                [
-                    dbc.Col(
-                        [graph_wrapper({**base_id, **{"signal": other_signals[-1]}})],
-                        width=6,
-                    ),
-                    dbc.Col([], width=6),
-                ]
-            ),
-        )
+    for ind in range(0, len(scene_signals), number_of_graph_per_row):
+        row_graph_signals = scene_signals[ind : ind + number_of_graph_per_row]
+        row_graphs = [
+            dbc.Col(graph_wrapper({**base_id, **{"signal": scene_signal}}), width=6)
+            for scene_signal in row_graph_signals
+        ]
+        children.append(dbc.Row(row_graphs))
     return children
 
 
@@ -172,24 +116,16 @@ def _generate_charts(chart_type, nets, scene_signals_list, per_net=False):
     return children
 
 
-@callback(Output(ALL_SCENE_SCORES, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
-def generate_score_charts(nets, scene_signals_list):
-    return _generate_charts(SCENE_SCORE, nets, scene_signals_list)
-
-
 def _generate_matrices_per_signal(nets, meta_data_filters, signal):
     label_col = f"scene_signals_{signal.replace('_mest', '')}_label"
     pred_col = f"scene_signals_{signal}_pred"
-    net_names = process_net_names_list(nets["names"])
-    if signal.endswith("_mest"):
-        net_names = [net_names[0]]
     mats = generate_conf_matrices(
         label_col=label_col,
         pred_col=pred_col,
         nets_tables=nets["frame_tables"],
         meta_data_table=nets["meta_data"],
         meta_data_filters=meta_data_filters,
-        class_names=scene_class_names,
+        class_names=binary_scene_class_names,
         compare_sign=True,
         ignore_val=0,
     )
@@ -228,6 +164,7 @@ def get_scene_signal_list(nets):
             for table_name in cols_data["TABLE_NAME"]
         ]
     )
+
     list_of_scene_signals = {"pred": sorted(cols_pred_names), "mest": sorted(cols_mest_names)}
     return list_of_scene_signals
 
@@ -253,38 +190,13 @@ def _generate_matrices(meta_data_filters, nets, signals):
 
 
 @callback(
-    Output({"type": SCENE_SCORE, "signal": MATCH}, "figure"),
-    Input({"type": SCENE_SCORE, "signal": MATCH}, "id"),
-    Input(MD_FILTERS, "data"),
-    State(NETS, "data"),
-)
-def get_scene_score(id, meta_data_filters, nets):
-    if not nets:
-        return no_update
-
-    signal = id["signal"]
-    labels = f"scene_signals_{signal}_label"
-    preds = f"scene_signals_{signal}_pred"
-    query = generate_compare_query(
-        nets["frame_tables"],
-        nets["meta_data"],
-        labels,
-        preds,
-        meta_data_filters=meta_data_filters,
-        extra_filters=f"{labels} != 0",
-        compare_sign=True,
-    )
-    data, _ = run_query_with_nets_names_processing(query)
-    fig = basic_bar_graph(data, x="net_id", y="score", title=f"{_name2title(signal)} Score", color="net_id")
-    return fig
-
-
-@callback(
     Output(ALL_SCENE_ROC_CURVES, "children"),
     State(NETS, "data"),
     Input(SCENE_SIGNALS_LIST, "data"),
 )
 def generate_roc_curves(nets, scene_signals_list):
+    if not scene_signals_list:
+        return []
     return _generate_charts(SCENE_ROC_CURVE, nets, scene_signals_list)
 
 
@@ -299,23 +211,39 @@ def get_scene_roc_curve(id, meta_data_filters, nets):
         return no_update
 
     signal = id["signal"]
-    label_col = f"scene_signals_{signal}_label"
-    pred_col = f"scene_signals_{signal}_pred"
     query = generate_roc_query(
         nets["frame_tables"],
         nets["meta_data"],
         meta_data_filters=meta_data_filters,
-        label_col=label_col,
-        pred_col=pred_col,
+        label_col=f"scene_signals_{signal}_label",
+        pred_col=f"scene_signals_{signal}_pred",
         thresholds=ROC_THRESHOLDS,
     )
     data, _ = run_query_with_nets_names_processing(query)
     data = data.fillna(1)
+
+    try:  # mest query
+        query_mest = generate_roc_query(
+            nets["frame_tables"],
+            nets["meta_data"],
+            meta_data_filters=meta_data_filters,
+            label_col=f"scene_signals_{signal}_label",
+            pred_col=f"scene_signals_{signal}_mest_pred",
+            thresholds=ROC_THRESHOLDS,
+        )
+        data_mest, _ = run_query_with_nets_names_processing(query_mest)
+        data_mest = data_mest.loc[[0]]
+        data_mest.loc[0, "net_id"] = "Mest"
+        data = pd.concat([data, data_mest], axis=0)
+    except:
+        pass  # no mest data for this signal
     return draw_roc_curve(data, _name2title(signal), thresholds=ROC_THRESHOLDS)
 
 
 @callback(Output(ALL_SCENE_CONF_DIAGONALS, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
 def generate_scene_conf_diagonals(nets, scene_signals_list):
+    if not scene_signals_list:
+        return []
     return _generate_charts(SCENE_CONF_DIAGONALS, nets, scene_signals_list)
 
 
@@ -329,12 +257,6 @@ def _get_mest_scene_signals(scene_signals_list):
         return []
     scene_signals = [f"{signal}_mest" for signal in scene_signals_list.get("mest", [])]
     return scene_signals
-
-
-@callback(Output(ALL_SCENE_CONF_DIAGONALS_MEST, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
-def generate_scene_conf_diagonals_mest(nets, scene_signals_list):
-    scene_signals = _get_mest_scene_signals(scene_signals_list)
-    return _generate_charts(SCENE_CONF_DIAGONALS_MEST, nets, scene_signals)
 
 
 @callback(Output(ALL_SCENE_CONF_MATS_MEST, "children"), State(NETS, "data"), Input(SCENE_SIGNALS_LIST, "data"))
@@ -355,7 +277,7 @@ def _generate_scene_conf_mat_chart(id, conf_mats):
     return draw_confusion_matrix(
         np.array(conf_mats[signal][net]["conf_matrix"]),
         np.array(conf_mats[signal][net]["normalize_mat"]),
-        scene_class_names,
+        binary_scene_class_names,
         mat_name=mat_name,
     )
 
@@ -385,10 +307,15 @@ def _generate_scene_conf_diagonals_chart(id, conf_mats):
     if not conf_mats:
         return no_update
     signal = id["signal"]
+    if signal.endswith("_mest"):
+        return
     normalize_mats = [np.array(mat["normalize_mat"]) for mat in conf_mats[signal].values()]
     net_names = list(conf_mats[signal].keys())
+    if f"{signal}_mest" in conf_mats.keys():
+        normalize_mats.append(np.array(list(conf_mats[f"{signal}_mest"].values())[0]["normalize_mat"]))
+        net_names.append("MEST")
     mat_name = _name2title(signal)
-    return draw_conf_diagonal_compare(normalize_mats, net_names, scene_class_names, mat_name=mat_name)
+    return draw_conf_diagonal_compare(normalize_mats, net_names, binary_scene_class_names, mat_name=mat_name)
 
 
 @callback(
@@ -397,13 +324,4 @@ def _generate_scene_conf_diagonals_chart(id, conf_mats):
     Input(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
 )
 def generate_scene_conf_diagonal_chart(id, conf_mats):
-    return _generate_scene_conf_diagonals_chart(id, conf_mats)
-
-
-@callback(
-    Output({"type": SCENE_CONF_DIAGONALS_MEST, "signal": MATCH}, "figure"),
-    Input({"type": SCENE_CONF_DIAGONALS_MEST, "signal": MATCH}, "id"),
-    Input(SCENE_SIGNALS_CONF_MATS_DATA, "data"),
-)
-def generate_scene_conf_diagonals_mest_chart(id, conf_mats):
     return _generate_scene_conf_diagonals_chart(id, conf_mats)

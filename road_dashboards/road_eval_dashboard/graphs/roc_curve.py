@@ -3,11 +3,12 @@ import plotly.graph_objects as go
 
 from road_dashboards.road_eval_dashboard.components.queries_manager import ROC_THRESHOLDS, process_net_name
 from road_dashboards.road_eval_dashboard.graphs.precision_recall_curve import calc_fb
+from road_dashboards.road_eval_dashboard.utils.calculations import divide_consider_zero
 
 
 def draw_roc_curve(data, prefix="", thresholds=ROC_THRESHOLDS):
     fig = go.Figure()
-    fig.add_shape(type="line", line=dict(dash="dash"), x0=0, x1=1, y0=1, y1=0)
+    fig.add_shape(type="line", line=dict(dash="dash"), x0=0, y0=0, x1=1, y1=1)
 
     for ind, row in data.iterrows():
         precision, tp_rate, fp_rate, fb_scores, best_fb, best_thresh, thresholds = get_roc_stat_for_net(
@@ -44,9 +45,9 @@ def get_roc_stat_for_net(data, thresholds=ROC_THRESHOLDS):
     fn = np.array([data[f"fn_{i}"] for i in range(thresholds.size)])
     tn = np.array([data[f"tn_{i}"] for i in range(thresholds.size)])
 
-    precision = tp / (tp + fp)
-    recall = tp / (tp + fn)
-    fp_rate = fp / (fp + tn)
+    precision = divide_consider_zero(tp, (tp + fp))
+    recall = divide_consider_zero(tp, (tp + fn))
+    fp_rate = divide_consider_zero(fp, (fp + tn))
     fb_scores = calc_fb(precision, recall)
     best_fb_ind = np.nanargmax(fb_scores)
     best_fb = fb_scores[best_fb_ind]

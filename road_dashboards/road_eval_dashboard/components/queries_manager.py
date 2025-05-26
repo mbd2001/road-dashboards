@@ -5,9 +5,10 @@ import numpy as np
 import pandas as pd
 from road_database_toolkit.athena.athena_utils import athena_run_multiple_queries, query_athena
 
-from road_dashboards.road_eval_dashboard.utils.distances import SECONDS, compute_distances_dict
+from road_dashboards.road_eval_dashboard.utils.distances import SECONDS
 from road_dashboards.road_eval_dashboard.utils.quality.quality_config import (
     DPQualityQueryConfig,
+    compute_fixed_thresholds,
 )
 from road_dashboards.road_eval_dashboard.utils.quality.quality_functions import get_counts_expressions_for_sec
 
@@ -46,9 +47,9 @@ COUNT_QUERY = """
     """
 
 CONF_MAT_QUERY = """
-    SELECT net_id, "{group_by_label}" as "{label_col}", "{group_by_pred}" as "{pred_col}", COUNT(*) AS "{count_name}"
+    SELECT net_id, {group_by_label} as "{label_col}", {group_by_pred} as "{pred_col}", COUNT(*) AS "{count_name}"
     FROM ({base_query})
-    GROUP BY net_id, "{group_by_label}", "{group_by_pred}"
+    GROUP BY net_id, {group_by_label}, {group_by_pred}
     """
 
 COLUMN_OPTION_QUERY = """
@@ -93,7 +94,6 @@ PATHNET_THRESHOLD_METRIC = """
     COUNT(*)
     AS precision_{ind}
     """
-
 
 ROC_STATS_METRIC = """
     CAST(COUNT(CASE WHEN {label_col} > 0 AND {pred_col} >= {threshold} {extra_filters} THEN 1 ELSE NULL END) AS DOUBLE) AS tp_{ind},
@@ -1331,8 +1331,8 @@ def generate_conf_mat_query(
         role=role,
         ca_oriented=ca_oriented,
     )
-    group_by_label = f'(CASE WHEN "{label_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else label_col
-    group_by_pred = f'(CASE WHEN "{pred_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else pred_col
+    group_by_label = f'(CASE WHEN "{label_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else f'"{label_col}"'
+    group_by_pred = f'(CASE WHEN "{pred_col}" >= 0 THEN 1 ELSE -1 END)' if compare_sign else f'"{pred_col}"'
     conf_query = CONF_MAT_QUERY.format(
         group_by_label=group_by_label,
         group_by_pred=group_by_pred,
@@ -1443,13 +1443,6 @@ def generate_roc_query(
     assert label_col is not None
     assert pred_col is not None
 
-    metrics = (
-        get_roc_stats_per_filter_metrics(
-            label_col, pred_col, interesting_filters, ROC_STATS_METRIC, threshold=input_thresh
-        )
-        if interesting_filters
-        else get_roc_stats_curve_metrics(label_col, pred_col, ROC_STATS_METRIC, thresholds=thresholds)
-    )
     extra_columns = [label_col, pred_col]
     base_query = generate_base_query(
         data_tables,
@@ -1459,7 +1452,15 @@ def generate_roc_query(
         extra_filters=extra_filters,
         role=role,
     )
-    group_by = get_roc_group_by(label_col, pred_col, input_thresh)
+    group_by = get_group_by(label_col, pred_col, input_thresh)
+
+    metrics = (
+        get_roc_stats_per_filter_metrics(
+            label_col, pred_col, interesting_filters, ROC_STATS_METRIC, threshold=input_thresh
+        )
+        if interesting_filters != {}
+        else get_roc_stats_curve_metrics(label_col, pred_col, ROC_STATS_METRIC, thresholds=thresholds)
+    )
     final_query = DYNAMIC_METRICS_QUERY.format(
         metrics=metrics, base_query=base_query, group_by=group_by if interesting_filters else "net_id"
     )
@@ -1484,7 +1485,7 @@ def get_roc_stats_curve_metrics(label_col, pred_col, metric, thresholds=ROC_THRE
     return metrics
 
 
-def get_roc_group_by(label_col, pred_col, input_thresh={}):
+def get_group_by(label_col, pred_col, input_thresh={}):
     if not input_thresh:
         group_by = "net_id"
         return group_by
@@ -1595,9 +1596,10 @@ def build_dp_all_quality_metrics_query(config: DPQualityQueryConfig) -> str:
     Build a query that returns aggregated TP, FP, FN, and TN counts per second.
 
     """
-    sec_to_threshold_dict = compute_distances_dict()
-    quality_col = [f'"{config.base_dp_quality_col_name}_{sec}"' for sec in SECONDS]
+    thresholds = compute_fixed_thresholds()
+    sec_to_threshold_dict = dict(zip(SECONDS, thresholds))
 
+    quality_col = [f'"{config.base_dp_quality_col_name}_{sec}"' for sec in SECONDS]
     metrics_exprs = []
 
     for sec, dist_thresh in sec_to_threshold_dict.items():
