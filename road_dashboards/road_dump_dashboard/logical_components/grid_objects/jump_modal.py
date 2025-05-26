@@ -53,6 +53,7 @@ class JumpModal(GridObject):
         self.generate_jump_btn_id = self._generate_id("generate_jump_btn")
         self.download_jump_id = self._generate_id("download_jump")
         self.curr_query_id = self._generate_id("curr_query")
+        self.jump_name_input_id = self._generate_id("jump_name_input")
 
     def layout(self):
         jump_layout = dbc.Modal(
@@ -62,13 +63,29 @@ class JumpModal(GridObject):
                     [
                         dcc.Store(id=self.curr_query_id),
                         dbc.Row(
-                            dcc.Dropdown(
-                                id=self.extra_columns_dropdown_id,
-                                multi=True,
-                                clearable=True,
-                                placeholder="Extra columns to export",
-                                value=None,
-                            )
+                            dbc.Col(
+                                dcc.Dropdown(
+                                    id=self.extra_columns_dropdown_id,
+                                    multi=True,
+                                    clearable=True,
+                                    placeholder="Extra columns to export",
+                                    value=None,
+                                ),
+                                width=12,  # Ensure consistent left and right margins
+                            ),
+                            className="mb-3",
+                        ),
+                        dbc.Row(
+                            dbc.Col(
+                                dcc.Input(
+                                    id=self.jump_name_input_id,
+                                    style={"minWidth": "100%"},
+                                    placeholder="Enter jump file name (default tmp_name.jump):",
+                                    type="text",
+                                ),
+                                width=12,  # Ensure consistent left and right margins
+                            ),
+                            className="mb-3",
                         ),
                         dbc.Row(
                             [
@@ -196,8 +213,9 @@ class JumpModal(GridObject):
             State(self.limit_input_id, "value"),
             State(self.extra_columns_dropdown_id, "value"),
             State(self.page_filters_id, "data"),
+            State(self.jump_name_input_id, "value"),
         )
-        def generate_jump(n_clicks, curr_query, diff_tolerance, lines_limit, extra_terms, page_filters):
+        def generate_jump(n_clicks, curr_query, diff_tolerance, lines_limit, extra_terms, page_filters, jump_name):
             if not n_clicks or not curr_query:
                 return no_update
 
@@ -226,7 +244,7 @@ class JumpModal(GridObject):
             if jump_frames.empty:
                 return no_update
 
-            jump_name = "tmp_name"
+            jump_name = jump_name if jump_name else "tmp_name"
             return dict(content=df_to_jump(jump_frames), filename=f"{jump_name}.jump")
 
     @staticmethod
