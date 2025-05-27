@@ -155,7 +155,14 @@ deploy:docker:workflows-dashboard:
   extends: .deploy-containers
   before_script:
     - apk add --no-cache curl bash
-    - *before_script_common
+    - |
+      if ! command -v pixi > /dev/null 2>&1; then
+        echo "Installing Pixi." && curl -fsSL https://pixi.sh/install.sh | bash
+        export PATH=$HOME/.pixi/bin:$PATH
+      else
+        echo "Pixi is already installed."
+      fi
+    - source .auth/.setup_auth.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
       when: never
