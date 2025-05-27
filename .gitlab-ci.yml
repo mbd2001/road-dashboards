@@ -109,6 +109,7 @@ deploy:docs:
   extends: .only-master-pushes
 
 .deploy-containers:
+  image: docker:cli
   tags:
     - road-algo-medium
   variables:
@@ -146,6 +147,9 @@ deploy:docker:eval-dashboard:
 
 deploy:docker:workflows-dashboard:
   stage: *deploy
+  before_script:
+    - apk add aws-cli
+    - source .auth/.setup_auth.sh
   variables:
     IMAGE_NAME: workflows-dashboard
     DOCKERFILE_NAME: ./docker/Dockerfile.workflows-dashboard
