@@ -154,7 +154,7 @@ deploy:docker:workflows-dashboard:
     DOCKERFILE_NAME: ./docker/Dockerfile.workflows-dashboard
   extends: .deploy-containers
   before_script:
-    - apk add --no-cache curl bash
+    - apk add --no-cache curl bash aws-cli
     - |
       if ! command -v pixi > /dev/null 2>&1; then
         echo "Installing Pixi." && curl -fsSL https://pixi.sh/install.sh | bash
