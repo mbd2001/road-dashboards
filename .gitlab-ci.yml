@@ -105,17 +105,30 @@ deploy:docs:
   extends: .only-master-pushes
 
 .deploy-containers:
-  image: docker:cli
+  image: docker:25.0
+  services:
+    - name: docker:25.0-dind
   tags:
     - road-algo-medium
-  variables:
-    DOCKER_BUILDKIT: "0"
   script:
     - task docker:build_and_push
+  before_script:
+    - apk add --no-cache curl bash aws-cli
+    - |
+      if ! command -v pixi > /dev/null 2>&1; then
+        echo "Installing Pixi." && curl -fsSL https://pixi.sh/install.sh | bash
+        export PATH=$HOME/.pixi/bin:$PATH
+      else
+        echo "Pixi is already installed."
+      fi
+    - source .auth/.setup_auth.sh
 
 deploy:docker:data-exploration:
   stage: *deploy
   variables:
+    DOCKER_BUILDKIT: "0"
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
     IMAGE_NAME: road-data-exploration
     DOCKERFILE_NAME: ./docker/Dockerfile.data-exploration
   extends: .deploy-containers
@@ -130,6 +143,9 @@ deploy:docker:data-exploration:
 deploy:docker:eval-dashboard:
   stage: *deploy
   variables:
+    DOCKER_BUILDKIT: "0"
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_HOST: tcp://docker:2375
     IMAGE_NAME: road-eval-dashboard
     DOCKERFILE_NAME: ./docker/Dockerfile.eval-dashboard
   extends: .deploy-containers
@@ -143,9 +159,6 @@ deploy:docker:eval-dashboard:
 
 deploy:docker:workflows-dashboard:
   stage: *deploy
-  image: docker:25.0
-  services:
-    - name: docker:25.0-dind
   variables:
     DOCKER_BUILDKIT: "0"
     DOCKER_TLS_CERTDIR: ""
@@ -153,16 +166,6 @@ deploy:docker:workflows-dashboard:
     IMAGE_NAME: workflows-dashboard
     DOCKERFILE_NAME: ./docker/Dockerfile.workflows-dashboard
   extends: .deploy-containers
-  before_script:
-    - apk add --no-cache curl bash aws-cli
-    - |
-      if ! command -v pixi > /dev/null 2>&1; then
-        echo "Installing Pixi." && curl -fsSL https://pixi.sh/install.sh | bash
-        export PATH=$HOME/.pixi/bin:$PATH
-      else
-        echo "Pixi is already installed."
-      fi
-    - source .auth/.setup_auth.sh
   rules:
     - if: $CI_PIPELINE_SOURCE == "pipeline"
       when: never
